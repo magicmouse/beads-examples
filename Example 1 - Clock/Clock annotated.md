@@ -9,7 +9,7 @@ This simple program will draw a clock on the screen, using a green circle with a
 
 Beads is designed to generate Mac and Windows desktop programs, iOS apps, Android Apps *(via the Adobe AIR runtime)*, and websites *(via Javascript output)*. You can download the [executable version](http://magicmouse.com/beads/examples/Clock.air) of the clock program which will require Adobe AIR to run *(available free at Adobe.com)*
 
-The first line of every Beads program must declare the level of the language. This allows future generations to take code from decades before and forward convert it automatically. Any language without a required marker for the version of the language in which it was written (which unfortunately includes C, C++, Javascript, and **almost every other language**), causes massive compatibility problems down the road as the language inevitably evolves. Not being able to use previously debugged code is like burning books!
+The first line of every Beads program must declare the level of the language. This allows future generations to take code from decades before and forward convert it automatically. Not being able to use previously debugged code is like burning books!
 
 ```
 #beads level 1 module clock
