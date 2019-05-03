@@ -5,7 +5,7 @@ The examples have an annotated code form (in markdown .md form), the raw source 
 
 ## Example 1 - A simple analog clock, one of the shortest programs that actually does something useful
 
-![clock example](http://magicmouse.com/beads/examples/clock_screenshot_anim.gif)
+![clock example](https://github.com/magicmouse/beads-examples/images/clock_screenshot_anim.gif)
 
 ## Example 2 - A wristwatch simulation, another very short program that does some bitmap manipulation
 
