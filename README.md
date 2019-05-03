@@ -9,6 +9,6 @@ The examples have an annotated code form (in markdown .md form), the raw source 
 
 ## Example 2 - A wristwatch simulation, another very short program that does some bitmap manipulation
 
-![watch example](http://magicmouse.com/beads/examples/watch_example_animated.gif)
+![watch example](https://github.com/magicmouse/beads-examples/blob/master/images/watch_example_animated.gif)
 
 
