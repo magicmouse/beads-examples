@@ -32,5 +32,3 @@ The classic snake game as popularized by Nokia cellphones. Probably the most fun
  
  * In the event the playing window is resized (on a desktop computer for example), if after recalculating the size of the playing grid, and any part of the snake that is now off-screen is repositioned to the edge of the screen, and as the snake moves along any overlapping cells will effectively accordian out.  If the Apple is offscreen, it will be repositioned inside the limits of the playing grid.
  
-  
- 
