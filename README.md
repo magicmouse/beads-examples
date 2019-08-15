@@ -1,14 +1,28 @@
-# Examples of Beads programs
 
-These are example programs in Beads that allow you to learn the program quickly.
-The examples have an annotated code form (in markdown .md form), the raw source (.beads), and perhaps compiled versions (.html for browser, and .air for Adobe Air Desktop format). 
+##Programming examples
 
-## Example 1 - A simple analog clock, a tiny program that draws an analog clock
+These are examples with specifications posted in this repository.
 
-![clock example](https://github.com/magicmouse/beads-examples/blob/master/images/clock_screenshot_anim.gif)
+###Example 1: Analog clock
 
-## Example 2 - A wristwatch simulation, a tiny program that does some bitmap manipulation
+This simple program will draw a clock on the screen. This is among the shortest possible graphical programs one can imagine. Program complexity rating: 150 words.
 
-![watch example](https://github.com/magicmouse/beads-examples/blob/master/images/watch_example_animated.gif)
+![clock example](http://magicmouse.com/beads/examples/clock/clock_screenshot_anim.gif)
 
+###Example 2: Wristwatch simulation
 
+This simple program simulates a wristwatch. Program complexity rating: 180 words.
+
+![watch example](http://magicmouse.com/beads/examples/watch/watch_example_animated.gif)
+
+###Example 3: A Snake game
+
+The classic snake game as popularized by Nokia cellphones. Probably the most fun per line of code ever made. Program complexity rating: 500 words.
+
+![snake example](http://magicmouse.com/beads/examples/snake/snake_animated.gif)
+
+###Example 4: A tic-tac-toe game
+
+The classic children's game, two player (no AI). Complexity rating: 520 words
+
+![tictactoe example](http://magicmouse.com/beads/examples/TicTacToe/tictactoe.gif)
