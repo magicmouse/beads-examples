@@ -39,3 +39,8 @@ The classic board game. Complexity rating: 1500 words
 
 ![chess example](http://magicmouse.com/beads/examples/chess/chess.png)
 
+### Example 7: Bearsweeper
+
+The classic Minesweeper game, recast with a Bear in the starring role. Complexity rating: 1000 words
+
+![bearsweeper example](http://magicmouse.com/beads/examples/bearsweeper/game1_small.png)
