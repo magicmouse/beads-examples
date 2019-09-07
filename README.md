@@ -26,3 +26,9 @@ The classic snake game as popularized by Nokia cellphones. Probably the most fun
 The classic children's game, two player (no AI). Complexity rating: 520 words
 
 ![tictactoe example](http://magicmouse.com/beads/examples/TicTacToe/tictactoe.gif)
+
+### Example 5: A calculator
+
+The classic Apple calculator program, except without the bugs that Apple has!
+
+![calculator example](http://magicmouse.com/beads/examples/calculator/calculator.gif)
