@@ -15,20 +15,27 @@ This simple program simulates a wristwatch. Program complexity rating: 180 words
 
 ![watch example](http://magicmouse.com/beads/examples/watch/watch_example_animated.gif)
 
-### Example 3: A Snake game
+### Example 3: Snake
 
 The classic snake game as popularized by Nokia cellphones. Probably the most fun per line of code ever made. Program complexity rating: 500 words.
 
 ![snake example](http://magicmouse.com/beads/examples/snake/snake_animated.gif)
 
-### Example 4: A tic-tac-toe game
+### Example 4: Tic-tac-toe
 
 The classic children's game, two player (no AI). Complexity rating: 520 words
 
 ![tictactoe example](http://magicmouse.com/beads/examples/TicTacToe/tictactoe.gif)
 
-### Example 5: A calculator
+### Example 5: Calculator
 
-The classic Apple calculator program, except without the bugs that Apple has!
+The classic Apple calculator program, except without the bugs that Apple has! Complexity rating: 500 words
 
 ![calculator example](http://magicmouse.com/beads/examples/calculator/calculator.gif)
+
+### Example 6: Chess
+
+The classic Apple calculator program, except without the bugs that Apple has! Complexity rating: 500 words
+
+![chess example](http://magicmouse.com/beads/examples/chess/chess.gif)
+
