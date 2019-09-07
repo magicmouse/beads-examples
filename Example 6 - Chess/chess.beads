@@ -1,0 +1,798 @@
+beads level 1 program chess  -- written by edj september 2019
+//  note that due to a bug still not fixed as of Chrome 76, Chrome incorrectly renders 
+//  the black chess piece in emoji instead of in text form. Has been reported to Google,
+//  but don't expect them to fix it ever.
+//  if you wish to see an amazing feat of obscuration, Oscar Toledo wrote a chess program that is 
+//  so tiny it is unbelievable. See it at nanochess.org/archive/toledo_javascript_chess_3.html
+//  good luck understanding that code!
+
+================================
+//    CHESS
+================================
+assets local:"art/" 
+	file: "check.mp3" label:CHECK_SOUND
+	file: "beep.mp3" label:BEEP
+	file: "checkmate.mp3" label:CHECKMATE_SOUND
+	file: "stalemate.mp3" label:STALEMATE_SOUND
+
+//  each square in the board tracks the piece, the side, and if it ever moved
+record a_square
+	piece  : (KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN, EMPTY)
+	side   : (BLACK, WHITE)	 --  white, black, ignore if empty, note that WHITE is a color in std lib
+	moved  : yesno --  yes means we have moved this piece at least once
+
+//  each potential move is stored in a record
+record a_move
+	can_move : yesno  --  can the currently selected piece move to this square?
+	takey		//  Y coordinate of the en passant pawn being captured
+
+record a_history   -- used to record the history of the game
+	piece     			 --  piece that is moving
+	from_sq   : a_xy
+	to_sq     : a_xy
+	is_capturing : yesno  --  are we capturing a piece?
+	is_check     : yesno  --  are we causing check?
+	is_checkmate : yesno  --  are we in checkmate?
+	is_stalemate : yesno  --  are we in stalemate?
+	is_castling_q  : yesno  --  are we castling queenside?
+	is_castling_k  : yesno  --  are we castling kingside?
+
+//  our game state record
+record a_game
+	board      : array^2 of a_square
+	selected   : a_xy   --  xy coordinate of the piece that is currently selected	
+	turn          --  whose turn, BLACK or WHITE	
+	opponent      --  the other side, WHITE or BLACK
+	phase         : (PICK_PIECE, PICK_DEST, GAME_OVER)
+	passant_col   --  if set, someone just moved a pawn 2 steps in this col
+	king_pos      : array of a_xy      -- where our kings are
+	history       : array of a_history -- moves we have made so far
+	moves         : array^2 of a_move  -- 8x8 grid of reachable squares
+
+var game : a_game
+
+const
+	//  background colors for checkerboard squares
+	DARK_SQUARE   ⇐ #835931  -- dark brown
+	//DARK_SQUARE_HI  ⇐ #976738
+
+	LIGHT_SQUARE  ⇐ #cdb075  -- tan
+	//LIGHT_SQUARE_HI  ⇐ #e4c482
+
+	BORDER  ⇐ #402c17  -- outside border, very dark brown
+	HILITE_CURR  ⇐ #8670c5  -- purple hilite for current selected piece
+	HILITE_MOVE  ⇐ #89c294  -- green hilite for a piece that can move
+
+	//  the foreground/background colors we use to draw the pieces
+	B_FILL    ⇐ #494040 -- 373030  --  dark gray
+	B_STROKE  ⇐ #1c1818
+	
+	W_FILL    ⇐ #ebd3bc  --  cream
+	W_STROKE  ⇐ B_FILL 
+
+	//  unicode representation of the pieces, draw at 75% of square height 
+	//  the outline form is -6 in unicode
+	PIECE_SS : array of str ⇐ { KING:"\u265A", QUEEN:"\u265B", ROOK:"\u265C", BISHOP:"\u265D", KNIGHT:"\u265E", PAWN:"\u265F" }
+
+	PIECE_TO_ABBREV : array of str ⇐ { KING:"K", QUEEN:"Q", ROOK:"R", BISHOP:"B", KNIGHT:"N", PAWN:"" }
+
+	//  handy arrays indexed by WHITE or BLACK to get some value
+	PAWN_DIRECTION : array of num ⇐ { WHITE:-1, BLACK:+1 }  -- direction pawns go in
+	PASSANT_ROW    : array of num ⇐ { WHITE:4, BLACK:5 }  --  row of pawn that is taken
+
+================
+calc main_init  --  one time init 
+	trunc game  -- clear out previous game
+	game.turn ⇐ WHITE
+	game.opponent ⇐ BLACK
+	game.phase ⇐ PICK_PIECE
+
+(*....
+//  in future syntax of two-d literals
+merge [ ROOK KNIGHT BISHOP QUEEN KING BISHOP KNIGHT ROOK ;
+   PAWN PAWN   PAWN   PAWN  PAWN PAWN   PAWN   PAWN ;
+   EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY ;
+   EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY ;
+   EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY ;
+   EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY EMPTY ;
+   PAWN PAWN   PAWN   PAWN  PAWN PAWN   PAWN   PAWN ;
+   ROOK KNIGHT BISHOP QUEEN KING BISHOP KNIGHT ROOK ] ===> game.board[?, ?].piece
+merge [BLACK BLACK BLACK BLACK BLACK BLACK BLACK BLACK] ===> game.board[1, ?].side
+merge [BLACK BLACK BLACK BLACK BLACK BLACK BLACK BLACK] ===> game.board[2, ?].side
+merge [BLACK WHITE WHITE WHITE WHITE WHITE WHITE WHITE] ===> game.board[7, ?].side
+merge [WHITE WHITE WHITE WHITE WHITE WHITE WHITE WHITE] ===> game.board[8, ?].side
+...*)
+	
+	//  reset the chess board to starting position
+	//  an empty square has a piece of EMPTY. 
+	var myside
+	loop array:[1, 8] val:row
+		myside ⇐ if row == 1 then BLACK else WHITE
+		game.board[1 row] <=== { side:myside, piece:ROOK }
+		game.board[2 row] <=== { side:myside, piece:KNIGHT }
+		game.board[3 row] <=== { side:myside, piece:BISHOP }
+		game.board[4 row] <=== { side:myside, piece:QUEEN }
+		game.board[5 row] <=== { side:myside, piece:KING }
+		game.board[6 row] <=== { side:myside, piece:BISHOP }
+		game.board[7 row] <=== { side:myside, piece:KNIGHT }
+		game.board[8 row] <=== { side:myside, piece:ROOK }
+		game.king_pos[myside] <=== { x:5, y:row }
+	
+	//  put in the two rows of pawns
+	loop from:1 to:8 index:col
+		game.board[col 2] <=== { side:BLACK, piece:PAWN }
+		game.board[col 7] <=== { side:WHITE, piece:PAWN }
+
+	//  fill the inner region of the board with a .piece of EMPTY
+	//  so that we can tell when we go off the board without testing subscript ranges
+	loop from:3 to:6 index:row2
+		loop from:1 to:8 index:col2
+			game.board[col2, row2].piece ⇐ EMPTY
+
+================
+draw main_draw  --  main draw function
+	//  if portrait mode, put history below
+	if b.box.width / b.box.height > 1.25
+		landscape_layout
+	elif b.box.height / b.box.width > 1.25
+		portrait_layout
+	else
+		square_layout
+
+==================
+horz slice square_layout
+	add 30 al square_board
+	add 10 al button_and_history
+
+==================
+draw square_board
+	layer area:solve_rect(basis:b.box, pin:5, aspect:1.0)
+		chessboard
+
+==================
+horz slice landscape_layout
+	add b.box.height px chessboard
+	add 10 al button_and_history
+
+==================
+vert slice portrait_layout
+	add 10 al button_and_history
+	add b.box.width px chessboard
+
+==================
+vert slice button_and_history
+	draw_rect(b.box, fill:#bac3cb)
+	add 40 pt newgame_button
+	add 10 al move_history
+
+==================
+draw newgame_button
+	var r : a_rect ⇐ solve_rect(basis:b.box, inset_x:30 pt, inset_y:4 pt)
+	draw_rect(r, fill:DARK_SQUARE, corner:15 pt, color:LIGHT_SQUARE, thick:2 pt)
+	draw_str(r, "New Game", size:r.height*0.75, color:LIGHT_SQUARE)
+track EV_TAP
+	main_init
+
+==================
+draw move_history
+	//  draw move history in pale blue gray
+	move_history2
+
+==================
+table move_history2  -- move history display
+	horz slice
+		var box_pt ⇐ dots_to_pt(b.box.width)  -- our box width in pixels converted to points
+		var ncol ⇐ max(1, round_down(box_pt / 150))  -- fit as many columns as we can, 150 pts each
+	
+		loop reps:ncol
+			add 25 pt
+			skip 2 pt
+			add 10 al
+			add 10 al
+	vert slice
+		var nrow ⇐ round_down(b.box.height / 16 pt)  --  calc how many rows at our height we can fit
+		loop reps:nrow
+			add 16 pt
+------------------
+	//  inside grid cell draw function, b has properties cell_box, cell_cum, cell:a_xy, nrows, ncols
+	cell
+		var clump ⇐ idiv(b.cell.x, 3, one:Y)  --  which clump of 3 are we in, starting with 1
+		var complete_movex ⇐ b.cell.y + (clump-1)*b.ncells.y
+		var histx ⇐ complete_movex*2 - 1   --  index into our history array
+
+		if histx > tree_count(game.history)
+			return  --  this cell is past our play history
+	
+		case rem(b.cell.x, 3, one:Y)  -- will resolve to 1, 2 or 3
+		| 1
+			draw_str(b.box, to_str(complete_movex) & ".", size:14 pt, just:RIGHT)
+
+		| 2
+			//  draw white's move at this stage
+			algebraic_form(b.box, histx)
+
+		| 3
+			//  draw black's move at this stage
+			algebraic_form(b.box, histx+1)
+
+==================
+//  converts a move into a string like: Nb1 x e5
+draw algebraic_form (  -- build the string for algebraic chess notation for a move
+	box   : a_rect
+	histx : num  -- the slot in the history file, this might be past the current game history
+	)
+	---------------
+	var ss : str
+
+	if histx > tree_count(game.history)
+		return  -- this cell in the display is past the move history
+
+	if game.history[histx].piece == KING and abs(game.history[histx].from_sq.x - game.history[histx].to_sq.x) == 2
+		//  king moved 2 squares, must be a castling
+		if game.history[histx].to_sq.x == 7			
+			ss ⇐ "0—0" --  kingside castle
+		else			
+			ss ⇐ "0—0—0" -- queenside castle
+	else
+		//  regular move
+		ss ⇐ PIECE_TO_ABBREV[game.history[histx].piece] & square_to_str(game.history[histx].from_sq)
+		if game.history[histx].is_capturing 
+			" \u00D7 " &=> ss // times symbol X
+		else
+			" \u2014 " &=> ss  // em dash  —
+		square_to_str(game.history[histx].to_sq) &=> ss
+		if game.history[histx].is_check
+			"+" &=> ss
+		if game.history[histx].is_checkmate
+			"++" &=> ss
+		if game.history[histx].is_stalemate
+			" stalemate" &=> ss
+
+	draw_str(box, ss, size:14 pt, just:LEFT)
+
+==================
+//  converts [1, 5] => "a4"
+calc square_to_str (  -- convert the square's coordinates to algebraic form
+	square : a_xy
+	) : str
+	--------------
+	return to_char(from_char('a')+square.x-1) & to_str(9-square.y)
+
+==================
+table chessboard
+	horz slice
+		skip 8 pt
+		loop reps:8
+			add  10 al 
+		skip 8 pt
+	vert slice
+		skip 8 pt
+		loop reps:8
+			add  10 al 
+		skip 8 pt
+	//----------------
+	under
+		draw_rect(b.box, fill:BORDER)
+	//----------------
+	//  inside grid cell draw function, b has properties cell_box, cell_ix, cell:a_xy
+	cell
+		var fill : color
+		var stroke : color
+		var box : a_rect
+
+		//  draw checkerboard. even sum, upper left corner [1,1] is light color
+		if is_even(b.cell.x+b.cell.y)
+			fill ⇐ LIGHT_SQUARE
+		else
+			fill ⇐ DARK_SQUARE
+		draw_rect(b.box, fill:fill)
+	
+		//  if this square was involved in the previous move, lighten the background slightly
+		if tree_count(game.history) <> 0
+			var prevx ⇐ tree_hi(game.history)
+			if b.cell == game.history[prevx].from_sq or b.cell == game.history[prevx].to_sq 
+				draw_rect(b.box, fill:std.WHITE, opacity:0.3)  --  note that WHITE was declared an enum, so we qualify with module name
+		
+		//  if this is the current selected square, frame it in purple
+		if b.cell == game.selected
+			box <=== solve_rect(basis:b.box, inset:1 pt)
+			draw_rect(box, thick:b.box.width*0.09, color:HILITE_CURR, pos:0, corner:3 pt)
+
+		//  if this is a possible move square, frame it in green
+		if game.moves[b.cell].can_move
+			box <=== solve_rect(basis:b.box, inset:1 pt)
+			draw_rect(box, thick:b.box.width*0.09, color:HILITE_MOVE, pos:0, corner:3 pt)
+	
+		//  draw the piece
+		if game.board[b.cell].piece <> EMPTY
+			if game.board[b.cell].side == BLACK
+				fill   ⇐ B_FILL
+				stroke ⇐ B_STROKE
+			else
+				fill   ⇐ W_FILL
+				stroke ⇐ W_STROKE
+
+			var icon : str ⇐ PIECE_SS[game.board[b.cell].piece] 
+
+			//  in Chrome, the unicode character for the black pawn gets automatically upgraded 
+			//  (without our asking) to an astral unicode emoji of a photo of a black pawn
+			//  little know trick, you can append a Unicode variation selector suffix to a character
+			//  defined to specify emoji-style (U+FE0F VS16) or text presentation (U+FE0E VS15)
+			//  you can suppress for force the emoji upgrade
+			//  HOWEVER: Chrome as of version 76 has a bug and ignores the variation selector suffix!
+			//  was reported to Google in Sept 2019.
+			draw_str(b.box, icon & "\uFE0E", size:b.box.height*0.8, color:fill)
+
+			//  draw the outline in black. alignment is a bit off because the solid knight is wider in outline
+			//  note that in unicode, the chess outline form is 6 slots in Unicode before the solid
+			icon ⇐ to_char(from_char(icon) - 6)
+			draw_str(b.box, icon & "\uFE0E", size:b.box.height*0.8, color:stroke)
+	//----------------
+	over
+		//  draw a black frame around the checkerboard
+		draw_rect(b.box, thick:1 pt)
+
+------------------
+track EV_TAP
+	case game.phase
+	| GAME_OVER
+		//  interpret a tap on the board after checkmate as a request to start new game
+		main_init
+
+	| PICK_PIECE
+		//  we are waiting for the user to pick a piece they want to move
+		if game.board[b.cell].side == game.turn
+			//  user picked a piece of theirs to move
+			game.selected <=== b.cell
+			trunc game.moves  --  clear the array of potential moves
+			gen_possible_moves(b.cell)
+			//  now we go the mode where the user picks one of the available moves
+			game.phase ⇐ PICK_DEST
+
+		else
+			//  user picked a square that is either empty or the opponents
+			sound_play(BEEP)
+
+	| PICK_DEST
+		//  if we pick on the piece a second time, unselect the current piece
+		if b.cell == game.selected
+			//  cancel the current piece selection
+			trunc game.moves  --  clear the array of potential moves
+			trunc game.selected  -- this will clear selected piece
+			game.phase ⇐ PICK_PIECE
+
+		//  if clicked on another one of our pieces, switch the currently selected piece
+		elif game.board[b.cell].side == game.turn
+			//  user is picking a different piece to move, change the possible moves
+			game.selected <=== b.cell
+			trunc game.moves  --  clear the array of potential moves
+			gen_possible_moves(b.cell)
+		
+		elif game.moves[b.cell].can_move
+			//  user picked a square that they can move to, execute the move
+			exec_move(b.cell)
+
+		else
+			//  not one of our pieces, and can't move to this square
+			sound_play(BEEP)				
+		
+==================
+//  this function is used to test if a king is in check, and also to see if castling squares are clean
+//  curring with the given square, look around for who is attacking it
+calc is_threatened (  -- see if the opponent is attacking a square
+	x : num  -- square being studied
+	y : num
+	) : yesno -- Y if being attacked
+	var netx
+	var nety
+	---------------
+	//  ROOK, QUEEN
+	---------------
+	loop array:[-1, +1] val:dir
+		//  horizontal movement
+		loop from:1 to:7 index:delta
+			netx ⇐ x + delta*dir
+			if is_opposing_piece(ROOK, netx, y) or is_opposing_piece(QUEEN, netx, y)
+				return Y
+			if game.board[netx, y].piece <> EMPTY
+				exit  --  once we hit an occupied square or off-board we stop
+		//  vertical movement
+		loop from:1 to:7 index:delta
+			nety ⇐ y + delta*dir
+			if is_opposing_piece(ROOK, x, nety) or is_opposing_piece(QUEEN, x, nety)
+				return Y
+			if game.board[x, nety].piece <> EMPTY
+				exit  --  once we hit an occupied square or off-board we stop
+
+	---------------
+	//  BISHOP, QUEEN
+	---------------
+	//  check all four diagonals for an attack
+	loop array:[-1, +1] val:dx
+		loop array:[-1, +1] val:dy
+			loop from:1 to:7 index:delta -- radiate outwards up to 7 squares from the current square
+				netx ⇐ x + delta*dx
+				nety ⇐ y + delta*dy
+				if is_opposing_piece(BISHOP, netx, nety) or is_opposing_piece(QUEEN, netx, nety)
+					return Y
+				if game.board[netx, nety].piece <> EMPTY
+					exit  --  once we hit an occupied square or off-board we stop
+
+	---------------
+	//  KNIGHT
+	---------------
+	if is_opposing_piece(KNIGHT, x-1, y-2) or @+   -- a knight has 8 combinations
+	   is_opposing_piece(KNIGHT, x-1, y+2) or
+	   is_opposing_piece(KNIGHT, x+1, y-2) or
+	   is_opposing_piece(KNIGHT, x+1, y+2) or
+	   is_opposing_piece(KNIGHT, x-2, y-1) or
+	   is_opposing_piece(KNIGHT, x-2, y+1) or
+	   is_opposing_piece(KNIGHT, x+2, y-1) or
+	   is_opposing_piece(KNIGHT, x+2, y+1) @-
+		return Y
+
+	---------------
+	//  PAWN
+	---------------
+	if is_opposing_piece(PAWN, x-1, y+PAWN_DIRECTION[game.turn]) or is_opposing_piece(PAWN, x+1, y+PAWN_DIRECTION[game.turn])
+		return Y
+
+	---------------
+	//  KING
+	---------------
+	//  if the opposing king is one square away it is threatening
+	if abs(game.king_pos[game.opponent].x-x) <= 1 and abs(game.king_pos[game.opponent].y-y) <= 1
+		return Y
+
+	return N --  this square is not attacked
+
+==================
+//  this function fills in the game.moves[] array with feasible moves
+calc gen_possible_moves (  -- list all possible moves of a piece
+	curr : a_xy   -- coordinate piece is moving from
+	)
+	---------------
+	var dest : a_xy
+	var y : num ⇐ curr.y --  saves lots of typing later
+
+	case game.board[curr].piece
+	---------------
+	| KING
+	---------------
+		//  check the 8 squares around the king
+		loop from:-1 to:+1 index:dx
+			loop from:-1 to:+1 index:dy
+				check_rel(curr, dx, dy)  --  will ignore call when dx and dy are both 0
+
+		//  castling logic.  rook will be fixed up after user picks king move
+		if game.board[curr].moved <> Y  --  if the king has not moved yet
+			//  king has not moved yet
+			//  left side castle test
+			if (game.board[1 y].moved <> Y) and @+        -- left side rook not yet moved
+			   (game.board[2 y].piece == EMPTY) and       -- square 2 empty
+			   (game.board[3 y].piece == EMPTY) and       -- square 3 empty
+			   (game.board[4 y].piece == EMPTY) and       -- square 4 empty
+			   (not is_threatened(3, y)) and              -- king not moving into check on 3
+			   (not is_threatened(4, y)) @-               -- king not moving into check on 4
+				//  we can castle, move king two squares over to column 3
+				add_move(curr, { x:3, y:y }) 
+
+			//  right side castle check
+			if (game.board[8 y].moved <> Y) and @+        -- left side rook not yet moved
+			   (game.board[7 y].piece == EMPTY) and       -- square 7 empty
+			   (game.board[6 y].piece == EMPTY) and       -- square 6 empty
+			   (not is_threatened(7, y)) and              -- king not moving into check on 7
+			   (not is_threatened(6, y)) @-               -- king not moving into check on 6
+				//  we can castle, move king two squares over to column 7
+				add_move(curr, { x:7, y:y })
+
+	---------------
+	| QUEEN
+	---------------
+		//  can reach 27 squares max
+		loop from:-1 to:+1 index:dirx  // will run 3 values: -1, 0, +1
+			loop from:-1 to:+1 index:diry  //  will run 3 values: -1, 0, +1
+				//  this will run 9 combinations of [-1 0 +1][-1 0 +1]
+				loop from:1 to:7 index:delta
+					//  queen has 8 movement directions, check_rel will ignore the 0,0 movement
+					if not check_rel(curr, delta*dirx, delta*diry)
+						exit  --  once we hit something we stop this direction
+
+	---------------
+	| ROOK
+	---------------
+		//  can reach 14 squares max
+		loop array:[-1, +1] val:dir
+			//  look horizontal
+			loop from:1 to:7 index:delta
+				if not check_rel(curr, delta*dir, 0)
+					exit  --  once we hit something we stop
+			//  look vertical
+			loop from:1 to:7 index:delta
+				if not check_rel(curr, 0, delta*dir)
+					exit  --  once we hit something we stop
+
+	---------------
+	| BISHOP
+	---------------
+		//  can reach 13 squares max
+		loop array:[-1, +1] val:dirx
+			loop array:[-1, +1] val:diry
+				//  we check in all four directions until we hit something
+				loop from:1 to:7 index:delta
+					if not check_rel(curr, delta*dirx, delta*diry)
+						exit  --  once we hit something we stop
+
+	---------------
+	| KNIGHT
+	---------------
+		//  can reach 8 squares, but can jump over pieces
+		check_rel(curr, +1, +2)
+		check_rel(curr, -1, +2)
+		check_rel(curr, +1, -2)
+		check_rel(curr, -1, -2)
+		check_rel(curr, +2, +1)
+		check_rel(curr, -2, +1)
+		check_rel(curr, +2, -1)
+		check_rel(curr, -2, -1)
+
+	---------------
+	| PAWN
+	---------------
+		//  see if we can go forward one or two squares to an empty square
+		dest.x ⇐ curr.x
+		dest.y ⇐ y + PAWN_DIRECTION[game.turn]
+		if add_if_empty(curr, dest)
+			//  first step was empty, we can move two squares if not moved yet
+			if (game.board[curr].moved <> Y) 
+				add_if_empty(curr, {x:curr.x y:dest.y+PAWN_DIRECTION[game.turn]})  --  if the second square empty add it
+			
+		//  try capturing left
+		dest.x ⇐ curr.x-1
+		if game.board[dest].side == game.opponent				
+			add_move(curr, dest)  --  regular capture
+		elif (y == PASSANT_ROW[game.turn]) and (dest.x == game.passant_col)
+			add_move(curr, dest, passanty:PASSANT_ROW[game.turn]) --  passant capture
+
+		//  try capturing right
+		dest.x ⇐ curr.x+1
+		if game.board[dest].side == game.opponent				
+			add_move(curr, dest)  --  regular capture
+		elif (y == PASSANT_ROW[game.turn]) and (dest.x == game.passant_col)
+			add_move(curr, dest, passanty:PASSANT_ROW[game.turn]) --  passant capture
+		----- end case
+	----- end func
+
+==================
+calc exec_move (  -- execute a move
+	dest : a_xy  -- square we are moving to
+	)  
+	---------------
+	var mymove : tree
+
+	//  we reset the enpassant possible flag each move, user only has one chance to do it
+	game.passant_col ⇐ U
+	game.board[game.selected].moved ⇐ Y
+
+	//  some pieces have special logic
+	case game.board[game.selected].piece
+	=========
+	| PAWN
+	=========
+		//  if this is an en passant move, we stored in the board the location of the pawn we take
+		if game.moves[dest].takey <> U
+			//  this was an en passant move, so zap the pawn that tried to sneak by
+			//  we previously stored the extra capture info on the destination square
+			clear_square(dest.x, game.moves[dest].takey)
+
+		//  remember the column of any two move pawn to give opponent chance to do en passant
+		if (abs(game.selected.y - dest.y) == 2)
+			//  pawn is moving two squares
+			game.passant_col ⇐ dest.x  -- remember the column of the pawn
+
+	=========
+	| KING
+	=========
+		game.king_pos[game.turn] <=== dest  --  remember the king's new position 	
+		
+		//  if the king is moving 2 squares, this can only happen as a result of a castling
+		//  the king moves in the direction of the rook that is castling
+		if abs(game.selected.x - dest.x) == 2
+			//  a king move of 2 means castling, move the rook also
+			var castle_from
+			var castle_to
+			if (dest.x == 7) 
+				//  castling towards column 8, king will end in 7
+				castle_from ⇐ 8
+				castle_to   ⇐ 6
+			else
+				//  castling towards column 1 king will end in 3
+				castle_from ⇐ 1
+				castle_to   ⇐ 4
+			
+			//  move the rook first, it will go to an empty square	
+			game.board[castle_from, dest.y] ===> game.board[castle_to, dest.y]
+			clear_square(castle_from, dest.y)
+	-- end case
+
+	------------------------
+	//  add to our history (before we change the board)
+	------------------------
+	mymove.piece ⇐ game.board[game.selected].piece
+	mymove.from_sq <=== game.selected
+	mymove.to_sq <=== dest
+	if (game.board[dest].piece <> EMPTY) or (game.moves[dest].takey <> U)
+		mymove.is_capturing ⇐ Y
+
+	------------------------
+	//  update the board
+	------------------------
+	game.board[game.selected] ===> game.board[dest]
+	clear_square(game.selected.x, game.selected.y) 
+
+	------------------------
+	//  pawn promotion
+	------------------------
+
+	//  if pawn just reached to the back row, promote to a queen
+	if game.board[dest].piece == PAWN
+		if dest.y == 1 or dest.y == 8 
+			//  convert pawn into a queen, future version will let user pick
+			game.board[dest].piece ⇐ QUEEN
+
+	------------------------
+	//  switch sides
+	------------------------
+
+	//  swap whose turn it is
+	swap game.turn <=> game.opponent
+
+	//  de-select our piece and clear out old possible moves
+	trunc game.moves  --  clear the array of potential moves
+	trunc game.selected
+	game.phase ⇐ PICK_PIECE
+
+	------------------------
+	//  after we switched sides, the player whose turn it is now might be in check
+	------------------------
+	//  first see if the our king is in danger
+	var stuck ⇐ has_no_moves()
+	if is_threatened(game.king_pos[game.turn].x, game.king_pos[game.turn].y)
+		//  if the king is threatened, it might be check or checkmate.
+		if stuck
+			//  checkmate
+			mymove.is_checkmate ⇐ Y
+			sound_play(CHECKMATE_SOUND)
+			game.phase ⇐ GAME_OVER
+		else
+			//  just a check
+			mymove.is_check ⇐ Y
+			sound_play(CHECK_SOUND)
+	elif stuck
+		//  no moves available, but wasn't in check before, definition of a stalemate
+		mymove.is_stalemate ⇐ Y
+		sound_play(STALEMATE_SOUND)
+		game.phase ⇐ GAME_OVER
+
+	//  before we return redraw screen, clear our our possible moves
+	trunc game.moves
+
+	//  now we can add to our history
+	append mymove ===> game.history
+
+=========================
+calc has_no_moves (  -- see if we have no moves left
+	)  : yesno   -- Y if no moves at all, or can only move into check
+	---------------
+	//  brute force method - for each of our pieces, try all possible moves
+	trunc game.moves --  clear previous contents
+	loop from:1 to:8 index:col
+		loop from:1 to:8 index:row
+			var coord : a_xy ⇐ { x:col, y:row }
+			if game.board[coord].side == game.turn
+				//  this is one of our pieces, try all the moves
+				gen_possible_moves(coord)
+				if tree_count(game.moves) <> 0
+					return N  --  stop immediately, we found at least one valid move
+
+	//  we tried all moves and can't find one without being in check
+	return Y
+
+=========================
+//  this function operates on relative coordinates to the current position
+calc check_rel (  -- see if we can move or capture at this offset 
+	curr : a_xy   -- current pos
+	dx : num   -- the offset from our current pos
+	dy : num   -- the offset from our current pos
+	)  : yesno  -- true if we can continue searching
+	---------------
+	//  filter null moves to make the caller loops simpler
+	if dx == 0 and dy == 0
+		return N
+	
+	var dest : a_xy <=== { x:curr.x+dx, y:curr.y+dy }
+
+	//  outside the board the piece value will be U, not EMPTY
+	if game.board[dest].piece == EMPTY
+		add_move(curr, dest)  --  this is an empty square and can be moved into
+		return Y  --  keep looking
+		
+	//  if the square is held by the opponent we capture that square
+	if game.board[dest].side == game.opponent
+		//  opponent piece we can capture
+		add_move(curr, dest)
+		return N   --  stop looking past this square
+
+	return N  --  cannot move here, off-board or our own piece, stop looking
+
+==================
+calc add_if_empty (  -- add another move, if it is empty 
+	source : a_xy  -- starting position of piece
+	dest   : a_xy  -- destination position of piece
+	)  : yesno  -- returns Y if we did add the move
+	---------------
+	var result : yesno ⇐ game.board[dest].piece == EMPTY  -- off-board squares won't be EMPTY
+	if result
+		add_move(source, dest)
+	return result
+
+==================
+calc add_move (  -- if the move is legal add it to the list of possible moves 
+	source : a_xy  -- starting position of piece
+	dest   : a_xy  -- destination position of piece
+	passanty   : num ⇐ U  -- en passant y coordinate
+	)
+	---------------
+	//  one last check before we put this move into into our legal move list
+	//  make sure we aren't putting ourselves into check
+	if is_legal_move(source, dest)
+		game.moves[dest].can_move ⇐ Y
+		game.moves[dest].takey ⇐ passanty
+
+=========================
+calc is_legal_move (  -- try a move and see if it doesn't result in check 
+	source : a_xy   -- starting position of piece
+	dest   : a_xy  -- destination position of piece
+	)  : yesno  -- returns Y if can make this move without being in check
+	---------------
+	var in_check : yesno
+
+	//  save the board state
+	var save_from : a_square <=== game.board[source]
+	var save_to   : a_square <=== game.board[dest]
+
+	//  if this is the king moving update the king pos
+	game.board[source] ===> game.board[dest]
+	clear_square(source.x, source.y)
+
+	if game.board[dest].piece == KING
+		//  we moved the king, test the king's new position
+		in_check ⇐ is_threatened(dest.x, dest.y)
+	else
+		//  we moved some other piece than the king, test the king
+		in_check ⇐ is_threatened(game.king_pos[game.turn].x, game.king_pos[game.turn].y)
+
+	//  restore the board state
+	save_from ===> game.board[source]
+	save_to   ===> game.board[dest]
+
+	return not in_check
+	--..end func
+
+==================
+calc clear_square (  -- remove the piece at a square 
+	x : num  -- square x
+	y : num  -- square y
+	)
+	---------------
+	game.board[x, y].piece ⇐ EMPTY
+	game.board[x, y].side ⇐ U
+
+==================
+calc is_opposing_piece (  -- is the specified piece of the opponent at the spot? 
+	targpiece : num
+	x : num
+	y : num
+	) : yesno
+	---------------
+	return (game.board[x y].piece == targpiece) and (game.board[x y].side == game.opponent)
