@@ -37,5 +37,5 @@ The classic Apple calculator program, except without the bugs that Apple has! Co
 
 The classic Apple calculator program, except without the bugs that Apple has! Complexity rating: 500 words
 
-![chess example](http://magicmouse.com/beads/examples/chess/chess.gif)
+![chess example](http://magicmouse.com/beads/examples/chess/chess.png)
 
