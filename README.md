@@ -35,7 +35,7 @@ The classic Apple calculator program, except without the bugs that Apple has! Co
 
 ### Example 6: Chess
 
-The classic Apple calculator program, except without the bugs that Apple has! Complexity rating: 500 words
+The classic board game. Complexity rating: 1500 words
 
 ![chess example](http://magicmouse.com/beads/examples/chess/chess.png)
 
