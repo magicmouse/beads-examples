@@ -2,6 +2,7 @@
 ## Programming examples
 
 These are examples with specifications posted in this repository.
+If you would like to try a pre-release version of the Beads compiler, please send an email to beads at magicmouse.com, and let us know if you are mac or windows (sorry no linux yet), what kind of apps you would like to build, and how many years of experience you have.
 
 ### Example 1: Analog clock
 
