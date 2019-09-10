@@ -4,7 +4,15 @@
 These are examples with specifications posted in this repository.
 If you would like to try a pre-release version of the Beads compiler, please send an email to beads at magicmouse.com, and let us know if you are mac or windows (sorry no linux yet), what kind of apps you would like to build, and how many years of experience you have.
 
-Beads is not a minor rehash of Python. It is a clean sheet design, carefully crafted catch as many errors at compile time as possible so you spend less time debugging. These examples barely scratch the surface of the full range of Beads features, such as 1) can run in reverse (time-travel-debugging) 2) automatic refresh of screen areas when the underlying model changes, 3) protected arithmetic like Excel, 4) units of measure like 3 m + 2 ft, 5) proportional layout system that responds to size changes beautifully, 6) greatly simplified regular expressions, 7) a simple and flexible module system 8) no make system needed
+Beads is not a minor rehash of Python. It is a clean sheet design, carefully crafted to catch as many errors at compile time as possible so you spend less time debugging. These examples barely scratch the surface of the full range of Beads features, such as 
+1. can run in reverse (time-travel-debugging) 
+2. automatic refresh of screen areas when the underlying model changes, 
+3. protected arithmetic like Excel, 
+4. units of measure like 3 m + 2 ft, 
+5. proportional layout system that responds to size changes beautifully, 
+6. greatly simplified regular expressions, 
+7. a simple and flexible module system 
+8. no make system needed for most projects
 
 ### Example 1: Analog clock
 
