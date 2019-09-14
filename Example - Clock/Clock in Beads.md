@@ -1,6 +1,6 @@
 ## Example / A simple analog clock
 
-Welcome to the Beads language. Please note that this document is in markdown format. To view a nicely rendered markdown file, you can use the free [MacDown program](https://github.com/MacDownApp/macdown/releases/download/v0.7.1/MacDown.app.zip) for macintosh, or you can use [Markdown Pad](http://markdownpad.com/download.html) for Windows. To find out more about Beads please visit e-dejong.com
+Welcome to the Beads language. Please note that this document is in markdown format. To view a nicely rendered markdown file, you can use the free [MacDown program](https://github.com/MacDownApp/macdown/releases/download/v0.7.1/MacDown.app.zip) for macintosh, or you can use [Markdown Pad](http://markdownpad.com/download.html) for Windows. To find out more about Beads please visit beadslang.org
 
 This simple program will draw a clock on the screen. This is among the shortest possible graphical programs one can imagine.
 
