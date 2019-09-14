@@ -2,7 +2,7 @@
 ## Programming examples
 
 These are examples with specifications posted in this repository.
-If you would like to try a pre-release version of the Beads compiler, please send an email to beads at magicmouse.com, and let us know if you are mac or windows (sorry no linux yet), what kind of apps you would like to build, and how many years of experience you have.
+If you would like to try a pre-release version of the Beads compiler, visit us on Discord at https://discord.gg/pTAdsSW, and let us know if you are mac or windows (sorry no linux yet), what kind of apps you would like to build, and how many years of experience you have.
 
 Beads is not a minor rehash of Python. It is a clean sheet design, carefully crafted to catch as many errors at compile time as possible so you spend less time debugging. These examples barely scratch the surface of the full range of Beads features, such as 
 1. can run in reverse (time-travel-debugging) 
