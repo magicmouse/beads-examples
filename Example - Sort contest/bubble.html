@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8"/>
+<title>Bubble Sort vs. Quicksort Animation</title>
+<style>
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 12pt; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover {
+    background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0;">
+<script type="module">
+import * as std from '../../runtime/beads_std.js';
+import * as str from '../../runtime/beads_str.js';
+import * as k   from '../../runtime/beads_k.js';
+
+export const CODE_HASH = 0xea6b7599;
+export const M_bubble = 9007193254414309;  std.g_enum_ss[9007193254414309] = "bubble";
+const M = M_bubble;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_module = M;
+std.aaaa.main_drawer = new std.a_function("bubble", "main_draw", main_draw);
+std.setv(0,0, std.META, M, "bubble");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 131, "do_quik_sort");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 72, "main_draw");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 89, "d_replay");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 81, "d_main");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 39, "main_init");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 174, "do_bubb_sort");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 214, "do_tick");
+//-------  enums
+const F_ntot = 9007193436519505;  std.g_enum_ss[9007193436519505] = "ntot";
+std.FIELDS[F_ntot] = true;
+const F_comp2 = 9007191572905135;  std.g_enum_ss[9007191572905135] = "comp2";
+std.FIELDS[F_comp2] = true;
+const R_a_sort = 9007190798063932;  std.g_enum_ss[9007190798063932] = "a_sort";
+const F_vals = 9007191411712772;  std.g_enum_ss[9007191411712772] = "vals";
+std.FIELDS[F_vals] = true;
+const F_label = 9007190039119310;  std.g_enum_ss[9007190039119310] = "label";
+std.FIELDS[F_label] = true;
+const F_comp1 = 9007191589682754;  std.g_enum_ss[9007191589682754] = "comp1";
+std.FIELDS[F_comp1] = true;
+const R_a_global = 9007190661834247;  std.g_enum_ss[9007190661834247] = "a_global";
+const F_timer_id = 9007192340366359;  std.g_enum_ss[9007192340366359] = "timer_id";
+std.FIELDS[F_timer_id] = true;
+const F_history = 9007191038263624;  std.g_enum_ss[9007191038263624] = "history";
+std.FIELDS[F_history] = true;
+const F_histx = 9007193713628844;  std.g_enum_ss[9007193713628844] = "histx";
+std.FIELDS[F_histx] = true;
+const R_a_hist = 9007191118790444;  std.g_enum_ss[9007191118790444] = "a_hist";
+const F_swapf = 9007190343688367;  std.g_enum_ss[9007190343688367] = "swapf";
+std.FIELDS[F_swapf] = true;
+//-------  func const
+const d_replay_F = new std.a_function("bubble", "d_replay", d_replay);
+const d_main_F = new std.a_function("bubble", "d_main", d_main);
+const do_bubb_sort_F = new std.a_function("bubble", "do_bubb_sort", do_bubb_sort);
+const do_tick_F = new std.a_function("bubble", "do_tick", do_tick);
+//-------  top nodes
+const C_ACTIVE = 0xFF4949;
+const C_PLAIN = 0x58B8FF;
+const C_SORTED = 0x13CE66;
+const NVALS = 40;
+const DURATION = 0.05;
+const TRACE = std.N;
+let bubb = new std.a_tree("bubble","bubb", std.NF_STATEFUL|std.NF_LOGGED);
+const V_bubble_bubb = 9007191678680598;  std.g_enum_ss[9007191678680598] = "bubb";
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_val, std.addr(bubb));
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_type, std.TYPE_TREE);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_rec, R_a_sort);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_fields, F_label, std.F_v_type, std.TYPE_STR);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_fields, F_vals, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_fields, F_vals, std.F_v_dim, 1);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_fields, F_history, std.F_v_type, std.TYPE_TREE);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_fields, F_history, std.F_v_dim, 1);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_fields, F_history, std.F_v_rec, R_a_hist);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_fields, F_history, std.F_v_fields, F_comp1, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_fields, F_history, std.F_v_fields, F_comp2, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_fields, F_history, std.F_v_fields, F_swapf, std.F_v_type, std.TYPE_YESNO);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_bubb, std.F_v_fields, F_ntot, std.F_v_type, std.TYPE_NUM);
+let quik = new std.a_tree("bubble","quik", std.NF_STATEFUL|std.NF_LOGGED);
+const V_bubble_quik = 9007192950625601;  std.g_enum_ss[9007192950625601] = "quik";
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_val, std.addr(quik));
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_type, std.TYPE_TREE);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_rec, R_a_sort);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_fields, F_label, std.F_v_type, std.TYPE_STR);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_fields, F_vals, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_fields, F_vals, std.F_v_dim, 1);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_fields, F_history, std.F_v_type, std.TYPE_TREE);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_fields, F_history, std.F_v_dim, 1);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_fields, F_history, std.F_v_rec, R_a_hist);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_fields, F_history, std.F_v_fields, F_comp1, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_fields, F_history, std.F_v_fields, F_comp2, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_fields, F_history, std.F_v_fields, F_swapf, std.F_v_type, std.TYPE_YESNO);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_quik, std.F_v_fields, F_ntot, std.F_v_type, std.TYPE_NUM);
+let g = new std.a_tree("bubble","g", std.NF_STATEFUL|std.NF_LOGGED);
+const V_bubble_g = 9007193821610028;  std.g_enum_ss[9007193821610028] = "g";
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_g, std.F_v_val, std.addr(g));
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_g, std.F_v_type, std.TYPE_TREE);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_g, std.F_v_rec, R_a_global);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_g, std.F_v_fields, F_timer_id, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_g, std.F_v_fields, F_histx, std.F_v_type, std.TYPE_NUM);
+let start = new std.a_tree("bubble","start", std.NF_STATEFUL|std.NF_LOGGED);
+const V_bubble_start = 9007193178687537;  std.g_enum_ss[9007193178687537] = "start";
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_start, std.F_v_val, std.addr(start));
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_start, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_bubble_start, std.F_v_dim, 1);
+
+//====================
+//   d_main
+//====================
+function d_main(b) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  k.div_add(b, std.U, k.DIV_VERT, 10, std.al, d_replay_F, 0, [std.addr(bubb)]);
+  k.div_spa(b, k.DIV_VERT, 12, std.pt);
+  k.div_add(b, std.U, k.DIV_VERT, 10, std.al, d_replay_F, 0, [std.addr(quik)]);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_replay
+//====================
+function d_replay(b, data) {
+k.k_enter(b);
+  let hh = std.round_down(std.div(b.bounds.width, NVALS));
+  let vv = std.div(std.sub(b.bounds.height, std.pt_to_dots(b, 12)), 100);
+  let c = std.U;
+  let comp = std.addr(data, F_history, std.getn(g, F_histx));
+  if (std.getn(comp, F_swapf) === std.Y) {
+    var temp_11 = std.getn(data, F_vals, std.getn(comp, F_comp1));
+    std.setv(M, 106, std.addr(data, F_vals, std.getn(comp, F_comp1)), std.getn(data, F_vals, std.getn(comp, F_comp2)));
+    std.setv(M, 106, std.addr(data, F_vals, std.getn(comp, F_comp2)), temp_11);
+    temp_11 = null;
+  }
+  var loop12 = new std.a_loop({ across:std.addr(data, F_vals) });
+  while (loop12.next()) {
+  var ix = loop12.index;
+    let r = new std.a_tree("bubble","r"); std.merge_tree(M, 110, std.solve_rect({ left:std.add(std.pt_to_dots(b, 2), std.mul(std.sub(ix, 1), hh)), width:std.sub(hh, std.pt_to_dots(
+    b, 4)), height:std.mul(std.getn(data, F_vals, ix), vv), bottom:b.bounds.height }), std.addr(r));
+    if (std.eq2(ix, std.getn(comp, F_comp1)) || std.eq2(ix, std.getn(comp, F_comp2))) {
+      c = std.getn(comp, F_swapf) === std.Y ? std.PURPLE : C_ACTIVE;
+    } else {
+      c = C_PLAIN;
+    }
+    std.draw_rect(b, std.addr(r), { fill:c });
+    let t = new std.a_tree("bubble","t"); std.merge_tree(M, 120, std.solve_rect({ bottom:std.getn(r, std.F_top), height:std.pt_to_dots(b, 12), left:std.getn(r, std.F_left), width
+    :hh }), std.addr(t));
+    std.draw_str(b, std.addr(t), str.to_str(std.getn(data, F_vals, ix)), { size:std.pt_to_dots(b, 10), color:std.BLACK });
+  }
+  if (std.getn(comp, F_comp1) === std.U) {
+    std.draw_str(b, std.addr(b.extra, std.F_box), std.cat("", std.gets(data, F_label), " total ops: ", str.to_str(std.getn(data, F_ntot))), { size:std.pt_to_dots(b, 28), vert:
+    0.15 });
+  }
+k.k_leave(b);
+}
+
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+k.k_root2(b);
+k.k_enter(b);
+  std.draw_rect(b, std.addr(b.extra, std.F_box), { fill:std.rgb(207, 222, 227) });
+  let r = new std.a_tree("bubble","r"); std.merge_tree(M, 76, std.solve_rect({ basis:std.addr(b.extra, std.F_box), pin:5, inset:std.pt_to_dots(b, 12) }), std.addr(r));
+  var b3 = k.k_create_layer(b,{ area:r });
+  k.k_enter(b3);
+    d_main(b3);
+  k.k_leave(b3);
+k.k_leave(b);
+}
+
+
+//====================
+//   do_bubb_sort
+//====================
+function do_bubb_sort() {
+  let c1 = 1;
+  let c2 = 2;
+  let upper = NVALS;
+  let did_swap = std.N;
+  let flag = std.U;
+  var loop13 = new std.a_loop({  });
+  while (loop13.next()) {
+    flag = std.N;
+    if (std.gt2(std.getn(bubb, F_vals, c1), std.getn(bubb, F_vals, c2))) {
+      std.tree_add(M, 188, 1, std.addr(bubb, F_ntot));
+      var temp_14 = std.getn(bubb, F_vals, c1);
+      std.setv(M, 189, std.addr(bubb, F_vals, c1), std.getn(bubb, F_vals, c2));
+      std.setv(M, 189, std.addr(bubb, F_vals, c2), temp_14);
+      temp_14 = null;
+      did_swap = std.Y;
+      flag = std.Y;
+    }
+    std.tree_add(M, 193, 1, std.addr(bubb, F_ntot));
+    std.append_tree(M, 194, std.tree_litP(M, 194, F_comp1, c1, F_comp2, c2, F_swapf, flag), std.addr(bubb, F_history));
+    c1 = std.add(c1, 1);
+    c2 = std.add(c2, 1);
+    if (std.ge2(c1, upper)) {
+      if (did_swap === std.Y) {
+        upper = std.sub(upper, 1);
+        c1 = 1;
+        c2 = 2;
+        did_swap = std.N;
+      } else {
+        break;
+      }
+    }
+  }
+}
+
+
+//====================
+//   do_quik_sort
+//====================
+function do_quik_sort(start_lo, start_hi) {
+  let lo = start_lo;
+  let hi = start_hi;
+  let pivotx = std.round_down(std.div(std.add(lo, hi), 2));
+  let pivotval = std.getn(quik, F_vals, pivotx);
+  var loop15 = new std.a_loop({  });
+  while (loop15.next()) {
+    var loop16 = new std.a_loop({  });
+    while (loop16.next()) {
+      std.tree_add(M, 143, 1, std.addr(quik, F_ntot));
+      std.append_tree(M, 144, std.tree_litP(M, 144, F_comp1, lo, F_comp2, pivotx), std.addr(quik, F_history));
+      if (std.ge2(std.getn(quik, F_vals, lo), pivotval)) {
+        break;
+      }
+      lo = std.add(lo, 1);
+    }
+    var loop17 = new std.a_loop({  });
+    while (loop17.next()) {
+      std.tree_add(M, 150, 1, std.addr(quik, F_ntot));
+      std.append_tree(M, 151, std.tree_litP(M, 151, F_comp1, hi, F_comp2, pivotx), std.addr(quik, F_history));
+      if (std.le2(std.getn(quik, F_vals, hi), pivotval)) {
+        break;
+      }
+      hi = std.sub(hi, 1);
+    }
+    if (std.le2(lo, hi)) {
+      std.tree_add(M, 159, 1, std.addr(quik, F_ntot));
+      std.append_tree(M, 160, std.tree_litP(M, 160, F_comp1, lo, F_comp2, hi, F_swapf, std.Y), std.addr(quik, F_history));
+      var temp_18 = std.getn(quik, F_vals, lo);
+      std.setv(M, 161, std.addr(quik, F_vals, lo), std.getn(quik, F_vals, hi));
+      std.setv(M, 161, std.addr(quik, F_vals, hi), temp_18);
+      temp_18 = null;
+      lo = std.add(lo, 1);
+      hi = std.sub(hi, 1);
+    }
+    if (std.gt2(lo, hi)) {
+      break;
+    }
+  }
+  if (std.gt2(hi, start_lo)) {
+    do_quik_sort(start_lo, hi);
+  }
+  if (std.lt2(lo, start_hi)) {
+    do_quik_sort(lo, start_hi);
+  }
+}
+
+
+//====================
+//   do_tick
+//====================
+function do_tick() {
+  std.tree_add(M, 217, 1, std.addr(g, F_histx));
+  if (std.gt2(std.getn(g, F_histx), std.tree_count(std.addr(bubb, F_history))) && std.gt2(std.getn(g, F_histx), std.tree_count(std.addr(quik, F_history)))) {
+    std.loom_clear({ id:std.getn(g, F_timer_id) });
+  }
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  var loop19 = new std.a_loop({ from:1, to_:NVALS });
+  while (loop19.next()) {
+  var ix = loop19.index;
+    std.path_setv(M, 44, std.addr(start, ix), std.random_int(1, 99));
+  }
+  std.path_setv(M, 48, std.addr(bubb, F_label), "Bubble Sort");
+  std.copy_tree(M, 49, std.addr(start), std.addr(bubb, F_vals));
+  std.path_setv(M, 50, std.addr(bubb, F_ntot), 0);
+  do_bubb_sort();
+  std.path_setv(M, 54, std.addr(quik, F_label), "Quicksort");
+  std.copy_tree(M, 55, std.addr(start), std.addr(quik, F_vals));
+  std.path_setv(M, 56, std.addr(quik, F_ntot), 0);
+  do_quik_sort(1, std.tree_count(std.addr(quik, F_vals)));
+  std.copy_tree(M, 60, std.addr(start), std.addr(bubb, F_vals));
+  std.copy_tree(M, 61, std.addr(start), std.addr(quik, F_vals));
+  std.path_setv(M, 64, std.addr(g, F_histx), 1);
+  std.path_setv(M, 69, std.addr(g, F_timer_id), std.loom_timer(do_tick_F, { reps:std.exp(NVALS, 2, 1), delay:DURATION, interval:DURATION }));
+}
+
+main_init();
+k.rebuild_all();
+
+</script>
+</body>
+</html>

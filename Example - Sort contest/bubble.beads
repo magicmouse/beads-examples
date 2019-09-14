@@ -1,0 +1,222 @@
+beads level 1 program bubble title "Bubble Sort vs. Quicksort Animation"
+//  written by edj Sept 2019 - complexity rating:  440 words
+//  for comparison to a pure JS codebase:  https://bubb.sink.in/bubble-sort-css-javascript-animation/
+//  this program shows the difference between quicksort and bubble sort
+//  the larger the number of values, the slower the bubble sort goes
+
+const
+	C_ACTIVE = #FF4949  //  red
+	C_PLAIN = #58B8FF   //  blue
+	C_SORTED = #13CE66  //  bubb.een
+
+	NVALS = 40   //  40 is enough to show how painful bubble sort is
+	DURATION = 0.05  //  delay per step
+	TRACE = N  //  tracing flag
+
+record a_hist  // a history record tracking all the comparisons we did
+	comp1    //  first item that was moved
+	comp2    //  second item being compared
+	swapf : yesno //  did we swap these two values?
+
+record a_sort  //  state variables for a sort
+	label : str  //  the sort name we draw
+	vals  : array of num  //  values being sorted
+	history : array of a_hist //  all the comparisons we did
+	ntot  //  total number of operations (compares + swaps)
+
+record a_global  //  misc global state
+	timer_id  // so we can stop the timer later
+	histx     //  index we are displaying of the history
+
+//  at present we only have 2 sorts running
+var bubb : a_sort
+var quik : a_sort
+
+var g : a_global
+var start : array of num   //  our starting array of values to sort
+
+=================================
+calc main_init
+=================================
+	//  build our reference set of values to sort
+	//  we will use this several times to give each sort the same value set
+	loop from:1 to:NVALS index:ix
+		start[ix] = random_int(1, 99)
+		log "at slot {ix} val {bubb.vals[ix]}" on:TRACE 
+
+	//  do our bubble sort and record the history
+	bubb.label = "Bubble Sort"
+	bubb.vals <=== start
+	bubb.ntot = 0
+	do_bubb_sort
+
+	//  do a quicksort and record the history
+	quik.label = "Quicksort"
+	quik.vals <=== start
+	quik.ntot = 0
+	do_quik_sort(1, tree_count(quik.vals))
+
+	//   get ready for the replay by restoring the sort values
+	bubb.vals <=== start
+	quik.vals <=== start
+
+	//  now replay the history of what we did on each tick
+	g.histx = 1 //  must set this before we call do_tick 
+
+	//  we will manually stop the timer when all the sorts are done
+	//  for protection against an infinite loop, put in worst case of N^2
+	//  note that we put in a delay because we want the initial refresh of histx1 to finish
+	g.timer_id = loom_timer(do_tick, reps:NVALS^2, delay:DURATION, interval:DURATION)
+
+=================================
+draw main_draw
+=================================
+	//  fill the screen with a pale color, and then inset to draw our main box
+	draw_rect(b.box, fill:rgb(207,222,227))
+	var r <=== solve_rect(basis:b.box, pin:5, inset:12 pt)
+	layer area:r
+		d_main
+
+=================================
+vert slice d_main
+=================================
+	//  draw the two sort diagrams
+	add 10 al d_replay(bubb)
+	skip 12 pt
+	add 10 al d_replay(quik)
+
+=================================
+draw d_replay( //  bubble sort drawing function, uses g.histx to draw current pair of items
+=================================
+	data : a_sort  //  which sort data to reference
+	)
+	log "--d_replay {data.label}, histx={g.histx}" on:TRACE 
+
+	//  do one time scaling of sizes
+	var hh = round_down((b.box.width)/NVALS)
+	var vv = (b.box.height - 12 pt)/100
+	var c : color
+	
+	//  since histx has different lengths for different sorts
+	//  this record assignment may copy nothing
+	//  pending a fix to JS runtime for merge, do the copy manually
+	var comp : path = adr data.history[g.histx]  // shortcut for accessing this record
+	if comp.swapf
+		//  replay the sort operation swap
+		swap data.vals[comp.comp1] <=> data.vals[comp.comp2]
+
+	//  draw all of the sort values as a bar chart
+	loop array:data.vals index:ix
+		var r:a_rect <=== solve_rect(left:(2 pt) + (ix-1)*hh, width:hh - 4 pt, height:data.vals[ix]*vv, bottom:b.box.height)
+		if ix == comp.comp1 or ix == comp.comp2
+			//  this is a pair being looked at. if we sorted them, show purple			
+			c = if comp.swapf then PURPLE else C_ACTIVE
+		else
+			//  this bar not being scanned, draw in blue
+			c = C_PLAIN
+		draw_rect(r, fill:c)  // the bar
+
+		//  draw the numerical value above the bar
+		var t:a_rect <=== solve_rect(bottom:r.top, height:12 pt, left:r.left, width:hh)
+		draw_str(t, to_str(data.vals[ix]), size:10 pt, color:BLACK)
+
+	//  we just finished history, went off the end of the array, draw the total work done
+	if comp.comp1 == U
+		//  we went off the end of our array
+		draw_str(b.box, "{data.label} total ops: {data.ntot}", size:28 pt, vert:0.15)
+	//-- end d_replay
+
+
+=================================
+calc do_quik_sort(  //  called recursively
+=================================
+	start_lo : num
+	start_hi : num
+	)
+	var lo = start_lo
+	var hi = start_hi
+	var pivotx = round_down((lo + hi)/2)
+	var pivotval = quik.vals[pivotx]
+
+	loop
+		loop
+			inc quik.ntot
+			append { comp1:lo, comp2:pivotx } ===> quik.history 
+			if quik.vals[lo] >= pivotval
+				exit
+			inc lo
+
+		loop 
+			inc quik.ntot
+			append { comp1:hi, comp2:pivotx } ===> quik.history 
+			if quik.vals[hi] <= pivotval
+				exit
+			dec hi
+
+		if lo <= hi
+			//  this gives a slight disadvantage to the quiksort stats
+			//  because we aren't doing another comparison here
+			inc quik.ntot
+			append { comp1:lo, comp2:hi, swapf:Y } ===> quik.history 
+			swap quik.vals[lo] <=> quik.vals[hi]
+			inc lo
+			dec hi
+
+		if lo > hi
+			exit
+
+	if hi > start_lo
+		do_quik_sort(start_lo, hi)
+	if lo < start_hi
+		do_quik_sort(lo, start_hi)
+ 
+=================================
+calc do_bubb_sort  //  classic bubble sort
+=================================
+	//  start out with the first two slots
+	var c1 = 1
+	var c2 = 2
+	var upper = NVALS
+	var did_swap = N //  did a swap on this row
+	var flag : yesno
+
+	loop
+		flag = N
+		if bubb.vals[c1] > bubb.vals[c2]
+			//  swap
+			log "  -- swap val {bubb.vals[c1]} and {bubb.vals[c2]}" on:TRACE 
+			inc bubb.ntot
+			swap bubb.vals[c1] <=> bubb.vals[c2]
+			did_swap = Y
+			flag = Y
+		
+		inc bubb.ntot
+		append { comp1:c1, comp2:c2, swapf:flag } ===> bubb.history
+
+		inc c1
+		inc c2
+		if c1 >= upper
+			//  we are done with this pass. if we didn't do a swap on this pass we are all done
+			if did_swap
+				//  ready for next pass through the values
+				dec upper
+				c1 = 1
+				c2 = 2
+				did_swap = N
+			else
+				//  did a whole row without needing to swap anything, we are done with the sort
+				log "bubble done, nhist={tree_count(bubb.history)}" on:TRACE 
+				exit
+		// end if out of place
+	// end loop
+
+=================================
+calc do_tick
+=================================
+	//  increment our history index that controls which item we display
+	inc g.histx
+
+	//  if both bubb and quik have gone past their limits
+	if g.histx > tree_count(bubb.history) and g.histx > tree_count(quik.history)
+		//  stop our timer before we hit the hard limit of the timer
+		loom_clear(id:g.timer_id)
