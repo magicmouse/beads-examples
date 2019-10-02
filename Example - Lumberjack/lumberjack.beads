@@ -1,0 +1,341 @@
+beads level  1 program lumberjack
+//  a game which is a copy of react-JS game written by Koen van Gilst
+//  runnable:  https://lumber-jack.netlify.com/
+//  source:    https://github.com/vnglst/lumber-jack  
+
+assets local:"art/" remote:"art/"
+	file:"axe.svg" label:ICON_AXE  //  used for cursor?
+	file:"jack.svg" label:ICON_JACK
+	file:"logs.svg" label:ICON_LOGS
+	file:"github_logo.svg" label:ICON_GITHUB
+	file:"tree.svg" label:ICON_TREE
+	file:"stump.svg" label:ICON_STUMP
+	file:"door.svg" label:ICON_DOOR
+	file:"background_sand.jpg" label:BACK_SAND
+
+assets local:"sounds/" remote:"sounds/"
+	file:"chop.wav"  label:S_CHOP
+	file:"thump.mp3" label:S_THUMP
+	file:"throw-logs.mp3" label:S_THROW
+	file:"hes-a-lumberjack.mp3" label:S_HE
+	file:"im-a-lumberjack.mp3" label:S_LEVEL_UP
+	file:"ta_da.mp3" label:S_TA_DA
+
+record a_slot
+	what : (TREE, STUMP, DOOR)
+	health  //  how many chops left before tree is cut down
+
+record a_state  // our game state
+	level    //  current level 
+	phase	: (SPLASH, PLAYING, FINISHED)  //  we don't use SPLASH yet
+	score   //  how many logs cut
+	todo    //  how many trees left to cut
+	forest  : array^2 of a_slot  // our grid of trees
+
+var g : a_state  // our global state
+
+//  to make things look nice we calculate a drawing parameter in main_init
+var RADIUS  //  corner radius to use for corner icons
+
+const
+	NCOL = 7   //  number of columns of trees
+	NROW = 8   //  number of rows of trees
+	COL1 = 10  // aliquots for the col1, col3
+	COL2 = 70  // aliquotes for col2
+	C_CORNERS = #4A4645 // #D7CCC8 // corner background color
+	C_TEXT = #F5E8E5  // a pale white
+
+	//  this specifies the hotspot for the axe cursor
+	AXE_HOTSPOT = {x:3, y:13}
+
+	//  this is how many chops it will take per level to cut a tree
+	CHOPS_PER_LEVEL : array of num = [1, 1, 1, 1, 2, 2, 3, 4]
+
+	LEVELS : array^2 of str = [  @+  //  work for the user to do
+	//  level 1
+	"_*****_", 
+	"*******", 
+	"*******", 
+	"*******", 
+	"_*****_", 
+	"___*___", 
+	"___*___", 
+	"___*___"; 
+
+	//  level 2
+	"_**_**_", 
+	"*******", 
+	"*******", 
+	"_*****_", 
+	"__***__", 
+	"__***__", 
+	"___*___", 
+	"_______"; 
+
+	//  level 3
+	"_______", 
+	"_*****_", 
+	"_*****_", 
+	"_*****_", 
+	"_*****_", 
+	"_*****_", 
+	"_*****_", 
+	"_______"; 
+
+	//  level 4
+	"*******", 
+	"*******", 
+	"*******", 
+	"*******", 
+	"*******", 
+	"*******", 
+	"*******", 
+	"*******"; 
+
+	//  level 5
+	"_*****_", 
+	"*******", 
+	"*******", 
+	"*******", 
+	"_*****_", 
+	"___*___", 
+	"___*___", 
+	"___*___"; 
+
+	//  level 6
+	"___*___", 
+	"__***__", 
+	"_*****_", 
+	"*******", 
+	"_*****_", 
+	"__***__", 
+	"___*___", 
+	"_______"; 
+
+	//  level 7
+	"*_____*", 
+	"_*___*_", 
+	"__***__", 
+	"*******", 
+	"*__*__*", 
+	"*******", 
+	"_*****_", 
+	"__***__";
+
+	//  level 8
+	"*******", 
+	"*******", 
+	"*******", 
+	"**___**", 
+	"**___**", 
+	"*******", 
+	"*******", 
+	"*******" ] @-
+
+-----------------
+calc main_init
+-----------------
+	g.phase = PLAYING
+	g.level  = 0
+	g.score = 0
+	advance_level 
+
+-----------------
+vert slice main_draw
+-----------------
+	//  make our radius proportional to the width in points
+	RADIUS = (dots_to_pt(b.box.width)/40) pt
+	draw_image(b.box, BACK_SAND, aspect:N)
+
+	add 10 al d_header
+	add 80 al d_mainbody
+	skip 10 al
+	add 12 al d_footer
+
+-----------------
+horz slice d_header
+-----------------
+	add COL1 al d_reset
+	skip COL2 al
+	add COL1 al d_github
+
+-----------------
+draw d_reset finger  -- the reset button
+-----------------
+	draw_rect(b.box, fill:C_CORNERS, corner_br:RADIUS)
+	draw_str(b.box, "Reset", size:b.box.height*0.3, indent:8 pt, color:C_TEXT)
+track EV_TAP
+	//  tracking blocks have implied e:a_event record
+	//  note that safari uses control click for contextual menus, so bad idea to use ctrl
+	if e.is_shift
+		//  shift-click is secret keystroke to skip to next level
+		advance_level
+	else
+		//  reset
+		main_init
+
+-----------------
+draw d_github finger -- the jump to github button
+-----------------
+	draw_rect(b.box, fill:#A9A09D, corner_bl:RADIUS)
+	var r : a_rect <=== solve_rect(basis:b.box, pin:5, aspect:1, inset:b.box.height*0.1)
+	draw_image(r, ICON_GITHUB)
+track EV_TAP
+	//  go to github
+	sound_play(S_THUMP)
+	if e.is_shift
+		//  secret keystroke to see original code
+		launch_url("https://github.com/vnglst/lumber-jacks")		  
+	else
+		launch_url("https://github.com/magicmouse/beads-examples")
+
+-----------------
+horz slice d_footer
+-----------------
+	add COL1 al d_jack
+	skip COL2 al
+	add COL1 al d_logs
+	
+-----------------
+vert slice d_jack finger  -- the lumberjack icon cluster
+-----------------
+	draw_rect(b.box, fill:C_CORNERS, corner_tr:RADIUS)
+	skip 2 al
+	add 35 al
+		draw_str(b.box, "level {g.level}", size:b.box.height*0.75, color:C_TEXT)
+	add 80 al
+		draw_image(b.box, ICON_JACK)	
+	//var r : a_rect <=== solve_rect(basis:b.box, pin:7, aspect:1)
+	//draw_rect(r, color:PINK, thick:2)
+	skip 2 pt
+track EV_TAP
+	sound_play(S_HE)
+
+-----------------
+vert slice d_logs  -- the logpile icon cluster
+-----------------
+	draw_rect(b.box, fill:C_CORNERS, corner_tl:RADIUS)
+	skip 2 al
+	add 35 al
+		draw_str(b.box, "{g.score} logs", size:b.box.height*0.75, color:C_TEXT)
+	add 80 al
+		draw_image(b.box, ICON_LOGS)
+	skip 2 pt	
+	//var r : a_rect <=== solve_rect(basis:b.box, pin:9, aspect:1)
+	//draw_rect(r, color:PINK, thick:2)
+
+-----------------
+horz slice d_mainbody  -- our main body area
+-----------------
+	skip COL1 al
+	case g.phase
+	| SPLASH
+		add COL2 al
+			draw_str(b.box, "-- LOADING --", size:20 pt, color:C_TEXT)
+	| PLAYING
+		add COL2 al d_forest
+	| FINISHED
+		add COL2 al
+			draw_str(b.box, "🎉  Congratulations  🎉\nYou are the #1 Lumberjack!", size:20 pt, leading:45 pt, color:C_TEXT)
+	skip COL1 al
+
+-----------------
+table d_forest  -- draw the forest of trees
+-----------------
+	horz slice
+		loop reps:NCOL count:ix
+			if ix <> 1
+				skip 1 al
+			add 12 al
+	vert slice
+		loop reps:NROW count:ix
+			if ix <> 1
+				skip 1 al
+			add 12 al
+
+	cell
+		//  inside each cell function we have implied variables:
+		//  b.box, b.cell_seq, b.cell.x/y, b.cell_id.x/y
+		case g.forest[b.cell].what
+		| STUMP
+			//  draw our poor little stump
+			draw_image(b.box, ICON_STUMP)
+		| DOOR
+			//  draw the door icon, the button to the next level
+			draw_image(b.box, ICON_DOOR)
+		| TREE
+			//  draw the tree at the scale of its health
+			//  calculate a linear interpolation which ranges from 0.2 to 1.0			
+			var f = 0.20 + 0.80*(g.forest[b.cell].health/CHOPS_PER_LEVEL[g.level])
+			var r : a_rect <=== solve_rect(basis:b.box, pin:8, width:b.box.width*f, height:b.box.height*f)
+			draw_image(r, ICON_TREE)
+		//  otherwise draw nothing
+-----------------
+track EV_TAP
+	//  we have dead space in our forest, so the cumulative cell might be U
+	//  we will get a runtime error if we use subscripts of U
+	var cellkind = if b.cell_seq == U then U else g.forest[b.cell].what
+	case cellkind
+	| TREE
+		//  chop this tree
+		sound_play(S_CHOP)
+		//  decrease the health of the tree
+		dec g.forest[b.cell].health
+
+		//  if this finished the tree, convert to a stump
+		if g.forest[b.cell].health <= 0
+			//  tree is now cut
+			//  ...animate here...
+			//  set up a throw sound to follow the previous sound
+			loom_timer(emit_throw, delay:0.1)
+			dec g.todo
+			inc g.score
+			//  if this is the last tree, convert to a door
+			if g.todo == 0
+				g.forest[b.cell].what = DOOR
+			else
+				g.forest[b.cell].what = STUMP
+
+	| DOOR
+		//  go the next level
+		advance_level
+
+	else
+		//  beep
+		sound_play(S_THUMP)
+-----------------
+track EV_HOVER
+	//  show the axe anywhere inside the grid, it is disturbing to see it come and go
+	cursor_custom(ICON_AXE, AXE_HOTSPOT, e.global_x, e.global_y)
+		//cursor_set(CURS_FINGER)
+
+-----------------
+calc advance_level -- play a sound and go to the next level
+-----------------
+	if g.level == tree_count(LEVELS)
+		//  we are done
+		sound_play(S_TA_DA)
+		g.phase = FINISHED
+	else
+		sound_play(S_LEVEL_UP)
+		gen_trees
+
+-----------------
+calc gen_trees -- load the trees
+-----------------
+	inc g.level 
+	g.todo = 0
+	trunc g.forest
+	var startval : a_slot = {what:TREE, health:CHOPS_PER_LEVEL[g.level]}
+	loop from:1 to:NROW index:row
+		var ss = LEVELS[g.level, row]
+		loop from:1 to:NCOL index:col
+			if str_subset(ss, from:col, len:1) == "*"
+				//  put a tree here
+				startval ===> g.forest[col, row]
+				inc g.todo
+
+-----------------
+calc emit_throw  -- callback function to give chop sound time to finish a small gap
+-----------------
+	sound_play(S_THROW)
