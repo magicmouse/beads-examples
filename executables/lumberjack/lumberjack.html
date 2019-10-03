@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8"/>
+<title>lumberjack</title>
+<link href="art/favicon.ico" rel="icon" type="image/x-icon" />
+<style>
+/*  this disables the annoying double click highlighting of DIV blocks  */
+div { outline-style:none;}
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 12pt; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover {
+    background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0;">
+<script type="module">
+import * as std from '../../runtime/beads_std.js';
+import * as str from '../../runtime/beads_str.js';
+import * as k   from '../../runtime/beads_k.js';
+
+export const CODE_HASH = 0xc90a2615;
+export const M_lumberjack = 9007194097880715;  std.g_enum_ss[9007194097880715] = "lumberjack";
+const M = M_lumberjack;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_module = M;
+std.aaaa.main_drawer = new std.a_function("lumberjack", "main_draw", main_draw);
+std.setv(0,0, std.META, M, "lumberjack");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 193, "d_footer");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 243, "d_forest");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 220, "d_logs_220");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 178, "d_github");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 200, "d_jack");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 228, "d_mainbody");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 239, "d_mainbody_239");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 313, "advance_level");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 163, "d_reset");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 156, "d_header");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 339, "emit_throw");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 324, "gen_trees");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 234, "d_mainbody_234");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 215, "d_logs");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 136, "main_init");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 207, "d_jack_207");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 144, "main_draw");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 205, "d_jack_205");
+std.setv(0,0, std.META, M, std.F_mod_funcs, 222, "d_logs_222");
+//------- enums
+const PLAYING = 9007191686763127;  std.g_enum_ss[9007191686763127] = "PLAYING";
+const R_a_slot = 9007193235264524;  std.g_enum_ss[9007193235264524] = "a_slot";
+const SPLASH = 9007193431596340;  std.g_enum_ss[9007193431596340] = "SPLASH";
+const R_a_state = 9007192953576597;  std.g_enum_ss[9007192953576597] = "a_state";
+const STUMP = 9007190770252486;  std.g_enum_ss[9007190770252486] = "STUMP";
+const F_forest = 9007191835264649;  std.g_enum_ss[9007191835264649] = "forest";
+std.FIELDS[F_forest] = true;
+const F_what = 9007193143396546;  std.g_enum_ss[9007193143396546] = "what";
+std.FIELDS[F_what] = true;
+const DOOR = 9007193531484371;  std.g_enum_ss[9007193531484371] = "DOOR";
+const F_todo = 9007193152786232;  std.g_enum_ss[9007193152786232] = "todo";
+std.FIELDS[F_todo] = true;
+const TREE = 9007193384916239;  std.g_enum_ss[9007193384916239] = "TREE";
+const F_phase = 9007191668180263;  std.g_enum_ss[9007191668180263] = "phase";
+std.FIELDS[F_phase] = true;
+const F_level = 9007190262332278;  std.g_enum_ss[9007190262332278] = "level";
+std.FIELDS[F_level] = true;
+const F_health = 9007191182312598;  std.g_enum_ss[9007191182312598] = "health";
+std.FIELDS[F_health] = true;
+const F_score = 9007190801204706;  std.g_enum_ss[9007190801204706] = "score";
+std.FIELDS[F_score] = true;
+const FINISHED = 9007190307679501;  std.g_enum_ss[9007190307679501] = "FINISHED";
+//-------  func const
+const d_footer_F = new std.a_function("lumberjack", "d_footer", d_footer);
+const d_forest_F = new std.a_function("lumberjack", "d_forest", d_forest, track_d_forest);
+const d_forest_cell_F = new std.a_function("lumberjack", "d_forest_cell", d_forest_cell);
+const d_logs_220_F = new std.a_function("lumberjack", "d_logs_220", d_logs_220);
+const d_github_F = new std.a_function("lumberjack", "d_github", d_github, track_d_github);
+const d_jack_F = new std.a_function("lumberjack", "d_jack", d_jack, track_d_jack);
+const d_mainbody_F = new std.a_function("lumberjack", "d_mainbody", d_mainbody);
+const d_mainbody_239_F = new std.a_function("lumberjack", "d_mainbody_239", d_mainbody_239);
+const advance_level_F = new std.a_function("lumberjack", "advance_level", advance_level);
+const d_reset_F = new std.a_function("lumberjack", "d_reset", d_reset, track_d_reset);
+const d_header_F = new std.a_function("lumberjack", "d_header", d_header);
+const emit_throw_F = new std.a_function("lumberjack", "emit_throw", emit_throw);
+const gen_trees_F = new std.a_function("lumberjack", "gen_trees", gen_trees);
+const d_mainbody_234_F = new std.a_function("lumberjack", "d_mainbody_234", d_mainbody_234);
+const d_logs_F = new std.a_function("lumberjack", "d_logs", d_logs);
+const main_init_F = new std.a_function("lumberjack", "main_init", main_init);
+const d_jack_207_F = new std.a_function("lumberjack", "d_jack_207", d_jack_207);
+const d_jack_205_F = new std.a_function("lumberjack", "d_jack_205", d_jack_205);
+const d_logs_222_F = new std.a_function("lumberjack", "d_logs_222", d_logs_222);
+//-------  top nodes
+const ICON_AXE = new std.a_image("art/axe.svg", "");
+const ICON_JACK = new std.a_image("art/jack.svg", "");
+const ICON_LOGS = new std.a_image("art/logs.svg", "");
+const ICON_GITHUB = new std.a_image("art/github_logo.svg", "");
+const ICON_TREE = new std.a_image("art/tree.svg", "");
+const ICON_STUMP = new std.a_image("art/stump.svg", "");
+const ICON_DOOR = new std.a_image("art/door.svg", "");
+const BACK_SAND = new std.a_image("art/background_sand.jpg", "");
+
+const S_CHOP = new std.a_sound("sounds/chop.wav");
+const S_THUMP = new std.a_sound("sounds/thump.mp3");
+const S_THROW = new std.a_sound("sounds/throw-logs.mp3");
+const S_HE = new std.a_sound("sounds/hes-a-lumberjack.mp3");
+const S_LEVEL_UP = new std.a_sound("sounds/im-a-lumberjack.mp3");
+const S_TA_DA = new std.a_sound("sounds/ta_da.mp3");
+
+const NCOL = 7;
+const NROW = 8;
+const COL1 = 10;
+const COL2 = 70;
+const C_CORNERS = 0x4A4645;
+const C_TEXT = 0xF5E8E5;
+const AXE_HOTSPOT = new std.a_tree("lumberjack","AXE_HOTSPOT"); std.merge_tree(M, 49, std.tree_litP(M, 49, std.F_x, 3, std.F_y, 13), std.addr(AXE_HOTSPOT));
+const CHOPS_PER_LEVEL = new std.a_tree("lumberjack","CHOPS_PER_LEVEL"); std.merge_tree(M, 52, std.matrix_lit(M, 52, 
+  1, std.VAL, 1, 
+  2, std.VAL, 1, 
+  3, std.VAL, 1, 
+  4, std.VAL, 1, 
+  5, std.VAL, 2, 
+  6, std.VAL, 2, 
+  7, std.VAL, 3, 
+  8, std.VAL, 4), std.addr(CHOPS_PER_LEVEL));
+const LEVELS = new std.a_tree("lumberjack","LEVELS"); std.merge_tree(M, 54, std.matrix_lit(M, 56, 
+  1, 1, std.VAL, "_*****_", 
+  1, 2, std.VAL, "*******", 
+  1, 3, std.VAL, "*******", 
+  1, 4, std.VAL, "*******", 
+  1, 5, std.VAL, "_*****_", 
+  1, 6, std.VAL, "___*___", 
+  1, 7, std.VAL, "___*___", 
+  1, 8, std.VAL, "___*___", 
+  2, 1, std.VAL, "_**_**_", 
+  2, 2, std.VAL, "*******", 
+  2, 3, std.VAL, "*******", 
+  2, 4, std.VAL, "_*****_", 
+  2, 5, std.VAL, "__***__", 
+  2, 6, std.VAL, "__***__", 
+  2, 7, std.VAL, "___*___", 
+  2, 8, std.VAL, "_______", 
+  3, 1, std.VAL, "_______", 
+  3, 2, std.VAL, "_*****_", 
+  3, 3, std.VAL, "_*****_", 
+  3, 4, std.VAL, "_*****_", 
+  3, 5, std.VAL, "_*****_", 
+  3, 6, std.VAL, "_*****_", 
+  3, 7, std.VAL, "_*****_", 
+  3, 8, std.VAL, "_______", 
+  4, 1, std.VAL, "*******", 
+  4, 2, std.VAL, "*******", 
+  4, 3, std.VAL, "*******", 
+  4, 4, std.VAL, "*******", 
+  4, 5, std.VAL, "*******", 
+  4, 6, std.VAL, "*******", 
+  4, 7, std.VAL, "*******", 
+  4, 8, std.VAL, "*******", 
+  5, 1, std.VAL, "_*****_", 
+  5, 2, std.VAL, "*******", 
+  5, 3, std.VAL, "*******", 
+  5, 4, std.VAL, "*******", 
+  5, 5, std.VAL, "_*****_", 
+  5, 6, std.VAL, "___*___", 
+  5, 7, std.VAL, "___*___", 
+  5, 8, std.VAL, "___*___", 
+  6, 1, std.VAL, "___*___", 
+  6, 2, std.VAL, "__***__", 
+  6, 3, std.VAL, "_*****_", 
+  6, 4, std.VAL, "*******", 
+  6, 5, std.VAL, "_*****_", 
+  6, 6, std.VAL, "__***__", 
+  6, 7, std.VAL, "___*___", 
+  6, 8, std.VAL, "_______", 
+  7, 1, std.VAL, "*_____*", 
+  7, 2, std.VAL, "_*___*_", 
+  7, 3, std.VAL, "__***__", 
+  7, 4, std.VAL, "*******", 
+  7, 5, std.VAL, "*__*__*", 
+  7, 6, std.VAL, "*******", 
+  7, 7, std.VAL, "_*****_", 
+  7, 8, std.VAL, "__***__", 
+  8, 1, std.VAL, "*******", 
+  8, 2, std.VAL, "*******", 
+  8, 3, std.VAL, "*******", 
+  8, 4, std.VAL, "**___**", 
+  8, 5, std.VAL, "**___**", 
+  8, 6, std.VAL, "*******", 
+  8, 7, std.VAL, "*******", 
+  8, 8, std.VAL, "*******"), std.addr(LEVELS));
+
+
+let g = new std.a_tree("lumberjack","g", std.NF_STATEFUL|std.NF_LOGGED);
+const V_lumberjack_g = 9007192815376590;  std.g_enum_ss[9007192815376590] = "g";
+std.setv(0,0, std.META, M, std.F_mod_vars, V_lumberjack_g, std.F_v_val, std.addr(g));
+std.setv(0,0, std.META, M, std.F_mod_vars, V_lumberjack_g, std.F_v_type, std.TYPE_TREE);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_lumberjack_g, std.F_v_rec, R_a_state);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_lumberjack_g, std.F_v_fields, F_level, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_lumberjack_g, std.F_v_fields, F_phase, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_lumberjack_g, std.F_v_fields, F_score, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_lumberjack_g, std.F_v_fields, F_todo, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_lumberjack_g, std.F_v_fields, F_forest, std.F_v_type, std.TYPE_TREE);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_lumberjack_g, std.F_v_fields, F_forest, std.F_v_dim, 2);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_lumberjack_g, std.F_v_fields, F_forest, std.F_v_rec, R_a_slot);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_lumberjack_g, std.F_v_fields, F_forest, std.F_v_fields, F_what, std.F_v_type, std.TYPE_NUM);
+std.setv(0,0, std.META, M, std.F_mod_vars, V_lumberjack_g, std.F_v_fields, F_forest, std.F_v_fields, F_health, std.F_v_type, std.TYPE_NUM);
+let RADIUS = std.U;
+
+//====================
+//   d_footer
+//====================
+function d_footer(b) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  k.div_add(b, std.U, 2, COL1, std.al, d_jack_F, 0);
+  k.div_spa(b, 0, COL2, std.al);
+  k.div_add(b, std.U, 0, COL1, std.al, d_logs_F, 0);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_forest
+//====================
+function d_forest(b) {
+k.k_enter(b);
+k.div_begin(b, true, false, false, false);
+  var loop12 = new std.a_loop({ limit:NCOL });
+  while (loop12.next()) {
+  var ix = loop12.count;
+    if (std.ne2(ix, 1)) {
+      k.div_spa(b, 0, 1, std.al);
+    }
+    k.div_add(b, std.U, 0, 12, std.al, d_forest_cell_F, 0);
+  }
+  var loop13 = new std.a_loop({ limit:NROW });
+  while (loop13.next()) {
+  var ix = loop13.count;
+    if (std.ne2(ix, 1)) {
+      k.div_spa(b, 1, 1, std.al);
+    }
+    k.div_add(b, std.U, 1, 12, std.al, d_forest_cell_F, 0);
+  }
+  k.div_end(b);
+  k.draw_grid(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_forest_cell
+//====================
+function d_forest_cell(b) {
+  k.k_enter(b);
+  var case14 = std.getn(g, F_forest, std.getn(b.extra, std.F_cell, std.F_x), std.getn(b.extra, std.F_cell, std.F_y), F_what);
+  if (case14 === STUMP) {
+    std.draw_image(b, std.addr(b.extra, std.F_box), ICON_STUMP);
+  } else if (case14 === DOOR) {
+    std.draw_image(b, std.addr(b.extra, std.F_box), ICON_DOOR);
+  } else if (case14 === TREE) {
+    let f = std.add(0.2, std.mul(0.8, std.div(std.getn(g, F_forest, std.getn(b.extra, std.F_cell, std.F_x), std.getn(b.extra, std.F_cell, std.F_y), F_health), std.getn(CHOPS_PER_LEVEL
+    , std.getn(g, F_level)))));
+    let r = new std.a_tree("lumberjack","r"); std.merge_tree(M, 270, std.solve_rect({ basis:std.addr(b.extra, std.F_box), pin:8, width:std.mul(b.bounds.width, f), height:std.mul(
+    b.bounds.height, f) }), std.addr(r));
+    std.draw_image(b, std.addr(r), ICON_TREE);
+  }
+  k.k_leave(b);
+}
+
+//====================
+//   track_d_forest
+//====================
+function track_d_forest(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    let cellkind = std.getn(b.extra, std.F_cell_seq) === std.U ? std.U : std.getn(g, F_forest, std.getn(b.extra, std.F_cell, std.F_x), std.getn(b.extra, std.F_cell, std.F_y), 
+    F_what);
+    var case15 = cellkind;
+    if (case15 === TREE) {
+      std.sound_play(S_CHOP);
+      std.tree_sub(M, 283, 1, std.addr(g, F_forest, std.getn(b.extra, std.F_cell, std.F_x), std.getn(b.extra, std.F_cell, std.F_y), F_health));
+      if (std.le2(std.getn(g, F_forest, std.getn(b.extra, std.F_cell, std.F_x), std.getn(b.extra, std.F_cell, std.F_y), F_health), 0)) {
+        std.loom_timer(emit_throw_F, { delay:0.1 });
+        std.tree_sub(M, 291, 1, std.addr(g, F_todo));
+        std.tree_add(M, 292, 1, std.addr(g, F_score));
+        if (std.eq2(std.getn(g, F_todo), 0)) {
+          std.path_setv(M, 295, std.addr(g, F_forest, std.getn(b.extra, std.F_cell, std.F_x), std.getn(b.extra, std.F_cell, std.F_y), F_what), DOOR);
+        } else {
+          std.path_setv(M, 297, std.addr(g, F_forest, std.getn(b.extra, std.F_cell, std.F_x), std.getn(b.extra, std.F_cell, std.F_y), F_what), STUMP);
+        }
+      }
+    } else if (case15 === DOOR) {
+      advance_level();
+    } else {
+      std.sound_play(S_THUMP);
+    }
+  return std.Y;
+  } else 
+  //---------------
+  //   on EV_HOVER
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_HOVER) {
+    std.cursor_custom(ICON_AXE, std.addr(AXE_HOTSPOT), std.getn(e, std.F_global_x), std.getn(e, std.F_global_y));
+  return std.Y;
+  }
+  return std.N;
+}
+
+//====================
+//   d_github
+//====================
+function d_github(b) {
+k.k_enter(b);
+  std.draw_rect(b, std.addr(b.extra, std.F_box), { fill:0xA9A09D, corner_bl:RADIUS });
+  let r = new std.a_tree("lumberjack","r"); std.merge_tree(M, 181, std.solve_rect({ basis:std.addr(b.extra, std.F_box), pin:5, aspect:1, inset:std.mul(b.bounds.height, 0.1) }
+  ), std.addr(r));
+  std.draw_image(b, std.addr(r), ICON_GITHUB);
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_github
+//====================
+function track_d_github(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.sound_play(S_THUMP);
+    if (std.getn(e, std.F_is_shift) === std.Y) {
+      std.launch_url("https://github.com/vnglst/lumber-jacks");
+    } else {
+      std.launch_url("https://github.com/magicmouse/beads-examples");
+    }
+  return std.Y;
+  } else 
+  //---------------
+  //   on EV_HOVER
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_HOVER) {
+    std.cursor_set(std.CURS_FINGER);
+  return std.Y;
+  }
+  return std.N;
+}
+
+//====================
+//   d_header
+//====================
+function d_header(b) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  k.div_add(b, std.U, 2, COL1, std.al, d_reset_F, 0);
+  k.div_spa(b, 0, COL2, std.al);
+  k.div_add(b, std.U, 2, COL1, std.al, d_github_F, 0);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_jack
+//====================
+function d_jack(b) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  std.draw_rect(b, std.addr(b.extra, std.F_box), { fill:C_CORNERS, corner_tr:RADIUS });
+  k.div_spa(b, 1, 2, std.al);
+  k.div_add(b, std.U, 1, 35, std.al, d_jack_205_F, 0);
+  k.div_add(b, std.U, 1, 80, std.al, d_jack_207_F, 0);
+  k.div_spa(b, 1, 2, std.pt);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_jack
+//====================
+function track_d_jack(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.sound_play(S_HE);
+  return std.Y;
+  } else 
+  //---------------
+  //   on EV_HOVER
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_HOVER) {
+    std.cursor_set(std.CURS_FINGER);
+  return std.Y;
+  }
+  return std.N;
+}
+
+//====================
+//   d_logs
+//====================
+function d_logs(b) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  std.draw_rect(b, std.addr(b.extra, std.F_box), { fill:C_CORNERS, corner_tl:RADIUS });
+  k.div_spa(b, 1, 2, std.al);
+  k.div_add(b, std.U, 1, 35, std.al, d_logs_220_F, 0);
+  k.div_add(b, std.U, 1, 80, std.al, d_logs_222_F, 0);
+  k.div_spa(b, 1, 2, std.pt);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_mainbody
+//====================
+function d_mainbody(b) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  k.div_spa(b, 0, COL1, std.al);
+  var case16 = std.getn(g, F_phase);
+  if (case16 === SPLASH) {
+    k.div_add(b, std.U, 0, COL2, std.al, d_mainbody_234_F, 0);
+  } else if (case16 === PLAYING) {
+    k.div_add(b, std.U, 0, COL2, std.al, d_forest_F, 0);
+  } else if (case16 === FINISHED) {
+    k.div_add(b, std.U, 0, COL2, std.al, d_mainbody_239_F, 0);
+  }
+  k.div_spa(b, 0, COL1, std.al);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_reset
+//====================
+function d_reset(b) {
+k.k_enter(b);
+  std.draw_rect(b, std.addr(b.extra, std.F_box), { fill:C_CORNERS, corner_br:RADIUS });
+  std.draw_str(b, std.addr(b.extra, std.F_box), "Reset", { size:std.mul(b.bounds.height, 0.3), indent:std.pt_to_dots(b, 8), color:C_TEXT });
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_reset
+//====================
+function track_d_reset(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    if (std.getn(e, std.F_is_shift) === std.Y) {
+      advance_level();
+    } else {
+      main_init();
+    }
+  return std.Y;
+  } else 
+  //---------------
+  //   on EV_HOVER
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_HOVER) {
+    std.cursor_set(std.CURS_FINGER);
+  return std.Y;
+  }
+  return std.N;
+}
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+k.k_root2(b);
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  RADIUS = std.pt_to_dots(b, std.div(std.dots_to_pt(b, b.bounds.width), 40));
+  std.draw_image(b, std.addr(b.extra, std.F_box), BACK_SAND, { aspect:std.N });
+  k.div_add(b, std.U, 1, 10, std.al, d_header_F, 0);
+  k.div_add(b, std.U, 1, 80, std.al, d_mainbody_F, 0);
+  k.div_spa(b, 1, 10, std.al);
+  k.div_add(b, std.U, 1, 12, std.al, d_footer_F, 0);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   advance_level
+//====================
+function advance_level() {
+  if (std.eq2(std.getn(g, F_level), std.tree_count(std.addr(LEVELS)))) {
+    std.sound_play(S_TA_DA);
+    std.path_setv(M, 318, std.addr(g, F_phase), FINISHED);
+  } else {
+    std.sound_play(S_LEVEL_UP);
+    gen_trees();
+  }
+}
+
+
+//====================
+//   emit_throw
+//====================
+function emit_throw() {
+  std.sound_play(S_THROW);
+}
+
+
+//====================
+//   gen_trees
+//====================
+function gen_trees() {
+  std.tree_add(M, 326, 1, std.addr(g, F_level));
+  std.path_setv(M, 327, std.addr(g, F_todo), 0);
+  std.trunc_tree(M, 328, std.addr(g, F_forest));
+  let startval = new std.a_tree("lumberjack","startval"); std.merge_tree(M, 329, std.tree_litP(M, 329, F_what, TREE, F_health, std.getn(CHOPS_PER_LEVEL, std.getn(g, F_level)
+    )), std.addr(startval));
+  var loop17 = new std.a_loop({ from:1, to_:NROW });
+  while (loop17.next()) {
+  var row = loop17.index;
+    let ss = std.gets(LEVELS, std.getn(g, F_level), row);
+    var loop18 = new std.a_loop({ from:1, to_:NCOL });
+    while (loop18.next()) {
+    var col = loop18.index;
+      if (std.eq2(str.str_subset(ss, { from:col, len:1 }), "*")) {
+        std.copy_tree(M, 335, std.addr(startval), std.addr(g, F_forest, col, row));
+        std.tree_add(M, 336, 1, std.addr(g, F_todo));
+      }
+    }
+  }
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.path_setv(M, 138, std.addr(g, F_phase), PLAYING);
+  std.path_setv(M, 139, std.addr(g, F_level), 0);
+  std.path_setv(M, 140, std.addr(g, F_score), 0);
+  advance_level();
+}
+
+
+//====================
+//   d_jack_205
+//====================
+function d_jack_205(b) {
+k.k_enter(b);
+  std.draw_str(b, std.addr(b.extra, std.F_box), std.cat("level ", str.to_str(std.getn(g, F_level))), { size:std.mul(b.bounds.height, 0.75), color:C_TEXT });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_jack_207
+//====================
+function d_jack_207(b) {
+k.k_enter(b);
+  std.draw_image(b, std.addr(b.extra, std.F_box), ICON_JACK);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_logs_220
+//====================
+function d_logs_220(b) {
+k.k_enter(b);
+  std.draw_str(b, std.addr(b.extra, std.F_box), std.cat("", str.to_str(std.getn(g, F_score)), " logs"), { size:std.mul(b.bounds.height, 0.75), color:C_TEXT });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_logs_222
+//====================
+function d_logs_222(b) {
+k.k_enter(b);
+  std.draw_image(b, std.addr(b.extra, std.F_box), ICON_LOGS);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_mainbody_234
+//====================
+function d_mainbody_234(b) {
+k.k_enter(b);
+  std.draw_str(b, std.addr(b.extra, std.F_box), "-- LOADING --", { size:std.pt_to_dots(b, 20), color:C_TEXT });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_mainbody_239
+//====================
+function d_mainbody_239(b) {
+k.k_enter(b);
+  std.draw_str(b, std.addr(b.extra, std.F_box), "🎉  Congratulations  🎉\nYou are the #1 Lumberjack!", { size:std.pt_to_dots(b, 20), leading:std.pt_to_dots(b, 45), color:C_TEXT
+   });
+k.k_leave(b);
+}
+
+main_init();
+k.rebuild_all();
+
+</script>
+</body>
+</html>
