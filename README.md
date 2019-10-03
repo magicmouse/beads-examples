@@ -5,11 +5,11 @@ These are examples with specifications posted in this repository.
 If you would like to try a pre-release version of the Beads compiler, visit us on Discord at https://discord.gg/pTAdsSW, and let us know if you are mac or windows (sorry no linux yet), what kind of apps you would like to build, and how many years of experience you have.
 
 Beads is not a minor rehash of Python. It is a clean sheet design, carefully crafted to catch as many errors at compile time as possible so you spend less time debugging. These examples barely scratch the surface of the full range of Beads features, such as 
-1. can run in reverse (time-travel-debugging) 
+1. can run in reverse (AKA time-travel-debugging) 
 2. automatic refresh of screen areas when the underlying model changes, 
 3. protected arithmetic like Excel, 
-4. units of measure like 3 m + 2 ft, 
-5. proportional layout system that responds to size changes beautifully, 
+4. units of measure like 3 m + 2 ft (even at runtime)
+5. a proportional layout system that responds to size changes beautifully, 
 6. greatly simplified regular expressions, 
 7. a simple and flexible module system 
 8. no make system needed for most projects
@@ -20,13 +20,19 @@ The classic board game. Complexity rating: 1500 words
 
 ![chess example](http://magicmouse.com/beads/examples/chess/chess.png)
 
-### Example: Bearsweeper
+### Example: Bearsweeper game
 
 The classic Minesweeper game, recast with a Bear in the starring role. Complexity rating: 1000 words
 
 ![bearsweeper example](http://magicmouse.com/beads/examples/bearsweeper/game1_small.png)
 
-### Example: Tic-tac-toe
+### Example: Lumberjack game
+
+A very simple wood chopping game, built for little kids. A rewrite of an existing React/TS game that is can be run [here](https://lumber-jack.netlify.com/). We compare the two implementations to see how it differs in word count, number of dependencies, memory usage. Complexity rating: 750 words
+
+![lumberjack example](http://magicmouse.com/beads/examples/lumberjack/lumberjack_screenshot.jpg)
+
+### Example: Tic-tac-toe game
 
 The classic children's game, two player (no AI). Complexity rating: 520 words
 
@@ -38,7 +44,7 @@ The classic Apple calculator program, except without the bugs that Apple has! Co
 
 ![calculator example](http://magicmouse.com/beads/examples/calculator/calculator.gif)
 
-### Example: Snake
+### Example: Snake game
 
 The classic snake game as popularized by Nokia cellphones. Probably the most fun per line of code ever made. Program complexity rating: 500 words.
 

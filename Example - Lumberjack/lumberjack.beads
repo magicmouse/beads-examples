@@ -306,6 +306,8 @@ track EV_TAP
 -----------------
 track EV_HOVER
 	//  show the axe anywhere inside the grid, it is disturbing to see it come and go
+	//  note that due to a bug as of Safari 13.0.1, we hide the regular cursor here
+	//  however, clicking on something brings back the cursor even though the body style is set to cursor:none
 	cursor_custom(ICON_AXE, AXE_HOTSPOT, e.global_x, e.global_y)
 		//cursor_set(CURS_FINGER)
 
