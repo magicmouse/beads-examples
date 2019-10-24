@@ -1,0 +1,220 @@
+beads level 1 server TicServer
+//  to run under node:
+//  node --experimental-modules ticserver.mjs
+
+------------------------
+--   EXPORTS >>>>
+------------------------
+
+const
+	NGAMES! ⇐ 12  // how many simultaneous games we run
+	SERV_PORT! ⇐ 31234  // the Node.JS port we listen on. Note that many ISPs like A2 must be in range: 30000-50000
+
+enum
+	TIC_TAC_TOE! //  our secret ID so hackers cannot disturb us
+
+--  record used to describe a player in a game
+--  note that a user can be in more than one game at once
+record a_player!
+	userid          //  unique user ID
+	name     : str  //  copy of the name from the client table
+	won             //  number of games won
+	side     : str  //  X or O
+
+record a_game!      //  holds the state for one game
+	gstate  : (GAME_WAITING, GAME_PLAYING, GAME_OVER)
+	turn         	//  the player index 1 or 2 whose turn it is
+	winner       	//  U means no winner, the player index 1 or 2, or NOBODY
+	nmoves      	//  total number of moves played so far, 0..9
+	last_move       //  elapsed time when last move was made
+	players : array of a_player //  array of 1..2 players
+	board   : array of num	    //  a 9 element array representing the board with player index in it
+	hints   : array of color	//  a 9 element array holding color overrides for board cells
+
+	hilite_join1   : yesno  // is join button in hi state
+	hilite_join2   : yesno 
+	hilite_rematch : yesno
+	hilite_exit    : yesno
+
+	//  the client side prevents getting ahead of itself (by clicking twice quickly on a button
+	//  on the screen), by setting a busy flag which on the client is set to Y on each server request
+	//  we force the N value to be retransmitted by using the 'touch' statement
+	//  this allows us to signal to the client it is okay to click again
+	busy           : yesno  // while waiting for server to answer, block any new client clicks
+
+------------------------
+--   <<<< EXPORTS
+------------------------
+
+const
+	SCAFFOLDING ⇐ Y
+	TRACE_SERVER ⇐ Y
+
+	//  neighbors we check for a winning play, given where the player just moved
+	//  this tree lists all the neighbors that constitute a 3 in a row, indexed by board position
+	BUDDIES	⇐ [ 2 3; 4 7; 5 9;; 1 3; 5 8;; 1 2; 6 9; 5 7;; 5 6; 1 7;; 4 6; 2 8; 1 9; 3 7;; 4 5; 3 9;; 8 9; 1 4; 3 5;; 7 9; 2 5;; 7 8; 3 6; 1 5]
+
+//  our source of truth for the state of each game
+//  this array is subscribed to by the clients
+var games : array of a_game  //  array 1..NGAMES of games
+
+===========================
+calc main_init
+===========================
+	//  start out with all the games waiting for players to join
+	loop reps:NGAMES count:fx
+		games[fx].gstate ⇐ GAME_WAITING
+		games[fx].busy ⇐ N
+ 
+	//  put in two games playing so we can test the decode
+	if SCAFFOLDING
+		//   create 3 users
+// 		{ userid:100, name:"Fred", ip:"11.12.13.14", port:3340 } ===> subscribers[1]
+// 		{ userid:101, name:"Penelope", ip:"22.12.13.14", port:2340 } ===> subscribers[2]
+// 		{ userid:102, name:"Sydney", ip:"33.12.13.14", port:2340 } ===> subscribers[3]
+
+		//  put a game into slot 1
+		merge { gstate:GAME_PLAYING, turn:1, nmoves:2 } ===> games[1]
+		merge { userid:100, name:"Fred", won:0, side:"X" } ===> games[1].players[1]
+		merge { userid:101, name:"Penelope", won:3, side:"O" } ===> games[1].players[2]
+		{ 1:1, 3:2 } ===> games[1].board
+
+		//  put a stalemate game into slot 2
+		merge { gstate:GAME_OVER, turn:1, nmoves:9 } ===> games[2]
+		merge { userid:104, name:"Esmerelda", won:0, side:"X" } ===> games[2].players[1]
+		merge { userid:105, name:"Poindexter", won:3, side:"O" } ===> games[2].players[2]
+		{ 1:1, 2:2, 3:1, 4:2, 5:1, 6:2, 7:2, 8:1, 9:2 } ===> games[2].board
+
+		//  put a won game into slot 3
+		merge { gstate:GAME_OVER, turn:2, winner:1, nmoves:3 } ===> games[3]
+		merge { userid:101, name:"Penelope", won:1, side:"X" } ===> games[3].players[1]
+		merge { userid:102, name:"Sydney", won:0, side:"O" } ===> games[3].players[2]
+		{ 1:1, 2:1, 3:1, 4:2, 7:2 } ===> games[3].board
+		games[3].hints[1] = PINK
+		games[3].hints[2] = PINK
+		games[3].hints[3] = PINK
+	//..end if
+
+	//  start listening on the port accepting subscription requests
+	//  we list all the functions that can be remotely called for this connection
+	//  note that we could have multiple ports open, and different functions for each port
+	publish_start(TIC_TAC_TOE, SERV_PORT, 1000, games, serv_join_game, 
+		serv_take_square, serv_leave_game, serv_rematch)
+
+===========================
+calc serv_join_game! ( //  client wants to join a game 
+===========================
+	//  all remote functions have an implifed parameter of userid
+	game : a_game   //  the game to join
+	my_name : str  //  name of this new user
+	my_id : num  // userid of this user
+	) ----------------------
+	log "join_game, name={my_name}, game={game}" on:TRACE_SERVER
+
+	//  the client is setting busy at the time of the remote call so client can't do double executions
+	touch game.busy  //  this will cause a push back busy=N to client
+
+	//  see if this user can take the first slot
+	if game.players[1].userid == U 
+		log "--joining as first comer" on:TRACE_SERVER
+		{ name:my_name, userid:my_id, won:0, side:"X" } ===> game.players[1] // first comer gets X
+	elif game.players[2].userid == U
+		log "--joining as second comer" on:TRACE_SERVER
+		{ name:my_name, userid:my_id, won:0, side:"O" } ===> game.players[2] // second comer gets O
+	else
+		//  user side should catch this, so should never happen; just ignore the click
+		log "--ignoring join request, game is full" on:TRACE_SERVER
+	
+	if game.players[1].userid <> U and game.players[2].userid <> U
+		//  start the game
+		fresh_game(game)  // clear out the old game
+
+===========================
+calc serv_take_square! (  // client is making a move
+===========================
+	game : a_game   //  index of game
+	cellx  //  index of square to take
+	) ----------------------
+
+	log "## SERVER: take_square cellx={cellx}" on:TRACE_SERVER
+	touch game.busy
+	//  client should catch this, but if this game isn't in progress, ignore the crazy request
+	if game.gstate <> GAME_PLAYING
+		return
+
+	//  since the client enforces the rule that only the current player can move
+	//  we know the current player index (game.turn)
+	game.board[cellx] ⇐ game.turn //  current player has taken the square
+	game.last_move ⇐ elapsed // update our move time
+	inc game.nmoves
+
+	//  check for a winner
+	var won ⇐ N
+	//  our buddy list is an array of array, each node in the array corresponds to the other 2 squares
+	//  of every winning 3 in a row. If the other two cells in the buddy list item match the current player
+	//  then we have a winner.  it is possible to have more than one winning path at once.
+	loop array:BUDDIES[cellx] path:mybuddy
+		if (game.board[mybuddy[1]] == game.turn) and (game.board[mybuddy[2]] == game.turn)
+			//  we now have 3 in a row, mark the 3 winning cells for hilite			
+			game.hints[cellx] ⇐ LIGHT_PINK
+			game.hints[mybuddy[1]] ⇐ LIGHT_PINK
+			game.hints[mybuddy[2]] ⇐ LIGHT_PINK
+			won ⇐ Y
+	//..end loop
+
+	if won
+		game.winner ⇐ game.turn  //  current player just won
+		game.gstate ⇐ GAME_OVER
+	elif game.nmoves >= 9
+		//  NOBODY
+		game.winner ⇐ U
+		game.gstate ⇐ GAME_OVER
+	else
+		//  no winner yet, switch sides
+		game.turn ⇐ if game.turn == 1 then 2 else 1
+
+===========================
+calc serv_leave_game! (  //  the client wishes to leave a game
+=========================== 
+	game  : a_game   //  the game client wants to leave
+	my_id : num      //  user id of user wishing to leave
+	) ----------------------
+	log "## SERVER: leave_game, game={game}" on:TRACE_SERVER
+
+	//  figure out which player corresponds to this user
+	touch game.busy
+
+	//  since we can be in the game twice, clear the 2nd slot first
+	if game.players[2].userid == my_id
+		//  we are in slot 2
+		trunc game.players[2]
+	elif game.players[1].userid == my_id
+		//  we are in slot 1
+		trunc game.players[1]
+
+	//  once we have subtracted a player we can't be in a game any more
+	fresh_game(game) // clear any game that had been underway
+	game.gstate ⇐ GAME_WAITING  // waiting for a partner
+
+===========================
+calc serv_rematch! (  // fresh game request, swap X and O
+===========================
+	game : a_game   //  the game client wants to join
+	) ----------------------
+	log "## SERVER: rematch, game={game}" on:TRACE_SERVER
+	touch game.busy
+	swap game.players[1].side <===> game.players[2].side  //  switch between X and O
+	fresh_game(game)
+
+===========================
+calc fresh_game (  //  clear out traces of previous game
+===========================
+	game : a_game
+	) ----------------------
+	game.gstate ⇐ GAME_PLAYING
+	game.winner ⇐ U
+	game.turn ⇐ 1
+	game.nmoves ⇐ 0
+	game.last_move ⇐ elapsed
+	trunc game.board
+	trunc game.hints
