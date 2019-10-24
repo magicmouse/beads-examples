@@ -1,0 +1,417 @@
+beads level 1 program picker  //  color picker
+//  written by edj october 2019
+//  copyright waived
+//  lets you pick a HTML color, copies the name or hex value to the clipboard
+//  complexity rating: 1150 words
+
+assets local:"./art/" remote:"http://beadslang.com/beads/projects/color_picker/art/"
+	file:"click.mp3" label:CLICK
+	file:"beep.mp3" label:BEEP
+
+const
+	TRACE_COLORS = N
+	TRACE_FUDGE = N
+	TRACE_SIZING = N
+
+record a_slot
+	name  : str   //  color name
+	color : color //  rgb color 
+	//  the sort key
+	key1  // color category  1:color band  98:low sat, 99:gray ramp
+	key2  // value band
+	key3  //  hue
+
+var SET1 : array of a_slot <=== [ {name:"button", color:0 },
+	{name:"ALICE_BLUE", color:ALICE_BLUE}, 
+	{name:"ANTIQUE_WHITE", color:ANTIQUE_WHITE},
+	{name:"AQUA", color:AQUA},
+	{name:"AQUAMARINE", color:AQUAMARINE},
+	{name:"AZURE", color:AZURE}, 
+	{name:"BEIGE", color:BEIGE},
+	{name:"BISQUE", color:BISQUE},
+	{name:"BLANCHED_ALMOND", color:BLANCHED_ALMOND},
+	{name:"BLUE", color:BLUE},
+	{name:"BLUE_VIOLET", color:BLUE_VIOLET}, 
+	{name:"BROWN", color:BROWN},
+	{name:"BURLY_WOOD", color:BURLY_WOOD},
+	{name:"CADET_BLUE", color:CADET_BLUE},
+	{name:"CHARTREUSE", color:CHARTREUSE},
+	{name:"CHOCOLATE", color:CHOCOLATE}, 
+	{name:"CORAL", color:CORAL},
+	{name:"CORNFLOWER_BLUE", color:CORNFLOWER_BLUE},
+	{name:"CORNSILK", color:CORNSILK},
+	{name:"CRIMSON", color:CRIMSON},
+	{name:"CYAN", color:CYAN}, 
+	{name:"DARK_BLUE", color:DARK_BLUE},
+	{name:"DARK_CYAN", color:DARK_CYAN},
+	{name:"DARK_GOLDENROD", color:DARK_GOLDENROD},
+	{name:"DARK_GRAY", color:DARK_GRAY},
+	{name:"DARK_GREEN", color:DARK_GREEN}, 
+	{name:"DARK_KHAKI", color:DARK_KHAKI},
+	{name:"DARK_MAGENTA", color:DARK_MAGENTA},
+	{name:"DARK_OLIVE_GREEN", color:DARK_OLIVE_GREEN},
+	{name:"DARK_ORANGE", color:DARK_ORANGE},
+	{name:"DARK_ORCHID", color:DARK_ORCHID}, 
+	{name:"DARK_RED", color:DARK_RED},
+	{name:"DARK_SALMON", color:DARK_SALMON},
+	{name:"DARK_SEA_GREEN", color:DARK_SEA_GREEN},
+	{name:"DARK_SLATE_BLUE", color:DARK_SLATE_BLUE},
+	{name:"DARK_SLATE_GRAY", color:DARK_SLATE_GRAY}, 
+	{name:"DARK_TURQUOISE", color:DARK_TURQUOISE},
+	{name:"DARK_VIOLET", color:DARK_VIOLET},
+	{name:"DEEP_PINK", color:DEEP_PINK},
+	{name:"DEEP_SKY_BLUE", color:DEEP_SKY_BLUE},
+	{name:"DIM_GRAY", color:DIM_GRAY}, 
+	{name:"DODGER_BLUE", color:DODGER_BLUE},
+	{name:"FIREBRICK", color:FIREBRICK},
+	{name:"FLORAL_WHITE", color:FLORAL_WHITE},
+	{name:"FOREST_GREEN", color:FOREST_GREEN},
+	{name:"FUCHSIA", color:FUCHSIA}, 
+	{name:"GAINSBORO", color:GAINSBORO},
+	{name:"GHOST_WHITE", color:GHOST_WHITE},
+	{name:"GOLD", color:GOLD},
+	{name:"GOLDENROD", color:GOLDENROD},
+	{name:"GRAY", color:GRAY}, 
+	{name:"GREEN", color:GREEN},
+	{name:"GREEN_YELLOW", color:GREEN_YELLOW},
+	{name:"HONEYDEW", color:HONEYDEW},
+	{name:"HOT_PINK", color:HOT_PINK},
+	{name:"INDIAN_RED", color:INDIAN_RED}, 
+	{name:"INDIGO", color:INDIGO},
+	{name:"IVORY", color:IVORY},
+	{name:"KHAKI", color:KHAKI},
+	{name:"LAVENDER", color:LAVENDER},
+	{name:"LAVENDER_BLUSH", color:LAVENDER_BLUSH}, 
+	{name:"LAWN_GREEN", color:LAWN_GREEN},
+	{name:"LEMON_CHIFFON", color:LEMON_CHIFFON},
+	{name:"LIGHT_BLUE", color:LIGHT_BLUE},
+	{name:"LIGHT_CORAL", color:LIGHT_CORAL},
+	{name:"LIGHT_CYAN", color:LIGHT_CYAN}, 
+	{name:"LIGHT_GOLDENROD", color:LIGHT_GOLDENROD},
+	{name:"LIGHT_GREEN", color:LIGHT_GREEN},
+	{name:"LIGHT_GREY", color:LIGHT_GREY},
+	{name:"LIGHT_PINK", color:LIGHT_PINK},
+	{name:"LIGHT_SALMON", color:LIGHT_SALMON}, 
+	{name:"LIGHT_SEA_GREEN", color:LIGHT_SEA_GREEN},
+	{name:"LIGHT_SKY_BLUE", color:LIGHT_SKY_BLUE},
+	{name:"LIGHT_SLATE_GRAY", color:LIGHT_SLATE_GRAY},
+	{name:"LIGHT_STEEL_BLUE", color:LIGHT_STEEL_BLUE},
+	{name:"LIGHT_YELLOW", color:LIGHT_YELLOW}, 
+	{name:"LIME", color:LIME},
+	{name:"LIME_GREEN", color:LIME_GREEN},
+	{name:"LINEN", color:LINEN},
+	{name:"MAGENTA", color:MAGENTA},
+	{name:"MAROON", color:MAROON}, 
+	{name:"MEDIUM_AQUAMARINE", color:MEDIUM_AQUAMARINE},
+	{name:"MEDIUM_BLUE", color:MEDIUM_BLUE},
+	{name:"MEDIUM_ORCHID", color:MEDIUM_ORCHID},
+	{name:"MEDIUM_PURPLE", color:MEDIUM_PURPLE},
+	{name:"MEDIUM_SEA_GREEN", color:MEDIUM_SEA_GREEN}, 
+	{name:"MEDIUM_SLATE_BLUE", color:MEDIUM_SLATE_BLUE},
+	{name:"MEDIUM_SPRING_GREEN", color:MEDIUM_SPRING_GREEN},
+	{name:"MEDIUM_TURQUOISE", color:MEDIUM_TURQUOISE},
+	{name:"MEDIUM_VIOLET_RED", color:MEDIUM_VIOLET_RED},
+	{name:"MIDNIGHT_BLUE", color:MIDNIGHT_BLUE}, 
+	{name:"MINT_CREAM", color:MINT_CREAM},
+	{name:"MISTY_ROSE", color:MISTY_ROSE},
+	{name:"MOCCASIN", color:MOCCASIN},
+	{name:"NAVAJO_WHITE", color:NAVAJO_WHITE},
+	{name:"NAVY", color:NAVY}, 
+	{name:"OLD_LACE", color:OLD_LACE},
+	{name:"OLIVE", color:OLIVE},
+	{name:"OLIVE_DRAB", color:OLIVE_DRAB},
+	{name:"ORANGE", color:ORANGE},
+	{name:"ORANGE_RED", color:ORANGE_RED}, 
+	{name:"ORCHID", color:ORCHID},
+	{name:"PALE_GOLDENROD", color:PALE_GOLDENROD},
+	{name:"PALE_GREEN", color:PALE_GREEN},
+	{name:"PALE_TURQUOISE", color:PALE_TURQUOISE},
+	{name:"PALE_VIOLET_RED", color:PALE_VIOLET_RED}, 
+	{name:"PAPAYA_WHIP", color:PAPAYA_WHIP},
+	{name:"PEACH_PUFF", color:PEACH_PUFF},
+	{name:"PERU", color:PERU},
+	{name:"PINK", color:PINK},
+	{name:"PLUM", color:PLUM}, 
+	{name:"POWDER_BLUE", color:POWDER_BLUE},
+	{name:"PURPLE", color:PURPLE},
+	{name:"REBECCA_PURPLE", color:REBECCA_PURPLE},
+	{name:"RED", color:RED},
+	{name:"ROSY_BROWN", color:ROSY_BROWN}, 
+	{name:"ROYAL_BLUE", color:ROYAL_BLUE},
+	{name:"SADDLE_BROWN", color:SADDLE_BROWN},
+	{name:"SALMON", color:SALMON},
+	{name:"SANDY_BROWN", color:SANDY_BROWN},
+	{name:"SEA_GREEN", color:SEA_GREEN}, 
+	{name:"SEASHELL", color:SEASHELL},
+	{name:"SIENNA", color:SIENNA},
+	{name:"SILVER", color:SILVER},
+	{name:"SKY_BLUE", color:SKY_BLUE},
+	{name:"SLATE_BLUE", color:SLATE_BLUE}, 
+	{name:"SLATE_GRAY", color:SLATE_GRAY},
+	{name:"SNOW", color:SNOW},
+	{name:"SPRING_GREEN", color:SPRING_GREEN},
+	{name:"STEEL_BLUE", color:STEEL_BLUE},
+	{name:"TAN", color:TAN}, 
+	{name:"TEAL", color:TEAL},
+	{name:"THISTLE", color:THISTLE},
+	{name:"TOMATO", color:TOMATO},
+	{name:"TURQUOISE", color:TURQUOISE},
+	{name:"VIOLET", color:VIOLET}, 
+	{name:"WHEAT", color:WHEAT},
+	{name:"WHITE_SMOKE", color:WHITE_SMOKE},
+	{name:"YELLOW", color:YELLOW},
+	{name:"YELLOW_GREEN", color:YELLOW_GREEN}]
+
+const SET2 : array of a_slot <=== [ {name:"WHITE", color:WHITE},
+	{name:"GRAY1", color:GRAY1},
+	{name:"GRAY2", color:GRAY2},
+	{name:"GRAY3", color:GRAY3},
+	{name:"GRAY4", color:GRAY4},
+	{name:"GRAY5", color:GRAY5}, 
+	{name:"GRAY6", color:GRAY6},
+	{name:"GRAY7", color:GRAY7},
+	{name:"GRAY8", color:GRAY8},
+	{name:"GRAY9", color:GRAY9},
+	{name:"BLACK", color:BLACK}]
+
+const hue_fudge = 150  // break the HSV wheel not at 0/359 which is in the middle of red
+const AREA_THRESHOLD = 140000  // below this screen area in points we switch to compact form
+const TARG_WIDTH = 100
+
+var NCOLS
+var NROWS
+var NCELLS 
+var slotlist : array of path  //  our sorted array of pointers
+
+record a_state
+	selectedx  // which color slot is currently selected
+	format  : (FORMAT_BEADS, FORMAT_HEX)
+	sizing  : (COMPACT_SIZE, FULL_SIZE)
+
+var g : a_state  //  our tracked mutable state
+
+=================================
+calc main_init
+=================================
+	//  pass 1 - compute the sort keys for the colors
+	log "-- rebuilding with fudge {hue_fudge}" on:TRACE_FUDGE
+
+	var hsv:a_hsv
+	loop array:SET1 path:p index:ix
+		//  hue 0..360, saturation 0..100, value 0..100
+		hsv <=== color_to_hsv(p.color)
+
+		//  fudge the hue because splitting inside red is very bad
+		//  a mistake in the design of HSV
+		var hue2 = rem(hsv.hue + hue_fudge, 360)
+
+		if ix == 1
+			//  force our first slot which is for the mode button to sort first
+			p.key1 = 0
+			p.key2 = 0
+			p.key3 = 0
+		elif hsv.saturation <= 10
+			//  low saturation color, sort at end
+			p.key1 = 90  //  low saturation, sort near end
+			p.key2 = hue2
+			p.key3 = hsv.value
+		elif hsv.saturation >= 90
+			p.key1 = 10  //  high saturation, first band
+			p.key2 = hue2
+			p.key3 = hsv.value
+		else
+			//  a regular color, not faint or bold
+			p.key1 = 50  //  medium saturation
+			p.key2 = hue2 // round_down(hsv.value/100*NRAMPS)
+			p.key3 = hsv.saturation // // hsv.hue
+		//log "{ix}: {p.name}, keys=[{p.key1},{p.key2},{p.key3}], rgb=[{color_r(p.color)},{color_g(p.color)},{color_b(p.color)}], hsv=[{hsv.hue},{hsv.saturation},{hsv.value}]" on:TRACE_COLORS
+	//..end loop
+
+	//  pass 2 - now loop through the set in sort order
+	//           and build an array of pointers to these values
+	loop array:SET1 path:p sort:func compare_slots index:ix count:cx
+		append p => slotlist
+		log "  {cx}: sorted traversal ix={ix}, name={p.name}" on:TRACE_COLORS
+
+	//  add the grays, which are already sorted in the order we want
+	loop array:SET2 path:p
+		append p => slotlist
+
+	if TRACE_COLORS
+		log "----- after sort ------"
+		loop array:slotlist val:p index:ix
+			log "{ix}: {p.name}, keys=[{p.key1},{p.key2},{p.key3}], color={p.color}"
+
+	g.format = FORMAT_BEADS	
+	NCELLS = tree_count(slotlist)
+
+=================================
+grid main_draw order:TBLR
+=================================
+	horz slice
+		skip 10 al
+		loop reps:NCOLS count:col
+			if col > 1 and g.sizing == FULL_SIZE
+				skip 10 al
+			add 250 al
+		skip 10 al		
+
+	vert slice
+		skip 5 al
+		loop reps:NROWS count:row
+			if row > 1 and g.sizing == FULL_SIZE
+				skip 5 al
+			add 80 al
+		skip 5 al
+	cell
+		// inside: b.box, b.cell_seq, b.cell.x/y, b.cell_id.x/y
+		//  note that the first sequential cell correponds to slot 0
+		//  and the sequential 2 means slot 1 because of the extra slot we used
+		if b.cell_seq == 1
+			//  button
+			d_mode_button
+		elif b.cell_seq <= NCELLS
+			var slotx = b.cell_seq
+			d_cell(slotlist[slotx]^^, slotx)
+		//  ignore cells at the end due to partial last row fill
+	over
+		//  draw the sizing square in the corner
+		var r : a_rect <=== solve_rect(basis:b.box, pin:BOT_RIGHT, width:12 pt, height:12 pt)
+		draw_rect(r, fill:PINK, corner_tl:4 pt)
+		draw_str(r, "\u2921", size: 10 pt)  //  NW-SE arrow
+-----------------------
+track EV_TAP
+	//  make a sound effect 
+	if b.cell_seq == U or b.cell_seq > NCELLS
+		//  bad selection, clicked on dead space, a gap or past end of list
+		sound_play(BEEP)
+		g.selectedx = U  // deselect
+	elif b.cell_seq == 1
+		//  first cell is not a color, but a format switcher
+		sound_play(CLICK)
+		//  second click changes the display, cycle between the modes
+		if g.format == FORMAT_BEADS
+			g.format = FORMAT_HEX
+		else
+			g.format = FORMAT_BEADS
+	else
+		//  color choice
+		sound_play(CLICK)
+		g.selectedx = b.cell_seq
+		//log "tapped on color {slotlist[g.selectedx]^^.name}"
+		os_to_clipboard(calc_slot_str(slotlist[g.selectedx]^^))
+-------
+track EV_RESIZE
+	//  when we resize we call this function
+	var h_pts = dots_to_pt(b.box.width)
+	var v_pts = dots_to_pt(b.box.height)
+	var area = h_pts * v_pts
+	log "-- resize, h={h_pts}, v={v_pts}, area={area}, thresh={AREA_THRESHOLD}" on:TRACE_SIZING
+
+	if area >= AREA_THRESHOLD
+		log "-- full size mode" on:TRACE_SIZING
+		//  full size mode, show name
+		g.sizing = FULL_SIZE
+		NCOLS = round_down(h_pts/TARG_WIDTH)
+	else
+		log "-- compact mode" on:TRACE_SIZING
+		g.sizing = COMPACT_SIZE
+		//  calculate the approx. area per cell we are going to have
+		var cell_area = round_down(area / NCELLS)
+		
+		//  now calculate the size so we have a 3:1 aspect ratio
+		var cell_height = sqrt(cell_area/3)
+		var cell_width = cell_area/cell_height
+		NCOLS = round(h_pts/cell_width)
+		
+	NROWS = round_up(NCELLS/NCOLS)
+	log "-- resize, NCELLS={NCELLS}, NCOLS={NCOLS}, NROWS={NROWS}" on:TRACE_SIZING
+-----------------------
+// track EV_KEYBOARD
+// 	//  allow the fudge amount to be tweaked
+// 	case e.keycode
+// 	| KEYCODE_UP, KEYCODE_DOWN
+// 		if e.keycode == KEYCODE_UP
+// 			10 +=> hue_fudge
+// 		else
+// 			10 -=> hue_fudge
+// 		main_init
+// 		return Y
+// 	return N
+
+=================================
+horz slice d_cell(  //  inside each cell we draw the color and the name
+=================================
+	myslot : a_slot
+	slotx
+	)
+	add 50 al
+		draw_rect(b.box, fill:myslot.color, corner:3 pt)
+		//if myslot.frame
+		if slotx == g.selectedx
+			draw_rect(b.box, color:FIREBRICK, thick:4 pt, corner:3 pt)
+		else
+			draw_rect(b.box, color:BLACK, thick:1 pt, corner:3 pt)
+	if g.sizing == FULL_SIZE
+		//  add the name or hex value
+		add 140 al
+			//  get rid of the underscores
+			//var name : str = str_replace(myslot.name, xxxx)
+			if slotx == g.selectedx
+				var radius = b.box.height/6
+				draw_rect(b.box, fill:PEACH_PUFF, corner_tr:radius, corner_br:radius)
+
+			var ss : str = calc_slot_str(myslot)
+
+			//  if this is a hex format, we can make it 1/8th the width, else 1/12th
+			case g.format
+			| FORMAT_BEADS
+				//  show the name
+				draw_str(b.box, ss, just:LEFT, indent:4 pt, size:b.box.width/11)
+			| FORMAT_HEX
+				//  show the hex value in slightly larger type
+				draw_str(b.box, ss, just:LEFT, indent:4 pt, size:b.box.width/8, font:"_typewriter")
+
+=================================
+draw d_mode_button
+=================================
+	var ss : str = case g.format | FORMAT_BEADS = "Beads" | FORMAT_HEX = "Hex"
+	var r : a_rect <=== solve_rect(basis:b.box, pin:5, inset_x:b.box.width*0.1, inset_y:1 pt)
+	draw_rect(r, thick:1 pt, color:BLACK, fill:OLD_LACE, corner:b.box.height*0.25)
+	draw_str(r, ss, size:b.box.height*0.65)
+
+=================================
+calc compare_slots(  -- compare sort keys of the color records, in ascending order
+=================================
+	a : a_slot  //  ptr to a_slot
+	b : a_slot  //  ptr to a_slot
+	) : num  // -1, a less than b
+
+	//  implement a simple 3 level sort key
+	if a.key1 < b.key1
+		return -1
+	elif a.key1 > b.key1
+		return +1
+
+	if a.key2 < b.key2
+		return -1
+	elif a.key2 > b.key2
+		return +1
+
+	if a.key3 < b.key3
+		return -1
+	elif a.key3 > b.key3
+		return +1
+
+	return 0  // slots are equal 
+
+======================
+calc calc_slot_str ( -- calculate the string for the slot
+======================
+	slot : a_slot
+	) : str
+	case g.format
+	| FORMAT_BEADS
+		return slot.name
+	| FORMAT_HEX
+		return color_to_hex(slot.color)
