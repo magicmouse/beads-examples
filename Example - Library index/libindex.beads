@@ -1,0 +1,1070 @@
+beads level 1 program libindex  //  std library index
+//  written by edj november 2019
+//  lets you explore the standard library
+from color_picker import colors_draw
+
+const
+	TRACE_BUILD = N
+	TRACE_CATS = N
+	TRACE_TAP = N
+
+	//  symbol sets
+	NAMESET_CALC = 1
+	NAMESET_DRAW = 2
+	NAMESET_CONST = 3
+	NAMESET_VAR = 4
+	NAMESET_COLOR = 5
+	NAMESET_ENUM = 6
+	NAMESET_RECORD = 7
+	NAMESET_UNIT = 8
+
+record a_pick
+	symname : str  //  symbol name
+	desc1 : str  //  description
+	desc2 : str
+	modname : str   //  module it came from
+	detailp : path  // path back to detail pointer
+
+record a_module
+	name : str
+	active : yesno
+
+record a_state
+	//  selection values
+	namesetx //  1..8 subset category (CALC, DRAW etc.) that user selected
+	curr_catx : num  // which cat in cats[] is highlited
+	curr_cat  : str
+	curr_subx : num  // which subcat in subcats[] is highlited
+	curr_sub  : str
+	pickx    //  which item in picklist we are studying in detail U=nothing selected yet
+
+	//  summary values
+	nmodules
+	ncats
+	nsubcats
+	npicklist
+	func_namesetx //  which nameset do we have the funtcion index built for?
+
+	//  flags to control hiliting of tabs
+	//top_tab : (ALL_FUNCS, ALL_DATA, ALL_DEFS)  // which top tab is hilited
+// 	func_calc  : yesno
+// 	func_draw  : yesno
+// 	data_const : yesno
+// 	data_var   : yesno
+// 	defs_colors: yesno
+// 	defs_enums : yesno
+// 	defs_records : yesno
+// 	defs_units : yesno
+
+var 
+	g : a_state
+
+	//  index data
+	cats     : array of str     //  categories, associative array indexed by int
+	subcats  : array of str     //  sub-categories, associative array indexed by int
+	picklist : array of a_pick    //  the items that we can pick, indexed by int
+	modules  : array of a_module  //  array of modules we have loaded, indexed by int
+
+record a_symbol
+	name   : str
+	name_kind : (NAMEKIND_OPEN, NAMEKIND_CONST, NAMEKIND_VAR, NAMEKIND_RECORD, 
+		NAMEKIND_FIELD, NAMEKIND_ENUM, NAMEKIND_FAMILY, NAMEKIND_UNIT, NAMEKIND_LOOP, 
+		NAMEKIND_ROWKIND, NAMEKIND_FUNC, NAMEKIND_MODULE, NAMEKIND_PARM, NAMEKIND_LAYER, 
+		NAMEKIND_RESERVED, NAMEKIND_STATE, NAMEKIND_TYPE)
+	//func_kind : (DRAW_FUNC, CALC_FUNC)
+
+var symtable : array of a_symbol  //  master symtable
+var pickindex : array of num  //  our sorted array of indexes into picklist
+
+const
+	SCAFFOLDING = N
+
+	TOPBAR = 18
+	TOPLINE = 2
+	TABBORD = 1
+	CELLBORD = 2
+	CELLCORNER = 5
+	CELLV = 15
+	CELLV_BIG = 24
+	SUBCAT_CELLV = 20
+	MODULE_CELLV = 20
+	RIGHTBARV = TOPBAR*2
+	CELLINDENT = 8
+	//LIST_GAPV = 2
+	LIST_V = 24
+	LIST_TEXT = 13
+
+	C_DEAD = GRAY6
+
+	C_TAB_BACK_LO = GRAY7
+	C_TAB_BACK_HI = #822B3D  //  reddish
+	C_TAB_BORD = DARK_KHAKI
+	C_TAB_TEXT = LINEN
+
+	C_CATS_BACK_LO = #4A6E7F  //  dark blue
+	C_CATS_BACK_HI = #822B3D  //  reddish
+	C_CATS_BORD = #3C5967
+	C_CATS_TEXT = IVORY
+
+	C_LIST_BACK1 = CORNSILK  // background for function list
+	C_LIST_BACK2 = #F6EDD1  // alternating color
+	C_LIST_TEXT = #3B1F13
+	C_LIST_DIVIDER = #eae4ca  //  darker cornsilk
+
+	C_BUTT_BACK_LO = LIGHT_CYAN
+	C_BUTT_BORD = SKY_BLUE
+	C_BUTT_TEXT = MIDNIGHT_BLUE
+
+	FUNC_MUTEXLIST : array of num = [1, 2]
+	DATA_MUTEXLIST : array of num = [3, 4]
+	DEFN_MUTEXLIST : array of num = [5, 6, 7, 8]
+
+	MUTEX_LABELS = ["calc", "draw", "const", "var", "colors", "enums", "records", "units"]
+
+-------------------------
+calc main_init
+-------------------------
+	if SCAFFOLDING
+		cats[1] = "Drawing"
+		cats[2] = "Printing"
+		cats[3] = "Eating"
+		g.ncats = tree_count(cats)
+		subcats[1]="Alpha"
+		subcats[2]="Beta"
+		subcats[3]="Gamma"
+		g.nsubcats = tree_count(subcats)
+	
+		// - sorts early, • sorts late
+		[{symname:"bcalc_func1", desc1:"-bcalc_func1(box, width=5, parm1, parm2, parm11, parm22):str", desc2:"This is a function", modname:"std"},
+		{symname:"acalc_func2", desc1:"acalc_func2 (num, str):str", desc2:"This is another function", modname:"std"},
+		{symname:"calc_func3", desc1:"•calc_func3 (num, str):str", desc2:"This is a functio that does some stuff", modname:"std"},
+		{symname:"dcalc_func4", desc1:"dcalc_func4 (dog, cat, fox, dog, cat, fox, dog, cat, fox, dog, cat, fox, fssx):str", desc2:"This is a function", modname:"std"},
+		{symname:"calc_func5", desc1:"calc_func5():num", desc2:"This is a very short function", modname:"std"}] ===> picklist
+
+	modules <=== [<
+		name active
+		"std", Y
+		"str", Y
+		>]
+	g.nmodules = tree_count(modules)
+
+	//  assume the default category of Drawing
+	select_nameset(NAMESET_CALC) // calc functions are more common
+
+-------------------------
+calc select_nameset(  --- select a name set index tab
+-------------------------
+	targx  -- new nameset index  (NAMESET_CALC, etc.)
+	)
+	g.namesetx = targx
+	g.pickx = U  // we don't have a selection now
+	log "-- select set {targx}" on:TRACE_TAP
+
+	case targx
+	--------------------------------
+	| NAMESET_CALC, NAMESET_DRAW
+	--------------------------------
+		//  we are entering a nameset that uses categories and subcategories
+		g.func_namesetx = targx
+
+		//  rebuild the category and subcategory lists
+		build_func_cats
+
+		//  when we change which nameset we are in, zap the category back to first
+		select_cat(1)  //  this will cause subcats to be recalculated
+
+	--------------------------------
+	| NAMESET_ENUM
+	--------------------------------
+		build_cats(enum mod_enums)
+		select_cat(1)
+
+	--------------------------------
+	| NAMESET_RECORD
+	--------------------------------
+		build_cats(enum mod_recs)
+		select_cat(1)
+
+	--------------------------------
+	else
+	--------------------------------
+		//  other types of names don't use cat/subcat
+		rebuild_picklist
+
+-------------------------
+calc select_cat(  --- select a category in the set
+-------------------------
+	targx -- new category index
+	)
+	g.curr_catx = targx
+	g.curr_cat = cats[targx]
+	log "-- select cat ix={targx} name={g.curr_cat}" on:TRACE_TAP
+
+	//  when we change the category, rebuild the subcategory list for this category
+	case g.namesetx
+	| NAMESET_ENUM
+		build_subcats(enum mod_enums)
+	| NAMESET_RECORD
+		build_subcats(enum mod_recs)
+	else
+		build_func_subcats
+	select_subcat(1) //  will cause rebuild of picklist
+
+-------------------------
+calc select_subcat( --- select a subcategory in the set
+-------------------------
+	targx -- new subcategory index
+	)
+	g.curr_subx = targx
+	g.curr_sub = subcats[targx]
+	log "-- select_subcat ix={targx} name={g.curr_sub}" on:TRACE_TAP
+	rebuild_picklist
+
+-------------------------
+calc rebuild_index  -- rebuild the category / subcategory selectors
+-------------------------
+	//   user has just enabled or disabled a module, regen the index
+	case g.namesetx
+	| NAMESET_ENUM
+		build_cats(enum mod_enums)
+		build_subcats(enum mod_enums)
+	| NAMESET_RECORD
+		build_cats(enum mod_recs)
+		build_subcats(enum mod_recs)
+	| NAMESET_CALC, NAMESET_DRAW
+		build_func_cats
+		build_func_subcats
+
+-------------------------
+calc build_cats(  ---  build the list of categories
+-------------------------
+	field : num   -- enum of field to search (mod_enums, etc.)
+	) --------------
+	var modname : str
+	var chunks : array of str
+	var unique : array of yesno //  indexed by str, associated array
+	var cat : str
+
+	log "-- build_cats, namesetx={g.namesetx}" on:TRACE_CATS
+	//  loop through all the modules we loaded into this program
+	loop array:modules path:modptr
+		if modptr.active
+			modname = modptr.name
+			log " -- module active: {modname}"  on:TRACE_CATS
+			//  loop through the functions for this module
+			loop array:META[modname, field] kind:str path:p
+				//  we combined cat and subcat into one string
+				split_words(p.vv_cat, chunks, delim:"|")
+				cat = chunks[1]
+				if cat <> ""
+					log "   including cat {cat}" on:TRACE_CATS
+					unique[cat] = Y
+	//  convert the unique set into an ordered list
+	cat_epilog(unique)
+
+-------------------------
+calc build_func_cats  ---  build the list of categories for the current name set kind
+-------------------------
+	var modname : str
+	var chunks : array of str
+	var unique : array of yesno //  indexed by str, associated array
+	var cat : str
+
+	log "-- build_func_cats, namesetx={g.namesetx}" on:TRACE_CATS
+	//  loop through all the modules we loaded into this program
+	loop array:modules path:modptr
+		if modptr.active
+			modname = modptr.name
+			log " -- module active: {modname}"  on:TRACE_CATS
+			//  loop through the functions for this module
+			loop array:META[modname].mod_funcs kind:str path:p index:funcname
+				//  see if this function kind is in our target subset
+				//  we show draw and calc functions separately
+				log "  name={funcname}, funckind={p.vv_funck}" on:TRACE_CATS
+				if nameset(p.vv_funck) == g.namesetx
+					//  this is the right kind of func
+					split_words(p.vv_cat, chunks, delim:"|")
+					cat = chunks[1]
+					if cat <> ""
+						log "   including cat {cat}" on:TRACE_CATS
+						unique[cat] = Y
+	//  convert the unique set into an ordered list
+	cat_epilog(unique)
+
+-------------------------
+calc cat_epilog( ---  take our array of unique names and order them alphabetically
+-------------------------
+	var unique : array of yesno //  indexed by str, associated array
+	)
+	//  convert the unique set into an ordered list
+	trunc cats
+	loop array:unique kind:str index:ss
+		append ss => cats	
+	g.ncats = tree_count(cats)
+
+	if TRACE_CATS
+		log "-- after build of category"  on:TRACE_CATS
+		loop array:cats index:ix val:ss
+			log "  cat {ix}:{ss}"  on:TRACE_CATS
+
+// -------------------------
+// calc is_draw_kind( ---  utility function to determine if we consider this a draw function
+// -------------------------
+// 	kind : num
+// 	) : yesno --- return true if kind is a draw function
+// 	return kind == xxxx
+
+-------------------------
+calc build_subcats( ---  build the list of subcategories for the current set and category
+-------------------------
+	field : num   -- enum of field of META["mod"] to search (mod_enums, etc.)
+	) --------------
+	var modname : str
+	var chunks : array of str
+	var unique : array of yesno //  indexed by str, associated array
+	var subcat : str
+
+	log "build_subcats, curr_cat={g.curr_cat}" on:TRACE_CATS
+	//  loop through all the modules
+	loop array:modules path:modptr
+		if modptr.active
+			modname = modptr.name
+			log " -- module active: {modname}"
+			//  loop through the functions for this module
+			loop array:META[modname, field] kind:str path:p index:enumname
+				split_words(p.vv_cat, chunks, delim:"|")
+				if chunks[1] == g.curr_cat
+					//  this is in our category selection
+					subcat = chunks[2]
+					if subcat <> ""
+						log "   including subcat {subcat}" on:TRACE_CATS
+						unique[subcat] = Y
+	subcat_epilog(unique)
+
+-------------------------
+calc build_func_subcats ---  build the list of subcategories for the current set and category
+-------------------------
+	var modname : str
+	var chunks : array of str
+	var unique : array of yesno //  indexed by str, associated array
+	var subcat : str
+
+	log "build_func_subcats, curr_cat={g.curr_cat}" on:TRACE_CATS
+	//  loop through all the modules
+	loop array:modules path:modptr
+		if modptr.active
+			modname = modptr.name
+			log " -- module active: {modname}"
+			//  loop through the functions for this module
+			loop array:META[modname].mod_funcs kind:str path:p index:funcname
+				//  see if this function kind is in our target subset
+				//  we show draw and calc functions separately
+				log "  name={funcname}, funckind={p.vv_funck}" on:TRACE_CATS
+				if nameset(p.vv_funck) == g.namesetx
+					//  this is the right kind of func
+					//  see if this is in our current subcategory
+					split_words(p.vv_cat, chunks, delim:"|")
+					if chunks[1] == g.curr_cat
+						//  this is in our category selection
+						subcat = chunks[2]
+						if subcat <> ""
+							log "   including subcat {subcat}" on:TRACE_CATS
+							unique[subcat] = Y
+	subcat_epilog(unique)
+
+-------------------------
+calc subcat_epilog( ---  take our array of unique names and order them alphabetically
+-------------------------
+	var unique : array of yesno //  indexed by str, associated array
+	)
+	//  convert the unique set into an ordered list
+	trunc subcats
+	loop array:unique kind:str index:ss
+		append ss => subcats
+	g.nsubcats = tree_count(subcats)
+
+	if TRACE_CATS
+		log "-- after build of subcategory" on:TRACE_CATS
+		loop array:cats index:ix val:ss
+			log "  subcat {ix}:{ss}" on:TRACE_CATS
+
+-------------------------
+calc nameset(  --- determine if a function kind is either draw or calc
+	funckind --- function kind like FK_CALC, FK_DERIVE, FK_DRAW
+	) : num  --- return either NAMESET_DRAW or NAMESET_CALC
+	return if funckind == FK_DRAW then NAMESET_DRAW else NAMESET_CALC
+
+-------------------------
+calc rebuild_picklist  --- either category or subcategory changed, rebuild pick list
+-------------------------
+	var modname : str
+	var chunks : array of str
+	var ss     : str
+
+	log "-- rebuild_picklist" on:TRACE_BUILD
+	//  rebuild the pick list
+	trunc picklist
+
+	//  loop through the selected modules
+	loop array:modules kind:str path:modptr index:modn
+		if modptr.active
+			modname = modptr.name
+			log " -- module active: {modname}" on:TRACE_BUILD
+			case g.namesetx
+			| NAMESET_CALC, NAMESET_DRAW
+				log "  -- scanning functions, target cat={g.curr_cat} sub={g.curr_sub}" on:TRACE_BUILD
+				loop array:META[modname].mod_funcs kind:str path:p index:keyname
+					if nameset(p.vv_funck) == g.namesetx
+						//  function is in active module, and in the proper nameset
+						split_words(p.vv_cat, chunks, delim:"|")
+						log "  testing {keyname} cat={chunks[1]} sub={chunks[2]}" on:TRACE_BUILD
+						if chunks[1] == g.curr_cat and chunks[2] == g.curr_sub
+							//  matched cat and subcat
+							pick_function(modname, keyname, p)
+				
+			| NAMESET_CONST
+				log "  -- scanning constants" on:TRACE_BUILD
+				loop array:META[modname].mod_const kind:str path:p index:keyname
+					pick_const(modname, keyname, p)
+
+			| NAMESET_VAR
+				log "  -- scanning variables" on:TRACE_BUILD
+				loop array:META[modname].mod_vars kind:str path:p index:keyname
+					pick_const(modname, keyname, p)
+
+			| NAMESET_COLOR
+				nop
+
+			| NAMESET_ENUM
+				log "  -- scanning enums" on:TRACE_BUILD
+				loop array:META[modname].mod_enums kind:str path:p index:keyname
+					split_words(p.vv_cat, chunks, delim:"|")
+					log "  testing {keyname} cat={chunks[1]} sub={chunks[2]}" on:TRACE_BUILD
+					if chunks[1] == g.curr_cat and chunks[2] == g.curr_sub
+						//  matched cat and subcat
+						append { symname:keyname, modname:modname } ===> picklist
+
+			| NAMESET_RECORD
+				//  generates presorted data
+				//  loop through all the records
+				log "  -- scanning records" on:TRACE_BUILD
+				loop array:META[modname].mod_recs kind:str index:recname path:recptr
+					log "   record {recname}, vv_cat={recptr.vv_cat}"
+					split_words(recptr.vv_cat, chunks, delim:"|")
+					log "   testing {recname} cat={chunks[1]} sub={chunks[2]}" on:TRACE_BUILD
+					if chunks[1] == g.curr_cat and chunks[2] == g.curr_sub
+						//  matched cat and subcat , chunk 3 is our desc
+						var desc : str = recname
+						if chunks[3] <> ""
+							"   -- " & chunks[3] &=> desc
+						append { symname:desc, modname:modname } ===> picklist
+						//  loop through all the fields in this record. fieldname holds name|comment
+						loop array:recptr.vv_fields kind:str index:fieldname path:fieldptr
+							log "   --- adding field {fieldname}" on:TRACE_BUILD
+							ss = "    " & fieldname & " : {dtype_to_str(fieldptr.vv_typek, fieldptr)}"
+							append { symname:ss, modname:modname } ===> picklist
+						//  add a blank line after the record to space it nicer
+						append { symname:"" } ===> picklist
+
+			| NAMESET_UNIT
+				//  generates presorted data
+				//  loop through all the families
+				loop array:META[modname].mod_ufams kind:str index:keyname path:famptr
+					log " -- adding family {keyname}" on:TRACE_BUILD
+					ss = keyname & "  (" & pretty_units(famptr.vv_canonical) & ")"
+					append { symname:ss, modname:modname } ===> picklist
+					//  loop through all the units in this family
+					loop array:famptr.vv_units kind:str index:unitname
+						log "  -- adding unit {unitname}" on:TRACE_BUILD
+						ss = "    " & unitname
+						var abbrev = famptr.vv_units[unitname]
+						if abbrev <> ""
+							" (" & abbrev & ")" &=> ss
+						append { symname:ss, modname:modname } ===> picklist
+					//  add a blank line to space it nicer
+					append { symname:"" } ===> picklist
+
+	//..end loop
+
+	//  we built our list of categories, and the picklist.	
+	//  we changed the list, sort it
+	g.npicklist = tree_count(picklist)
+	log "-- npicklist={g.npicklist}" on:TRACE_BUILD
+
+	//  unit and records lists are already in the correct order
+	if g.namesetx <> NAMESET_UNIT and g.namesetx <> NAMESET_RECORD
+		sort_picklist
+
+changelist units_changes global multiline
+------------------------
+	change "^1" to ""
+	//change "len" to "L"
+	//change "mass" to "M"
+	//change "time" to "T"
+	//change "^2" to "\u00B2"  //  superscript 2 (subscripts are too tiny)
+	//change "^3" to "\u00B3"  //  superscript 3
+	change "," to " "
+
+-------------------------
+calc pretty_units( -- convert len^2,mass^1,time^-3 ==>  len2  mass  time^-3
+-------------------------
+	input : str
+	) : str  -- nicer form
+	//  convert all commas to spaces
+	var ss = str_changelist(input, units_changes, trace:Y)
+	return ss
+
+-------------------------
+calc pick_const( -- add this const or var to our picklist
+-------------------------
+	modss : str  -- module the symbol is from
+	symn  : str -- symbol name
+	constptr : a_meta_rec -- mod_const[name], etc.  // pointer to const record
+	)  ---------------
+	log "pick_function, symname={symn}" on:TRACE_BUILD
+	var ss:str = "{symn} : {dtype_to_str(constptr.vv_typek, constptr)}"
+	append { symname:ss, modname:modss } ===> picklist
+
+-------------------------
+calc pick_function( -- add this function to our picklist
+-------------------------
+	modss : str  -- module the symbol is from
+	symn  : str -- symbol name
+	funcptr : a_meta_rec -- mod_funcs[name], etc.  // pointer to function record
+	)  ---------------
+	log "pick_function, symname={symn}" on:TRACE_BUILD
+	var chunks:array of str
+
+	//  d1 is the funcname (parm1, parm2, parm3) : datatype
+	var d1:str = "{symn} ("
+	loop array:funcptr.vv_parms path:parmptr count:ix
+		if ix > 1
+			", " &=> d1
+		split_words(parmptr.vv_parmn, chunks, delim:"|")
+		chunks[1] &=> d1  //  add the parameter name
+		//  if the parameter is a named parm, put in a colon as a hint
+		if parmptr.vv_parmk == PK_NAMED
+			':' &=> d1
+	")" &=> d1 
+	var dtype = funcptr.vv_typek
+	if dtype <> U
+		//  has a return type
+		" : " &=> d1 
+		dtype_to_str(dtype, funcptr) &=> d1
+	
+	//  d2 is the function description "find the square root"
+	//  vv_cat is in the format cat|sub|desc
+	split_words(funcptr.vv_cat, chunks, delim:"|")
+	var d2:str = chunks[3]
+	append { symname:symn, desc1:d1, desc2:d2, modname:modss } ===> picklist
+
+-------------------------
+calc dtype_to_str(  -- convert an internal data type like TYPE_STR into Beads name
+-------------------------
+	dtype : num  -- type like TYPE_STR
+	metaptr : a_meta_rec  --- ptr to meta record if we need it
+	) : str -- Beads form
+	case dtype
+	| TYPE_BYTES
+		return "bytes"
+	| TYPE_CHANGELIST
+		return "changelist"
+	| TYPE_COLOR
+		return "color"
+	| TYPE_DATE
+		return "date"
+	| TYPE_ENUM
+		return "enum"
+	| TYPE_ERR
+		return "ERR"
+	| TYPE_FUNC
+		return "func"
+	| TYPE_IMAGE
+		return "image"
+	| TYPE_MEAS 
+		return "meas"
+	| TYPE_NUM
+		return "num"
+	| TYPE_OBJECT   -- internal system object
+		return "object"
+	| TYPE_ANY
+		return "any"
+	| TYPE_PATH
+		return "path"
+	| TYPE_PATTERN  --internally stored as a tree
+		return "pattern"
+	| TYPE_RECORD  --internally stored as a tree
+		return metaptr.vv_rec // show the record name
+	| TYPE_SOUND
+		return "sound"
+	| TYPE_STR
+		return "str"
+	| TYPE_TREE
+		return "tree"
+	| TYPE_U
+		return "U"
+	| TYPE_VIDEO
+		return "video"
+	| TYPE_VOID   -- used to denote functions that return nothing
+		return "void"
+	| TYPE_YESNO  --internally stored as a number
+		return "yesno"
+	else
+		return "???"
+		
+-------------------------
+horz slice main_draw
+-------------------------
+	draw_rect(b.box, fill:C_DEAD)
+
+	skip 2 pt
+	add 30 al d_leftside
+	skip 4 pt
+	add 80 al d_rightside
+	skip 2 pt
+
+-------------------------
+vert slice d_leftside
+-------------------------
+	skip 2 pt
+
+	//  show the modules
+	add TOPBAR pt d_tab("\u2014 Modules \u2014", N)
+	add 60 pt d_modules
+	skip 8 pt
+
+	//  show category/subcategory underneath the modules
+	case g.namesetx
+	| NAMESET_CALC, NAMESET_DRAW, NAMESET_ENUM, NAMESET_RECORD
+		add 10 al d_leftside2  //  show cat/subcat picker
+	else
+		skip 10 al
+	skip 2 pt
+
+-------------------------
+horz slice d_leftside2 //  draw cats and subcats
+-------------------------
+	add 20 al d_cats_group
+	skip 6 pt
+	add 10 al d_subcats_group
+
+-------------------------
+vert slice d_cats_group
+-------------------------
+	add TOPBAR pt d_tab("\u2014 Category \u2014", N)
+	add 10 al d_cats
+
+-------------------------
+vert slice d_subcats_group
+-------------------------
+	add TOPBAR pt d_tab("Subcategory", N)
+	add 10 al d_subcats
+
+-------------------------
+grid d_cats order:TBLR
+-------------------------
+	horz slice
+		//  a 2 column layout
+		add 10 al
+		add 10 al
+	vert slice
+		var nfit = round_down(b.box.height / CELLV_BIG pt)
+		var need = round_up(g.ncats / 2)
+		var nrows = max(nfit, need)
+
+		loop reps:nrows
+			add 10 al
+	cell
+		if b.cell_seq <= g.ncats
+			//  need to detect if this is the selected category
+			var fill:color = if b.cell_seq == g.curr_catx then C_CATS_BACK_HI else C_CATS_BACK_LO
+			draw_rect(b.box, fill:fill, color:C_CATS_BORD, thick:CELLBORD)
+			var csize = min(b.box.height*0.6, 18 pt)
+			draw_str(b.box, cats[b.cell_seq], size:csize, color:C_CATS_TEXT, just:LEFT, indent:CELLINDENT pt)
+-------------
+track EV_TAP
+	if b.cell_seq <= g.ncats
+		select_cat(b.cell_seq)
+				
+-------------------------
+grid d_subcats
+-------------------------
+	horz slice
+		add 10 al
+	vert slice
+		var nfit = round_down(b.box.height / SUBCAT_CELLV pt)
+		loop reps:nfit
+			add 10 al
+	cell
+		if b.cell_seq <= g.nsubcats
+			var fill:color = if b.cell_seq == g.curr_subx then C_CATS_BACK_HI else C_CATS_BACK_LO
+			draw_rect(b.box, fill:fill, color:C_CATS_BORD, thick:CELLBORD)
+			draw_str(b.box, subcats[b.cell_seq], size:0.6, color:C_CATS_TEXT, just:LEFT, indent:CELLINDENT pt)
+-------------
+track EV_TAP
+	if b.cell_seq <= g.nsubcats
+		select_subcat(b.cell_seq)
+				
+-------------------------
+grid d_modules order:TBLR
+-------------------------
+	horz slice
+		loop reps:3
+			add 10 al
+	vert slice
+		loop reps:3
+			add 10 al
+	cell
+		d_module_cell(b.cell_seq)
+-------------
+track EV_TAP
+	//  toggle the module visibility
+	log "toggling module ix {b.cell_seq}" on:TRACE_TAP
+	if b.cell_seq <= g.nmodules
+		toggle modules[b.cell_seq].active
+		rebuild_index  //  this will affect our index
+
+-------------------------
+horz slice d_module_cell( --  draw a module item
+-------------------------
+	seq  -- index in g.modules
+	)
+	if modules[seq].active
+		draw_rect(b.box, fill:C_CATS_BACK_HI, color:C_CATS_BORD, thick:CELLBORD, pos:0)
+		add 12 pt
+			//  draw eyeball icon when module is active
+			draw_str(b.box, "•", size:0.9, color:C_CATS_TEXT, just:RIGHT)
+	else
+		draw_rect(b.box, fill:C_CATS_BACK_LO, color:C_CATS_BORD, thick:CELLBORD, pos:0)
+		skip 12 pt
+
+	skip 8 pt
+	add 70 al
+		var ss : str
+		if seq <= g.nmodules
+			ss = modules[seq].name
+			draw_str(b.box, ss, size:0.6, color:C_CATS_TEXT, just:LEFT)
+		else
+			draw_str(b.box, "+", size:0.6, color:C_CATS_TEXT, just:LEFT, opacity:0.4)
+			
+-------------------------
+grid d_enumlist order:TBLR
+-------------------------
+	horz slice
+		const NCOL = 3
+		const MAXV = 19 pt
+		var NROW = b.box.height / MAXV
+		if NCOL*NROW <= g.npicklist
+			//  full height is too big, reduce the size to fit the total number
+			NROW = round_up(g.npicklist/NCOL)
+
+		skip 10 pt
+		loop reps:NCOL
+			add 10 al
+			skip 10 pt
+
+	vert slice
+		skip 4 pt
+		loop reps:NROW
+			add 10 al
+
+	under
+		draw_rect(b.box, fill:C_LIST_BACK1)
+
+	cell
+		if b.cell_seq <= g.npicklist
+			draw_str(b.box, picklist[b.cell_seq].symname, size:b.box.height*0.7, color:C_LIST_TEXT, just:LEFT) 
+
+-------------------------
+grid d_constlist order:TBLR  --  draws constants and variables
+-------------------------
+	horz slice
+		const NCOL = 3
+		const MAXV = 19 pt
+		var NROW = b.box.height / MAXV
+		if NCOL*NROW <= g.npicklist
+			//  full height is too big, reduce the size to fit the total number
+			NROW = round_up(g.npicklist/NCOL)
+
+		skip 10 pt
+		loop reps:NCOL
+			add 10 al
+			skip 10 pt  // currently don't have a way of drawing grid lines
+			// draw_rect(b.box, fill:C_LIST_DIVIDER)
+
+	vert slice
+		skip 4 pt
+		loop reps:NROW
+			add 10 al
+
+	under
+		draw_rect(b.box, fill:C_LIST_BACK1)
+
+	cell
+		if b.cell_seq <= g.npicklist
+			draw_str(b.box, picklist[b.cell_seq].symname, size:b.box.height*0.6, color:C_LIST_TEXT, just:LEFT)
+
+-------------------------
+grid d_units order:TBLR  --  draws units, records
+-------------------------
+	horz slice
+		const NCOL = if g.namesetx == NAMESET_RECORD then 2 else 4
+		const MAXV = 19 pt
+		var NROW = b.box.height / MAXV
+		if g.npicklist > NCOL*NROW 
+			//  can't fit the full picklist at full height, reduce the size to fit the total number
+			NROW = round_up(g.npicklist/NCOL)
+
+		skip 10 pt
+		loop reps:NCOL
+			add 10 al
+			skip 14 pt 
+
+	vert slice
+		skip 4 pt
+		loop reps:NROW
+			add 10 al
+
+	under
+		draw_rect(b.box, fill:C_LIST_BACK1)
+
+	cell
+		var ss : str
+		if b.cell_seq <= g.npicklist
+			//  unit family names start with no blank
+			ss = picklist[b.cell_seq].symname
+			if subset(picklist[b.cell_seq].symname, from:1, len:1) <> " "
+				//  family name
+				var sflag:yesno = g.namesetx == NAMESET_UNIT
+				draw_str(b.box, ss, bold:Y, size:b.box.height*0.75, color:C_LIST_TEXT, just:LEFT, shrink:sflag)
+			else
+				//  an indented unit
+				draw_str(b.box, ss, size:b.box.height*0.75, color:C_LIST_TEXT, just:LEFT, shrink:N)
+
+-------------------------
+vert slice d_rightside
+-------------------------
+	skip 2 pt
+	add RIGHTBARV pt d_rightbar
+	case g.namesetx
+	| NAMESET_CONST, NAMESET_VAR
+		add 10 al d_constlist
+	| NAMESET_ENUM
+		add 10 al d_enumlist
+	| NAMESET_RECORD
+		add 10 al d_units //  share code
+	| NAMESET_UNIT
+		add 10 al d_units
+	else
+		add 10 al d_funclist
+	skip 2 pt
+
+-------------------------
+horz slice d_rightbar
+-------------------------
+	add 20 al d_func_bar
+	skip 4 pt
+	add 20 al d_data_bar
+	skip 4 pt
+	add 40 al d_defn_bar
+
+-------------------------
+vert slice d_func_bar
+-------------------------
+	add 10 al d_tab("\u2014 Functions \u2014", N) // g.top_tab == ALL_FUNCS)
+	add 10 al d_mutex(FUNC_MUTEXLIST)
+
+-------------------------
+vert slice d_data_bar
+-------------------------
+	add 10 al d_tab("\u2014 Data \u2014", N) // g.top_tab == ALL_DATA)
+	add 10 al d_mutex(DATA_MUTEXLIST)
+
+-------------------------
+vert slice d_defn_bar
+-------------------------
+	add 10 al d_tab("\u2014 Definitions \u2014", N) // g.top_tab == ALL_DEFS)
+	add 10 al d_mutex(DEFN_MUTEXLIST)
+
+-------------------------
+vert scroll d_funclist
+-------------------------
+	//  depending on the mode draw different stuff
+	if g.pickx == U
+		draw_rect(b.box, fill:C_LIST_BACK1)
+
+		case g.namesetx
+		| NAMESET_COLOR
+			add 100 al colors_draw  // in color_picker module
+		else
+			//  show the picklist
+			skip 2 pt
+			loop array:pickindex val:ix count:count
+				add LIST_V pt d_func_item(ix, count)
+				//skip LIST_GAPV pt
+	else
+		//  user has picked an item to zero in on
+		add 10 al d_detail
+
+-------------------------
+vert slice d_detail
+-------------------------
+	draw_rect(b.box, fill:AZURE)
+	add 100 al
+		draw_str(b.box, "draw_rect(\n   box:a_rect\n   color:color\n   fox:num\n   ) : str", size:16 pt, just:LEFT, indent:12 pt)
+	var vv = min(b.box.height/12, 28 pt)
+	add  vv px d_detail_buttons	
+	skip 8 pt
+
+-------------------------
+horz slice d_detail_buttons
+-------------------------
+	skip 60 al
+	add 40 al
+		d_button("Cancel", do_detail_cancel)
+	skip 60 al
+	add 40 al
+		d_button("Copy", do_detail_copy)
+	skip 60 al
+
+-------------------------
+horz slice d_func_item(
+-------------------------
+	ix
+	count
+	)
+	//  every other line we alternate with a different background color
+	if is_even(count)
+		draw_rect(b.box, fill:C_LIST_BACK2)
+
+	skip 8 pt
+	add 20 al d_abbreviated(picklist[ix].desc1, LIST_TEXT pt) //  func summary	
+	skip 6 pt
+	add 20 al d_abbreviated(picklist[ix].desc2, LIST_TEXT pt) //  func comment		
+	skip 5 pt
+-------------------------
+track EV_TAP
+	//  select this item, this will cause 
+	g.pickx = ix
+
+-------------------------
+draw d_abbreviated(
+-------------------------
+	ss : str
+	sizef -- the proportion of the height
+	)
+	var targwidth = b.box.width
+	var extent : a_xy
+
+	//  measure how big the string is going to be when autoshrink is off
+	draw_str(b.box, ss, size:sizef, shrink:N, metrics:extent)
+	if extent.x > targwidth
+		//  string is too big, abbreviate it
+		
+		//  calculate the proportion of the string, leave room for ... at the end
+		var fract = round_down(str_len(ss) * targwidth / extent.x) - 2
+		ss = subset(ss, from:1, len:fract) & "..."
+
+	draw_str(b.box, ss, size:sizef, just:LEFT, color:C_LIST_TEXT, shrink:N)
+
+-------------------------
+draw d_button(
+-------------------------
+	label : str
+	action : calc ()
+	)
+	draw_rect(b.box, fill:C_BUTT_BACK_LO, color:C_BUTT_BORD, thick:2 pt, corner:8 pt)
+	draw_str(b.box, label, size:0.5, color:C_BUTT_TEXT, indent:4 pt)
+track EV_TAP
+	action()  
+track EV_KEYBOARD
+	//  keyboard shortcuts for the buttons
+	case e.keycode
+	| KEYCODE_ESC
+		do_detail_cancel
+	| KEYCODE_ENTER
+		do_detail_copy 
+	else
+		//  don't absorb this keystroke
+		return N
+
+-------------------------
+calc do_detail_cancel
+-------------------------
+	g.pickx = U //  cancel display
+	
+-------------------------
+calc do_detail_copy
+-------------------------
+	//  copy the built string to the clipboard
+	os_to_clipboard(picklist[g.pickx].desc1)
+	g.pickx = U
+	
+-------------------------
+draw d_tab(
+-------------------------
+	label : str
+	hilite : yesno
+	)
+	var fill:color = if hilite then C_TAB_BACK_HI else C_TAB_BACK_LO
+	draw_rect(b.box, fill:fill, color:C_TAB_BORD, thick:TABBORD pt, pos:0, corner_tl:CELLCORNER pt, corner_tr:CELLCORNER pt)
+	draw_str(b.box, label, size:0.6, color:C_TAB_TEXT)
+
+-------------------------
+horz slice d_mutex(
+-------------------------
+	list : array of num  -- array of mutex indices in this subset
+	)
+	draw_rect(b.box, fill:C_TAB_BACK_LO) // , color:C_TAB_BORD, thick:CELLBORD, pos:0)
+	loop array:list val:ix
+		add 10 al d_mutex_cell(ix, ix == g.namesetx)
+
+-------------------------
+draw d_mutex_cell(
+-------------------------
+	ix : num  --  index in mutex index list
+	hilite : yesno  -- hilited?
+	)
+	var fill:color = if hilite then C_CATS_BACK_HI else C_CATS_BACK_LO
+	draw_rect(b.box, fill:fill, color:C_CATS_BORD, thick:CELLBORD, pos:0)
+	//log "d_Mutex, ix={ix}, label={MUTEX_LABELS[ix]}"
+	draw_str(b.box, MUTEX_LABELS[ix], size:0.6, color:C_CATS_TEXT)
+-------------------------
+track EV_TAP
+	//  make this the new mutex item
+	select_nameset(ix)
+
+-------------------------
+calc sort_picklist
+-------------------------
+	//  build
+	log "-- sort_picklist, len={tree_count(picklist)}" on:TRACE_BUILD
+	trunc pickindex
+	loop array:picklist sort:field desc1 index:ix count:cx path:p
+		append ix => pickindex
+		log "  {cx}: sorted traversal ix={ix}, name={p.desc1}" on:TRACE_BUILD
+
+// -------------------------
+// calc do_tap_funcs  -- user has tapped on functions tab
+// -------------------------
+// 	top_tab = ALL_FUNCS
+// 	g.func_calc = Y
+// 	g.func_draw = Y
+// 
+// -------------------------
+// calc do_tap_data  -- user has tapped on data tab
+// -------------------------
+// 	top_tab = ALL_DATA
+// 	g.data_const = Y
+// 	g.data_var = Y
+// 	g.data_const = Y
+// 	g.data_var = Y
+// 
+// -------------------------
+// calc do_tap_defs  -- user has tapped on defs tab
+// -------------------------
+// 	top_tab = ALL_DEFS
+// 	g.defs_colors = Y
+// 	g.defs_enums = Y
+// 	g.defs_records = Y
+// 	g.defs_units = Y

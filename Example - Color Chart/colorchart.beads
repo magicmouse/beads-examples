@@ -162,8 +162,7 @@ var SET1 : array of a_slot <=== [ {name:"button", color:0 },
 	{name:"YELLOW", color:YELLOW},
 	{name:"YELLOW_GREEN", color:YELLOW_GREEN}]
 
-const SET2 : array of a_slot <=== [ {name:"WHITE", color:WHITE},
-	{name:"GRAY1", color:GRAY1},
+const SET2 : array of a_slot <=== [ {name:"GRAY1", color:GRAY1},
 	{name:"GRAY2", color:GRAY2},
 	{name:"GRAY3", color:GRAY3},
 	{name:"GRAY4", color:GRAY4},
@@ -172,7 +171,8 @@ const SET2 : array of a_slot <=== [ {name:"WHITE", color:WHITE},
 	{name:"GRAY7", color:GRAY7},
 	{name:"GRAY8", color:GRAY8},
 	{name:"GRAY9", color:GRAY9},
-	{name:"BLACK", color:BLACK}]
+	{name:"BLACK", color:BLACK},
+	{name:"WHITE", color:WHITE}]
 
 const hue_fudge = 150  // break the HSV wheel not at 0/359 which is in the middle of red
 const AREA_THRESHOLD = 140000  // below this screen area in points we switch to compact form
@@ -185,7 +185,7 @@ var slotlist : array of path  //  our sorted array of pointers
 
 record a_state
 	selectedx  // which color slot is currently selected
-	format  : (FORMAT_BEADS, FORMAT_HEX)
+	format  : (FORMAT_BEADS, FORMAT_HTML, FORMAT_HEX)
 	sizing  : (COMPACT_SIZE, FULL_SIZE)
 
 var g : a_state  //  our tracked mutable state
@@ -290,10 +290,7 @@ track EV_TAP
 		//  first cell is not a color, but a format switcher
 		sound_play(CLICK)
 		//  second click changes the display, cycle between the modes
-		if g.format == FORMAT_BEADS
-			g.format = FORMAT_HEX
-		else
-			g.format = FORMAT_BEADS
+		g.format = case g.format | FORMAT_BEADS = FORMAT_HTML | FORMAT_HTML = FORMAT_HEX | FORMAT_HEX = FORMAT_BEADS
 	else
 		//  color choice
 		sound_play(CLICK)
@@ -355,8 +352,6 @@ horz slice d_cell(  //  inside each cell we draw the color and the name
 	if g.sizing == FULL_SIZE
 		//  add the name or hex value
 		add 140 al
-			//  get rid of the underscores
-			//var name : str = str_replace(myslot.name, xxxx)
 			if slotx == g.selectedx
 				var radius = b.box.height/6
 				draw_rect(b.box, fill:PEACH_PUFF, corner_tr:radius, corner_br:radius)
@@ -365,7 +360,7 @@ horz slice d_cell(  //  inside each cell we draw the color and the name
 
 			//  if this is a hex format, we can make it 1/8th the width, else 1/12th
 			case g.format
-			| FORMAT_BEADS
+			| FORMAT_BEADS, FORMAT_HTML
 				//  show the name
 				draw_str(b.box, ss, just:LEFT, indent:4 pt, size:b.box.width/11)
 			| FORMAT_HEX
@@ -375,10 +370,10 @@ horz slice d_cell(  //  inside each cell we draw the color and the name
 =================================
 draw d_mode_button
 =================================
-	var ss : str = case g.format | FORMAT_BEADS = "Beads" | FORMAT_HEX = "Hex"
+	var ss : str = case g.format | FORMAT_BEADS = "Beads" | FORMAT_HTML = "HTML" | FORMAT_HEX = "Hex" else "???"
 	var r : a_rect <=== solve_rect(basis:b.box, pin:5, inset_x:b.box.width*0.1, inset_y:1 pt)
 	draw_rect(r, thick:1 pt, color:BLACK, fill:OLD_LACE, corner:b.box.height*0.25)
-	draw_str(r, ss, size:b.box.height*0.65)
+	draw_str(r, ss, size:0.65)
 
 =================================
 calc compare_slots(  -- compare sort keys of the color records, in ascending order
@@ -413,5 +408,22 @@ calc calc_slot_str ( -- calculate the string for the slot
 	case g.format
 	| FORMAT_BEADS
 		return slot.name
+	| FORMAT_HTML
+		return beads_to_html(slot.name)
 	| FORMAT_HEX
 		return color_to_hex(slot.color)
+
+======================
+calc beads_to_html ( -- convert LIGHT_PINK to LightPink
+======================
+	beadsname : str  -- Beads color name
+	) : str  -- html form of the same name
+	var result : str = ""
+	var words : array of str
+	var word  : str
+	split_words(str_lower(beadsname), words, delim:"_")
+	loop array:words val:word
+		str_upper(subset(word, from:1, len:1)) & subset(word, from:2) &=> result
+	//log "name from {beadsname} to {result}"
+	return result
+
