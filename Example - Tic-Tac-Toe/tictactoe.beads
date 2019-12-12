@@ -1,0 +1,220 @@
+beads level 1 program TicTacToe  --  version 4
+//  the classic children's game.
+//  written by edj 2019
+//  Copyright and related rights waived
+
+assets local:"./art" remote:"art/"
+	file:"beep.mp3" label:BEEP
+
+record a_state      --  our global state record
+	player : str	//  the player whose turn it is: "X", "O"
+	winner : str	//  U means no winner yet
+	nmoves : num	//  total number of moves played so far, 0..9
+	board  : array of str	//  a 9 element array representing the board, each string value is either PLAYER_X, PLAYER_O, or U
+	tints  : array of color	//  a 9 element array holding color overrides for board cells
+
+var g : a_state
+
+const
+	//  an array of the 8 winning paths in the playing field
+	//  this is a 2 dimensional array, where the first index in the path #, and then the 3 cell numbers
+	WINNING_WAYS <=== [ 1 2 3; 4 5 6; 7 8 9; 1 4 7; 2 5 8; 3 6 9; 1 5 9; 3 5 7]
+
+	SCAFFOLDING = Y  --  if true, start almost won
+
+------------------
+calc main_init 	// one time init for the module
+------------------
+	reset_board
+	if SCAFFOLDING 
+		g.board[1] = "X"
+		g.board[2] = "O"
+		g.board[3] = "O"
+		g.board[5] = "X"
+		g.nmoves = 4
+	
+------------------
+calc reset_board  -- reset the playing state
+------------------
+	g.player = "X" 
+	g.winner = U
+	g.nmoves = 0 
+	trunc g.board 
+	trunc g.tints
+
+------------------
+draw main_draw
+------------------
+	//draw_rect (b.box, fill:GRAY)
+	if b.box.width / b.box.height > 1.25
+		landscape_layout
+	elif b.box.height / b.box.width > 1.25
+		portrait_layout
+	else
+		square_layout
+
+------------------
+horz slice square_layout
+------------------
+	add 30 al square_board
+	add 10 al landscape_sidebar
+
+------------------
+draw square_board
+------------------
+	layer area:solve_rect(basis:b.box, pin:MID_CENTER, aspect:1)
+		d_board
+
+------------------
+horz slice landscape_layout
+------------------
+	add b.box.height px d_board
+	add 10 al landscape_sidebar
+
+------------------
+vert slice portrait_layout
+------------------
+	add 10 al d_status
+	add b.box.width px d_board
+	if g.winner <> U
+		add 10 al d_newgame
+	else
+		skip 10 al
+
+------------------
+vert slice landscape_sidebar
+------------------
+	//  in landscape orientation we slice the side window into 2 parts
+	skip 10 al
+	add 10 al d_status
+	skip 10 al
+	if g.winner <> U
+		add 10 al d_newgame
+	else
+		skip 10 al
+	skip 10 al
+
+------------------
+draw d_status
+------------------
+	//  either announce the winner, or show whose turn it is now
+	if g.winner == U
+		//  game in progress, say X/O's turn
+		draw_str(b.box, "{g.player}’s turn", size:99 pt, indent:b.box.width/14)
+	else
+		//  game is finished, say X/O/nobody has won
+		draw_str(b.box, "{g.winner} has won", size:99 pt, indent:b.box.width/14, color:CRIMSON)
+
+------------------
+draw d_newgame
+------------------
+	var boxw = b.box.width*12/14
+	var tbox : a_rect <=== solve_rect (basis:b.box, pin:MID_CENTER, width:boxw, height:b.box.height*0.8)
+	draw_rect (tbox, fill:LIGHT_GREEN, color:DARK_GREEN, corner:8 pt, thick:2 pt)
+	draw_str (tbox, "NEW GAME", size:tbox.height*0.4, indent:tbox.width/14, color:DARK_GREEN)
+------------------
+track EV_TAP
+	//  any click in the new game button when the game is over should start a new game
+	reset_board()
+
+------------------
+grid d_board
+------------------
+	//  draw the grid of 9 cells, implicitly uses cell function that immediately follows
+	horz slice
+		add  100 al 
+		skip   10 al 
+		add  100 al 
+		skip   10 al 
+		add  100 al 
+	------------------
+	vert slice
+		add  100 al 
+		skip   10 al 
+		add  100 al 
+		skip   10 al 
+		add  100 al 
+	------------------
+	under
+		//  background fill
+		draw_rect (b.box, fill:#BDF7FF) -- pale blue	
+	------------------
+	cell
+		//  inside: b.box, b.cell_seq, b.cell.x/y, b.cell_id.x/y
+		//  if this cell is marked for a hilite, make it stand out with a different background color
+		var color = g.tints[b.cell_seq]
+		if color <> U
+			draw_rect (b.box, fill:color)
+	
+		//  draw the X or O for each square that has been played	
+		var player = g.board[b.cell_seq]
+		if player <> U
+			draw_str (b.box, player, size:0.95, color:CRIMSON)
+	------------------
+	over
+		//  subtle point: we draw the lines after the grid because we are intruding slightly into 
+		//  the space of the grid, and when hinted, if we drew the grid first, the grid would be
+		//  partially obliterated by the cell, as they overlap. painter's algorithm!
+
+		//  calculate the size of the grid lines. almost the full width of the box, fairly thick.
+		var indent = b.box.width/20
+		var length = b.box.width - indent - indent
+		var thickness = b.box.width*12/320  -- 10 would be perfect but air runtime doesn't draw thick lines accurately
+
+		//  horz lines
+		draw_line (color:GRAY2, x1:indent, y1:b.box.height*1/3, dx:length, dy:0, thick:thickness)
+		draw_line (color:GRAY2, x1:indent, y1:b.box.height*2/3, dx:length, dy:0, thick:thickness)
+
+		//  vert lines
+		draw_line (color:GRAY2, x1:b.box.width*1/3, y1:indent, dy:length, dx:0, thick:thickness)
+		draw_line (color:GRAY2, x1:b.box.width*2/3, y1:indent, dy:length, dx:0, thick:thickness)
+------------------
+track EV_DRAG_BEGIN
+	sound_play(BEEP) -- warn user that they started a drag, they meant to tap probably
+------------------
+track EV_TAP --  returns Y if absorbed
+//  inside: b.box, b.cell_seq, b.cell.x/y, b.cell_id.x/y
+//  the e record has info about the raw event.
+//  note that clicks on grid lines which are dead space, cell index will be U
+
+	//  as a convenience, if the game was over, interpret a tap in the board area as a request to start a new game
+	if g.winner <> U
+		reset_board()
+		return Y
+
+	//  we will use the current cell many times
+	var cellx = b.cell_seq
+
+	//  ignore clicks in dead areas like grid lines, or if the square is already occupied
+	if cellx == U or g.board[cellx] <> U
+		sound_play(BEEP)
+		return Y
+		
+	//  mark the cell for the current player
+	g.board[cellx] = g.player
+
+	//  check for a win by seeing if any of the 8 winning paths have 3 in a row
+	var won = N
+	loop array:WINNING_WAYS path:p
+		//  the cells in the path are p[1], p[2], p[3]
+		if g.board[p[1]] == g.player and g.board[p[2]] == g.player and g.board[p[3]] == g.player
+			//  we now have 3 in a row, mark the 3 winning cells for hilite
+			loop from:1 to:3 index:ix
+				g.tints[p[ix]] = LIGHT_PINK
+
+			//  there may be a second simultaneous winning path, so keep going
+			won = Y
+	//..end loop
+
+	if won
+		g.winner = g.player  --  current player just won
+		return Y  -- victory
+		
+	//  check for a stalemate
+	inc g.nmoves
+	if g.nmoves >= 9 
+		g.winner = "Nobody"  
+		return Y  -- stalemate
+
+	//  game continues, switch sides
+	g.player = if g.player == "X" then "O" else "X"

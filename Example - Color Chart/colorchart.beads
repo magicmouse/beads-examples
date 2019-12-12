@@ -1,4 +1,4 @@
-beads level 1 program picker  //  color picker
+beads level 1 program color_chart
 //  written by edj october 2019
 //  copyright waived
 //  lets you pick a HTML color, copies the name or hex value to the clipboard
@@ -21,8 +21,7 @@ record a_slot
 	key2  // value band
 	key3  //  hue
 
-var SET1 : array of a_slot <=== [ {name:"button", color:0 },
-	{name:"ALICE_BLUE", color:ALICE_BLUE}, 
+var SET1 : array of a_slot <=== [ {name:"ALICE_BLUE", color:ALICE_BLUE}, 
 	{name:"ANTIQUE_WHITE", color:ANTIQUE_WHITE},
 	{name:"AQUA", color:AQUA},
 	{name:"AQUAMARINE", color:AQUAMARINE},
@@ -178,9 +177,12 @@ const hue_fudge = 150  // break the HSV wheel not at 0/359 which is in the middl
 const AREA_THRESHOLD = 140000  // below this screen area in points we switch to compact form
 const TARG_WIDTH = 100
 
+//  these functions as constants after the resize event is processed, which calculates basic geometry
 var NCOLS
 var NROWS
-var NCELLS 
+var NCELLS
+var BARV
+
 var slotlist : array of path  //  our sorted array of pointers
 
 record a_state
@@ -246,7 +248,84 @@ calc main_init
 	NCELLS = tree_count(slotlist)
 
 =================================
-grid main_draw order:TBLR
+vert slice main_draw
+=================================
+	add BARV px d_modebar
+	add 10 al chart_draw
+-------
+track EV_RESIZE  //  this sets global BARV, NCOLS, NROWS
+	//  when we resize (or before first draw) this event is sent
+	BARV = max(14 pt, min(20 pt, b.box.height/17))
+	var h_pts = dots_to_pt(b.box.width)
+	var v_pts = dots_to_pt(b.box.height-BARV)
+	var area = h_pts * v_pts
+	log "-- resize, h={h_pts}, v={v_pts}, area={area}, thresh={AREA_THRESHOLD}" on:TRACE_SIZING
+
+	if area >= AREA_THRESHOLD
+		log "-- full size mode" on:TRACE_SIZING
+		//  full size mode, show name
+		g.sizing = FULL_SIZE
+		NCOLS = round_down(h_pts/TARG_WIDTH)
+	else
+		log "-- compact mode" on:TRACE_SIZING
+		g.sizing = COMPACT_SIZE
+		//  calculate the approx. area per cell we are going to have
+		var cell_area = round_down(area / NCELLS)
+		
+		//  now calculate the size so we have a 3:1 aspect ratio
+		var cell_height = sqrt(cell_area/3)
+		var cell_width = cell_area/cell_height
+		NCOLS = round(h_pts/cell_width)
+		
+	NROWS = round_up(NCELLS/NCOLS)
+	log "-- end resize, NCELLS={NCELLS}, NCOLS={NCOLS}, NROWS={NROWS}, BARV={BARV}" on:TRACE_SIZING
+
+=================================
+horz slice d_modebar
+=================================
+	add 30 al 
+		draw_str(b.box, "Colorchart v.{runtime.app_version}", size:b.box.height*0.6, indent:6 pt)
+	add 55 al d_format_selector
+	add 80 al
+		draw_str(b.box, "Click on the color chip or name to copy to the clipboard", size:b.box.height*0.7, indent:14 pt)
+	add 40 al d_made_with
+	skip 8 pt
+
+=================================
+horz slice d_format_selector  //  show the format selector (mutually exclusive button)
+=================================
+	add 10 al d_choice(FORMAT_BEADS, "Beads name", "Beads")
+	add 10 al d_choice(FORMAT_HTML, "HTML name", "HTML")
+	add 10 al d_choice(FORMAT_HEX, "Hex name", "Hex")
+
+=================================
+draw d_choice(  //  show a format choice button
+=================================
+	formx : num
+	long_label : str
+	short_label : str
+	) -------
+	var fill:color = if formx == g.format then TOMATO else OLD_LACE
+	draw_rect(b.box, fill:fill, thick:1 pt, color:BLACK)
+	var label:str = if b.box.width > 70 pt then long_label else short_label
+	draw_str(b.box, label, size:b.box.height*0.60, indent:3 pt)
+track EV_TAP
+	g.format = formx
+track EV_HOVER
+	cursor_set(CURS_FINGER)
+
+=================================
+draw d_made_with  //  show the "made with" button
+=================================
+	draw_str(b.box, "Made with Beads", size:b.box.height*0.65, just:RIGHT)
+track EV_TAP
+	//  go to the beads home page
+	html_redirect("http://beadslang.com", newtab:Y)
+track EV_HOVER
+	cursor_set(CURS_FINGER)
+
+=================================
+grid chart_draw order:TBLR
 =================================
 	horz slice
 		skip 10 al
@@ -267,10 +346,7 @@ grid main_draw order:TBLR
 		// inside: b.box, b.cell_seq, b.cell.x/y, b.cell_id.x/y
 		//  note that the first sequential cell correponds to slot 0
 		//  and the sequential 2 means slot 1 because of the extra slot we used
-		if b.cell_seq == 1
-			//  button
-			d_mode_button
-		elif b.cell_seq <= NCELLS
+		if b.cell_seq <= NCELLS
 			var slotx = b.cell_seq
 			d_cell(slotlist[slotx]^^, slotx)
 		//  ignore cells at the end due to partial last row fill
@@ -298,32 +374,14 @@ track EV_TAP
 		//log "tapped on color {slotlist[g.selectedx]^^.name}"
 		os_to_clipboard(calc_slot_str(slotlist[g.selectedx]^^))
 -------
-track EV_RESIZE
-	//  when we resize we call this function
-	var h_pts = dots_to_pt(b.box.width)
-	var v_pts = dots_to_pt(b.box.height)
-	var area = h_pts * v_pts
-	log "-- resize, h={h_pts}, v={v_pts}, area={area}, thresh={AREA_THRESHOLD}" on:TRACE_SIZING
-
-	if area >= AREA_THRESHOLD
-		log "-- full size mode" on:TRACE_SIZING
-		//  full size mode, show name
-		g.sizing = FULL_SIZE
-		NCOLS = round_down(h_pts/TARG_WIDTH)
+track EV_HOVER
+	//  if we are on a clickable thing, show the finger cursor
+	if b.cell_seq <= NCELLS
+		//  this will be false if cell_seq is U (which it will be if on dead space)
+		cursor_set(CURS_FINGER)
 	else
-		log "-- compact mode" on:TRACE_SIZING
-		g.sizing = COMPACT_SIZE
-		//  calculate the approx. area per cell we are going to have
-		var cell_area = round_down(area / NCELLS)
-		
-		//  now calculate the size so we have a 3:1 aspect ratio
-		var cell_height = sqrt(cell_area/3)
-		var cell_width = cell_area/cell_height
-		NCOLS = round(h_pts/cell_width)
-		
-	NROWS = round_up(NCELLS/NCOLS)
-	log "-- resize, NCELLS={NCELLS}, NCOLS={NCOLS}, NROWS={NROWS}" on:TRACE_SIZING
------------------------
+		cursor_set(CURS_ARROW)
+-------
 // track EV_KEYBOARD
 // 	//  allow the fudge amount to be tweaked
 // 	case e.keycode
@@ -368,14 +426,6 @@ horz slice d_cell(  //  inside each cell we draw the color and the name
 				draw_str(b.box, ss, just:LEFT, indent:4 pt, size:b.box.width/8, font:"_typewriter")
 
 =================================
-draw d_mode_button
-=================================
-	var ss : str = case g.format | FORMAT_BEADS = "Beads" | FORMAT_HTML = "HTML" | FORMAT_HEX = "Hex" else "???"
-	var r : a_rect <=== solve_rect(basis:b.box, pin:5, inset_x:b.box.width*0.1, inset_y:1 pt)
-	draw_rect(r, thick:1 pt, color:BLACK, fill:OLD_LACE, corner:b.box.height*0.25)
-	draw_str(r, ss, size:0.65)
-
-=================================
 calc compare_slots(  -- compare sort keys of the color records, in ascending order
 =================================
 	a : a_slot  //  ptr to a_slot
@@ -401,9 +451,9 @@ calc compare_slots(  -- compare sort keys of the color records, in ascending ord
 	return 0  // slots are equal 
 
 ======================
-calc calc_slot_str ( -- calculate the string for the slot
+calc calc_slot_str ( -- calculate the string for the color slot
 ======================
-	slot : a_slot
+	slot : a_slot  -- index in our color chart
 	) : str
 	case g.format
 	| FORMAT_BEADS
@@ -414,10 +464,11 @@ calc calc_slot_str ( -- calculate the string for the slot
 		return color_to_hex(slot.color)
 
 ======================
-calc beads_to_html ( -- convert LIGHT_PINK to LightPink
+calc beads_to_html ( -- convert a color name like LIGHT_PINK to LightPink
 ======================
 	beadsname : str  -- Beads color name
 	) : str  -- html form of the same name
+
 	var result : str = ""
 	var words : array of str
 	var word  : str

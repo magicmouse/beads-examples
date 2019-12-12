@@ -2,7 +2,7 @@
 
 This simple program will play the classic children's game of Tic-Tac-Toe .
 
-![tictactoe example](http://magicmouse.com/beads/examples/TicTacToe/tictactoe.gif)
+![tictactoe example](http://beadslang.com/examples/TicTacToe/tictactoe.gif)
 
 The first line of every Beads program declares the level of the language, and names the project.
 
@@ -31,15 +31,12 @@ var g : a_state
 
 ```
 
-This implementation of the game uses a one-dimensional array for the 9 squares. It is less work overall to use one-dimensional coordinates for a game of this simplicity. In order to check for a winning move, we store a two dimensional array of all the pairs of cells that in addition to a given cell, make a three in a row winning move. The upper left corner cell 1 for example has 3 winning patterns, 1-2-3, 1-4-7, and 1-5-9. We store 3 pairs of numbers for cell 1. Thus the Buddies array is a quick way to test for a winning move. A matrix literal like ```[1 2 3]``` defines a simple array of 3 numbers. If you put in a semicolon, it starts a new level of the matrix. Two semicolons in a row mark another level. Thus it is easy to specify a multi-dimensional array literal without using additional parentheses and brackets. Since Beads uses sparse arrays by default, the following definition:
+This implementation of the game uses a one-dimensional array for the 9 squares. It is less work overall to use one-dimensional coordinates for a game of this simplicity. In order to check for a winning move, we store a two dimensional array of all the winning paths through the grid. There is a syntax for matrix literals in Beads that permits easy definition of multi-dimensional arrays. If you put in a semicolon, it starts a new level of the matrix. Two semicolons in a row mark two levels change (for 3-D matrices). Thus it is easy to specify a multi-dimensional array literal without using additional parentheses and brackets. Since Beads uses sparse arrays by default, the following definition:
 
 ```
-	BUDDIES = [ 2 3; 4 7; 5 9;; 1 3; 5 8;; 1 2; 6 9; 5 7;; 5 6; 1 7;; 4 6; 2 8; 1 9; 3 7;; 4 5; 3 9;; 8 9; 1 4; 3 5;; 7 9; 2 5;; 7 8; 3 6; 1 5]
+	WINNING_WAYS <=== [ 1 2 3; 4 5 6; 7 8 9; 1 4 7; 2 5 8; 3 6 9; 1 5 9; 3 5 7]
+
 ```
-
-is the equivalent of defining the following sparse 3 dimensional array, represented as a tree:
-
-![buddy tree](http://magicmouse.com/beads/examples/TicTacToe/pic_buddy_tree.png)
 
 Each of the 9 cells of the board thus has 2, 3, or 4 pairs of neighbor cells that constitute all the possible winning paths that go through that cell. By searching through the neighbor pairs for a given cell we can efficiently test for winning moves.
 
@@ -271,22 +268,20 @@ track EV_TAP --  returns Y if absorbed
 	g.board[cellx] ⇐ g.player
 ```
 
-Now we check for a won game, by using the cell index that was just clicked, and checking the buddy list for that cell, which is 2 to 4 different pairs of other cells, that if they are the same player, that means a 3 in a row. We show the winning three in a row by setting the hints array to override the color for the cell. Note that it is possible for a winning move to have two different 3 in a row paths.
+Now we check for a won game, by scanning the 8 possible winning paths for a 3 in a row. We show the winning three in a row by setting the hints array to override the color for the cell. Note that it is possible for a winning move to have two different 3 in a row paths.
 
 ```
-	//  check for a winner by examining the buddy sets of the cell just played
-	//  if both buddies match the player, then a 3 in a row has occurred.
-	var won ⇐ N
-	loop array:BUDDIES[cellx] path:mybuddy
-		if (g.board[mybuddy[1]] == g.player) and (g.board[mybuddy[2]] == g.player)
-			//  we now have 3 in a row, mark the 3 winning cells for hilite			
-			g.hints[cellx] ⇐ LIGHT_PINK
-			g.hints[mybuddy[1]] ⇐ LIGHT_PINK
-			g.hints[mybuddy[2]] ⇐ LIGHT_PINK
+	//  check for a win by seeing if any of the 8 winning paths have 3 in a row
+	var won = N
+	loop array:WINNING_WAYS path:p
+		//  the cells in the path are p[1], p[2], p[3]
+		if g.board[p[1]] == g.player and g.board[p[2]] == g.player and g.board[p[3]] == g.player
+			//  we now have 3 in a row, mark the 3 winning cells for hilite
+			loop from:1 to:3 index:ix
+				g.tints[p[ix]] = LIGHT_PINK
 
-			//  we could stop immediately after finding one winning path, but it is possible to have 2 winning paths
-			//  so keep going maybe we a second winning path, which we will also mark
-			won ⇐ Y
+			//  there may be a second simultaneous winning path, so keep going
+			won = Y
 	//..end loop
 
 	if won
