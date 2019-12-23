@@ -15,6 +15,15 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 7. a simple and flexible module system 
 8. no make system needed for most projects
 
+### Example: HTTP form that re-arranges its layout
+
+It is very common to need to have input forms and collect user data. This example shows how beads can rearrange a form based on the pixel density and size of a screen. As you make the window larger or smaller it resizes all the elements. This is different than HTML Flex boxes, as it completely rearranges the form using IF statements and can accomodate a very wide range of display densities and sizes. This means your forms can work on mobile devices which can have pixel densities 5 times that of a desktop. Many desktop forms are unusable on mobile.  Complexity rating: 1200 words
+
+![form1A](http://beadslang.com/projects/form1/docs/screenshot_very_narrow.png)
+![form1B](http://beadslang.com/projects/form1/docs/screenshot_narrow.png)
+![form1C](http://beadslang.com/projects/form1/docs/screenshot_wide.png)
+
+
 ### Example: Chess
 
 The classic board game. Complexity rating: 1500 words
