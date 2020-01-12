@@ -1,0 +1,326 @@
+beads level 1 program animate1  // test animation of program execution
+
+record a_location  --- a location in the program
+	funcx  ---  the function index that we jumped from
+	stepx  ---  the step index in the function that we jumped from
+	phase  ---  what phase we are on at this location
+
+	//  these fields are used during call/return
+	jump_num	-- fraction of a jump 
+	jump_den
+	jump_start : a_xy
+	jump_stop  : a_xy
+
+record a_state
+	trail : array of a_location  --- the animation trail we draw on top [1]=head [2] later
+	stack : array of a_location  --- the instruction pointer stack
+	nstack
+	paused : yesno
+	
+record a_step
+	op   //  raw opcode
+	callfx  //  targ function index if this is a call
+	box : a_rect  //  we remember the box for this step so we can animate on top of it
+
+record a_func
+	name : str
+	steps : array of a_step  //  array of opcodes
+	nsteps // number of steps in the function
+	toty  //  height of the function when drawn
+	box   //  rectangle of total func
+
+var 
+	g : a_state
+	funcs : array of a_func
+	mycanvas : a_canvas  -- our canvas bitmap that we draw into
+	tos   : path  //  pointer to g.stack[g.nstack] for convenient use
+
+enum
+	//  opcodes for the CPU
+	OP_CALL
+	OP_CALC
+	OP_IF
+	OP_RETURN
+
+	//  phases the CPU can be in
+	P_ENTER
+	P_LEAVE
+	P_CALL
+	P_RETURN
+	
+const
+	NTRAIL = 4  //  how many items we show in the trail of execution
+	NPERJUMP = 3  //  how many frames it takes to jump
+
+	FUNC_ROW_DY = 2  //
+	FUNC_H = 163
+	FUNC_BOTV = 3
+	FUNC_GAPV = 6  // V gap between function blocks
+	FUNC_GAPH = FUNC_GAPV
+	FUNC_INDENTL = 5
+	FUNC_CORNER = 4
+
+	CELL_H = 29
+	CELL_V = 19
+	CELL_GAP = 2
+	CELL_DH = CELL_H + CELL_GAP
+	CELL_DV = CELL_V + CELL_GAP
+
+	NFUNCS = 20
+	STEPS_PER_ROW = 5
+
+	ROW_V = 19
+	ROW_GAPV = 2
+	ROW_DV = ROW_V + ROW_GAPV // 21
+
+	C_FUNC_BACK = TEAL
+	C_FUNC_ENABLE_ON = MEDIUM_AQUAMARINE
+	C_FUNC_LABEL = LIGHT_CYAN
+	C_DEAD = GRAY8
+
+	C_CELL_PLAIN_BACK = PALE_TURQUOISE
+	C_CELL_FUNC_BACK = MEDIUM_SEA_GREEN
+
+===================
+calc main_init
+===================
+	//  start the instruction pointer in the first func
+	g.nstack = 1
+	tos = adr g.stack[1]
+	merge { funcx:1, stepx:1, phase:P_ENTER } ===> tos 
+	merge tos ===> g.trail[1]
+
+	//  dummy up some functions
+	loop from:1 to:NFUNCS index:fx
+		//  generate a function name
+		var fp : path = adr funcs[fx]
+		fp.name = random_word4() & "_" & random_word4() & "_" & random_word4()
+		if fx == 1
+			fp.nsteps = 12
+		else
+			fp.nsteps = random_int(2, 24)
+		var nrows = round_up(fp.nsteps/STEPS_PER_ROW)
+		fp.toty = 24 + (nrows*ROW_DV)
+		loop from:1 to:fp.nsteps index:sx
+			fp.steps[sx].op = OP_CALC
+			//  put the functions 3 levels deep
+			if fx <= 10
+				if rem(sx, 4) == 3
+					random_call(fx, fp.steps[sx])
+
+	//  start a timer that will let us animate
+	loom_timer(do_tick, rate:1, reps:100, delay:0.1)	
+
+===================
+calc do_tick
+===================
+	if g.paused
+		return  // while paused do nothing
+
+	//  advance the instruction point in the top of the stack
+	var currstep = adr funcs[tos.funcx].steps[tos.stepx]
+	log "do_tick, nstack={g.nstack}, step={tos.stepx} in func={tos.funcx} phase={tos.phase}, op={currstep.op}"
+	
+	//  advance our state
+	case tos.phase
+	| P_ENTER
+		//  moving into this opcode
+		if currstep.op == OP_CALL
+			//  begin the jump. next tick will start drawing the line
+			tos.phase = P_CALL
+			tos.jump_num = 0
+			tos.jump_den = NPERJUMP
+
+			//  calculate the start and endpoints
+			solve_point(basis:currstep.box, pin:5, round:Y) ===> tos.jump_start
+
+			var targstep : path = adr funcs[currstep.callfx].steps[1]
+			solve_point(basis:targstep.box, pin:5, round:Y) ===> tos.jump_stop
+			
+			log "-- entering a jump"
+		else
+			//  just normal advance
+			advance_step
+			
+	| P_LEAVE
+		//  just normal advance
+		advance_step
+
+	| P_CALL
+		if tos.jump_num >= tos.jump_den
+			//  jump is finished, continue execution
+			log "-- finished jump moving to func {currstep.callfx}"
+			
+			//  increase the stack and point to the deeper function
+			inc g.nstack
+			tos = adr g.stack[g.nstack]
+			merge { funcx:currstep.callfx, stepx:1, phase:P_ENTER } ===> tos
+			update_trail
+		else
+			inc tos.jump_num
+	
+	| P_RETURN
+		dec tos.jump_num
+		if tos.jump_num <= 0
+			//  finished our return, move forward
+			tos.phase = P_ENTER
+			advance_step
+
+	else 
+		halt("bad phase")
+
+	log "---end do_tick, nstack={g.nstack}, func={tos.funcx}, step={tos.stepx}, phase={tos.phase}\n\n"	
+
+	render_canvas in mycanvas
+
+=====================
+calc advance_step
+=====================
+	//  move the pointer
+	inc tos.stepx
+	if tos.stepx > funcs[tos.funcx].nsteps
+		//  we have reached the end of the function
+		//  if we are in the top level function, just repeat
+		if g.nstack <= 1
+			tos.stepx = 1
+			tos.phase = P_ENTER
+		else
+			//  calculate our return point
+			var last_step = funcs[tos.funcx].nsteps
+			var return_point : a_xy <=== solve_point(basis:funcs[tos.funcx].steps[last_step].box, pin:5, round:Y)
+
+			//  pop the stack and put the jump at last phase, which will count down
+			dec g.nstack
+			tos = adr g.stack[g.nstack]
+			tos.phase = P_RETURN
+			tos.jump_num = NPERJUMP
+			return_point ===> tos.jump_stop
+
+	//  update the endpoint of the jump to correspond to the returning step
+	update_trail
+
+=====================
+calc update_trail
+=====================
+	//  take the current tos position and move our snake to that spot
+	//  update our trail
+	loop from:1 to:NTRAIL-1 rev:Y index:ix
+		merge g.trail[ix] ===> g.trail[ix+1]
+	merge tos ===> g.trail[1]
+
+=====================
+canvas render_canvas
+=====================
+	log "== render_canvas"
+
+	//  it's too hard to figure out how to erase intelligently, so just zap the whole canvas
+	clear_rect(b.box)
+
+	//  take our current state and render the overlays
+	loop from:1 to:NTRAIL index:ix
+		var opacity = interpolate(ix, 1, NTRAIL, 0.6, 0.2)
+		var funcx = g.trail[ix].funcx
+		var stepx = g.trail[ix].stepx
+		log "  trail ix={ix}, funcx={funcx}, stepx={stepx}"
+		if funcx <> U
+			draw_rect(funcs[funcx].steps[stepx].box, fill:CRIMSON, opacity:opacity)
+			log "  box={funcs[funcx].steps[stepx].box}, opacity={to_str(opacity, digits:2)}"
+
+	if (tos.phase == P_CALL or tos.phase == P_RETURN) and tos.jump_num > 0
+		//  during the jump or return, overlay on the destination func
+		var targfunc
+		var linecolor : color
+
+		if tos.phase == P_CALL
+			targfunc = funcs[tos.funcx].steps[tos.stepx].callfx
+			linecolor = CRIMSON
+		else
+			targfunc = tos.funcx
+			linecolor = DODGER_BLUE
+
+		log "  hiliting callfx={targfunc}, corner={funcs[targfunc].box.left},{funcs[targfunc].box.top}"
+		draw_rect(funcs[targfunc].box, fill:ORANGE, opacity:0.5, corner:FUNC_CORNER)
+
+		//  jump is in progress, show the line as a fraction
+		var startx = interpolate(tos.jump_num-1, 0, tos.jump_den, tos.jump_start.x, tos.jump_stop.x)
+		var starty = interpolate(tos.jump_num-1, 0, tos.jump_den, tos.jump_start.y, tos.jump_stop.y)
+		var endx = interpolate(tos.jump_num, 0, tos.jump_den, tos.jump_start.x, tos.jump_stop.x)
+		var endy = interpolate(tos.jump_num, 0, tos.jump_den, tos.jump_start.y, tos.jump_stop.y)
+		log "-- draw line num={tos.jump_num}/{tos.jump_den}, start=[{startx},{starty}], end=[{endx},{endy}]"
+
+		draw_line(p1:tos.jump_start, p2:tos.jump_stop, thick:5, color:linecolor, opacity:0.3)
+		draw_line(x1:startx, y1:starty, x2:endx, y2:endy, thick:5, color:linecolor)
+
+===================
+calc random_call(
+===================
+	fx : num
+	step : a_step
+	)
+	step.op = OP_CALL
+	//  go to later functions only
+	step.callfx = random_int(fx+1, NFUNCS)
+
+===================
+draw main_draw
+===================
+	draw_rect(b.box, fill:C_DEAD)
+	var x = FUNC_GAPH
+	var y = FUNC_GAPV
+	loop across:funcs path:fp index:fx
+		//  if func will go beyond bottom, advance column
+		if y+fp.toty > b.box.height
+			FUNC_H + FUNC_GAPH +=> x
+			y = FUNC_GAPV
+		draw_func(x, y, fx, fp)
+		fp.toty + FUNC_GAPV +=> y
+
+	//  this creates a canvas layer, stores it in mycanvas
+	layer area:b.box canvas:mycanvas
+
+track EV_TAP
+	toggle g.paused
+
+===================
+draw draw_func (  ---  draw the function at the given Y coordinate
+===================
+	x  --- current X coordinate
+	y  --- current Y coordinate
+	fx : num  -- function index
+	fp : a_func --- function to draw
+	) -----------------
+	var totr <=== solve_rect(left:x, top:y, width:FUNC_H, height:fp.toty)
+	totr ===> fp.box  //  remember this
+	draw_rect(totr, fill:C_FUNC_BACK, corner:FUNC_CORNER)
+
+	var enabler <=== solve_rect(left:x+149, top:y+6, width:9, height:9)
+	draw_rect(enabler, fill:C_FUNC_ENABLE_ON)
+
+	var labelr <=== solve_rect(left:x+FUNC_INDENTL, top:y+2, width:147, height:17)
+	draw_str(labelr, to_str(fx)&"  "&fp.name, size:13, color:C_FUNC_LABEL, just:LEFT)
+
+	//  draw the cells in the function
+	var firstx = x + FUNC_INDENTL
+	var firsty = y + 21
+	var col = 0
+	var row = 0
+	var color : color
+
+	loop across:fp.steps path:sp
+		var cellr <=== solve_rect(left:firstx + col*CELL_DH, top:firsty + row*CELL_DV, width:CELL_H, height:CELL_V)
+		cellr ===> sp.box  //  remember the box for later
+		draw_rect(cellr, fill:C_CELL_PLAIN_BACK, corner:2)
+		//log "cell col={col}, row={row}, box={cellr}"
+		case sp.op
+		| OP_CALL
+			color = C_CELL_FUNC_BACK
+			draw_str(cellr, to_str(sp.callfx), size:0.8, color:TEAL)
+		else
+			color = C_CELL_PLAIN_BACK
+
+		//  get ready for next cell
+		inc col
+		if col >= 5
+			col = 0
+			inc row
+		
