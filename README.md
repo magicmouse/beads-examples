@@ -1,8 +1,7 @@
 
 ## Programming examples
 
-These are examples with specifications posted in this repository.
-If you would like to try a pre-release version of the Beads compiler, visit us on [Discord](https://discord.gg/pTAdsSW), and let us know if you are mac or windows (sorry no linux yet), what kind of apps you would like to build, and how many years of experience you have.
+These are examples with specifications posted in our GitHub repository, and are included in the SDK which you can download at Beadslang.com. 
 
 Beads is not a minor rehash of Python or JS. It is a clean sheet design, carefully crafted to catch as many errors at compile time as possible so you spend less time debugging. These examples barely scratch the surface of the full range of Beads features, such as:
 
@@ -14,6 +13,19 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 6. greatly simplified regular expressions
 7. a simple and flexible module system 
 8. no make system needed for most projects
+
+### Example: Animate1 -- Animation using the HTML Canvas
+
+In this example we show how you can use the HTML canvas layer to achieve smooth animation effects.
+
+![constellation](http://beadslang.com/examples/animate3/animate3.gif)
+
+
+### Example: Animate1 -- Animation program execution
+
+In this example we show a prototype of a way of illustrating program execution, as we call and return from functions:
+
+![constellation](http://beadslang.com/examples/animate1/example.gif)
 
 ### Example: Beads versus Python
 
@@ -49,53 +61,53 @@ The classic board game, but in multiplayer form, where you can play or watch 12 
 
 The classic children's game, two player (no AI). Complexity rating: 520 words
 
-![tictactoe example](http://magicmouse.com/beads/examples/TicTacToe/tictactoe.gif)
+![tictactoe example](http://beadslang.com/examples/TicTacToe/tictactoe.gif)
 
 ### Example: Color picker utility
 
 A handy tool for programming; shows the HTML named colors, sorted in a convenient to use sort order. Approx. 1300 words.
 
-![color picker](http://beadslang.com/projects/color_picker/docs/screenshot.jpg)
+![color picker](http://beadslang.com/examples/colorchart/docs/screenshot1.png)
 
 ### Example: Bearsweeper game
 
 The classic Minesweeper game, recast with a Bear in the starring role. Complexity rating: 1000 words
 
-![bearsweeper example](http://magicmouse.com/beads/examples/bearsweeper/game1_small.png)
+![bearsweeper example](http://beadslang.com/examples/bearsweeper/game1_small.png)
 
 ### Example: Lumberjack game
 
 A very simple wood chopping game, built for little kids. A rewrite of an existing React/TS game that is can be run [here](https://lumber-jack.netlify.com/). We compare the two implementations to see how it differs in word count, number of dependencies, memory usage. Complexity rating: 750 words
 
-![lumberjack example](http://magicmouse.com/beads/examples/lumberjack/lumberjack_screenshot.jpg)
+![lumberjack example](http://beadslang.com/examples/lumberjack/lumberjack_screenshot.jpg)
 
 ### Example: Calculator
 
 The classic Apple calculator program, except without the bugs that Apple has! Complexity rating: 500 words
 
-![calculator example](http://magicmouse.com/beads/examples/calculator/calculator.gif)
+![calculator example](http://beadslang.com/examples/calculator/calculator.gif)
 
 ### Example: Snake game
 
 The classic snake game as popularized by Nokia cellphones. Probably the most fun per line of code ever made. Program complexity rating: 500 words.
 
-![snake example](http://magicmouse.com/beads/examples/snake/snake_animated.gif)
+![snake example](http://beadslang.com/examples/snake/snake_animated.gif)
 
 ### Example: Sort method contest
 
 The classic bubble sorting algorithm is pitted against the just slightly more complicated but a zillion times faster Quicksort amethod. Watch the two side by side sort the same number list, and see why Quicksort is so much more clever, by moving things larger distances. The larger the sample size the more terrible the bubble sort works. Program complexity rating: 440 words.
 
-![sort example](http://magicmouse.com/beads/examples/sort_contest/screenshot_bubble_400.png)
+![sort example](http://beadslang.com/examples/sort_contest/screenshot_bubble_400.png)
 
 ### Example: Wristwatch simulation
 
 This simple program simulates a wristwatch. Program complexity rating: 180 words.
 
-![watch example](http://magicmouse.com/beads/examples/watch/watch_example_animated.gif)
+![watch example](http://beadslang.com/examples/watch/watch_example_animated.gif)
 
 ### Example: Analog clock
 
 This simple program will draw a clock on the screen. This is among the shortest possible graphical programs one can imagine. Program complexity rating: 150 words.
 
-![clock example](http://magicmouse.com/beads/examples/clock/clock_screenshot_anim.gif)
+![clock example](http://beadslang.com/examples/clock/clock_screenshot_anim.gif)
 
