@@ -1,0 +1,189 @@
+beads level 1 program heat
+//  this program runs a heat transfer simulation
+//  it draws a grid of cells, and it presumes an outside air temperature
+//  it then goes through a step by step simulation of the adjacent cells affecting each other
+//  and produces a new heat map. Each cycle it swaps the current map with the previous one
+//  heat transfer in physics is proportional to the temperature difference between the cells
+//  we use a single coefficient that rolls all the other coefficients into one.
+//  ver 1 written Jan 2020 by edj
+
+const
+	TRACE_CALC : yesno = N  //  trace calculation?
+
+	TEMP_AIR : Temperature = 70 degF
+	TEMP_LO : Temperature = 25 degF
+	TEMP_HI : Temperature = 90 degF
+
+	COEFFICIENT = 0.25  //  how quickly the heat conducts
+
+	COLOR_LO = DARK_BLUE
+	COLOR_HI = YELLOW
+
+	NCOL = 20
+	NROW = 20
+
+record a_body
+	cells : array^2 of Temperature		//  array of cells at a temperature
+
+record a_state
+	stepx //  the step count (for informative purposes)
+	curr  //  the index into the body array
+	next  //  the index into the body array
+
+var
+	body : array^1 of a_body  //  we use [1] and [2] for each version
+	g : a_state
+
+==================
+calc main_init
+==================
+	g.curr = 1
+	g.next = 2
+	g.stepx = 0
+
+	//  imagine that the object starts out cooler than the air
+	loop from:1 to:NCOL index:col
+		loop from:1 to:NROW index:row
+			body[g.curr].cells[col, row] = TEMP_LO
+
+	//  set the temp of the body outside the boundary of the body one square
+	//  to the air temp, we won't change this ever
+	body[g.curr].cells[3, 5] = 400 degF
+	body[g.curr].cells[3, 4] = 400 degF
+
+	//  set up a callback to 'one_step' every second, starting immediately
+	loom_timer(one_step, delay:0, rate:12, reps:200)
+
+==================
+calc one_step
+==================
+	inc g.stepx
+	loop from:1 to:NCOL index:col
+		loop from:1 to:NROW index:row
+			var celltemp : Temperature = body[g.curr].cells[col, row]
+			
+			//  to support holes in the material, if this cell has a temp of U,
+			//  consider that to mean it is a hole at air temp
+			if celltemp == U
+				continue  //  never change the temp of this cell
+
+			//  get the temps of the surrounding cells
+			var tn : Temperature = body[g.curr].cells[col, row-1]
+			var ts : Temperature = body[g.curr].cells[col, row+1]
+			var te : Temperature = body[g.curr].cells[col+1, row]
+			var tw : Temperature = body[g.curr].cells[col-1, row]
+	
+			//  if the neighboring cell is outside of our object, or a hole, it will be U
+			//  consider outside and holes to be at air temperature
+			if tn == U
+				tn = TEMP_AIR
+			if ts == U
+				ts = TEMP_AIR
+			if te == U
+				te = TEMP_AIR
+			if tw == U
+				tw = TEMP_AIR
+
+			//  now compute the average temp of the neighbors
+			//  this calculate is done in deg Kelvin, the base unit for temperature
+			var average:Temperature = (tn + ts + te + tw)/4
+
+			//  now blend with current temp
+			(average - celltemp)*COEFFICIENT +=> celltemp
+			log "one_step, cell=[{col},{row}], average={to_str(average, digits:0)}, celltemp={to_str(celltemp as degK, digits:0)}" on:TRACE_CALC
+			body[g.next].cells[col, row] = celltemp
+		//..end loop
+	//..end loop
+
+	//  now the loops are done switch sides
+	swap g.curr <=> g.next 
+
+==================
+horz slice main_draw
+==================
+	draw_rect (b.box, fill:GRAY5)
+	
+	skip 10 al
+	add 80 al grid_area
+	skip 10 al
+
+==================
+vert slice grid_area
+==================
+	skip 3 al
+	add 8 al
+		draw_str(b.box, "Heat transfer simulation", size:0.7, font:"_serif", color:BEIGE)
+	skip 3 al
+	add 80 al body_grid
+	skip 2 al
+	add 4 al
+		draw_str(b.box, "Step {g.stepx}", just:RIGHT, indent:4 pt, size:0.6, color:BEIGE)
+	skip 2 al
+
+==================
+grid body_grid
+==================
+	horz slice
+	------------------
+		skip 1 pt
+		loop from:1 to:NCOL
+			add 10 al 
+			skip 1 pt
+
+	vert slice
+	------------------
+		skip 1 pt
+		loop from:1 to:NROW index:row
+			add 10 al
+			skip 1 pt
+
+	cell
+	------------------
+		//  convert the temperature to absolute degrees kelvin
+		var celltempK = body[g.curr].cells[b.cell.x b.cell.y] as degK
+		var celltempC = body[g.curr].cells[b.cell.x b.cell.y] as degF
+		var c : color = interpolate_color(celltempK, TEMP_LO as degK, TEMP_HI as degK, COLOR_LO, COLOR_HI)
+
+		draw_rect(b.box, fill:c, thick:1 pt, color:GRAY4)
+		draw_str(b.box, to_str(celltempC, digits:0) & 'F ' /* & to_str(celltempK, digits:0) & 'K' */, color:WHITE, size:0.45)
+
+==================
+calc interpolate_color ( --- interpolate between a range of colors
+==================
+	a_cur  --- input value
+	a_min  --- minimum value
+	a_max  --- maximum value
+	color_min : color  --- color corresponding to minimum
+	color_max : color  --- color corresponding to maximum
+	) : color  --- interpolated color
+
+	//  clamp the values to the ends of the range
+	if a_cur <= a_min
+		return color_min
+
+	if a_cur >= a_max
+		return color_max
+
+	var hsv_min : a_hsv = color_to_hsv(color_min)
+	var hsv_max : a_hsv = color_to_hsv(color_max)
+	var targ_hue
+	var targ_val
+	var targ_sat
+
+	//  now interpolate the values, hue is tricky
+	var hue1 = hsv_min.hue
+	var hue2 = hsv_max.hue
+	if abs(hue1 - hue2) > 180
+		//  shorter to go the other way around the circle
+		if hue1 < hue2
+			360 +=> hue1  //  bring it closer 
+		else
+			360 +=> hue2
+
+	targ_hue = interpolate(a_cur, a_min, a_max, hue1, hue2)
+	targ_sat = interpolate(a_cur, a_min, a_max, hsv_min.saturation, hsv_max.saturation)
+	targ_val = interpolate(a_cur, a_min, a_max, hsv_min.value, hsv_max.value)
+
+	//  convert back to RGB color
+	var result = hsv(targ_hue, targ_sat, targ_val)
+	return result
