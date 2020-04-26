@@ -33,7 +33,7 @@ var
 	g : a_state
 	funcs : array of a_func
 	mycanvas : a_canvas  -- our canvas bitmap that we draw into
-	tos   : path  //  pointer to g.stack[g.nstack] for convenient use
+	tos   : ptr  //  pointer to g.stack[g.nstack] for convenient use
 
 enum
 	//  opcodes for the CPU
@@ -93,7 +93,7 @@ calc main_init
 	//  dummy up some functions
 	loop from:1 to:NFUNCS index:fx
 		//  generate a function name
-		var fp : path = adr funcs[fx]
+		var fp : ptr = adr funcs[fx]
 		fp.name = random_word4() & "_" & random_word4() & "_" & random_word4()
 		if fx == 1
 			fp.nsteps = 12
@@ -109,7 +109,7 @@ calc main_init
 					random_call(fx, fp.steps[sx])
 
 	//  start a timer that will let us animate
-	loom_timer(do_tick, rate:1, reps:100, delay:0.1)	
+	loom_timer(do_tick, rate:12, reps:100, delay:0.1 sec)	
 
 ===================
 calc do_tick
@@ -134,7 +134,7 @@ calc do_tick
 			//  calculate the start and endpoints
 			solve_point(basis:currstep.box, pin:5, round:Y) ===> tos.jump_start
 
-			var targstep : path = adr funcs[currstep.callfx].steps[1]
+			var targstep : ptr = adr funcs[currstep.callfx].steps[1]
 			solve_point(basis:targstep.box, pin:5, round:Y) ===> tos.jump_stop
 			
 			log "-- entering a jump"
@@ -267,7 +267,7 @@ draw main_draw
 	draw_rect(b.box, fill:C_DEAD)
 	var x = FUNC_GAPH
 	var y = FUNC_GAPV
-	loop across:funcs path:fp index:fx
+	loop across:funcs ptr:fp index:fx
 		//  if func will go beyond bottom, advance column
 		if y+fp.toty > b.box.height
 			FUNC_H + FUNC_GAPH +=> x
@@ -306,7 +306,7 @@ draw draw_func (  ---  draw the function at the given Y coordinate
 	var row = 0
 	var color : color
 
-	loop across:fp.steps path:sp
+	loop across:fp.steps ptr:sp
 		var cellr <=== solve_rect(left:firstx + col*CELL_DH, top:firsty + row*CELL_DV, width:CELL_H, height:CELL_V)
 		cellr ===> sp.box  //  remember the box for later
 		draw_rect(cellr, fill:C_CELL_PLAIN_BACK, corner:2)

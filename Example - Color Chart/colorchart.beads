@@ -9,7 +9,7 @@ assets local:"./art/" remote:"http://beadslang.com/beads/projects/color_picker/a
 	file:"beep.mp3" label:BEEP
 
 const
-	TRACE_COLORS = N
+	TRACE_COLORS = Y
 	TRACE_FUDGE = N
 	TRACE_SIZING = N
 
@@ -183,7 +183,7 @@ var NROWS
 var NCELLS
 var BARV
 
-var slotlist : array of path  //  our sorted array of pointers
+var slotlist : array of ptr to a_slot  //  our sorted array of pointers
 
 record a_state
 	selectedx  // which color slot is currently selected
@@ -199,7 +199,7 @@ calc main_init
 	log "-- rebuilding with fudge {hue_fudge}" on:TRACE_FUDGE
 
 	var hsv:a_hsv
-	loop array:SET1 path:p index:ix
+	loop across:SET1 ptr:p index:ix
 		//  hue 0..360, saturation 0..100, value 0..100
 		hsv <=== color_to_hsv(p.color)
 
@@ -207,12 +207,7 @@ calc main_init
 		//  a mistake in the design of HSV
 		var hue2 = rem(hsv.hue + hue_fudge, 360)
 
-		if ix == 1
-			//  force our first slot which is for the mode button to sort first
-			p.key1 = 0
-			p.key2 = 0
-			p.key3 = 0
-		elif hsv.saturation <= 10
+		if hsv.saturation <= 10
 			//  low saturation color, sort at end
 			p.key1 = 90  //  low saturation, sort near end
 			p.key2 = hue2
@@ -231,17 +226,17 @@ calc main_init
 
 	//  pass 2 - now loop through the set in sort order
 	//           and build an array of pointers to these values
-	loop array:SET1 path:p sort:func compare_slots index:ix count:cx
+	loop across:SET1 ptr:p sort:func compare_slots index:ix count:cx
 		append p => slotlist
 		log "  {cx}: sorted traversal ix={ix}, name={p.name}" on:TRACE_COLORS
 
 	//  add the grays, which are already sorted in the order we want
-	loop array:SET2 path:p
+	loop across:SET2 ptr:p
 		append p => slotlist
 
 	if TRACE_COLORS
 		log "----- after sort ------"
-		loop array:slotlist val:p index:ix
+		loop across:slotlist val:p index:ix
 			log "{ix}: {p.name}, keys=[{p.key1},{p.key2},{p.key3}], color={p.color}"
 
 	g.format = FORMAT_BEADS	
@@ -305,7 +300,7 @@ draw d_choice(  //  show a format choice button
 	long_label : str
 	short_label : str
 	) -------
-	var fill:color = if formx == g.format then TOMATO else OLD_LACE
+	var fill:color = if formx == g.format then TOMATO else LAVENDER_BLUSH
 	draw_rect(b.box, fill:fill, thick:1 pt, color:BLACK)
 	var label:str = if b.box.width > 70 pt then long_label else short_label
 	draw_str(b.box, label, size:b.box.height*0.60, indent:3 pt)
@@ -344,11 +339,9 @@ grid chart_draw order:TBLR
 		skip 5 al
 	cell
 		// inside: b.box, b.cell_seq, b.cell.x/y, b.cell_id.x/y
-		//  note that the first sequential cell correponds to slot 0
-		//  and the sequential 2 means slot 1 because of the extra slot we used
 		if b.cell_seq <= NCELLS
 			var slotx = b.cell_seq
-			d_cell(slotlist[slotx]^^, slotx)
+			d_cell(slotlist[slotx], slotx)
 		//  ignore cells at the end due to partial last row fill
 	over
 		//  draw the sizing square in the corner
@@ -362,17 +355,12 @@ track EV_TAP
 		//  bad selection, clicked on dead space, a gap or past end of list
 		sound_play(BEEP)
 		g.selectedx = U  // deselect
-	elif b.cell_seq == 1
-		//  first cell is not a color, but a format switcher
-		sound_play(CLICK)
-		//  second click changes the display, cycle between the modes
-		g.format = case g.format | FORMAT_BEADS = FORMAT_HTML | FORMAT_HTML = FORMAT_HEX | FORMAT_HEX = FORMAT_BEADS
 	else
 		//  color choice
 		sound_play(CLICK)
 		g.selectedx = b.cell_seq
-		//log "tapped on color {slotlist[g.selectedx]^^.name}"
-		os_to_clipboard(calc_slot_str(slotlist[g.selectedx]^^))
+		//log "tapped on color {slotlist[g.selectedx].name}"
+		os_to_clipboard(calc_slot_str(slotlist[g.selectedx]))
 -------
 track EV_HOVER
 	//  if we are on a clickable thing, show the finger cursor
@@ -472,9 +460,8 @@ calc beads_to_html ( -- convert a color name like LIGHT_PINK to LightPink
 	var result : str = ""
 	var words : array of str
 	var word  : str
-	split_words(str_lower(beadsname), words, delim:"_")
-	loop array:words val:word
-		str_upper(subset(word, from:1, len:1)) & subset(word, from:2) &=> result
+	split_words(to_lower(beadsname), words, delim:"_")
+	loop across:words val:word
+		to_upper(subset(word, from:1, len:1)) & subset(word, from:2) &=> result
 	//log "name from {beadsname} to {result}"
 	return result
-

@@ -52,7 +52,7 @@ calc main_init
 	body[g.curr].cells[3, 4] = 400 degF
 
 	//  set up a callback to 'one_step' every second, starting immediately
-	loom_timer(one_step, delay:0, rate:12, reps:200)
+	loom_timer(one_step, delay:0 sec, rate:12, reps:200)
 
 ==================
 calc one_step

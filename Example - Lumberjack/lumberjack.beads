@@ -163,7 +163,7 @@ horz slice d_header
 draw d_reset finger  -- the reset button
 -----------------
 	draw_rect(b.box, fill:C_CORNERS, corner_br:RADIUS)
-	draw_str(b.box, "Reset", size:b.box.height*0.3, indent:8 pt, color:C_TEXT)
+	draw_str(b.box, "Reset", size:0.3, indent:8 pt, color:C_TEXT)
 track EV_TAP
 	//  tracking blocks have implied e:a_event record
 	//  note that safari uses control click for contextual menus, so bad idea to use ctrl
@@ -178,7 +178,7 @@ track EV_TAP
 draw d_github finger -- the jump to github button
 -----------------
 	draw_rect(b.box, fill:#A9A09D, corner_bl:RADIUS)
-	var r : a_rect <=== solve_rect(basis:b.box, pin:5, aspect:1, inset:b.box.height*0.1)
+	var r : a_rect <=== solve_rect(basis:b.box, pin:MID_CENTER, aspect:1, inset:b.box.height*0.1)
 	draw_image(r, ICON_GITHUB)
 track EV_TAP
 	//  go to github
@@ -202,10 +202,10 @@ vert slice d_jack finger  -- the lumberjack icon cluster
 	draw_rect(b.box, fill:C_CORNERS, corner_tr:RADIUS)
 	skip 2 al
 	add 35 al
-		draw_str(b.box, "level {g.level}", size:b.box.height*0.75, color:C_TEXT)
+		draw_str(b.box, "level {g.level}", size:0.75, color:C_TEXT)
 	add 80 al
 		draw_image(b.box, ICON_JACK)	
-	//var r : a_rect <=== solve_rect(basis:b.box, pin:7, aspect:1)
+	//var r : a_rect <=== solve_rect(basis:b.box, pin:BOT_LEFT, aspect:1)
 	//draw_rect(r, color:PINK, thick:2)
 	skip 2 pt
 track EV_TAP
@@ -217,11 +217,11 @@ vert slice d_logs  -- the logpile icon cluster
 	draw_rect(b.box, fill:C_CORNERS, corner_tl:RADIUS)
 	skip 2 al
 	add 35 al
-		draw_str(b.box, "{g.score} logs", size:b.box.height*0.75, color:C_TEXT)
+		draw_str(b.box, "{g.score} logs", size:0.75, color:C_TEXT)
 	add 80 al
 		draw_image(b.box, ICON_LOGS)
 	skip 2 pt	
-	//var r : a_rect <=== solve_rect(basis:b.box, pin:9, aspect:1)
+	//var r : a_rect <=== solve_rect(basis:b.box, pin:BOT_RIGHT, aspect:1)
 	//draw_rect(r, color:PINK, thick:2)
 
 -----------------
@@ -240,7 +240,7 @@ horz slice d_mainbody  -- our main body area
 	skip COL1 al
 
 -----------------
-table d_forest  -- draw the forest of trees
+grid d_forest  -- draw the forest of trees
 -----------------
 	horz slice
 		loop reps:NCOL count:ix
@@ -267,14 +267,14 @@ table d_forest  -- draw the forest of trees
 			//  draw the tree at the scale of its health
 			//  calculate a linear interpolation which ranges from 0.2 to 1.0			
 			var f = 0.20 + 0.80*(g.forest[b.cell].health/CHOPS_PER_LEVEL[g.level])
-			var r : a_rect <=== solve_rect(basis:b.box, pin:8, width:b.box.width*f, height:b.box.height*f)
+			var r : a_rect <=== solve_rect(basis:b.box, pin:BOT_CENTER, width:b.box.width*f, height:b.box.height*f)
 			draw_image(r, ICON_TREE)
 		//  otherwise draw nothing
 -----------------
 track EV_TAP
 	//  we have dead space in our forest, so the cumulative cell might be U
 	//  we will get a runtime error if we use subscripts of U
-	var cellkind = if b.cell_seq == U then U else g.forest[b.cell].what
+	var cellkind = (if b.cell_seq == U then U else g.forest[b.cell].what)
 	case cellkind
 	| TREE
 		//  chop this tree
@@ -287,7 +287,7 @@ track EV_TAP
 			//  tree is now cut
 			//  ...animate here...
 			//  set up a throw sound to follow the previous sound
-			loom_timer(emit_throw, delay:0.1)
+			loom_timer(emit_throw, delay:0.1 sec)
 			dec g.todo
 			inc g.score
 			//  if this is the last tree, convert to a door
@@ -306,9 +306,7 @@ track EV_TAP
 -----------------
 track EV_HOVER
 	//  show the axe anywhere inside the grid, it is disturbing to see it come and go
-	//  note that due to a bug as of Safari 13.0.1, we hide the regular cursor here
-	//  however, clicking on something brings back the cursor even though the body style is set to cursor:none
-	cursor_custom(ICON_AXE, AXE_HOTSPOT, e.global_x, e.global_y)
+	cursor_custom(ICON_AXE, AXE_HOTSPOT, { x:e.global_x, y:e.global_y })
 		//cursor_set(CURS_FINGER)
 
 -----------------
@@ -332,7 +330,7 @@ calc gen_trees -- load the trees
 	loop from:1 to:NROW index:row
 		var ss = LEVELS[g.level, row]
 		loop from:1 to:NCOL index:col
-			if str_subset(ss, from:col, len:1) == "*"
+			if subset(ss, from:col, len:1) == "*"
 				//  put a tree here
 				startval ===> g.forest[col, row]
 				inc g.todo

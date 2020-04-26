@@ -1,6 +1,9 @@
 beads level 1 program calculator
-//  flutter version available at: on github, look for: flutter-calculator-demo
+//  flutter version available at: https://github.com/kenreilly/flutter-calculator-demo
 //  article: https://itnext.io/building-a-calculator-app-in-flutter-824254704fe6
+//  a copy of the Apple calculator, with some bugs corrected
+//  written by edj 2019
+//  Copyright and related rights waived
 
 const
 	C_OP    = #3E424D  //  keycap fill for an operator like C
@@ -29,27 +32,40 @@ record a_term
 
 record a_state
 	terms : array of a_term
-	termx : num  // which term we are on
+	termx           // which term we are on
 	chain_op : str  //  chain operator char for repeated = presses
-	chain_val: num  //  chain value to repeat
+	chain_val       //  chain value to repeat
 	fresh : yesno   //  if this is Y, then next digit will clear existing value
 
 var g : a_state
+
+//  transient values we use to size our project
+var cellsize
+var result_v
+var keys_v
+var keys_h
 
 calc main_init
 	g.terms[1].ss = ""
 	g.termx = 1
 	g.fresh = Y
 
-vert slice main_draw
-	var cellsize = if b.box.width > b.box.height then b.box.height/8 else b.box.width/4
-	var result_v = cellsize*2  //  need to enhance compiler so that expressions don't get converted	
-	var keys_v = cellsize*5
-	var keys_maxh = min(b.box.width, cellsize*8)  // don't go wider than 8 squares wide (double)
-	draw_rect(b.box, fill:#121F30)
+horz slice main_draw
+	draw_rect(b.box, fill:#121F30)  // dead space color
+
+	cellsize = (if b.box.width > b.box.height then b.box.height/8 else b.box.width/4)
+	result_v = cellsize*2  //  need to enhance compiler so that expressions don't get converted	
+	keys_v = cellsize*5
+	keys_h = min(b.box.width, cellsize*8)  // don't go wider than 8 squares wide (double)
+
+	skip 10 al
+	add keys_h px main_draw2
+	skip 10 al
+
+vert slice main_draw2
 	skip 10 al
 	add result_v px d_result
-	add keys_v px d_keys(keys_maxh)
+	add keys_v px d_keygrid
 	skip 10 al
 
 draw d_result
@@ -57,7 +73,7 @@ draw d_result
 
 	//  build the string out of the active terms
 	var s : str = ""
-	loop array:g.terms index:i
+	loop across:g.terms index:i
 		g.terms[i].ss &=> s
 		if g.terms[i].op <> U
 			HAIR & g.terms[i].op & HAIR &=> s  // append the operator
@@ -65,17 +81,9 @@ draw d_result
 	if (s == "")
 		s = "0"  //  when nothing is entered into our expression, call it zero
 
-	draw_str(b.box, s, size:b.box.height*0.5, just:RIGHT, indent:20 pt, color:WHITE)
+	draw_str(b.box, s, size:0.5, just:RIGHT, indent:20 pt, color:WHITE)
 
-horz slice d_keys(
-	totwidth  -- max width we allow for the grid, might be all of the space
-	)
-	//  in landscape mode, we don't want the key grid to get too wide, looks bad
-	skip 10 al
-	add totwidth px d_keygrid
-	skip 10 al
-
-table d_keygrid
+grid d_keygrid
 	horz slice
 		skip SPACING pt
 		loop reps:4
@@ -159,15 +167,14 @@ calc sign_change(
 		if tx > 1
 			sign_change(tx-1)  // change previous operand's sign. kinda weird really.
 	elif str_begins(old, "-")
-		g.terms[tx].ss = str_subset(old, from:2)  // strip the minus
+		g.terms[tx].ss = subset(old, from:2)  // strip the minus
 	else
 		g.terms[tx].ss = '-' & old  //  prepend a minus
 
 calc do_period
 	//  ignore attempts to add more than one period
 	var list : array of num
-	str_find(g.terms[g.termx].ss, ".", list)
-	if tree_count(list) == 0
+	if str_pos(g.terms[g.termx].ss, ".") == U
 		add_digit(".")  //  no period yet, so append one
 
 calc do_equals

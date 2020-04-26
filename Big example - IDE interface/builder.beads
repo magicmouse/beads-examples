@@ -1,0 +1,4856 @@
+beads level 1 program builder
+//  debugger prototype for Beads development
+//  written by edj 2020
+
+assets local:"art/" 
+	file: "icon_image.png" label:ICON_IMAGE
+	file: "checkerboard8.png" label:CHECKERBOARD width:544 height:16
+
+assets local:"art/" remote:"http://beadslang.com/beads/projects/color_picker/art/"
+	file:"click.mp3" label:CLICK
+	file:"beep.mp3" label:BEEP
+	file:"thud.mp3" label:THUD
+
+enum
+	NK_IMPORT  //  not yet in std
+	NK_PATTERN
+	NK_FONT
+
+	//  states for g.work_state
+	WORK_CLOSED
+	WORK_EDITING
+	WORK_NEW
+
+const 
+	TRACE_HOTSPOT = N
+	TRACE_SLIDER = N
+	TRACE_INDICES = N
+	TRACE_GRAD = N
+	TRACE_STOPS = N
+	TRACE_PALETTE = N
+	TRACE_CPICK = N
+	TRACE_WORK = Y
+	TRACE_ONESHOT = N
+	TRACE_VALIDATE = N
+
+	SCAFFOLDING = Y //  make it easier to test
+
+	TYPE_TO_STR : array of str <=== {,
+		TYPE_ANY: "any",
+		TYPE_BITS: "bits",
+		TYPE_BYTES: "bytes",
+		TYPE_COLOR: "color",
+		TYPE_ENUM: "enum",
+		TYPE_ERR: "ERR",
+		TYPE_FUNC: "func",
+		TYPE_IMAGE: "image",
+		TYPE_MEAS: "meas",
+		TYPE_NUM: "num",
+		TYPE_OBJECT: "object",
+		TYPE_PATTERN: "pattern",
+		TYPE_PTR: "ptr",
+		TYPE_SOUND: "sound",
+		TYPE_STR: "str",
+		TYPE_TREE: "tree",
+		TYPE_U: "U",
+		TYPE_VIDEO: "video",
+		TYPE_VOID: "void",
+		TYPE_YESNO: "yesno",
+
+		// -- types that only exist as META values
+		TYPE_ARRAY: "array",
+		TYPE_ARRAY2: "array^2",
+		TYPE_ARRAY3: "array^3",
+		TYPE_ARRAY4: "array^4",
+		TYPE_RECORD: "record", }
+
+	GRAD1 : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM, 
+		grad_stops:[ { stop_pos:0, stop_color:CHOCOLATE },
+				     { stop_pos:48, stop_color:BEIGE },
+					 { stop_pos:52, stop_color:BEIGE },
+					 { stop_pos:100, stop_color:CHOCOLATE }] }
+
+	GRAD2 : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_RIGHT, 
+		grad_stops:[ { stop_pos:0, stop_color:RED },
+				     { stop_pos:49, stop_color:BEIGE },
+					 { stop_pos:64, stop_color:LAVENDER },
+					 { stop_pos:100, stop_color:GREEN }] }
+
+	//  the gradient that gets created when user clicks "ADD"
+	DEFAULT_GRADIENT : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_RIGHT, 
+		//  gradient stops are percent, color opacity
+		//  make a 4 band gradient at 0, 48, 52, and 100% of the way
+		grad_stops:[ { stop_pos:0, stop_color:WHITE },
+					 { stop_pos:100, stop_color:BLACK }] }
+
+	DEAD_COLOR = GRAY8
+	GRAY8L = #3E3E3E
+
+	C_TAB_UND = #093443
+
+	TAB_LO_BACK = #7F6B6B
+	TAB_LO_BORD = #054056 
+	TAB_LO_TEXT = #F0F0EA
+
+	TAB_HI_BACK = #F6F7CA
+	TAB_HI_BORD = #054056
+	TAB_HI_TEXT = #2B2927
+
+	BUTT_LO_BACK = TAB_LO_BACK 
+	BUTT_LO_BORD = TAB_LO_BORD 
+	BUTT_LO_TEXT = TAB_LO_TEXT
+
+	SECTD_BACK = #607074   //  section divider background
+
+	BUTT_HI_BACK = TAB_HI_BACK
+	BUTT_HI_BORD = TAB_HI_BORD  //  purple: 986395
+	BUTT_HI_TEXT = TAB_HI_TEXT
+	BUTT_HI_FILL = #8AC8DC  //  used for interior of polygons
+
+	C_TOOL_LABEL = BUTT_LO_TEXT
+	C_TOOL_LABEL_SEL_BACK = #7E7F0D  //  label selected background, mustard
+	
+	DROPDOWN_ARROW_BACK = #0d1744
+	DROPDOWN_ARROW_TEXT = #e3e7f8
+
+	ENTRY_LO_BACK = GRAY7
+	ENTRY_LO_BORD = GRAY5
+	ENTRY_LO_TEXT = BUTT_LO_TEXT
+
+	BUTT_FLASH = 0.2  //  how long we flash the oneshot when clicked
+	BUTT_THICK = 1.5 //  thickness of stroke
+
+	DIMMED = 0.3
+
+	CHOICE_V = 20  // pts
+	CHOICE_CORNER = 4
+	TOGGLE_CORNER = 6
+	ONESHOT_CORNER = 6
+	SLIDER_CORNER = 7
+	SECTION_V = 22  // pts
+
+	ENTRY_V  = 20  // pts
+	GUTTER = 6
+	ITEM_DV = 8
+
+	TABV = 20
+	TAB_UND = 2
+	TAB_CORNER = 10
+	TAB_BORD = 1.5
+
+	MODE_PROJECT = 1
+	MODE_DATA = 2
+	MODE_CODE = 3
+	MODE_BUILD = 4
+
+	BKIND_PLAIN = 1
+	BKIND_HORZ = 2
+	BKIND_VERT = 3
+	BKIND_GRID = 4
+	BKIND_REPORT = 5
+
+	BKINDSL_SLICE = 1
+	BKINDSL_SCROLL = 2
+
+	//  indexes into bar_tabs[]
+	PICKER_COLOR_TABS = 1
+	PICKER_FONT_TABS = 2
+
+	UNIT_AL = 1
+	UNIT_PT = 2
+	UNIT_PX = 3
+
+	//  draw_tools
+	DRAWT_TEXT = 1
+	DRAWT_RECT = 2
+	DRAWT_OVAL = 3
+	DRAWT_POLY = 4
+	DRAWT_LINE = 5
+	DRAWT_IMAGE = 6
+
+	//  fill kinds
+	FILL_COLOR = 1
+	FILL_GRAD = 2
+	FILL_TILE = 3
+
+	//---- key measurements for tool sizing 
+	//  proportions for toolbar segments
+	TOOL_LINDENT = 1 // al
+	TOOL_LABEL = 23  // al
+	TOOL_MID_INDENT = 1
+	TOOL_ENTRYBOX = 73
+	TOOL_RINDENT = 2 // al
+	TOOL_ROWV = 14 // pt
+
+	TOOL_TSIZE = 0.65
+
+	FONTLIST = ["_sans", "_serif", "_typewriter", 
+		"Arial Black",
+		"Arial",
+		"Comic Sans MS",
+		"Courier",
+		"Garamond",
+		"Georgia",
+		"Impact",
+		"Palatino",
+		"Times",
+		"Trebuchet MS",
+		"Verdana" ]	
+	NFONTS = tree_count(FONTLIST)
+
+--------------------------
+pattern PATT_RANGE_0_100 starts ends  //  match 0 - 100
+	or	//  this matches 01-09 but who cares
+		""
+		digit
+		digit digit
+		"100"
+
+pattern PATT_CARDINAL starts ends  //  match an unsigned number 0..
+	0+ digit
+
+enum
+	FUNC_CALC
+	FUNC_DRAW
+	FUNC_SLICE
+	FUNC_SCROLL
+	FUNC_GRID
+	FUNC_REPORT
+	
+record a_choice_set  //  mutually exclusive choice control
+	enabled  : yesno  //  if N then hide
+	is_open  : yesno  //  used by pulldown menu
+	selx_ptr : ptr to num  //  if present, use a pointer instead of a value
+	selx 	  // which item we selected 1=first
+	nrows	  // number of rows, U means 1
+	label_list : array of str
+	label_func : array of draw(a_rect)
+	val_list   : array of num
+	choice_func : calc () //  function to call after selection has changed
+
+record a_tabset  //  a set of tabs
+	selx 
+	label_list : array of str
+	action : calc()
+
+// record a_toggle  //  a toggle control
+// 	tog_label : str
+// 	tog_val   : yesno
+	
+record a_color_ctl  --- color control for work area
+	color_ss : str  //  string form of the color value
+	color_ptr : ptr to color //  pointer to color value being manipulated
+	color_val : color // if color_ptr not in use, store the value here
+	ss_driven : yesno // Y means string in charge, else value driven
+
+============= DOCUMENT STRUCTURES ================
+
+record a_font_spec  //  user's specification of a font
+	font_exp : str  //  font expression for entry field
+	font_net : str  //  font if we can resolve it at compile time
+
+record a_asset2_spec
+	name  : str  //  beads symbol name we use for the asset
+	fpath : str  //  file system path like myphoto.jpg
+	width : num
+	height: num
+
+record a_asset_spec  //  user defined art asset import
+	remote : str
+	local  : str
+	assets2 : array of a_asset2_spec
+	is_folder : yesno  // Y, is a folder of assets
+	//	kind  : (ASSET_SOUND, ASSET_IMAGE)
+	//  icon ♬  ♪  🎵  🎼  🖼  1F5BC
+
+record a_field_spec
+	name : str 
+	name_in : a_input_field  //  used during development
+	dtype : array of num //  TYPE_NUM, etc.
+	//  haven't implemented forward syntax yet
+	//  will either take another pass or placeholder in compiler
+	subrec : ptr // to a_rec_spec  //  pointer to subrecord symbol
+
+record a_rec_spec
+	is_expanded : yesno
+	name : str
+	name_in : a_input_field  //  used during development
+	fields  : array of a_field_spec
+
+record a_var_spec
+	name    : str
+	name_in : a_input_field
+	dtype   : array of num //  TYPE_ARRAY2, TYPE_NUM, etc.
+	enumlist : array of str  //  if dtype is enum, list of names
+	subrec  : ptr to a_rec_spec  //  subrecord if RECORD, PTR TO REC, ARRAY OF REC
+	initval : any //  holds initial value based on dtype
+	initval_in : a_input_field
+
+record a_func_spec
+	func_kind  // FUNC_CALC, etc.
+	func_is_horz : yesno
+	
+record a_sym
+	name     : str
+	nk       : num  //  NK_ENUM, etc
+	comment  : str  //  doc comment
+	exportf  : yesno  // Y if exported
+	is_stdlib : yesno // Y if from std library
+
+	//----- asset symbol
+	asset_spec : a_asset_spec
+
+	//----- color symbol
+	color : color
+
+	//----- func symbol
+	func_spec : a_func_spec
+
+	//----- gradient symbol
+	grad : a_gradient
+
+	//----- record symbol
+	rec_spec : a_rec_spec
+
+	//----- const or var symbol
+	var_spec : a_var_spec
+
+record a_dtype_choice  //  array element used for type picker box
+	name  : str  //  name of data type as displayed
+	type  : num  //  data type of this item, U means record
+	symp  : ptr to a_sym  //  pointer to symbol table record
+
+record a_doc  //  our code model
+	is_doc_open : yesno
+	doc_path : str
+
+	syms : array^2 of a_sym  -- indexed by [namekind, ix]
+	//--  data for program properties
+	//prog_name  : str  -- see prog_name_in
+	//prog_title : str
+	prog_kind
+	prog_export_all : yesno  // option to export all
+	//prog_ver1
+	//prog_ver2
+	//prog_ver3
+
+record a_sect_div  -- a symbol kind subsection like all gradients
+	prompt : str
+	nk : num  //  namekind associated with this section
+	is_expanded : yesno //  Y means triangle downwards
+	is_readonly : yesno //  stdlib sections are read only
+	action_add  : calc()  --- add function
+	action_del  : calc()  --- delete function
+	//action_edit : calc()  --- edit function
+
+record a_global  --  user interface variables
+	proj_tabs  : a_tabset  // 1=my project 2=community
+	mode_tabs : a_tabset  //  MODE_PROJECT, etc.
+	bar_tabs : array of a_tabset //  indexed by g.bar_tabx
+	bar_tabx : num  //  PICKER_COLOR_TABS, PICKER_FONT_TABS
+	dtype_set_tabs : a_tabset  //  used for dtype subset 
+
+	//botbar_tabs : a_tabset
+	add_expr : str
+	skip_expr : str
+	draw_tools : a_choice_set
+	ncorner_grid : a_choice_set //  1 or 4
+	fill_choices : a_choice_set  // "Color", "Gradient", "Tiled"
+	const_choices : a_choice_set  // used for declare const
+	prog_kind_choices : a_choice_set  // used for program kind selection
+
+	//  we have 4 elements in the array 1=basic, 2=units, 3=proj, 4=lib
+	//  corresponding to the dtype_set_tabs.selx
+	dtype_choices : array^2 of a_dtype_choice // used for modal dtype picker indexed[setx, ix]
+
+	//  block creation items
+	block_kind_grid : a_choice_set  // "Plain", "Horz", "Vert", "Subset",
+	block_slice_grid : a_choice_set  // "Slice", "Scroll"
+	block_add_unit_grid : a_choice_set  // "aliq", "point", "pixel"
+	block_skip_unit_grid : a_choice_set // "aliq", "point", "pixel"
+
+	//  interface temp storage
+	intf_fill_color   : a_color_ctl
+	intf_stroke_color : a_color_ctl
+	intf_text_color   : a_color_ctl
+	intf_font : a_font_spec
+	//intf_fontx : num  //  which font in the fontlist we are hiliting
+	intf_bbox : str
+
+	//  used by text drawing
+	text_size_grid : a_choice_set //  pts or %
+	text_just_grid : a_choice_set
+	intf_text_str  : str
+	intf_text_font : str
+	intf_text_size : str
+	intf_text_indent : str
+	intf_text_spacing : str
+	intf_text_leading : str
+	intf_text_html : yesno
+	intf_text_bold : yesno
+	intf_text_italic : yesno
+	intf_text_wrap : yesno
+	intf_text_hideu : yesno
+	intf_text_shrink : yesno
+
+	intf_bordpos : str
+	intf_corners : str
+	intf_corner1 : str
+	intf_corner2 : str
+	intf_corner3 : str
+	intf_corner4 : str
+	intf_opacity : str
+
+	//  used by line graphic
+	line_joint_grid : a_choice_set   // used for draw_line
+	line_cap_grid : a_choice_set  // used for draw_line
+	intf_line_thick : str
+	intf_line_p1 : str
+	intf_line_p2 : str
+	intf_line_x1 : str
+	intf_line_x2 : str
+	intf_line_y1 : str
+	intf_line_y2 : str
+	intf_line_dx : str
+	intf_line_dy : str
+	intf_line_angle   : str
+	intf_line_len     : str
+
+	//  used by image controls
+	intf_image_x : str
+	intf_image_y : str
+	intf_image_indent : str
+	intf_image_orgx : str
+	intf_image_orgy : str
+	intf_image_angle : str
+	intf_image_corner : str
+	intf_image_shrink : yesno
+	intf_image_grow : yesno
+	intf_image_aspect : yesno
+
+	//  palette controls
+	palette_ferrari_selx  //  which chip is selected in the ferrari palette
+	//  ptr to the temp val that is going to hold the color picked, is of various kinds
+	palette_targ_ptr : ptr to a_color_ctl  // pointer to intf_fill_color, intf_stroke_color : a_color_spec
+	palette_action : calc()  //  function to call when changed value
+
+	fontpicker_targ_ptr : ptr to a_font_spec
+
+	intf_namelist_mru  : str	//  most recently used item
+	//intf_namelist_src  : ptr to array of... // ptr to a subset array of symbols
+
+	is_bar_visible : yesno  //  is bottom bar reserve space?
+
+	//  temporary working versions of items being edited in toolbar
+	work_state : num  // WORK_CLOSED, etc.
+	work_name_in : a_input_field  //  name of item we are working on
+	work_nk   // which namekind NK_... we are building the list for
+	work_sym : ptr to a_sym  //  if U, we are adding a new one
+	//work_symsetp : ptr to array of a_sym  //  pointer to our subset of symbols
+	//work_sect   : ptr to a_sect_div //  pointer to interface subsection
+
+	//  array of work vars for building const/var/records
+	work_var : a_var_spec
+	dtype_slot  //  which slot in the current var dtype record we are editing
+
+	//  working data used by color picker, gradient designer
+	work_color_ctl : a_color_ctl  //  color under edit
+	work_color : color  //  used by color add only
+
+	//  working data used only by grad designer
+	work_grad : a_gradient  //  temp gradient record	
+	work_grad_shape : a_choice_set  // grad shape: LINEAR/RADIAL
+	work_grad_dir   : a_choice_set  // grad direction arrows N, S, E, W
+	work_grad_stopx   //  which gradient color stop we have selected
+	
+	//  used by document setup
+	prog_name_in  : a_input_field
+	prog_title_in : a_input_field
+	prog_ver1_in : a_input_field
+	prog_ver2_in : a_input_field
+	prog_ver3_in : a_input_field
+
+	//  expressions used by timer
+	timer_time_grid : a_choice_set  // sec, min, hour
+	timer_nreps_grid : a_choice_set  // 1, infinite
+	timer_how_timed : a_choice_set  // interval / rate
+	timer_start : str
+	timer_group : str
+	timer_prereq : str 
+	timer_func_in : a_input_field
+	timer_start_in : a_input_field
+	timer_group_in : a_input_field
+	timer_prereq_in : a_input_field
+	timer_nreps_in : a_input_field
+
+	div_assets : a_sect_div
+	div_colors : a_sect_div
+	div_const : a_sect_div
+	div_enums : a_sect_div
+	div_fonts : a_sect_div
+	div_gradients : a_sect_div
+	div_imports : a_sect_div
+	div_patterns : a_sect_div
+	div_recs : a_sect_div
+	div_recs2 : a_sect_div //  runtime recs
+	div_units : a_sect_div
+	div_vars : a_sect_div
+
+	//  modal flags
+	is_modal_dtype : yesno
+
+var g : a_global  // our global UI state
+var doc : a_doc	 //  the program we are creating (saved to HD)
+var sorted_syms : array of ptr to a_sym //  sorted list of symbol pointers
+var lib_syms : array^2 of a_sym  // indexed by [NK, ix]
+
+enum
+	SUNIT_POINTS
+	SUNIT_PERCENT
+
+record a_slider_ctl //  slider control info
+	prompt  : str
+	val_ss  : str  //  current value in string form
+	val_ptr : ptr to num //  ptr to num where we store the value as we change
+	default 
+	old_val  //  the previous value before the drag/+/- buttons
+	minval
+	maxval
+	digits      //  how many digits precision we show in the entry box
+	step        //  normal step size for up/down buttons
+	sunit       //  kind of unit like SUNIT_POINTS
+	skip_reset : yesno //  if Y, hide reset dot as it is not sensible
+	ss_driven : yesno // Y means string in charge, else value driven
+	action  : calc(tree)  //  f(ctl:a_slider_ctl), called when changes on drag/+/- buttons
+
+	//--- values used during tracking
+	in_drag : yesno  //  Y if we are tracking
+	rack_h 		//  rack width
+	ball_d		//  ball diameter
+	ball_x	    //  left coord of ball
+	start_mouse_x		//  x coord where we started dragging
+	start_ball_x        //  original ball offset
+
+var
+	SLIDER_BORD_THICK : a_slider_ctl <=== { prompt:"border thickness", default:0, digits:1, minval:0, maxval:20, step:1 }
+	SLIDER_BORD_POS : a_slider_ctl <=== { prompt:"border position", default:50, digits:0, minval:0, maxval:100, step:10 }
+	SLIDER_OPACITY :  a_slider_ctl <=== { prompt:"opacity",         default:1, digits:0, minval:0, maxval:1, step:0.05, sunit:SUNIT_PERCENT }
+	SLIDER_TEXT_SIZE_REL : a_slider_ctl <=== { prompt:"relative size", default:60, digits:1, minval:10, maxval:1.50, step:0.05, sunit:SUNIT_PERCENT }
+	SLIDER_TEXT_SIZE_ABS : a_slider_ctl <=== { prompt:"size (pts)", default:10, digits:0, minval:6, maxval:150, step:2, sunit:SUNIT_POINTS }
+	SLIDER_TEXT_INDENT : a_slider_ctl <=== { prompt:"indent", default:0, digits:0, minval:0, maxval:50, step:1, sunit:SUNIT_POINTS }
+	SLIDER_TEXT_SPACING : a_slider_ctl <=== { prompt:"spacing", default:0, digits:0, minval:-10, maxval:10, step:1 }
+	SLIDER_TEXT_LEADING : a_slider_ctl <=== { prompt:"leading", default:112, digits:0, minval:80, maxval:300, step:10 }
+	SLIDER_TEXT_VPOS : a_slider_ctl <=== { prompt:"vertical pos", default:50, digits:0, minval:0, maxval:100, step:10 }
+	SLIDER_LINE_THICK : a_slider_ctl <=== { prompt:"thickness", default:1, digits:1, minval:0.1, maxval:20, step:1, sunit:SUNIT_POINTS }
+	SLIDER_IMAGE_INDENT : a_slider_ctl <=== { prompt:"indent", default:0, digits:0, minval:0, maxval:40, step:1, sunit:SUNIT_POINTS }
+	SLIDER_IMAGE_CORNER : a_slider_ctl <=== { prompt:"corner", default:0, digits:0, minval:0, maxval:40, step:1, sunit:SUNIT_POINTS }
+	SLIDER_RECT_CORNER : a_slider_ctl <=== { prompt:"corner", default:0, digits:0, minval:0, maxval:40, step:1, sunit:SUNIT_POINTS }
+
+	//  used by gradient designer
+	SLIDER_GRAD_ANGLE : a_slider_ctl <=== { val_ptr:adr g.work_grad.grad_angle, prompt:"angle", 
+		default:0, digits:0, minval:0, maxval:360, step:5, action:angle_to_graddir }
+	SLIDER_GRAD_CENTERX : a_slider_ctl <=== { val_ptr:adr g.work_grad.grad_centerx, prompt:"center x", 
+		default:0.5, digits:1, minval:0, maxval:1.0, step:1 }
+	SLIDER_GRAD_CENTERY : a_slider_ctl <=== { val_ptr:adr g.work_grad.grad_centery, prompt:"center y", 
+		default:0.5, digits:1, minval:0, maxval:1.0, step:1 }
+	SLIDER_GRAD_INNER : a_slider_ctl <=== { val_ptr:adr g.work_grad.grad_radius_inner, prompt:"inner radius", 
+		default:0, digits:1, minval:0, maxval:0.5, step:1 }
+	SLIDER_GRAD_OUTER : a_slider_ctl <=== { val_ptr:adr g.work_grad.grad_radius_outer, prompt:"outer radius", 
+		default:1, digits:1, minval:0.5, maxval:1, step:0.1 }
+	SLIDER_GRAD_FOCUSX : a_slider_ctl <=== { val_ptr:adr g.work_grad.grad_focusx, prompt:"focus x", 
+		default:0.5, digits:1, minval:0, maxval:1, step:0.1 }
+	SLIDER_GRAD_FOCUSY : a_slider_ctl <=== { val_ptr:adr g.work_grad.grad_focusy, prompt:"focus y", 
+		default:0.5, digits:1, minval:0, maxval:1, step:0.1 }
+
+	//  we set the val_ptr dynamically as each band is selected
+	SLIDER_GRAD_OPACITY : a_slider_ctl <=== { prompt:"opacity", 
+		default:1, digits:0, minval:0, maxval:1, step:0.05, sunit:SUNIT_PERCENT }
+	SLIDER_GRAD_POS : a_slider_ctl <=== { prompt:"position", 
+		default:50, digits:0, minval:0, maxval:100, step:1, action:delta_grad_pos, skip_reset:Y }
+
+	//  we set the val_ptr dynamically as each band is selected
+	SLIDER_TIMER_RATE : a_slider_ctl <=== { prompt:"rate/sec", 
+		default:1, digits:0, minval:1, maxval:60, step:1 }
+	SLIDER_TIMER_DELAY : a_slider_ctl <=== { prompt:"delay", 
+		default:0, digits:0, minval:0, maxval:600, step:10 }
+
+-----------------
+calc main_init
+-----------------
+	g.intf_font <=== { font_exp:"_sans", font_net:"_sans" }
+	g.intf_bbox = "b.box"
+	//g.intf_text_indent = "0"
+	//g.intf_text_spacing = "0"
+	g.intf_text_html = N
+	g.intf_text_bold = N
+	g.intf_text_italic = N
+	g.intf_text_wrap = N
+	g.intf_text_hideu = N
+	g.intf_text_shrink = Y
+	g.intf_image_shrink = Y
+	g.intf_image_grow = Y
+	g.intf_image_aspect = Y
+
+	g.mode_tabs.selx = MODE_DATA
+	g.mode_tabs.label_list <=== ["Project", "Data", "Code", "Build"]
+	g.mode_tabs.action = do_work_cancel
+
+	g.bar_tabs[PICKER_COLOR_TABS].selx = 3  // ferrari palette is default picker
+	g.bar_tabs[PICKER_COLOR_TABS].label_list <=== ["Constants", "HTML colors", "Swatches"]
+
+	g.bar_tabs[PICKER_FONT_TABS].selx = 1
+	g.bar_tabs[PICKER_FONT_TABS].label_list <=== ["Fonts"]
+
+	//  whenever we bring up the data type picker we zap the tab to basic
+	g.dtype_set_tabs.label_list <=== ["Basic", "Units", "Project", "Library"]
+
+	g.block_kind_grid.selx = BKIND_PLAIN
+	g.block_kind_grid.label_list <=== ["Plain", "Horz", "Vert", "Subset", "Grid", "Report"]
+	g.block_kind_grid.val_list <=== [1, 2, 3, 4, 5, 6]
+
+	g.const_choices.selx = 1
+	g.const_choices.nrows = 2
+	g.const_choices.label_list <=== ["num", "yesno", "gradient", "tree", 
+									"str", "color", "meas", "any"]
+	g.const_choices.val_list <=== [1, 2, 3, 4, 5, 6, 7, 8]
+	g.const_choices.choice_func = delta_const_choices
+
+	//doc.prog_name = "my_test"
+	doc.prog_kind = 1
+	g.prog_kind_choices.selx_ptr = adr doc.prog_kind
+	g.prog_kind_choices.nrows = 1
+	g.prog_kind_choices.label_list <=== ['program', 'library', 'monitor', 'server']
+
+	//  other includes any, func, pattern, bits, bytes, machine, object
+	g.dtype_choices[1] <=== [<
+		name        type
+		"array" 	TYPE_ARRAY
+		"array^2"	TYPE_ARRAY2	
+		"array^3"	TYPE_ARRAY3
+		"array^4"	TYPE_ARRAY4
+		"bits"		TYPE_BITS
+		"bytes"		TYPE_BYTES 
+		"color"		TYPE_COLOR
+		"enum"		TYPE_ENUM
+		"func"		TYPE_FUNC
+		"image"		TYPE_IMAGE
+		"meas"		TYPE_MEAS
+		"num"		TYPE_NUM
+		"pattern"	TYPE_PATTERN
+		"ptr"		TYPE_PTR
+		//"record"	TYPE_RECORD
+		"sound"		TYPE_SOUND
+		"str"		TYPE_STR 
+		"tree"		TYPE_TREE
+		"video"		TYPE_VIDEO
+		"yesno"		TYPE_YESNO  >]
+
+	g.dtype_choices[2] <=== [<
+		name
+		"Angle"
+		"Area"
+		"Energy"
+		"Force"
+		"Frequency"
+		"Length"
+		"Mass"
+		"Power"
+		"Pressure"
+		"Speed"
+		"Temperature"
+		"Time"
+		"Volume"  >]
+
+	g.proj_tabs.selx = 1
+	g.proj_tabs.label_list <=== ["My projects", "Community Projects"]
+
+	g.timer_how_timed.selx = 1
+	g.timer_how_timed.label_list <=== ["Interval", "Rate"]
+	g.timer_how_timed.val_list <=== [1, 2]
+
+	g.timer_time_grid.selx = 1
+	g.timer_time_grid.label_list <=== ["sec", "min", "hour", "day"]
+	g.timer_time_grid.val_list <=== [1, 2, 3, 4]
+
+	g.timer_nreps_grid.selx = 1
+	g.timer_nreps_grid.label_list <=== ["1", "infinite"]
+	g.timer_nreps_grid.val_list <=== [1, 2]
+	g.timer_nreps_grid.choice_func = store_repetitions
+
+	g.work_state = WORK_CLOSED
+
+	g.work_grad_shape.selx = 1
+	g.work_grad_shape.label_list <=== ["Linear", "Radial"]
+	g.work_grad_shape.val_list <=== [LINEAR_GRADIENT, RADIAL_GRADIENT]
+	g.work_grad_shape.choice_func = store_gradshape
+
+	g.work_grad_dir.selx = 1
+	g.work_grad_dir.label_list <=== ["→", "↓", "←", "↑"]
+	g.work_grad_dir.val_list <=== [1, 2, 3, 4]
+	g.work_grad_dir.choice_func = store_graddir
+
+	g.block_slice_grid.selx = BKINDSL_SLICE
+	g.block_slice_grid.label_list <=== ["Slice", "Scroll"]
+	g.block_slice_grid.val_list <=== [1, 2]
+	
+	g.block_add_unit_grid.selx = UNIT_AL
+	g.block_add_unit_grid.label_list <=== ["aliq", "point", "pixel"]
+	g.block_add_unit_grid.val_list <=== [1, 2, 3]
+	g.add_expr = "12"
+
+	g.draw_tools.selx = 1
+	g.draw_tools.label_list <=== ["Text", "Rect", "Oval", "Polygon", "Line", "Image"]
+	g.draw_tools.label_func <=== [icon_text, icon_rect, icon_oval, icon_poly, icon_line, icon_image]
+	g.draw_tools.val_list <=== [1, 2, 3, 4, 5, 6]
+	
+	g.ncorner_grid.selx = 1
+	g.ncorner_grid.label_list <=== ["1", "4"]
+	g.ncorner_grid.val_list <=== [1, 4]
+
+	g.text_size_grid.selx = 1
+	g.text_size_grid.label_list <=== ["pts", "%"]
+	g.text_size_grid.val_list <=== [1, 2]
+
+	g.text_just_grid.selx = 2
+	g.text_just_grid.label_list <=== ["Left", "Center", "Right", "Flush"]
+	g.text_just_grid.val_list <=== [LEFT, CENTER, RIGHT, FLUSH]
+
+	g.fill_choices.selx = 1
+	g.fill_choices.label_list <=== ["Color", "Gradient", "Tiled"]
+	g.fill_choices.val_list <=== [1, 2, 3]
+
+	g.line_cap_grid.selx = 1
+	g.line_cap_grid.label_list <=== ["Butt", "Round", "Square"]
+	g.line_cap_grid.val_list <=== [1, 2, 3]
+
+	g.line_joint_grid.selx = 1
+	g.line_joint_grid.label_list <=== ["Round", "Miter", "Bevel"]
+	g.line_joint_grid.val_list <=== [1, 2, 3]
+
+	g.add_expr = "12"
+
+	g.block_skip_unit_grid <=== g.block_add_unit_grid
+	g.skip_expr = "4"
+
+	//  we might have no drawing defined yet so give our colors reasonable values
+	
+	g.intf_fill_color <=== {  color_ss:"" }
+	g.intf_text_color <=== {  color_ss:"BLACK", color_val:BLACK }
+	g.intf_stroke_color <=== {  color_ss:"BLACK", color_val:BLACK }
+
+	//  basic name input field
+	g.work_name_in.in_label = "work_name_in" // used as unique ID for DOM
+	g.work_name_in.in_name = "name"  //  label presented as prompt
+	g.work_name_in.in_value = ""
+	g.work_name_in.in_ok = Y
+	g.work_name_in.in_validator = validate_varname
+	//  we want a warning sign when empty
+	g.work_name_in.in_minlen = 1
+	g.work_name_in.in_required = Y
+
+	//  program name input field
+	g.prog_name_in.in_label = "prog_name_in" // used as unique ID for DOM
+	g.prog_name_in.in_name = "name"  //  label presented as prompt
+	g.prog_name_in.in_value = "my_program"
+	g.prog_name_in.in_ok = Y
+	g.prog_name_in.in_validator = validate_varname
+	//  we want a warning sign when empty
+	g.prog_name_in.in_minlen = 1
+	g.prog_name_in.in_required = Y
+
+	//  program title field
+	g.prog_title_in.in_label = "prog_title_in" // used as unique ID for DOM
+	g.prog_title_in.in_name = "title"  //  label presented as prompt
+	g.prog_title_in.in_value = ""
+	g.prog_title_in.in_ok = Y
+
+	//  program version fields
+	g.prog_ver1_in.in_label = "prog_ver1" // used as unique ID for DOM
+	g.prog_ver1_in.in_name = "Version"  //  label presented as prompt
+	g.prog_ver1_in.in_value = "1"
+	g.prog_ver1_in.in_ok = Y
+	g.prog_ver1_in.in_pattern = PATT_CARDINAL
+
+	g.prog_ver2_in.in_label = "prog_ver2" // used as unique ID for DOM
+	g.prog_ver2_in.in_name = ""  //  label presented as prompt
+	g.prog_ver2_in.in_value = "0"
+	g.prog_ver2_in.in_ok = Y
+	g.prog_ver2_in.in_pattern = PATT_CARDINAL
+
+	g.prog_ver3_in.in_label = "prog_ver3" // used as unique ID for DOM
+	g.prog_ver3_in.in_name = ""  //  label presented as prompt
+	g.prog_ver3_in.in_value = "0"
+	g.prog_ver3_in.in_ok = Y
+	g.prog_ver3_in.in_pattern = PATT_CARDINAL
+
+	g.timer_func_in.in_label = "timer_func_in" // used as unique ID for DOM
+	g.timer_func_in.in_name = "do function"  //  label presented as prompt
+	g.timer_func_in.in_value = ""
+	g.timer_func_in.in_ok = Y
+	g.timer_func_in.in_minlen = 1
+	g.timer_func_in.in_required = Y
+
+	g.timer_start_in.in_label = "timer_start_in" // used as unique ID for DOM
+	g.timer_start_in.in_name = "start time"  //  label presented as prompt
+	g.timer_start_in.in_value = ""
+	g.timer_start_in.in_ok = Y
+
+	g.timer_group_in.in_label = "timer_group_in" // used as unique ID for DOM
+	g.timer_group_in.in_name = "group"  //  label presented as prompt
+	g.timer_group_in.in_value = ""
+	g.timer_group_in.in_ok = Y
+
+	g.timer_prereq_in.in_label = "timer_prereq_in" // used as unique ID for DOM
+	g.timer_prereq_in.in_name = "prerequisite"  //  label presented as prompt
+	g.timer_prereq_in.in_value = ""
+	g.timer_prereq_in.in_ok = Y
+
+	g.timer_nreps_in.in_label = "timer_nreps_in" // used as unique ID for DOM
+	g.timer_nreps_in.in_name = ""  //  label presented as prompt
+	g.timer_nreps_in.in_value = ""
+	g.timer_nreps_in.in_ok = Y
+	g.timer_nreps_in.in_pattern = PATT_CARDINAL
+
+	g.div_imports.prompt = "Imports"
+	g.div_imports.nk = NK_IMPORT
+
+	g.div_assets.prompt = "Art Assets"
+	g.div_assets.nk = NK_ASSET
+
+	g.div_enums.prompt = "Enums"
+	g.div_enums.nk = NK_ENUM
+	g.div_enums.action_add = do_enum_add
+	g.div_enums.action_del = do_worksym_del
+
+	g.div_colors.prompt = "Colors"
+	g.div_colors.nk = NK_COLOR
+	g.div_colors.action_add = do_color_add
+	g.div_colors.action_del = do_worksym_del
+
+	g.div_gradients.prompt = "Gradients"
+	g.div_gradients.nk = NK_GRAD
+	g.div_gradients.action_add = do_gradient_add
+	g.div_gradients.action_del = do_worksym_del
+
+	g.div_patterns.prompt = "Patterns"
+	g.div_patterns.nk = NK_PATTERN
+
+	g.div_fonts.prompt = "Fonts"
+	g.div_fonts.nk = NK_FONT
+
+	g.div_units.prompt = "Units"
+	g.div_units.nk = NK_UNIT
+
+	g.div_recs.prompt = "Records"
+	g.div_recs.nk = NK_RECORD
+	g.div_recs.is_expanded = Y
+
+	g.div_recs2.prompt = "System"
+	g.div_recs2.nk = NK_RECORD
+	g.div_recs2.is_readonly = Y
+	g.div_recs2.is_expanded = Y
+
+	g.div_const.prompt = "Constants"
+	g.div_const.nk = NK_CONST
+	g.div_const.is_expanded = Y
+	g.div_const.action_add = do_const_add
+	g.div_const.action_del = do_worksym_del
+
+	g.div_vars.prompt = "Variables"
+	g.div_vars.nk = NK_VAR
+	g.div_vars.is_expanded = Y
+	g.div_vars.action_add = do_var_add
+	g.div_vars.action_del = do_worksym_del
+
+	//---------------------
+	//   stdlib syms
+	//---------------------
+	append {nk:NK_RECORD, name:"a_date", is_expanded:Y, is_stdlib:Y,
+		rec_spec:{ is_expanded:Y,
+			fields:[{ name:"left", dtype:[TYPE_NUM] }, { name:"top", dtype:[TYPE_NUM] },
+				{ name:"width", dtype:[TYPE_NUM] }, { name:"height", dtype:[TYPE_NUM] }],
+			 }} ===> lib_syms[NK_RECORD]
+
+	append {nk:NK_RECORD, name:"a_rect", is_expanded:Y, is_stdlib:Y,
+		rec_spec:{ is_expanded:Y,
+			fields:[{ name:"left", dtype:[TYPE_NUM] }, { name:"top", dtype:[TYPE_NUM] },
+				{ name:"width", dtype:[TYPE_NUM] }, { name:"height", dtype:[TYPE_NUM] }],
+			 }} ===> lib_syms[NK_RECORD]
+
+	append {nk:NK_RECORD, name:"a_xy", is_expanded:Y, is_stdlib:Y,
+		rec_spec:{ is_expanded:Y,
+			fields:[{ name:"x", dtype:[TYPE_NUM] }, { name:"y", dtype:[TYPE_NUM] }],
+			 }} ===> lib_syms[NK_RECORD]
+
+	append {nk:NK_RECORD, name:"a_xyz", is_expanded:Y, is_stdlib:Y,
+		rec_spec:{ is_expanded:Y,
+			fields:[{ name:"x", dtype:[TYPE_NUM] }, { name:"y", dtype:[TYPE_NUM] }, { name:"z", dtype:[TYPE_NUM] }],
+			 }} ===> lib_syms[NK_RECORD]
+
+
+	if SCAFFOLDING
+		doc.is_doc_open = Y
+
+		---------------------
+		//   dummy COLORS
+		---------------------
+		g.div_colors.is_expanded = Y
+		//  add some colors to the symbol table
+		append {nk:NK_COLOR, name:"MYCOLOR1", color:RED} ===> doc.syms[NK_COLOR]
+		append {nk:NK_COLOR, name:"BORDER", color:DODGER_BLUE} ===> doc.syms[NK_COLOR]
+		append {nk:NK_COLOR, name:"MYCOLOR2", color:ORANGE} ===> doc.syms[NK_COLOR]
+
+		---------------------
+		//   dummy ENUMS
+		---------------------
+		g.div_enums.is_expanded = Y
+		append {nk:NK_ENUM, name:"DONKEY_MODE"} ===> doc.syms[NK_ENUM]
+		append {nk:NK_ENUM, name:"AARDVARK_CONVENTION"} ===> doc.syms[NK_ENUM]
+		append {nk:NK_ENUM, name:"TOTALITY"} ===> doc.syms[NK_ENUM]
+
+		---------------------
+		//   dummy FUNCS
+		---------------------
+		append { nk:NK_FUNC, name:"main_init", func_spec:{func_kind:FUNC_CALC}, comment:"one time initialization" } ===> doc.syms[NK_FUNC]
+		append { nk:NK_FUNC, name:"main_draw", func_spec:{func_kind:FUNC_DRAW}, comment:"main drawing entry point" } ===> doc.syms[NK_FUNC]
+	
+		---------------------
+		//   dummy GRADS
+		---------------------
+		g.div_gradients.is_expanded = Y
+		append {nk:NK_GRAD, name:"GRAD1", grad:GRAD1} ===> doc.syms[NK_GRAD]
+		append {nk:NK_GRAD, name:"GRAD2", grad:GRAD2} ===> doc.syms[NK_GRAD]
+
+		---------------------
+		//   dummy ASSETS
+		---------------------
+		g.div_assets.is_expanded = Y
+		//  asset specifications don't really have a name per se
+		append {nk:NK_ASSET, name:"A1", asset_spec:{ local:"art/", 
+			assets2:[ { fpath:"icon_image.png", name:"ICON_IMAGE"},
+			{ fpath:"checkerboard8.png", name:"CHECKERBOARD", width:544, height:16 } ] }} ===> doc.syms[NK_ASSET]
+
+		append {nk:NK_ASSET, name:"A2", asset_spec:{ local:"art/", remote:"http://beadslang.com/beads/projects/color_picker/art/", 
+			assets2:[ { fpath:"click.mp3", name:"CLICK"},
+			{ fpath:"beep.mp3", name:"BEEP" },
+			{ fpath:"thud.mp3", name:"THUD" } ] }} ===> doc.syms[NK_ASSET]
+
+		---------------------
+		//   dummy RECORDS
+		---------------------
+		append {nk:NK_RECORD, name:"my_record", is_expanded:Y, 
+			rec_spec:{ is_expanded:Y, 
+				fields:[{ name:"field1", dtype:[TYPE_NUM] }, { name:"field2", dtype:[TYPE_STR] }],
+				 }} ===> doc.syms[NK_RECORD]
+
+		---------------------
+		//   dummy CONST
+		---------------------
+		append {nk:NK_CONST, name:"my_const1", 
+			var_spec:{ name:"my_const1", dtype:[TYPE_ARRAY, TYPE_NUM], initval:[11, 12, 13]} } ===> doc.syms[NK_CONST]
+
+		append {nk:NK_CONST, name:"my_const2", 
+			var_spec:{ name:"my_const1", dtype:[TYPE_NUM], initval:33 }} ===> doc.syms[NK_CONST]
+
+		---------------------
+		//   dummy VARS
+		---------------------
+		append {nk:NK_VAR, name:"my_var1", 
+			var_spec:{dtype:[TYPE_NUM], initval:22 }} ===> doc.syms[NK_VAR]
+
+		append {nk:NK_VAR, name:"my_var2", 
+			var_spec:{dtype:[TYPE_STR], initval:"dog" }} ===> doc.syms[NK_VAR]
+
+=========================
+calc delta_const_choices
+	log "delta_const_choices, selx={g.const_choices.selx}"
+	case g.const_choices.selx
+	| 3 // grad
+		set_namelist_kind(NK_GRAD)
+
+	else
+		set_namelist_kind(NK_CONST)
+
+//-----------------
+//   COLOR
+//-----------------
+
+// =========================
+calc do_color_work_init  --  shared code for setting up work area
+	//  point the color control at our working color
+	g.work_color_ctl.color_ptr = adr g.work_color
+	g.work_color_ctl.color_ss = color_to_hex(g.work_color)
+
+	g.work_nk = NK_COLOR
+
+	//  set up the picker bar to show color tabs
+	g.is_bar_visible = Y  // we will be picking colors
+	g.bar_tabx = PICKER_COLOR_TABS
+
+	//  set up the color picker to change the current gradient stop color chip
+	g.palette_targ_ptr = adr g.work_color_ctl
+
+	//  sync the palette bar
+	sync_palette(g.work_color_ctl)
+
+// =========================
+calc do_color_add  --- add a new color
+	g.work_state = WORK_NEW
+	g.work_sym = U
+	//  generate some plausible name
+	//inc g_name_suffix
+	//g.work_name_in.in_value = "GRAD{g_name_suffix}"
+	g.work_name_in.in_value = "my_color"
+	g.work_color = WHITE
+	do_color_work_init
+
+=========================
+calc do_color_edit (  --- edit currently selected color
+	sym : a_sym
+	) ------
+	log "edit color {sym.name}" on:TRACE_WORK
+
+	g.work_state = WORK_EDITING
+	g.work_sym = adr sym
+	g.work_name_in.in_value = sym.name
+	g.work_color = sym.color
+	do_color_work_init
+
+//-----------------
+//   ENUM
+//-----------------
+// =========================
+calc do_enum_add  --- add a new enum
+	g.work_state = WORK_NEW
+	g.work_sym = U
+	//  generate some plausible name
+	//inc g_name_suffix
+	//g.work_name_in.in_value = "GRAD{g_name_suffix}"
+	g.work_name_in.in_value = "my_enum"
+	g.is_bar_visible = N 
+	g.work_nk = NK_ENUM
+
+=========================
+calc do_enum_edit (  --- edit currently selected enum
+	sym : a_sym
+	) ------
+	log "edit enum {sym.name}" on:TRACE_WORK
+
+	g.work_state = WORK_EDITING
+	g.work_sym = adr sym
+	g.work_name_in.in_value = sym.name
+	g.is_bar_visible = N 
+	g.work_nk = NK_ENUM
+
+//-----------------
+//   Modal data type picker box
+//-----------------
+//  covers the entire area with dead color
+=========================
+draw d_modal_dtype_picker
+	draw_rect(b.box, fill:DEAD_COLOR, opacity:0.8)
+
+	//  subset
+	var ww = min(b.box.width*0.9, 600 pt)
+	var hh = min(b.box.height*0.8, 280 pt)
+	var tt = (b.box.height - hh) * 0.2
+	var r <=== solve_rect(basis:b.box, pin:5, width:ww, height:hh, top:tt)
+	layer area:r d_dtype_picker
+track EV_TAP
+	//  ignore outside taps
+	sound_play(THUD)
+
+=========================
+vert slice d_dtype_picker  -- the data type modal picker box
+	draw_rect(b.box, fill:#507D99, corner:10 pt, color:BUTT_LO_BORD, pos:0, thick:4 pt)
+
+	skip 8 pt
+	add CHOICE_V pt draw_tabs(g.dtype_set_tabs, 10)
+	add 2 pt
+		draw_rect(b.box, fill:BUTT_LO_BORD)
+	add 100 al pick_dtype(g.dtype_choices[g.dtype_set_tabs.selx])
+	skip 8 pt
+	add CHOICE_V pt butt_modal_cancel
+	skip 8 pt
+
+=========================
+grid pick_dtype order:TBLR (
+	choices : array of a_dtype_choice
+	) --------
+	horz slice
+		const DGAP = 6
+		skip 2 pt
+		skip DGAP pt
+		loop reps:4
+			add 12 al
+			skip DGAP pt
+		skip 2 pt
+
+	vert slice
+		skip DGAP pt
+		loop reps:7
+			add 12 al
+			skip DGAP pt
+
+	cell
+		//var setx = g.dtype_set_tabs.selx
+		if b.cell_seq <= tree_count(choices)
+			draw_rect(b.box, fill:#42667C, corner:4 pt)
+			draw_str(b.box, choices[b.cell_seq].name, just:LEFT, indent:30 pt, size:0.6, color:BUTT_LO_TEXT)
+track EV_TAP
+	//  ignore any click outside of the range
+	if b.cell_seq <= tree_count(choices)
+		//  user picked this data type to set into the current slot
+		//  the record lists don't have a value stored in val_list
+		//  so if we get a new_dtype of U from the list, it means it is a record type
+		var new_dtype = choices[b.cell_seq].type
+		if g.dtype_set_tabs.selx == 2
+			//  we are in a list of units of measurement
+			new_dtype = TYPE_MEAS
+		elif new_dtype == U
+			//  we didn't bother to set TYPE_RECORD for all the elements of the records
+			new_dtype = TYPE_RECORD
+		var new_dtype_ss = choices[b.cell_seq].name
+		log "  storing dtype of {new_dtype}, ss={new_dtype_ss}"
+		//xxxdataptr^^ = 
+
+		var slotx = g.dtype_slot  // retrieve the slot we were editing
+		g.work_var.dtype[slotx] = new_dtype
+
+		//  if this is a PTR or ARRAY type, then add another slot
+		if is_indirect_type(new_dtype)
+			//  ptr/array type, clear later slots and add another
+			inc slotx
+			g.work_var.dtype[slotx] = TYPE_NUM
+		elif new_dtype == TYPE_RECORD
+			//  remember the record type also
+			g.work_var.subrec = choices[b.cell_seq].symp
+			
+		clear_dtype_slots(slotx+1)
+		do_modal_cancel
+	return Y
+
+=========================
+horz slice butt_modal_cancel
+	skip 30 al
+	add 120 pt d_oneshot("Cancel", do_modal_cancel)
+	skip 30 al
+track EV_KEYBOARD
+	if e.keycode == KEYCODE_ESC
+		do_modal_cancel
+
+=========================
+calc is_indirect_type(
+	type : num
+	) : yesno
+	case type
+	| TYPE_PTR, TYPE_ARRAY, TYPE_ARRAY2, TYPE_ARRAY3, TYPE_ARRAY4
+		return Y
+	return N
+
+=========================
+calc clear_dtype_slots (
+	slotx : num  -- first slot index to clear
+	) -----
+	loop 
+		if g.work_var.dtype[slotx] == U
+			exit
+		g.work_var.dtype[slotx] = U
+		inc slotx
+	//.. end clearing loop
+
+=========================
+calc do_modal_cancel
+	g.is_modal_dtype = N
+	
+//-----------------
+//   CONST/VAR
+//-----------------
+=========================
+//draw d_data_editarea
+//	d_data_editarea2
+
+vert scroll d_data_editarea
+	g.work_var.name = "foobar" // zz
+	if g.work_state <> WORK_CLOSED
+		skip 5 pt
+		add 16 pt
+			draw_str(b.box, "Data structure designer", size:0.75, color:BUTT_LO_TEXT)
+		skip 10 pt
+
+		add 16 pt d_work_var_hdr(g.work_var)
+		add CHOICE_V pt d_work_var(g.work_var)
+		skip (ITEM_DV*5) pt
+		add CHOICE_V pt butt_work_cancel
+		skip 4 pt
+
+=========================
+horz slice d_work_var_hdr(
+	spec : a_var_spec
+	) ---------
+	skip 8 pt
+	add 60 al
+		draw_str(b.box, "Name", just:LEFT, indent:4 pt, size:0.6, color:BUTT_LO_TEXT)
+	skip 10 pt
+
+	var w = max(1, tree_count(spec.dtype))*35
+	w = 70
+	add w al
+		draw_str(b.box, "Data type", size:0.6, color:BUTT_LO_TEXT)
+	skip 15 pt
+	add 70 al
+		draw_str(b.box, "Initial value", just:LEFT, vert:0, indent:8 pt, size:0.6, color:BUTT_LO_TEXT)	
+	skip 6 pt
+
+horz slice d_work_var(
+	spec : inout a_var_spec
+	) ---------
+	skip 8 pt
+	add 60 al
+		draw_input(b.box, spec.name_in, size:0.60, indent:2 pt, color:ENTRY_LO_TEXT, border:2 pt, border_color:ENTRY_LO_BORD, fill:ENTRY_LO_BACK)
+	add 10 pt
+		draw_str(b.box, ":", size:0.7, color:BUTT_LO_TEXT)
+	var w = max(1, tree_count(spec.dtype))*35
+	w = 70
+	add w al
+		d_work_dtype(spec)
+	add 15 pt
+		draw_str(b.box, "=", size:0.7, color:BUTT_LO_TEXT)
+	add 70 al
+		draw_input(b.box, spec.initval_in, size:0.60, indent:2 pt, color:ENTRY_LO_TEXT, border:2 pt, border_color:ENTRY_LO_BORD, fill:ENTRY_LO_BACK)	
+	skip 6 pt
+
+horz slice d_work_dtype (
+	spec : a_var_spec
+	) ---------
+	var name : str
+
+	//  loop across the segments of type
+	//  usually just one like num, but could be ptr | array | num
+	loop across:spec.dtype count:slotx val:type_chunk
+		if slotx > 1
+			skip 4 pt
+
+		if type_chunk == TYPE_RECORD
+			name = spec.subrec^^.name
+		else
+			name = TYPE_TO_STR[type_chunk]
+		add 10 al d_pulldown(slotx, name)
+
+horz slice d_pulldown(
+	slotx : num
+	label : str
+	)
+	//  we designed the arrows in 27ths of the height
+	const V = b.box.height/27
+	const ARROW_TOTH = V*13
+	const LABELH = b.box.width - ARROW_TOTH
+
+	draw_rect(b.box, fill:BUTT_LO_BACK, color:BUTT_LO_BORD, thick:1 pt, corner:5 pt)
+
+	add LABELH px 
+		draw_str(b.box, label, size:0.6, color:BUTT_LO_TEXT)
+	add ARROW_TOTH px d_double_arrows(V)
+track EV_TAP
+	// --- prepare to launch the dtype modal dialog
+	//  remember the slot we are storing the data type into 
+	g.is_modal_dtype = Y
+	g.dtype_slot = slotx
+	//  the basic dtype list was set in main_init. force it always to go back to basic
+	g.dtype_set_tabs.selx = 1
+	//  but given the current state of imports, generate the other two lists
+
+	//  copy all record symbols defined in our project into set 2
+	trunc g.dtype_choices[3]
+	loop across:doc.syms[NK_RECORD] ptr:sym
+		append {name:sym.name, type:TYPE_RECORD, symp:sym } ===> g.dtype_choices[3]
+
+	//  copy all record symbols defined in stdlib, into set 3
+	trunc g.dtype_choices[4]
+	loop across:lib_syms[NK_RECORD] ptr:sym
+		append {name:sym.name, type:TYPE_RECORD, symp:sym } ===> g.dtype_choices[4]
+
+	//log "-- init record list, local={tree_count(g.dtype_choices[3])}, lib={tree_count(g.dtype_choices[4])}"
+
+draw d_arrow_down(
+	V : num
+	)
+	const ARROWV = 8*V
+	const ARROWH = 10*V
+	const HALF = 5*V
+
+	var left = b.box.left
+	var top = b.box.top + 10*V
+	var lower : array of a_xy = [<
+		x   y
+		left+HALF, top+ARROWV
+		left+ARROWH, top
+		left+0, top   >]
+	draw_polygon(lower, fill:BUTT_LO_TEXT)
+
+draw d_double_arrows(
+	V : num
+	)
+	const ARROWV = 8*V
+	const ARROWH = 8*V
+	const HALF = ARROWH*0.5
+
+	var r : a_rect <=== solve_rect(basis:b.box, pin:5, inset_y:3*V, width:10*V)
+	//  set up up arrow
+	var upper : array of a_xy = [<
+		x   y
+		r.left+HALF, r.top+2*V
+		r.left+ARROWH, r.top+ARROWV
+		r.left+0, r.top+ARROWV   >]
+	draw_polygon(upper, fill:BUTT_LO_TEXT)
+
+	var bot = r.top + r.height
+	var lower : array of a_xy = [<
+		x   y
+		r.left+HALF, bot-2*V
+		r.left+ARROWH, bot-ARROWV
+		r.left+0, bot-ARROWV   >]
+	draw_polygon(lower, fill:BUTT_LO_TEXT)
+		
+=========================
+calc do_const_add
+	g.work_nk = NK_CONST
+	var_add_init
+
+=========================
+calc do_var_add
+	g.work_nk = NK_VAR
+	var_add_init
+
+=========================
+calc do_const_edit(  --- edit selected item
+	sym : a_sym
+	) ------
+	g.work_nk = NK_CONST
+	var_edit_init(sym)
+	
+=========================
+calc do_var_edit(  --- edit selected item
+	sym : a_sym
+	) ------
+	g.work_nk = NK_VAR
+	var_edit_init(sym)
+	
+	//  load the variable into the work area
+	// ...
+
+=========================
+calc var_add_init	
+	g.work_state = WORK_NEW
+	g.work_sym = U
+	//  we can't just truncate work_var, because we have set things like the input field names
+	trunc(g.work_var)
+	//  now fix up after the trunc, labels are used to make DOM unique
+	//  future: make input field auto gen unique ID
+
+	g.work_var.name_in.in_label = "work_var_name_in"
+	//g.work_var.name_in.in_name = "work_var_name"
+	g.work_var.name_in.in_value = ""
+	g.work_var.name_in.in_ok = Y
+	g.work_var.name_in.in_validator = validate_varname
+	g.work_var.name_in.in_minlen = 1
+	g.work_var.name_in.in_required = Y
+
+	g.work_var.initval_in.in_label = "work_var_initv_in"
+	//g.work_var.initval_in.in_name = "work_var_initv"
+	g.work_var.initval_in.in_value = ""
+	g.work_var.initval_in.in_ok = Y
+
+	g.work_var.dtype[1] = TYPE_NUM
+
+=========================
+calc var_edit_init(  --- edit selected item
+	sym : a_sym
+	) ------
+	g.work_state = WORK_EDITING
+	g.work_sym = adr sym
+	g.work_name_in.in_value = sym.name
+
+//-----------------
+//   GRAD
+//-----------------
+=========================
+calc grad_work_init  ---  init code for entering gradient editing
+	//  set up the color tabs at the bottom of sect2
+	g.bar_tabx = PICKER_COLOR_TABS
+
+	//  set up the color picker to change the current gradient stop color chip
+	g.palette_targ_ptr = adr g.work_color_ctl
+	
+	g.is_bar_visible = Y  // we will be picking colors
+	g.work_nk = NK_GRAD
+
+	//  start by resetting the UI controls to their default values
+	default_linear_ctl  -- set work controls to default values
+	default_radial_ctl  -- set work controls to default values
+
+// =========================
+//var g_name_suffix = 99
+calc do_gradient_add  --  put a new gradient into work area
+	grad_work_init  //  generic setup
+	
+	g.work_state = WORK_NEW
+	g.work_sym = U
+
+	//  start with the default gradient
+	DEFAULT_GRADIENT ===> g.work_grad
+
+	//  generate some plausible name
+	//inc g_name_suffix
+	//g.work_name_in.in_value = "GRAD{g_name_suffix}"
+	g.work_name_in.in_value = "Untitled"
+
+	//  start with the first stop selected
+	intf_load_band(1)
+
+// =========================
+calc do_gradient_edit(  --- edit currently selected enum
+	sym : a_sym
+	) ------
+	log "edit gradient {sym.name}" on:TRACE_WORK
+
+	//  most of the logic is the same so use new
+	grad_work_init  //  generic setup
+
+	//  override the new flag
+	g.work_state = WORK_EDITING
+	g.work_sym = adr sym
+	g.work_name_in.in_value = sym.name
+
+	//  copy the gradient we are editing into our work area so we can modify it
+	sym.grad ===> g.work_grad
+
+	//  we loaded the gradient data, but the sliders need their UI fixed
+	slider_load(SLIDER_GRAD_ANGLE)
+	slider_load(SLIDER_GRAD_CENTERX)
+	slider_load(SLIDER_GRAD_CENTERY)
+	slider_load(SLIDER_GRAD_INNER)
+	slider_load(SLIDER_GRAD_OUTER)
+	slider_load(SLIDER_GRAD_FOCUSX)
+	slider_load(SLIDER_GRAD_FOCUSY)
+
+	//  fix up our LINEAR/RADIAL selector UI
+	g.work_grad_shape.selx = if g.work_grad.grad_shape == LINEAR_GRADIENT then 1 else 2
+
+	//  fix up our N/S/E/W arrow selector UI
+	angle_to_graddir(SLIDER_GRAD_ANGLE)
+
+	//  set up the color tabs at the bottom of sect2
+	g.bar_tabx = PICKER_COLOR_TABS
+	
+	//  start with the first stop selected
+	intf_load_band(1)
+	
+//-----------------
+//   WORK
+//-----------------
+// =========================
+calc do_worksym_del --- del currently selected color/gradient/etc.
+	log "delete symbol {g.work_sym.name}" on:TRACE_WORK
+	//  remove this symbol
+	clear g.work_sym
+	g.work_sym = U  // no longer have a selected gradient
+	g.work_state = WORK_CLOSED
+
+=========================
+calc do_work_cancel  --- end work on a new declaration
+	log "  do_work_cancel" on:TRACE_WORK
+	g.work_state = WORK_CLOSED
+	g.is_bar_visible = N
+	// unhilite the selection in the name list (must do this last)
+	//g.work_sym.x = U
+	g.work_nk = U
+	g.work_sym = U
+
+=========================
+//  is used to either add or update a record 
+calc do_work_ok  --- user is finishing data entry of a named item
+	//log "do_work_ok A, count={tree_count(doc.syms[NK_GRAD])}, hi={tree_hi(doc.syms[NK_GRAD])}"
+
+	//  remember the MRU item so we can draw a mark next to the name
+	g.intf_namelist_mru = g.work_name_in.in_value
+
+	var next_active = N
+
+	//  if this was a new symbol being added, get the
+	case g.work_state
+	| WORK_NEW
+		//  we don't have an existing symbol to edit
+		//  so append
+		var newx = tree_next_hi(doc.syms[g.work_nk])
+		g.work_sym = adr doc.syms[g.work_nk, newx]
+		log "do_work_ok new record, storing at {g.work_sym}" on:TRACE_WORK
+		//log "do_work_ok C, adding new record {g.work_sym.name}, newx={newx}"
+		g.work_nk => g.work_sym.nk   // set namekind during creation, creates new sym
+		//log "do_work_ok E, jj={jj} work_sym={g.work_sym}, nk={g.work_sym.nk}, count={tree_count(doc.syms[g.work_nk])}, hi={tree_hi(doc.syms[g.work_nk])}"
+	| WORK_EDITING
+		log "do_work_ok updating {g.work_sym.name}" on:TRACE_WORK
+
+	//  copy over the possibly revised name
+	g.work_name_in.in_value => g.work_sym.name
+
+	case g.work_nk
+	----------------------
+	| NK_ENUM
+	----------------------
+		if g.work_state == WORK_NEW
+			//  we just clicked OK while making a new ENUM, get read to do another one quickly
+			log "adding enum [{g.work_name_in.in_value}]" on:TRACE_WORK
+			//  enum entry allow repeated entry conveniently
+			//  reset the entry field contents so we can enter another one quickly
+			input_set_value(g.work_name_in, "")
+			next_active = Y
+
+	----------------------
+	| NK_ASSET
+	----------------------
+		nop
+
+	----------------------
+	| NK_COLOR
+	----------------------
+		//  work_sym is the pointer to our new item
+		g.work_color ===> g.work_sym.color
+
+	----------------------
+	| NK_CONST
+	----------------------
+		nop
+
+	----------------------
+	| NK_FUNC
+	----------------------
+		nop
+
+	----------------------
+	| NK_GRAD
+	----------------------
+		//  work_sym is the pointer to our new item
+		g.work_grad ===> g.work_sym.grad
+
+	----------------------
+	| NK_RECORD
+	----------------------
+		nop
+
+	----------------------
+	| NK_TIMER
+	----------------------
+		nop
+
+	----------------------
+	| NK_UNIT
+	----------------------
+		nop
+
+	----------------------
+	| NK_VAR
+	----------------------
+		nop
+
+	----------------------
+	else
+	----------------------
+		halt("ERROR: missing case")
+
+	//log "  end update of {g.work_sym.name}"
+	//log "do_work_ok Z, count={tree_count(doc.syms[NK_GRAD])}, hi={tree_hi(doc.syms[NK_GRAD])}"
+
+	if next_active == N
+		do_work_cancel
+
+// =========================
+calc store_graddir  --- whenever we change grad dir selection
+	var angle = (g.work_grad_dir.selx-1)*90
+	slider_setv(SLIDER_GRAD_ANGLE, angle)
+	log "store_graddir, selx={g.work_grad_dir.selx} angle={angle}" on:TRACE_GRAD
+
+// =========================
+calc store_gradshape --- whenever we change grad shape selection
+	var selx = g.work_grad_shape.selx
+	g.work_grad.grad_shape = g.work_grad_shape.val_list[selx]
+	case g.work_grad.grad_shape
+	| LINEAR_GRADIENT
+		default_linear_ctl
+	| RADIAL_GRADIENT
+		default_radial_ctl
+	log "store_graddir, selx={selx} gradshape={g.work_grad.grad_shape}" on:TRACE_GRAD
+
+calc default_linear_ctl  --- set work controls to default values
+	slider_reset(SLIDER_GRAD_ANGLE)
+
+calc default_radial_ctl  --- set work controls to default values
+	slider_reset(SLIDER_GRAD_CENTERX)
+	slider_reset(SLIDER_GRAD_CENTERY)
+	slider_reset(SLIDER_GRAD_INNER)
+	slider_reset(SLIDER_GRAD_OUTER)
+	slider_reset(SLIDER_GRAD_FOCUSX)
+	slider_reset(SLIDER_GRAD_FOCUSY)
+
+=========================
+calc angle_to_graddir( --- whenever we change the work_grad.grad_angle
+	ctl : a_slider_ctl // not actually needed, is a requirement of action funcs
+	) --------
+	case g.work_grad.grad_angle
+	| 0
+		g.work_grad_dir.selx = 1
+	| 90
+		g.work_grad_dir.selx = 2
+	| 180
+		g.work_grad_dir.selx = 3
+	| 270
+		g.work_grad_dir.selx = 4
+	else
+		g.work_grad_dir.selx = U
+	log "angle_to_graddir angle={g.work_grad.grad_angle}, selx={g.work_grad_dir.selx}" on:TRACE_GRAD
+
+=========================
+calc delta_grad_pos(  --- user just changed a gradient stop pos
+	ctl : a_slider_ctl
+	) ------
+	var oldpos = ctl.old_val
+	var newpos = slider_getv(ctl)
+	log "delta_grad_pos, oldpos={oldpos}, newpos={newpos}" on:TRACE_STOPS
+	fix_band_pos(newpos > oldpos) 
+
+calc fix_band_pos(  --- fix currently selected band position so it is sorted correctly
+	is_rightwards : yesno  //  is the gradient position moving to the right?
+	) -------
+	//  we just changed the pos value of the band at work_grad_stopx
+	//  it is probably out of position, so first copy it to a temp value
+	//  if in the wrong pos, then remove it, and then insert it at the right pos
+	var slot = g.work_grad_stopx
+	var moved : yesno = N
+	
+	if TRACE_STOPS
+		log "--- before shuffle, bands"
+		loop across:g.work_grad.grad_stops ptr:stopp index:ix
+			log "  [{ix}]: pos={stopp.stop_pos}, color={stopp.stop_color}"
+
+	//  keep swapping
+	if is_rightwards
+		loop while: g.work_grad.grad_stops[slot].stop_pos > g.work_grad.grad_stops[slot+1].stop_pos
+			log "  swapping right {slot} with {slot+1}" on:TRACE_STOPS
+			swap g.work_grad.grad_stops[slot] <===> g.work_grad.grad_stops[slot+1]
+			inc slot
+			moved = Y
+	else
+		loop while: g.work_grad.grad_stops[slot].stop_pos < g.work_grad.grad_stops[slot-1].stop_pos
+			log "  swapping left {slot} with {slot-1}" on:TRACE_STOPS
+			swap g.work_grad.grad_stops[slot] <===> g.work_grad.grad_stops[slot-1]
+			dec slot
+			moved = Y
+
+	//  if we move
+	if moved
+		//  trace the result
+		if TRACE_STOPS
+			log "--- after shuffle, bands"
+			loop across:g.work_grad.grad_stops ptr:stopp index:ix
+				log "  [{ix}]: pos={stopp.stop_pos}, color={stopp.stop_color}"
+
+		intf_load_band(slot)  //  must fix all the pointers up
+					
+=========================
+calc set_namelist_kind(  --- called when we change the tabs for kind of object
+	kind : num
+	) ------
+	if g.work_nk == kind
+		return //  ignore if we are already loaded
+
+	//  list is changing, empty previous state
+	g.work_nk = kind
+	g.intf_namelist_mru = U
+
+	log "set_namelist_kind, kind={kind}"
+
+=========================
+calc validate_varname(
+	input : a_input_field
+	) : yesno ---- Y if good
+	//  make sure it has no whitespace
+	//  make sure it starts with an alphabetic
+	var first : str = subset(input.in_value, from:1, len:1)
+	//  an empty string is valid
+	if first == ""
+		log "-- varname good because empty" on:TRACE_VALIDATE
+		return Y	
+	if first >= "0" and first <= "9"
+		log "-- varname bad because numeric" on:TRACE_VALIDATE
+		return N
+	//  check for spaces inside the varname
+	if str_pos(input.in_value, " ") <> U
+		log "-- varname bad because space" on:TRACE_VALIDATE
+		return N
+	log "-- varname good" on:TRACE_VALIDATE
+	return Y
+
+=========================
+draw icon_text(
+	cell : a_rect
+	) -------
+	const color : color = if g.draw_tools.selx == DRAWT_TEXT then BUTT_HI_TEXT else BUTT_LO_TEXT
+	draw_str(cell, "Text", size:0.6, color:color, font:"_serif")
+
+=========================
+draw icon_rect(
+	cell : a_rect
+	) -------
+	const r <=== solve_rect(basis:cell, pin:5, width:cell.width*0.5, height:cell.height*0.6)
+	const fill : color = if g.draw_tools.selx == DRAWT_RECT then BUTT_HI_FILL else BUTT_LO_TEXT
+	draw_rect(r, fill:fill, thick:2 px, color:BLACK)
+
+=========================
+draw icon_oval(
+	cell : a_rect
+	) -------
+	const r <=== solve_rect(basis:cell, pin:5, width:cell.width*0.5, height:cell.height*0.6)
+	const fill : color = if g.draw_tools.selx == DRAWT_OVAL then BUTT_HI_FILL else BUTT_LO_TEXT
+	draw_oval(r, fill:fill, thick:2 px, color:BLACK)
+
+=========================
+draw icon_poly(
+	cell : a_rect
+	) -------
+	const r <=== solve_rect(basis:cell, pin:5, width:cell.width*0.5, height:cell.height*0.6)
+	const fill : color = if g.draw_tools.selx == DRAWT_POLY then BUTT_HI_FILL else BUTT_LO_TEXT
+	const points <=== [ {x:r.left, y:r.top+r.height },
+					    {x:r.left+(r.width/2), y:r.top },
+						{x:r.left+r.width, y:r.top+r.height }]
+	draw_polygon(points, fill:fill, thick:2 px, color:BLACK)
+
+=========================
+draw icon_line(
+	cell : a_rect
+	) -------
+	const r <=== solve_rect(basis:cell, pin:5, width:cell.width*0.4, height:cell.height*0.5)
+	const color : color = if g.draw_tools.selx == DRAWT_LINE then BUTT_HI_TEXT else BUTT_LO_TEXT
+	draw_line(x1:r.left, y1:r.top+r.height, x2:r.left+r.width, y2:r.top, color:color, thick:3 pt)
+
+=========================
+draw icon_image(
+	cell : a_rect
+	) -------
+	const r <=== solve_rect(basis:cell, pin:5, width:cell.width*0.7, height:cell.height*0.7)
+	const color : color = if g.draw_tools.selx == DRAWT_IMAGE then BUTT_HI_TEXT else BUTT_LO_TEXT
+	draw_image(r, ICON_IMAGE)
+
+=========================
+draw d_oneshot(
+	prompt : str
+	action : calc()
+	)
+	draw_rect(b.box, corner:b.box.height/4, fill:BUTT_LO_BACK, color:BUTT_LO_BORD, thick:3 pt)
+	draw_str(b.box, prompt, size:0.6, indent:1.5 pt, color:BUTT_LO_TEXT)
+track EV_TAP
+	exec_action(prompt, action)
+
+=========================
+vert slice opening_menu  //  when no project open yet
+	skip 6 pt 
+	add TABV pt open_header
+	skip 6 pt 
+	add 100 al d_recent
+	skip 12 pt
+	add 40 pt open_butts
+	skip 12 pt 
+
+grid d_recent  --- show recent projects
+	horz slice
+		skip 1 al
+		loop reps:4
+			add 12 al
+			skip 1 al
+	
+	vert slice
+		loop reps:3 count:cx
+			if cx > 1
+				skip 1 al
+			add 12 al
+	cell
+		draw_rect(b.box, corner:6 pt, fill:DARK_SLATE_GRAY)
+		if b.cell_seq == 1
+			//  our first slot, make it the NEW project button
+			var r : a_rect <=== solve_rect(basis:b.box, pin:5, inset:10 pt, aspect:1.7)
+			draw_rect(r, corner:12 pt, fill:BUTT_LO_BACK, color:BUTT_LO_BORD, thick:3 pt)
+			draw_str(r, "New\nProject", size:24 pt, color:BUTT_LO_TEXT)
+		else
+			//  draw recent projects
+			nop
+track EV_TAP
+	if b.cell_seq == 1
+		//  start a new project
+		doc.is_doc_open = Y
+	else
+		//  see if we can open this file
+		nop
+
+horz slice open_header
+	skip 16 pt
+	add 200 pt
+		draw_str(b.box, "Beads builder tool v" & runtime.app_version, just:LEFT, size:0.6, color:BUTT_LO_TEXT, shrink:N)
+	add 100 al  draw_tabs(g.proj_tabs, 10)
+	skip 208 pt
+
+horz slice open_butts
+	skip 8 al
+	add 60 al d_oneshot("Open...", do_open)
+	skip 100 al
+	add 60 al d_oneshot("English", do_lang)
+	skip 100 al
+	add 60 al d_oneshot("Quit", do_quit)
+	skip 8 al
+
+calc do_open
+	log "open"
+	alert("not yet")
+
+calc do_lang
+	log "language switch"
+	alert("not yet")
+
+calc do_quit
+	quit(0)
+
+=========================
+draw d_gutter
+	draw_rect(b.box, fill:#202020)
+
+=========================
+var TOOLBARH  // used as a reference point
+
+//  warning: if you put a higher layer above the main window
+//  then all keystrokes will be absorbed by the layer
+draw main_draw
+	//  save some measurements about the total screen
+	var TOTH = dots_to_pt(b.box.width)
+	var TOTV = dots_to_pt(b.box.height)
+	//  it is usable at 200, but less cramped at 260
+	TOOLBARH = interpolate(TOTH, 900, 1100, 200, 260, round:Y, clamp:Y)
+	log "-- main_draw, screen {b.box.width} x {b.box.height} px, {TOTH} x {TOTV} pt, TOOL={TOOLBARH}"
+
+	main_draw_layer
+	if g.is_modal_dtype
+		layer area:b.box d_modal_dtype_picker
+	
+horz slice main_draw_layer
+
+	//  fill the screen with a background color
+	draw_rect(b.box, fill:DEAD_COLOR)
+
+	if doc.is_doc_open
+		case g.mode_tabs.selx
+		| MODE_PROJECT, MODE_CODE, MODE_BUILD
+			skip 2 pt 
+			add TOOLBARH pt toolbar  // col 1
+			skip 2 pt 
+			add GUTTER pt d_gutter
+			add  100 al main_draw2
+		| MODE_DATA
+			skip 2 pt 
+			add TOOLBARH pt toolbar  // col 1
+			skip 2 pt 
+			add GUTTER pt d_gutter
+			skip 2 pt 
+			add 100 al d_data_editarea
+			skip 2 pt 
+			add GUTTER pt d_gutter
+			skip 2 pt 
+			add TOOLBARH pt d_data_recpick  // record list
+
+	else
+		//  pick a project
+		add 100 al opening_menu
+
+draw main_modal_layer  -- holds all the modal dialog boxes we can draw
+	if g.is_modal_dtype
+		d_modal_dtype_picker
+
+=========================
+vert slice main_draw2  //  split right of toolbar into bar and upper
+	add 100 al main_draw3
+	if g.is_bar_visible
+		const BARV = min(b.box.height*0.3, 120 pt)
+		add BARV px d_botbar
+
+=========================
+horz slice main_draw3  // sect2 and sect3 upper area
+	skip 2 pt 
+	add TOOLBARH pt section2  // col 2
+	skip 2 pt 
+	add GUTTER pt d_gutter
+	add 10 al section3  // col 3
+	add GUTTER pt d_gutter
+
+=========================
+draw d_botbar
+	case g.bar_tabx
+	| PICKER_COLOR_TABS
+		//  color picker tabs are up
+		//  depending on tool up, show picker bar
+		case g.bar_tabs[PICKER_COLOR_TABS].selx
+		| 1
+			// constants
+			not_yet
+		| 2
+			//  HTML palette
+			html_palette_init
+			html_palette_resize  -- recalc to fit window
+			html_palette_draw  -- to draw
+		| 3
+			//  Ferrari palette
+			ferrari_palette_draw
+
+	| PICKER_FONT_TABS
+		//  font picker tabs are up
+		draw_font_picker
+
+=========================
+draw not_yet
+	draw_str(b.box, "Not yet implemented...", size:24 pt, color:WHITE)
+
+=========================
+horz slice d_gradient_kind_assy
+	skip 8 al
+	add 100 al draw_choice_grid(g.work_grad_shape, 0.65)
+	skip 12 al
+	if g.work_grad_shape.selx == 1
+		add 140 al draw_choice_grid(g.work_grad_dir, 0.75)
+	else
+		skip 140 al
+	skip 8 al
+
+=========================
+vert scroll toolbar
+	const SECT_GAP = 5
+
+	skip 4 pt
+	add TABV pt draw_tabs(g.mode_tabs, 0)
+	add TAB_UND pt
+		draw_rect(b.box, fill:C_TAB_UND)
+	skip ITEM_DV pt
+
+	case g.mode_tabs.selx 
+	===================
+	| MODE_PROJECT
+	===================
+		add CHOICE_V pt d_name_close
+		skip ITEM_DV pt
+		add CHOICE_V pt d_name_entry(g.prog_title_in)
+		skip ITEM_DV pt
+		add CHOICE_V pt draw_choice_grid(g.prog_kind_choices, 0.6)
+		skip ITEM_DV pt
+		add CHOICE_V pt d_prog_version
+		if doc.prog_kind <> 1
+			skip ITEM_DV pt
+			add ENTRY_V pt draw_1_toggle("Export all symbols", doc.prog_export_all)
+
+		//---------------
+		//   imports
+		//---------------
+		skip SECT_GAP pt
+		add SECTION_V pt d_sectdiv(g.div_imports)
+		if g.div_imports.is_expanded
+			nop  //  not yet
+
+		//---------------
+		//   assets
+		//---------------
+		skip SECT_GAP pt
+		add SECTION_V pt d_sectdiv(g.div_assets)
+		if g.div_assets.is_expanded
+			loop across:doc.syms[NK_ASSET] ptr:sym
+				skip 3 pt
+				add 14 pt d_asset_path("{sym.asset_spec.local}  •  {sym.asset_spec.remote}")
+
+				//  loop through the assets for this folder
+				loop across:sym.asset_spec.assets2 ptr:p2
+					//  draw the icon type to the left, name
+					skip 1 pt
+					add 16 pt d_asset_spec(sym.asset_spec.local, p2)
+
+		//---------------
+		//   enums
+		//---------------
+		skip SECT_GAP pt
+		add SECTION_V pt d_sectdiv(g.div_enums)
+		if g.div_enums.is_expanded
+			loop across:doc.syms[NK_ENUM] sort:field name ptr:sym
+				skip 1 pt
+				add 16 pt d_enum_spec(sym)
+
+		//---------------
+		//   colors
+		//---------------
+		skip SECT_GAP pt
+		add SECTION_V pt d_sectdiv(g.div_colors)
+		if g.div_colors.is_expanded
+			loop across:doc.syms[NK_COLOR] sort:field name ptr:sym
+				skip 1 pt
+				add 16 pt d_color_spec(sym)
+
+		//---------------
+		//   gradients
+		//---------------
+		skip SECT_GAP pt
+		add SECTION_V pt d_sectdiv(g.div_gradients)
+		if g.div_gradients.is_expanded
+			loop across:doc.syms[NK_GRAD] sort:field name ptr:sym
+				//log "  section gradient {sym.name}"
+				skip 1 pt
+				add 16 pt d_gradient_spec(sym)
+
+		//---------------
+		//   patterns
+		//---------------
+		skip SECT_GAP pt
+		add SECTION_V pt d_sectdiv(g.div_patterns)
+		if g.div_patterns.is_expanded
+			nop  //  not yet
+
+		//---------------
+		//   fonts
+		//---------------
+		skip SECT_GAP pt
+		add SECTION_V pt d_sectdiv(g.div_fonts)
+		if g.div_fonts.is_expanded
+			nop  //  not yet
+
+		//---------------
+		//   units
+		//---------------
+		skip SECT_GAP pt
+		add SECTION_V pt d_sectdiv(g.div_units)
+		if g.div_units.is_expanded
+			nop  //  not yet
+		skip 2 pt
+
+	===================
+	| MODE_DATA
+	===================
+		var nlev
+		//---------------
+		//   constants
+		//---------------
+		skip 2 pt
+		add SECTION_V pt d_sectdiv(g.div_const)
+		if g.div_const.is_expanded
+			nlev = 1
+			skip 1 pt
+			loop across:doc.syms[NK_CONST] sort:field name ptr:sym1
+				add TOOL_ROWV pt d_var_summary(sym1)
+
+		//---------------
+		//   variables
+		//---------------
+		skip 2 pt
+		add SECTION_V pt d_sectdiv(g.div_vars)
+		if g.div_vars.is_expanded
+			nlev = 1
+			skip 1 pt
+			loop across:doc.syms[NK_VAR] sort:field name ptr:sym2
+				add TOOL_ROWV pt d_var_summary(sym2)
+
+	===================
+	| MODE_CODE	
+	===================
+		nop  //  not yet
+
+	===================
+	| MODE_BUILD
+	===================
+		nop  //  not yet
+
+	//---- end toolbar modes
+
+=========================
+// horz slice d_font_spec(  --- draw a font item in the toolbar list
+// 	ix : num
+// 	p  : a_font_spec
+// 	) -------
+// 	skip 20 al
+// 	add 130 al
+// 		draw_str(b.box, p.name, font:p.font, size:0.7, just:LEFT, indent:6 pt, color:C_TOOL_LABEL)
+
+const INDENT_PER = 14
+
+=========================
+calc type_of_ss(
+	type : num  //  component data type like TYPE_PTR
+	) : str
+	case type
+	| TYPE_PTR
+		return "ptr to "
+	| TYPE_ARRAY
+		return "array of "
+	| TYPE_ARRAY2
+		return "array^2 of "
+	| TYPE_ARRAY3
+		return "array^3 of "
+	| TYPE_ARRAY4
+		return "array^4 of "
+	else
+		return TYPE_TO_STR[type]
+
+=========================
+calc dtype_ss(
+	dtype : array of num
+	) : str
+	//  build the string
+	var ss = ""
+	loop across:dtype val:t
+		type_of_ss(t) &=> ss
+	return ss
+
+//  compiler needs to be smarter about context variables; would have made this anon
+//  but nlev is not being passed automatically as a parm
+draw d_rec_name(  --  draw the record name
+	nlev : num  -- indent level
+	name : str
+	)
+	draw_rect(b.box, fill:GRAY8L)
+	draw_str(b.box, name, size:0.80, just:LEFT, indent:nlev*INDENT_PER pt, color:C_TOOL_LABEL)
+
+draw d_rec_field( -- draw the [fieldname : type]
+	nlev : num
+	field : a_field_spec
+	)
+	draw_str(b.box, "{field.name} : {dtype_ss(field.dtype)}", size:0.78, just:LEFT, indent:nlev*INDENT_PER pt, color:C_TOOL_LABEL)
+
+=========================
+draw d_asset_path(
+	fpath : str
+	) -----
+	draw_str(b.box, fpath, size:0.7, just:LEFT, indent:4 pt, color:C_TOOL_LABEL, shrink_min:10 pt)	
+
+=========================
+horz slice d_var_summary(  --- draw a const or var in the toolbar list
+	sym : a_sym  --- symbol being drawn
+	) -------
+	//  adds to 150 al
+	var ss:str = if sym.var_spec.initval <> U then " = " & val_summary(sym.var_spec) else ""
+	draw_str(b.box, "{sym.name} : {dtype_ss(sym.var_spec.dtype)}{ss}", size:0.78, just:LEFT, indent:10 pt, shrink:N, color:C_TOOL_LABEL)
+
+=========================
+calc val_summary( -- convert a value into a str
+	spec : a_var_spec
+	) : str
+	var ss : str
+	var strval : str
+
+	case spec.dtype[1] 
+	| TYPE_NUM, TYPE_MEAS
+		ss = to_str(spec.initval)
+	| TYPE_STR
+		ss = '"' & (spec.initval as str) & '"'
+	| TYPE_ARRAY
+		ss = "["
+		case spec.dtype[2]
+		| TYPE_NUM
+			loop across:spec.initval reps:5 val:numval
+				" " & to_str(numval) &=> ss
+		| TYPE_STR
+			loop across:spec.initval reps:5 val:strval
+				" " & strval &=> ss
+		else
+			" ??? " &=> ss
+		" ]" &=> ss
+	| TYPE_ARRAY2
+		ss = "[[...]]"
+	else
+		ss = "<???>"
+	return ss
+
+=========================
+horz slice d_asset_spec(  --- draw a asset_spec2 in the toolbar list
+	localfolder : str
+	item : a_asset2_spec
+	) -------
+	//  adds to 150 al
+	skip 15 al
+	add 14 al
+		var symbol : str
+		case str_suffix(item.fpath)
+		| '.jpg', '.jpeg', '.gif', '.png', '.svg'
+			symbol = "🖼"
+			draw_str(b.box, symbol, size:0.7, color:C_TOOL_LABEL)
+		| '.mp3', '.aac', '.wav'
+			symbol = "🎵"
+			var r:a_rect <=== solve_rect(basis:b.box, pin:5, aspect:1)
+			draw_oval(r, fill:GRAY2)
+			draw_str(b.box, symbol, size:0.5, color:C_TOOL_LABEL)
+		else
+			symbol = "?"
+			draw_str(b.box, symbol, size:0.7, color:C_TOOL_LABEL)
+	add 91 al
+		draw_str(b.box, item.name, size:0.7, just:LEFT, indent:2 pt, color:C_TOOL_LABEL)
+	if item.width <> U
+		add 30 al
+			draw_str(b.box, "{item.width} x {item.height}", size:0.7, just:LEFT, indent:4 pt, color:C_TOOL_LABEL)
+	else
+		skip 30 al
+track EV_TAP
+	case str_suffix(item.fpath)
+	| '.mp3', '.aac', '.wav'
+		sound_play_file(localfolder & item.fpath)
+
+=========================
+calc str_suffix (  --- extract the file suffix
+	ss : str  --- string to process
+	)  : str  --- suffix "image1.pict" --> ".pict", "" if no suffix
+	var periods : array of a_find
+	var result : str
+	str_find(ss, ".", periods, reps:INFINITY)
+	var last = tree_count(periods)
+	if last == 0
+		result = ""
+	else
+		result = subset(ss, from:periods[last].find_start)
+	return result
+
+=========================
+horz slice d_enum_spec(  --- draw a enum item in the toolbar list
+	sym : a_sym   -- symbol known to be a enum
+	) -------
+	skip 15 al
+	add 135 al
+		draw_str(b.box, sym.name, size:0.7, just:LEFT, indent:6 pt, color:C_TOOL_LABEL)
+track EV_TAP
+	do_enum_edit(sym)
+
+=========================
+horz slice d_color_spec(  --- draw a color item in the toolbar list
+	sym : ptr to a_sym   -- symbol known to be a color
+	) -------
+	//  adds to 150 so 20 is similar indent
+	skip 15 al
+	add 90 al
+		if sym == g.work_sym
+			draw_rect(b.box, fill:C_TOOL_LABEL_SEL_BACK, corner_tl:4 pt, corner_bl:4 pt)
+		draw_str(b.box, sym.name, size:0.7, just:LEFT, indent:6 pt, color:C_TOOL_LABEL)
+	add 33 al
+		var r : a_rect <=== solve_rect(basis:b.box, pin:5, inset_y:1 pt)
+		draw_rect(r, fill:sym.color, color:ENTRY_LO_BORD, thick:BUTT_THICK pt)
+	skip 12 al
+track EV_TAP
+	do_color_edit(sym)
+
+=========================
+horz slice d_gradient_spec(  --- draw a gradient item in the toolbar section
+	sym : a_sym  -- symbol known to be a gradient
+	) -------
+	//  adds to 150
+	skip 15 al
+	add 90 al
+		draw_str(b.box, sym.name, size:0.7, just:LEFT, indent:6 pt, color:C_TOOL_LABEL)
+	add 33 al
+		var r : a_rect <=== solve_rect(basis:b.box, pin:5, inset_y:1 pt)
+		draw_rect(r, grad:sym.grad, color:ENTRY_LO_BORD, thick:BUTT_THICK pt)
+	skip 12 al
+track EV_TAP
+	do_gradient_edit(sym)
+
+=========================
+horz slice d_sectdiv ( --- draw section divider
+	div : a_sect_div
+	) -------
+	//  split the section into 2 parts, 60% for the tab header
+	//  section B is the buttons
+	var w1 = round(b.box.width*0.6)  // the tab part
+	var w2 = b.box.width - w1  // to the right of the tab
+
+	add w1 px d_sectdivA(div)
+	add w2 px d_sectdivB(div)
+
+horz slice d_sectdivA (  -- draw the tab part
+	div : a_sect_div
+	) -------
+	//  draw background
+	var r1 : a_rect <=== solve_rect(basis:b.box, pin:7, height:b.box.height*0.85)
+	draw_rect(r1, fill:SECTD_BACK, corner_tl:8 pt, corner_tr:8 pt)
+	
+	//  draw disclosure triangle
+	skip 6 pt
+	add 14 pt d_dtriangle(div.is_expanded, 0.1, 0.2)
+	skip 6 pt
+	
+	add 120 al d_sectprompt(div.prompt)  //  draw prompt
+track EV_TAP
+	toggle div.is_expanded
+	log "toggle expandf={div.is_expanded}"
+
+horz slice d_sectdivB (  -- draw the stuff to the right of the tab
+	div : a_sect_div
+	) -------
+	//  only continue the underline if we are expanded
+	if div.is_expanded
+		var r2 : a_rect <=== solve_rect(basis:b.box, pin:8, height:b.box.height*0.12)
+		draw_rect(r2, fill:SECTD_BACK)
+
+	skip 3 al
+	//   show del / edit if we have a selection in the div
+	if g.work_state == WORK_EDITING and div.nk == g.work_nk and div.is_readonly <> Y
+		//  show the del/edit buttons only when expanded and item selected
+		//  item is selected we can delete
+		add 24 al d_div_del(div)
+// 		skip 1 al
+// 		add 24 al d_div_edit(div)
+	else
+		//  hide the del/edit buttons
+		skip 24 al
+// 		skip 1 al
+// 		skip 24 al
+	skip 3 al
+
+	//   show add button if expanded
+	if div.is_readonly <> Y and div.is_expanded and g.work_state == WORK_CLOSED
+		add 24 al d_div_add(div)
+	else
+		skip 24 al
+	skip 5 pt
+
+//  section tab edit button
+// vert slice d_div_edit ( 	//  draw edit button
+// 	div : a_sect_div
+// 	) -------
+// 	//  if we make this add up to 100 we can use percent above
+// 	add 84 al draw_oneshot("Edit", div.action_edit)
+// 	skip 16 al
+	
+vert slice d_div_del ( 	//  draw del button
+	div : a_sect_div
+	) -------
+	//  if we make this add up to 100 we can use percent above
+	add 84 al draw_oneshot("Del", div.action_del)
+	skip 16 al
+	
+//  section tab add button
+vert slice d_div_add ( 	//  draw add button
+	div : a_sect_div
+	) -------	
+	add 84 al draw_oneshot("Add", div.action_add)
+	skip 16 al
+
+draw d_sectprompt(
+	prompt : str
+	)
+	draw_str(b.box, prompt, size:0.6, just:LEFT, color:BUTT_LO_TEXT)
+
+draw d_dtriangle(
+	expandf : yesno
+	indentx : num  //  amount to indent like 0.2
+	indenty : num
+	) -------
+	var r : a_rect
+	if expandf
+		//  downward
+		r <=== solve_rect(basis:b.box, pin:5, inset_x:b.box.width*indentx, inset_y:(b.box.height*indenty)+1 pt, dy:1 pt)
+	else
+		//  rightward
+		r <=== solve_rect(basis:b.box, pin:5, inset_x:b.box.width*indentx, inset_y:(b.box.height*indenty)+1 pt)
+		
+	var rr = r.left + r.width
+	var rb = r.top + r.height
+	if expandf
+		//  draw downward pointing triangle
+		const F = 2 pt
+		var t_down:array of a_xy = [ {x:r.left,y:r.top}, {x:rr,y:r.top}, {x:r.left+r.width*0.5,y:rb}]
+		draw_polygon(t_down, fill:#11CA2A)
+	else
+		//  draw rightwards pointing triangle
+		var t_right:array of a_xy = [ {x:r.left,y:r.top}, {x:r.left,y:rb}, {x:rr,y:r.top+r.height*0.5}]
+		draw_polygon(t_right, fill:BUTT_LO_TEXT)
+// track EV_TAP
+// 	toggle expandf
+// 	log "toggle triangle expandf={expandf}"
+
+=========================
+vert scroll d_data_recpick
+	var nlev
+	//---------------
+	//   records for project
+	//---------------
+	skip 2 pt
+	add SECTION_V pt d_sectdiv(g.div_recs)
+	if g.div_recs.is_expanded
+		skip 1 pt
+		loop across:doc.syms[NK_RECORD] sort:field name ptr:recsym index:ix
+			if recsym.is_stdlib <> Y
+				nlev = 1
+				add TOOL_ROWV pt d_rec_name(nlev, recsym.name)
+				if recsym.rec_spec.is_expanded
+					inc nlev
+					//  do the fields in the order they were defined (not alpha sort:field name
+					loop across:recsym.rec_spec.fields  ptr:fieldp
+						add 14 pt d_rec_field(nlev, fieldp)
+					dec nlev
+				skip 5 pt
+
+	//---------------
+	//   records for runtime
+	//---------------
+	skip 2 pt
+	add SECTION_V pt d_sectdiv(g.div_recs2)
+	if g.div_recs2.is_expanded
+		skip 1 pt
+		loop across:lib_syms[NK_RECORD] sort:field name ptr:recsym index:ix
+			//log "-- name={recsym.name}, is_std={recsym.is_stdlib}"
+			if recsym.is_stdlib
+				nlev = 1
+				add TOOL_ROWV pt d_rec_name(nlev, recsym.name)
+				if recsym.rec_spec.is_expanded
+					inc nlev
+					//  do the fields in the order they were defined (not alpha sort:field name sort:field name
+					loop across:recsym.rec_spec.fields  ptr:fieldp
+						add 14 pt d_rec_field(nlev, fieldp)
+					dec nlev
+				skip 5 pt
+
+=========================
+horz slice d_timer_rep
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, "repetitions", just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add 140 al draw_choice_grid(g.timer_nreps_grid, 0.5)
+	skip 2 pt
+	add 100 al
+		draw_input(b.box, g.timer_nreps_in, size:0.65, indent:2 pt, color:ENTRY_LO_TEXT, border:2 pt, border_color:ENTRY_LO_BORD, fill:ENTRY_LO_BACK)
+	skip TOOL_RINDENT al
+
+calc store_repetitions  --- user has clicked on one of the fixed repetition mutex buttons
+	//  clear the entry field value to the side
+	input_set_value(g.timer_nreps_in, "") //  zap any custom value entered
+
+=========================
+horz slice d_timer_interval
+	skip TOOL_LINDENT al
+	add 12 al
+		draw_str(b.box, "every", just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add 10 al draw_entry(hint:"")
+	skip 1 al
+	add 30 al draw_choice_grid(g.timer_time_grid, 0.5)
+	skip TOOL_RINDENT al
+
+=========================
+horz slice draw_1_toggle (
+	label : str
+	result_ptr : ptr to yesno 
+	) -------
+	skip 10 al
+	add 120 pt draw_toggle(label, result_ptr)
+	skip 10 al
+
+=========================
+//  these arrays are referenced by counter
+var g_stop_centerx : array of num notrack //  used to track overlapping chips
+var g_stop_centery : array of num  notrack 
+var g_stop_ndy : array of num notrack
+
+draw d_gradient_bar  -- draw current gradient sample stored in g.work_grad
+	//  create the rectangle we track inside was 60 pt total, now 50 pt
+	var total:a_rect <=== solve_rect(basis:b.box, inset_x:6 pt, round:Y)
+	var bar:a_rect <=== solve_rect(basis:total, pin:2, height:20 pt, round:Y) // take 30/50ths of the height
+	var bot:a_rect <=== solve_rect(basis:total, top:bar.height, round:Y)
+
+	//  draw the gradient bar
+	//  make a gradient that is the same as the current gradient but left to right
+	var tempg : a_gradient <=== g.work_grad
+	tempg.grad_shape = LINEAR_GRADIENT
+	tempg.grad_angle = GRAD_TO_RIGHT
+	draw_rect(bar, grad:tempg)	
+
+	//  now draw the stops
+	loop across:g.work_grad.grad_stops index:ix count:cx
+		d_stop_icon(bar, bot, ix, cx, ix == g.work_grad_stopx)
+------
+track EV_TAP
+	//  find closest gradient stop to the mouse click
+	var closest_dist = INFINITY
+	var closest_ix
+	var dist
+	var dx
+	var dy
+	loop across:g_stop_centerx index:ix count:cx
+		dx = e.x - g_stop_centerx[cx]
+		dy = e.y - g_stop_centery[cx]
+		dist = dx*dx + dy*dy
+		if dist < closest_dist
+			closest_dist = dist
+			closest_ix = ix
+	//  we now know the closest stop
+	//  we will never let the user delete all the stops, so this will always have a value
+	log "closest stop={g.work_grad_stopx}" on:TRACE_STOPS
+	intf_load_band(closest_ix)
+
+=========================
+draw d_stop_icon(  --- draw the little movable icon for gradient stops
+	bar : a_rect
+	bot : a_rect
+	bandx : num  --- index of band
+	countx : num --- index as stored in g_stop_centerx, etc.
+	hilite : yesno
+	) ------
+	const ICON_V = round(bot.height*0.3)
+	const ICON_H = (bot.height*0.35)
+	const ICON_HALF = ICON_H / 2   // half the width
+	const DY = round_down((bot.height - ICON_V)/3)
+
+	var pos = g.work_grad.grad_stops[bandx].stop_pos
+	var chip : color = g.work_grad.grad_stops[bandx].stop_color
+	var center = interpolate(pos, 0, 100, bot.left, bot.left+bot.width, round:Y)
+	var ndy = 0
+
+	//  if we are close to the prior stop, we will need to tweak vertical pos
+	//  note that since bandx  is sparse, we reference band counter in centerx
+	if abs(center-g_stop_centerx[countx-1]) <= ICON_H
+		//  too close, increase dy if we can, otherwise decrease
+		case g_stop_ndy[countx-1]
+		| 0
+			ndy = 1
+		| 1
+			ndy = 2
+		| 2
+			ndy = 3
+		| 3
+			ndy = -2  //  start going downward
+		| -2
+			ndy = -1  //  continue back to 0
+		| -1
+			ndy = 0
+
+	var frame : color = if hilite then ORANGE else GRAY5
+
+	log "stop_icon, bandx={bandx}, ndy={ndy}, prev_ndy={g_stop_ndy[bandx-1]}, pos={pos}, center={center}" on:TRACE_STOPS
+	
+	//  draw a triangle
+	var topy = bot.top + abs(ndy)*DY
+	var triangle : array of a_xy = [ { x:center, y:topy },
+			{ x:center+ICON_HALF, y:topy+ICON_V },
+			{ x:center-ICON_HALF, y:topy+ICON_V } ]
+	draw_polygon(triangle, fill:chip, thick:2, color:frame)
+
+	//  draw a line in the bar
+	if hilite
+		var wire:a_rect <=== solve_rect(top:bar.top, left:center-1, bottom:topy, width:3)
+		draw_rect(wire, fill:frame)
+
+	//  remember the visual center point of the icon, so we can find the closest one
+	g_stop_ndy[countx] = ndy
+	g_stop_centerx[countx] = center
+	g_stop_centery[countx] = topy+(ICON_V*0.6)
+
+=========================
+horz slice butt_grad_stop  -- draw verb add/del
+	skip 8 al
+	add 14 al draw_oneshot("Add stop", do_stop_add)
+	skip 8 al
+
+	//  we only allow delete if we have something selected, and more than 2 stops left
+	if g.work_grad_stopx <> U and tree_count(g.work_grad.grad_stops) > 2
+// 		add 40 al draw_oneshot("Dup", do_stop_dup)
+// 		skip 8 al
+		add 14 al draw_oneshot("Del stop", do_stop_del)
+	else
+		skip 14 al
+	skip 8 al
+
+=========================
+calc intf_load_band(  ---  user has selected a new gradient stop to edit
+	bandx
+	) -------
+	g.work_grad_stopx = bandx
+
+	//  point the band color control towards the specific band we are messing with
+	g.work_color_ctl.color_ptr = adr g.work_grad.grad_stops[bandx].stop_color
+	g.work_color_ctl.color_ss = color_to_hex(g.work_grad.grad_stops[bandx].stop_color)
+
+	//  map the band related sliders to the actual band we are editing
+	SLIDER_GRAD_POS.val_ptr = adr g.work_grad.grad_stops[bandx].stop_pos
+	SLIDER_GRAD_OPACITY.val_ptr = adr g.work_grad.grad_stops[bandx].opacity
+	
+	log "loading band {bandx}, pos={SLIDER_GRAD_POS.val_ptr^^}, opacity={SLIDER_GRAD_OPACITY.val_ptr^^}"  on:TRACE_STOPS
+
+	slider_load(SLIDER_GRAD_POS)
+	slider_load(SLIDER_GRAD_OPACITY)
+
+	//  sync the palette bar
+	sync_palette(g.work_color_ctl)
+
+=========================
+calc color_ctl_setv(  --- set a color control value
+	ctl : a_color_ctl
+	val : color
+	) --------
+	ctl.ss_driven = U
+	ctl.color_ss = color_to_hex(val)
+	log "color_ctl_setv, ctl={ctl}, ptr={ctl.color_ptr}, ss={ctl.color_ss}" on:TRACE_CPICK
+	if ctl.color_ptr <> U
+		//  store the value into the pointer
+		log "color_ctl_setv, storing into path {ctl.color_ptr}"  on:TRACE_CPICK
+		ctl.color_ptr^^ = val
+	else
+		log "color_ctl_setv, storing into val"  on:TRACE_CPICK
+		ctl.color_val = val
+
+calc color_ctl_setss(  --- set a color control by name priority
+	ctl : a_color_ctl
+	name : str
+	val : color
+	) --------
+	ctl.ss_driven = U
+	ctl.color_ss = name
+	log "color_ctl_setss, ctl={ctl}, ptr={ctl.color_ptr}, ss={ctl.color_ss}"  on:TRACE_CPICK
+	if ctl.color_ptr <> U
+		//  store the value into the pointer
+		log "color_ctl_setss, storing into path {ctl.color_ptr}"  on:TRACE_CPICK
+		ctl.color_ptr^^ = val
+	else
+		log "color_ctl_setss, storing into val" on:TRACE_CPICK
+		ctl.color_val = val
+
+calc color_ctl_getv(
+	ctl : a_color_ctl
+	) : color
+	if ctl.color_ptr <> U
+		return ctl.color_ptr^^
+	else
+		return ctl.color_val
+
+=========================
+calc do_stop_add  --- add another gradient stop
+	//  for now just create a new one at 75%
+	log "grad stop add" on:TRACE_STOPS
+	append { stop_pos:75, stop_color:MAGENTA } ===> g.work_grad.grad_stops index:ix
+	//  select this new band
+	intf_load_band(ix)  //  sets work_grad_stopx to new bandx
+	fix_band_pos(N)  //  assume we came from right
+
+=========================
+calc do_stop_del --- delete gradient stop
+	log "grad stop del {g.work_grad_stopx}"  on:TRACE_STOPS
+	clear g.work_grad.grad_stops[g.work_grad_stopx]	
+	clear_band_selection
+
+calc clear_band_selection  //  when we clear the band, we also have to clear the palette selections
+	g.work_grad_stopx = U
+	g.palette_ferrari_selx = U
+
+=========================
+calc build_namelist
+	//  list is changing, empty previous state
+	var kind = g.work_nk
+
+	if kind == U 
+		return  // nothing to build
+
+	//  build the sorted indices
+	trunc sorted_syms
+	loop across:doc.syms[kind] sort:field name count:cx ptr:sym
+		append sym => sorted_syms
+		log "  {cx}: sorted traversal [{cx}]:{sym.name}" on:TRACE_INDICES
+
+	log "..end build_namelist, kind={kind}, n={tree_count(sorted_syms)}" on:TRACE_INDICES
+
+// =========================
+// horz slice d_gradient_band (  --  a gradient band specification
+// 	bandx  --- ix of 0 means labels
+// 	) ------
+// 	skip 30 al
+// 	add 60 al
+// 		if bandx == 0
+// 			draw_str(b.box, "Pos (0-100)", just:CENTER, size:0.60, color:C_TOOL_LABEL)
+// 		else
+// 			draw_input(b.box, g.intf_grad_pos[bandx], size:0.65, indent:2 pt, color:ENTRY_LO_TEXT, border:2 pt, border_color:ENTRY_LO_BORD, fill:ENTRY_LO_BACK)
+// 	skip 10 al
+// 	add 60 al
+// 		if bandx == 0
+// 			draw_str(b.box, "Color", size:0.60, color:C_TOOL_LABEL)
+// 		else
+// 			var color = g.work_grad.grad_stops[bandx].stop_color
+// 			//  if this color is U, then this band isn't set yet
+// 			if color == U
+// 				draw_rect(b.box, color:BUTT_LO_BORD, thick:2 pt)
+// 			else
+// 				draw_rect(b.box, fill:color)
+// 	skip 10 al
+// 	add 60 al
+// 		if bandx == 0
+// 			draw_str(b.box, "Opacity %", just:CENTER, size:0.60, color:C_TOOL_LABEL)
+// 		else
+// 			draw_input(b.box, g.intf_grad_opa[bandx], size:0.65, indent:2 pt, color:ENTRY_LO_TEXT, border:2 pt, border_color:ENTRY_LO_BORD, fill:ENTRY_LO_BACK)
+// 		
+// 	skip 30 al
+	
+=========================
+horz slice d_gradient_sample  --  draw 2 different shaped previews
+	log "d_gradient_sample" on:TRACE_STOPS
+	//  could check for more validity than merely having stops
+	//  but gradient designer shouldn't let problems happen
+	//if tree_count(g.work_grad.grad_stops) > 0
+
+	var outer : a_rect <=== solve_rect(basis:b.box, inset_x:b.box.width/8)
+	var inner : a_rect <=== solve_rect(basis:outer, inset:outer.height/8)
+
+	//  draw a checkerboard behind the gradient so we can see transparent gradients
+	draw_rect(outer, tile:CHECKERBOARD)
+	
+	//  draw the gradient in the inner area
+	case g.work_grad.grad_shape
+	| LINEAR_GRADIENT
+		draw_rect(inner, grad:g.work_grad, thick:1 pt, color:BLACK, corner:10 pt)
+	| RADIAL_GRADIENT
+		draw_oval(inner, grad:g.work_grad, thick:1 pt, color:BLACK)
+
+=========================
+horz slice d_prog_version
+	skip 1 al
+	add 12 al
+		draw_str(b.box, "version", just:RIGHT, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	skip 1 al
+	add 7 al
+		draw_input(b.box, g.prog_ver1_in, size:0.65, indent:2 pt, color:ENTRY_LO_TEXT, border:2 pt, border_color:ENTRY_LO_BORD, fill:ENTRY_LO_BACK)
+	add 1.5 al
+		draw_str(b.box, ".", size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add 7 al
+		draw_input(b.box, g.prog_ver2_in, size:0.65, indent:2 pt, color:ENTRY_LO_TEXT, border:2 pt, border_color:ENTRY_LO_BORD, fill:ENTRY_LO_BACK)
+	add 1.5 al
+		draw_str(b.box, ".", size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add 7 al
+		draw_input(b.box, g.prog_ver3_in, size:0.65, indent:2 pt, color:ENTRY_LO_TEXT, border:2 pt, border_color:ENTRY_LO_BORD, fill:ENTRY_LO_BACK)
+	skip 5 al 
+
+=========================
+horz slice d_name_close  --- program name and close button
+	skip TOOL_LINDENT al  // 1
+	add TOOL_LABEL al  // 23
+		draw_str(b.box, g.prog_name_in.in_name, just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add 52 al
+		draw_input(b.box, g.prog_name_in, size:0.65, indent:2 pt, color:ENTRY_LO_TEXT, border:2 pt, border_color:ENTRY_LO_BORD, fill:ENTRY_LO_BACK)
+	skip 2 al
+	add 20 al draw_oneshot("Close", do_close_doc)
+	skip 2 al 
+
+calc do_close_doc
+	doc.is_doc_open = N
+
+=========================
+horz slice d_name_entry(  --- name entry row
+	field  : a_input_field
+	) --------
+	//  adds up to 100
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, field.in_name, just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add 71 al
+		draw_input(b.box, field, size:0.65, indent:2 pt, color:ENTRY_LO_TEXT, border:2 pt, border_color:ENTRY_LO_BORD, fill:ENTRY_LO_BACK)
+	skip TOOL_RINDENT al
+
+=========================
+calc do_namelist_add  --- start work on a new declaration
+	log "do_namelist_add"
+	g.work_state = WORK_NEW
+	clear_work_name
+
+	//  depending on the namelist type, generate a default work item
+	case g.work_nk
+	| NK_GRAD
+		//  gradient creation
+		DEFAULT_GRADIENT ===> g.work_grad
+
+=========================
+horz slice butt_work_cancel  --- work area cancel / ok buttons
+	const GAP = 8
+
+	skip GAP al
+	add 12 al draw_oneshot("Cancel", do_work_cancel)
+	skip GAP al
+	if g.work_name_in.in_value <> ""
+		add 12 al draw_oneshot("OK", do_work_ok, enterkey:Y)
+	else
+		skip 12 al
+	skip GAP al
+track EV_KEYBOARD
+	if e.keycode == KEYCODE_ESC
+		do_work_cancel  // Esc key is synonym for cancel
+
+=========================
+calc clear_work_name
+	log "clear_work_name"
+	input_set_value(g.work_name_in, "")
+	g.work_sym = U //  clear out selection so we get a blank entry value
+
+=========================
+calc do_namelist_dup
+	log "dup enum name={g.work_sym.name}"
+	g.work_state = WORK_EDITING
+	input_set_value(g.work_name_in, g.work_sym.name & "_copy")
+
+	//  depending on the namelist type, generate a default work item
+	//  example: for gradient creation, copy in the gradient specific data
+	case g.work_nk
+	| NK_GRAD
+		g.work_sym.grad ===> g.work_grad
+
+=========================
+calc do_namelist_del
+	log "del enum name={g.work_sym.name}"
+	//  delete the selected element
+	clear g.work_sym
+	g.work_sym = U
+	g.work_state = WORK_CLOSED
+
+=========================
+calc do_name_update
+	log "name update NOT YET"
+
+=========================
+horz slice add_tool_linecap --- line cap picker
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, "line cap", just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add TOOL_ENTRYBOX al draw_choice_grid(g.line_cap_grid, 0.5)
+	skip TOOL_RINDENT al
+
+=========================
+horz slice graphics_add_buts  -- draw verb add/dup/del
+	skip 8 al
+	add 40 al draw_oneshot("Add", do_block_add)
+	skip 8 al
+	add 40 al draw_oneshot("Dup", do_block_add)
+	skip 8 al
+	add 40 al draw_oneshot("Del", do_block_add)
+	skip 8 al
+
+=========================
+horz slice add_tool_just  -- text justification grid
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, "justification", just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add TOOL_ENTRYBOX al draw_choice_grid(g.text_just_grid, 0.5)
+	skip TOOL_RINDENT al
+
+=========================
+horz slice add_tool_effects1  -- draw bold, italic und, strike, wrap, shrink, hide_U toggles
+	skip TOOL_LINDENT al
+	add 12 al draw_toggle("HTML", g.intf_text_html)
+	skip 2 al
+	add 12 al draw_toggle("Bold", g.intf_text_bold)
+	skip 2 al
+	add 12 al draw_toggle("Italic", g.intf_text_italic)
+// 	skip 2 al
+// 	add 12 al draw_toggle("Underline")
+	skip TOOL_RINDENT al
+
+=========================
+horz slice add_tool_effects2  -- draw bold, italic und, strike, wrap, shrink, hide_U toggles
+	skip TOOL_LINDENT al
+// 	add 12 al draw_toggle("Strikeout")
+// 	skip 2 al
+	add 12 al draw_toggle("Wrap", g.intf_text_wrap)
+	skip 2 al
+	add 12 al draw_toggle("Hide U", g.intf_text_hideu)	
+	skip 2 al
+	add 12 al draw_toggle("Shrink", g.intf_text_shrink)
+	skip TOOL_RINDENT al
+
+=========================
+horz slice add_tool_imagef  -- draw toggles for image
+	skip TOOL_LINDENT al
+	add 12 al draw_toggle("Allow shrink", g.intf_image_shrink)
+	skip 1 al
+	add 12 al draw_toggle("Allow grow", g.intf_image_grow)
+	skip 1 al
+	add 16 al draw_toggle("Keep aspect ratio", g.intf_image_aspect)
+	skip TOOL_RINDENT al
+
+=========================
+horz slice add_tool_bbox  -- specify bounding box parm
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, "box", just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add TOOL_ENTRYBOX al draw_entry(hint:g.intf_bbox)
+	skip TOOL_RINDENT al
+
+=========================
+horz slice add_tool_image  -- specify bounding box parm
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, "image", just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add TOOL_ENTRYBOX al draw_entry
+	skip TOOL_RINDENT al
+
+=========================
+horz slice add_tool_str  --  specify string parm
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, "text string", just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add TOOL_ENTRYBOX al draw_entry
+	skip TOOL_RINDENT al
+
+=========================
+horz slice add_tool_fill  --  specify fill parm
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, "background fill", just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	//  for now just allow color fill
+	add TOOL_ENTRYBOX al draw_color_entry(g.intf_fill_color)
+	skip TOOL_RINDENT al
+
+=========================
+horz slice add_tool_color(  --  specify a color; user can enter color number or use swatches
+	label : str
+	ctl : a_color_ctl  // something like g.work_color_ctl
+	) ------
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, label, just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add TOOL_ENTRYBOX al draw_color_entry(ctl)
+	skip TOOL_RINDENT al
+
+=========================
+horz slice add_tool_font  -- specify font
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, "font", just:RIGHT, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add TOOL_ENTRYBOX al draw_font_entry(g.intf_font)
+	skip TOOL_RINDENT al
+
+=========================
+horz slice add_tool_num ( --  specify a numeric parm
+	prompt : str
+	data : str
+	min : num = U
+	max : num = U
+	) -----
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, prompt, just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add TOOL_ENTRYBOX al draw_entry(hint:data)
+	skip TOOL_RINDENT al
+
+=========================
+horz slice add_tool_slider ( --  specify a numeric parm via a slider
+	ctl : a_slider_ctl
+	) -----
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, ctl.prompt, just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add TOOL_ENTRYBOX al d_slider_assy(ctl)
+
+	//  if the slider value is not default show reset button
+	if slider_getv(ctl) == ctl.default or ctl.skip_reset
+		skip TOOL_RINDENT al
+	else
+		add TOOL_RINDENT al d_resetdot(ctl)
+
+=========================
+horz slice add_tool_corner  -- specify 1/4 corner parms
+	skip TOOL_LINDENT al
+	//  these next 4 must add up to 19
+	add TOOL_LABEL al
+		draw_str(b.box, "corner", just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add 9 al draw_choice_grid(g.ncorner_grid, 0.5)
+	skip TOOL_MID_INDENT al  // 1
+
+	// must add up to TOOL_ENTRYBOX (29) total
+	const VV = (TOOL_ENTRYBOX - 3)/4
+	if g.ncorner_grid.selx == 1
+		//  1 corner
+		//  can be a regular slider
+		//  calculate a width to match the background fill field which is next
+		add TOOL_ENTRYBOX al d_slider_assy(SLIDER_RECT_CORNER)
+	else
+		//  4 corners,
+		add VV al draw_entry(hint:g.intf_corner1)	 // will add a total of 26
+		skip 1 al  //  will add total of 3
+		add VV al draw_entry(hint:g.intf_corner2)
+		skip 1 al 
+		add VV al draw_entry(hint:g.intf_corner3)
+		skip 1 al
+		add VV al draw_entry(hint:g.intf_corner4)
+
+	skip TOOL_RINDENT al
+
+=========================
+horz slice add_textsize_slider ( --  specify a numeric parm via a slider
+	ctl : a_slider_ctl
+	) -----
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, ctl.prompt, just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	add 9 al draw_choice_grid(g.text_size_grid, 0.5)
+	skip TOOL_MID_INDENT al  // 1
+	add TOOL_ENTRYBOX al d_slider_assy(ctl)
+
+	//  if the slider value is not default show reset button
+	if slider_getv(ctl) == ctl.default
+		skip TOOL_RINDENT al
+	else
+		add TOOL_RINDENT al d_resetdot(ctl)
+
+=========================
+draw d_resetdot(
+	ctl : a_slider_ctl
+	) -----
+	//  draw a small dot that shows we could reset
+	const diam = b.box.height*0.4 
+	var r:a_rect <=== solve_rect(basis:b.box, pin:5, width:diam, height:diam)
+	draw_oval(r, fill:SIENNA)
+track EV_TAP
+	//  do the reset
+	sound_play(CLICK)
+	slider_reset(ctl)
+
+=========================
+horz slice d_slider_assy(
+	ctl : a_slider_ctl
+	) -----
+	//  in case this slider is fresh, fix up any missing value string
+	var hint = slider_getss(ctl)
+	log "draw slider {ctl.prompt}, valss={hint}" on:TRACE_SLIDER
+	add 50 al draw_entry(hint:hint)
+	skip 5 al
+	add 120 al d_slider_rack(ctl)
+	skip 5 al
+	add 25 al d_slider_minus(ctl)
+	skip 5 al
+	add 25 al d_slider_plus(ctl)
+
+=========================
+calc slider_load(  --- load the linked value into the slider
+	ctl : a_slider_ctl
+	) -----
+	//  load the value from the linked value. if U, reset to default value
+	var currval : num = ctl.val_ptr^^
+	if currval == U
+		//  undefined values, consider it the default value
+		ctl.val_ptr^^ = ctl.default
+
+=========================
+calc slider_reset(  --- set to default value
+	ctl : a_slider_ctl
+	) -----
+	slider_setv(ctl, ctl.default)
+
+=========================
+calc slider_setv(  --- take the num value and set back to the underlying value, and convert to string
+	ctl : a_slider_ctl
+	newval : num
+	) -----
+	log "slider_setv {ctl.prompt} newval={to_str(newval, digits:ctl.digits)}" on:TRACE_SLIDER
+	ctl.ss_driven = U  //  not string driven any more
+	if ctl.val_ptr <> U
+		newval => ctl.val_ptr^^
+	else
+		halt("--warning slider not bound to value")
+
+calc slider_getv(
+	ctl : a_slider_ctl
+	) : num
+	if ctl.ss_driven
+		halt("not yet")
+	elif ctl.val_ptr <> U
+		return ctl.val_ptr^^ as num
+	else
+		//  use old val
+		return ctl.old_val
+				
+calc slider_getss(
+	ctl : a_slider_ctl
+	) : str
+	if ctl.ss_driven
+		log "slider_getss ss driven, {ctl.prompt}, val_ss={ctl.val_ss}" on:TRACE_SLIDER
+		return ctl.val_ss
+	elif ctl.val_ptr <> U
+		//  number driven
+		var val = ctl.val_ptr^^ as num
+		if ctl.sunit == SUNIT_PERCENT
+			100 *=> val  //  convert percent
+		var ss:str = to_str(val, digits:ctl.digits)
+		log "slider_getss number driven, {ctl.prompt}, val_ss={ss}"  on:TRACE_SLIDER
+		return ss
+	else
+		return to_str(ctl.old_val)
+
+=========================
+draw d_slider_rack (  --- draw slider rack and ball
+	ctl : a_slider_ctl
+	) -----
+	const RACKV = b.box.height*0.10
+	var rackr:a_rect <=== solve_rect(basis:b.box, pin:5, height:RACKV)
+	draw_rect(rackr, fill:BUTT_LO_BACK)
+
+	//  calculate the slider ball position based on the value
+	const BALLD = b.box.height*0.50  // ball diameter
+
+	//  remember these values
+	ctl.rack_h = b.box.width
+	ctl.ball_d = BALLD
+	ctl.ball_x = calc_ball_x(ctl)
+	var ballr:a_rect <=== solve_rect(basis:b.box, pin:4, inset_w:ctl.ball_x, width:BALLD, height:BALLD)
+	var ballc:color = if ctl.in_drag then #f93175 else #C71350
+	draw_oval(ballr, fill:ballc)
+--------------------
+track EV_TAP
+	//  a tap to the left of the ball is minus, to right plus, in ball we drag
+	if e.x < ctl.ball_x
+		//  same as clicking minus button
+		do_slider_minus(ctl, e.is_shift)
+	elif e.x > (ctl.ball_x + ctl.ball_d)
+		//  same as clicking plus button
+		do_slider_plus(ctl, e.is_shift)
+	//  tapping on the ball does nothing
+------------------
+track EV_DRAG_BEGIN
+	//  note that we must use global coord for tracking
+	//  as client coordinates vary as object layering is changing dynamically
+	ctl.in_drag = Y
+	ctl.start_mouse_x = e.global_x
+	ctl.start_ball_x = ctl.ball_x
+	log "DRAG_BEGIN, x={e.global_x}, start_ball_x={ctl.start_ball_x}" on:TRACE_SLIDER
+------------------
+track EV_DRAG_END
+	ctl.in_drag = N
+	log "DRAG_END" on:TRACE_SLIDER
+------------------
+track EV_DRAG_MOVE  //  user is dragging the slider ball
+	ctl.old_val = slider_getv(ctl)
+	var dx = e.global_x - ctl.start_mouse_x
+	//  convert from screen back to value
+	var newval = interpolate(ctl.start_ball_x+dx, 0, ctl.rack_h - ctl.ball_d, ctl.minval, ctl.maxval, clamp:Y)
+	slider_setv(ctl, newval)
+	log "DRAG_MOVE, mouse={e.global_x}, start={ctl.start_mouse_x}, dx={dx}, newval={to_str(newval, digits:ctl.digits)}, ss={ctl.val_ss}" on:TRACE_SLIDER
+	if ctl.action <> U
+		ctl.action(ctl)
+
+=========================
+calc calc_ball_x(
+	ctl : a_slider_ctl
+	)  : num  --- left coord of ball
+	var val = slider_getv(ctl)
+	var ballx = interpolate(val, ctl.minval, ctl.maxval, 0, ctl.rack_h - ctl.ball_d, clamp:Y, round:Y)
+	log "calc_ball_x, val={val}, ballx={ballx}" on:TRACE_SLIDER
+	return ballx
+
+=========================
+draw d_slider_minus(
+	ctl : a_slider_ctl
+	) -----
+	var back:color
+	var bord:color
+	var text:color
+	const CORNER = SLIDER_CORNER pt
+
+	if N
+		// selected item
+		back = BUTT_HI_BACK
+		bord = BUTT_HI_BORD
+		text = BUTT_HI_TEXT
+	else
+		//  regular item
+		back = BUTT_LO_BACK
+		bord = BUTT_LO_BORD
+		text = BUTT_LO_TEXT
+
+	draw_rect(b.box, fill:back, color:bord, thick:BUTT_THICK pt, 
+		corner_tl:CORNER, corner_bl:CORNER)
+	draw_str(b.box, "◀", color:text, size:0.50)  // arrow icon
+--------------------
+track EV_TAP
+	do_slider_minus(ctl, e.is_shift)
+
+=========================
+draw d_slider_plus(
+	ctl : a_slider_ctl
+	) -----
+	var back:color
+	var bord:color
+	var text:color
+	const CORNER = SLIDER_CORNER pt
+
+	if N
+		// selected item
+		back = BUTT_HI_BACK
+		bord = BUTT_HI_BORD
+		text = BUTT_HI_TEXT
+	else
+		//  regular item
+		back = BUTT_LO_BACK
+		bord = BUTT_LO_BORD
+		text = BUTT_LO_TEXT
+
+	draw_rect(b.box, fill:back, color:bord, thick:BUTT_THICK pt, 
+		corner_tr:CORNER, corner_br:CORNER)
+	draw_str(b.box, "▶", color:text, size:0.50)  // arrow icon
+--------------------
+track EV_TAP
+	do_slider_plus(ctl, e.is_shift)
+
+=========================
+calc do_slider_minus(  --- action function when minus button is pressed
+	ctl : a_slider_ctl
+	shift : yesno
+	) ------
+	//  convert to num so we can do calc
+	ctl.old_val = slider_getv(ctl)
+	var step = ctl.step
+	if shift and step > 1
+		step = 1
+
+	//  calculate the next lower multiple value of the step m
+	var m = round_multiple(ctl.old_val, step)
+	if m >= ctl.old_val
+		step -=> m  //  m is a multiple of the step
+
+	//  if we had a val of 6.4 step of 1, then m would be 6, val-step would be 5.4, net 6
+	var val = max(ctl.minval, ctl.old_val - step, m)
+
+	//  store the value back in the underlying value variable
+	slider_setv(ctl, val)
+	log "-- do_slider_minus, step={step}, val={val}" on:TRACE_SLIDER
+
+	if slider_getv(ctl) == ctl.old_val
+		sound_play(THUD)  // hit boundary
+	else
+		sound_play(CLICK)
+		if ctl.action <> U
+			ctl.action(ctl)
+
+=========================
+calc do_slider_plus(
+	ctl : a_slider_ctl
+	shift : yesno
+	) ------
+	ctl.old_val = slider_getv(ctl)
+	var step = ctl.step
+	if shift and step > 1
+		step = 1
+
+	//  calculate the next higher multiple value of the step m
+	var m = round_multiple(ctl.old_val, step)
+	if m <= ctl.old_val
+		step +=> m  //  m is a multiple of the step
+
+	//  if we had a val of 6.4 step of 1, then m would be 6, val-step would be 5.4, net 6
+	var val = min(ctl.maxval, ctl.old_val + step, m)
+	slider_setv(ctl, val)
+	log "-- do_slider_plus step={step}, val={val}" on:TRACE_SLIDER
+
+	if slider_getv(ctl) == ctl.old_val
+		sound_play(THUD)  // hit boundary
+	else
+		sound_play(CLICK)
+		if ctl.action <> U
+			ctl.action(ctl)
+
+--------------------
+// calc vald(  --- use the value, but if U, use default val
+// 	val : num
+// 	default : num
+// 	) : num ------	
+// 	if val == U
+// 		return default
+// 	else
+//		return val
+
+=========================
+horz slice add_tool_point ( --  specify a xy parm
+	prompt : str
+	) -----
+	skip TOOL_LINDENT al
+	add TOOL_LABEL al
+		draw_str(b.box, prompt, just:RIGHT, indent:5 pt, size:TOOL_TSIZE, color:C_TOOL_LABEL)
+	skip TOOL_MID_INDENT al
+	add TOOL_ENTRYBOX al draw_entry
+	skip TOOL_RINDENT al
+
+=========================
+horz slice butt_block_add //  used by blocks
+	skip 10 al
+	add 40 al draw_oneshot("Add", do_block_add)
+	skip 10 al
+	add 50 al draw_entry // (g.add_expr)
+	skip 3 al
+	add 40 al draw_dropdown(g.block_add_unit_grid)
+	skip 5 al
+
+=========================
+horz slice butt_block_skip //  used by blocks
+	skip 10 al
+	add 40 al draw_oneshot("Skip", do_block_skip)
+	skip 10 al
+	add 50 al draw_entry // (g.skip_expr)
+	skip 3 al
+	add 40 al draw_dropdown(g.block_skip_unit_grid)
+	skip 5 al
+
+=========================
+horz slice butt_block_dup //  used by blocks
+	skip 10 al
+	add 40 al draw_oneshot("Dup", do_block_dup)
+	skip 10 al
+	add 40 al draw_oneshot("Del", do_block_del)
+	skip 3 al
+	skip 55 al
+
+=========================
+horz slice d_slice_stack
+	skip 15 al
+	add 40 al draw_choice_grid(g.block_slice_grid, 0.5)
+	skip 15 al
+
+=========================
+vert slice section2
+	//draw_rect(b.box, fill:GRAY7)
+
+	skip 20 pt
+	case g.work_nk
+	-------------------------
+	| NK_COLOR
+	-------------------------
+		//  we are editing a color name
+		add CHOICE_V pt d_name_entry(g.work_name_in)
+		skip (ITEM_DV*2) pt
+		add ENTRY_V pt add_tool_color("color", g.work_color_ctl)
+		skip (ITEM_DV*5) pt
+		add CHOICE_V pt butt_work_cancel
+		skip 4 pt
+
+	-------------------------
+	| NK_ENUM
+	-------------------------
+		//  we are editing a enum name
+		add CHOICE_V pt d_name_entry(g.work_name_in)
+		skip (ITEM_DV*5) pt
+		add CHOICE_V pt butt_work_cancel
+		skip 4 pt
+
+	-------------------------
+	| NK_GRAD
+	-------------------------
+		//  we are editing a gradient
+		add CHOICE_V pt d_name_entry(g.work_name_in)
+		skip ITEM_DV pt
+		add 56 pt d_gradient_bar  //  20pt + 36pt
+		add CHOICE_V pt butt_grad_stop
+		skip ITEM_DV pt
+
+		//  if we have selected a band, show the band color controls
+		if g.work_grad_stopx <> U
+			add ENTRY_V pt add_tool_color("color", g.work_color_ctl)
+			skip ITEM_DV pt
+			add ENTRY_V pt add_tool_slider(SLIDER_GRAD_POS)
+			skip ITEM_DV pt
+			add ENTRY_V pt add_tool_slider(SLIDER_GRAD_OPACITY)
+		else
+			skip ENTRY_V pt
+			skip ITEM_DV pt
+			skip ENTRY_V pt
+			skip ITEM_DV pt
+			skip ENTRY_V pt
+
+		skip ITEM_DV pt
+		add 40 pt d_gradient_sample  // was 35
+		skip ITEM_DV pt
+		add CHOICE_V pt d_gradient_kind_assy
+		skip ITEM_DV pt
+		if g.work_grad_shape.selx == 1
+			//  linear
+			add ENTRY_V pt add_tool_slider(SLIDER_GRAD_ANGLE)
+			skip ((ENTRY_V+ITEM_DV)*5) pt
+		else
+			//  radial
+			add ENTRY_V pt add_tool_slider(SLIDER_GRAD_INNER)
+			skip ITEM_DV pt
+			add ENTRY_V pt add_tool_slider(SLIDER_GRAD_OUTER)
+			skip ITEM_DV pt
+			add ENTRY_V pt add_tool_slider(SLIDER_GRAD_CENTERX)
+			skip ITEM_DV pt
+			add ENTRY_V pt add_tool_slider(SLIDER_GRAD_CENTERY)
+			skip ITEM_DV pt
+			add ENTRY_V pt add_tool_slider(SLIDER_GRAD_FOCUSX)
+			skip ITEM_DV pt
+			add ENTRY_V pt add_tool_slider(SLIDER_GRAD_FOCUSY)
+		skip (ITEM_DV*5) pt
+		add CHOICE_V pt butt_work_cancel
+		skip 4 pt
+
+	-------------------------
+	else
+	-------------------------
+		nop
+		//log "empty section2, work_nk={g.work_nk}"
+// 		if g.mode_tabs.selx == MODE_PROJECT and g.work_nk <> U
+// 			skip 8 pt
+// 			add ENTRY_V pt d_namelist_butts
+// 			skip 8 pt
+// 			add 100 al d_namelist
+
+	skip 5 al //  absorb leftover space
+
+	//  draw the tabs that are related to the mode
+	//  at present we have a color and font bar, will have gradients
+	if g.is_bar_visible
+		//  reserve space for the bar always
+		if g.bar_tabx == U
+			skip ENTRY_V pt
+		else
+			var indent = if g.bar_tabx == PICKER_FONT_TABS then 33 else 0
+			add ENTRY_V pt draw_tabs(g.bar_tabs[g.bar_tabx], indent)
+
+=========================
+horz slice d_color_sample
+	skip 20 al
+	add 80 al
+		draw_rect(b.box, fill:g.work_color, thick:2 pt, color:GRAY6, corner:10 pt)
+	skip 20 al
+
+=========================
+horz slice d_namelist_butts
+	const GAP = 8
+	const BUTT = 40
+
+	skip GAP al
+	add BUTT al draw_oneshot("Add", do_namelist_add)
+
+	skip GAP al
+	if g.work_sym <> U
+		add BUTT al draw_oneshot("Dup", do_namelist_dup)
+		skip GAP al
+		add BUTT al draw_oneshot("Del", do_namelist_del)
+	else
+		skip BUTT al
+		skip GAP al
+		skip BUTT al
+	skip GAP al
+		
+//  new item
+//		if g.work_name_in.in_value <> "" and g.work_name_in.in_ok
+//			//  can add
+// 	else
+// 		//  updating existing item
+// 		if g.work_name_in.in_value <> "" and g.work_name_in.in_value <> doc.syms[g.work_sym].name
+// 			//  value is different
+// 			add 12 al draw_oneshot("Update", do_name_update)
+	
+=========================
+grid d_namelist  --- uses sorted_syms, which points to the subset of the namelist
+	horz slice
+		build_namelist //  rebuild the list
+		skip 10 pt
+		add 14 al  //  name column
+		skip 10 pt
+		add 10 al //  preview column
+		skip 10 pt
+
+	vert scroll
+		var vv = if tree_count(sorted_syms) <= 40 then 16 else 12
+		loop across:sorted_syms
+			add vv pt 
+			skip 2 pt
+	//under
+	//	draw_rect(b.box, fill:GRAY9)
+	cell
+		//  draw the cell of our table. cell.y is the row index
+		var sym : ptr to a_sym = sorted_syms[b.cell.y]
+		case b.cell.x
+		| 1  //  name column
+			var name = sym.name
+			if sym == g.work_sym
+				draw_rect(b.box, fill:FIREBRICK)
+			draw_str(b.box, name, just:LEFT, size:0.7, indent:20 pt, color:C_TOOL_LABEL)
+			if name == g.intf_namelist_mru
+				//  draw a bullet on top
+				draw_str(b.box, "\u2B24", just:LEFT, size:0.7, color:GREEN)
+
+		| 2   //  content column
+			case g.work_nk
+			| NK_GRAD
+				//  gradient preview
+				draw_rect(b.box, grad:sym.grad)
+			//  otherwise dead space
+-------
+track EV_TAP
+	//  set our current selection in the name list
+	if b.cell.y == U
+		sound_play(BEEP) // clicked outside list
+	else
+		g.intf_namelist_mru = U
+		g.work_sym = sorted_syms[b.cell.y]
+		log "changing selected name to {g.work_sym.name}"
+		//work_load_data
+
+// =================================
+// calc compare_strings_nocase (  -- collate function for enum names
+// =================================
+// 	//  note that all collate functions run off pointers, so we use var prefix
+// 	var a : str 
+// 	var b : str
+// 	) : num  // -1, a less than b
+// 
+// 	var aa : str = to_upper(a)
+// 	var bb : str = to_upper(b)
+// 	
+// 	if aa == bb
+// 		return 0
+// 	elif aa < bb
+// 		return -1
+// 	else
+// 		return +1
+
+var g_code : str
+var fresh : yesno = Y
+var indent : num = 0
+
+const TAB : str = "   "
+
+calc app(
+	ss : str
+	add_nl : yesno = N
+	)
+	if fresh
+		fresh = N
+		loop reps:indent
+			TAB &=> g_code
+	ss &=> g_code
+	if add_nl
+		"\n" &=> g_code
+		fresh = Y
+
+calc apn(
+	ss : str
+	) -------
+	app(ss, add_nl:Y)
+
+calc app_strlit(  --- append a string literal
+	ss : str
+	) -------
+	app('"')
+	//  loop through the characters of the string
+	loop from:1 to:str_len(ss) index:ix
+		var cc = subset(ss, from:ix, len:1)
+		log "index {ix}, cc={cc}"
+		case cc 
+		| '"'
+			app('\\"')
+		| '\\'
+			app('\\\\')
+		else
+			app(cc)
+	app('"')
+
+const FUNC_DIVIDER = "\n==============="
+
+calc func_header
+	indent = 0  // fix any leftover indent
+	if not fresh
+		"\n" &=> g_code
+	fresh = Y
+	//"\n" &=> g_code
+	apn(FUNC_DIVIDER)
+
+calc blank
+	app("", add_nl:Y)
+
+--------------------
+calc symname(
+	sym : a_sym
+	) : str
+	var ss :str = sym.name
+
+	//  add export suffix
+	if doc.prog_export_all
+		//  if export flag is off when all is on, it means we suppressed it
+		if not sym.exportf
+			"**" &=> ss
+	elif sym.exportf
+		"*"  &=> ss
+
+	return ss
+
+// calc app_symname(
+// 	sym : a_sym
+// 	) ------
+// 	app(symname(sym))
+	
+--------------------
+calc gen_code
+	var first : yesno
+
+	g_code = "beads level 1 {g.prog_kind_choices.label_list[doc.prog_kind]} {g.prog_name_in.in_value}"
+	if g.prog_ver1_in.in_value <> ""
+		app(" ver [{g.prog_ver1_in.in_value}")
+		if g.prog_ver2_in.in_value <> ""
+			app(" {g.prog_ver2_in.in_value}")
+			if g.prog_ver3_in.in_value <> ""
+				app(" {g.prog_ver3_in.in_value}")
+		app("]")
+	if g.prog_title_in.in_value <> ""
+		app(" title ")
+		app_strlit(g.prog_title_in.in_value)
+	if doc.prog_export_all
+		app(" export_all")
+	apn("")
+
+	//---- imports
+	//loop across:doc.syms[NK_IMPORT] ptr:sym
+	//	apn("const {symname(sym)}")
+
+	//---- assets / unsorted
+	apn("")
+	loop across:doc.syms[NK_ASSET] ptr:sym
+		apn("asset {sym.name}")  //  not yet implemented emit of asset syntax
+
+	//---- enum / sorted by name
+	first = Y
+	loop across:doc.syms[NK_ENUM] sort:field name ptr:sym
+		if first
+			apn("")
+			apn("enum")
+			first = N
+			inc indent
+		apn("{symname(sym)}")
+	indent = 0
+	
+	//---- grad / sorted by name
+	apn("")
+	loop across:doc.syms[NK_GRAD] sort:field name ptr:sym
+		app("const {symname(sym)} :a_gradient = \{ grad_shape:")
+		case sym.grad.grad_shape 
+		| LINEAR_GRADIENT
+			app("LINEAR_GRADIENT, grad_angle:")
+			case sym.grad.grad_angle
+			| 0
+				app("GRAD_TO_RIGHT")
+			| 90
+				app("GRAD_TO_BOTTOM")
+			| 180
+				app("GRAD_TO_LEFT")
+			| 270
+				app("GRAD_TO_TOP")
+			else
+				apn("{sym.grad.grad_angle}, ")
+		else
+			apn("RADIAL_GRADIENT, ")
+
+			//  we loaded the gradient data, but the sliders need their text forms fixed
+// 				slider_load(SLIDER_GRAD_ANGLE)
+// 				slider_load(SLIDER_GRAD_CENTERX)
+// 				slider_load(SLIDER_GRAD_CENTERY)
+// 				slider_load(SLIDER_GRAD_INNER)
+// 				slider_load(SLIDER_GRAD_OUTER)
+// 				slider_load(SLIDER_GRAD_FOCUSX)
+// 				slider_load(SLIDER_GRAD_FOCUSY)
+
+		//  loop through the gradient bands
+		apn(",")
+		inc indent
+		app("grad_stops:[ ")
+		loop across:sym.grad.grad_stops ptr:stop
+			app("\{ stop_pos:{stop.stop_pos}, stop_color:{color_to_hex(stop.stop_color)}")
+			if stop.opacity <> U and stop.opacity <> 1
+				app(", opacity:{to_str(stop.opacity, digits:3)}")
+			apn(" },")
+		apn(" ] }")
+		dec indent
+
+	//---- timer / sorted by name
+	apn("")
+	loop across:doc.syms[NK_TIMER] sort:field name ptr:sym
+		apn("__timer__ {symname(sym)}") //  not yet implemented emit
+
+	//---- units / sorted by name
+	apn("")
+	loop across:doc.syms[NK_UNIT] sort:field name ptr:sym
+		apn("unit {symname(sym)}") //  not yet implemented emit
+
+	//---- records / sorted by name
+	loop across:doc.syms[NK_RECORD] sort:field name ptr:sym
+		apn("")
+		apn("record {symname(sym)}")
+		//  loop through the fields
+		inc indent
+		loop across:sym.rec_spec.fields ptr:field
+			//  emit field.name, field.dtype
+			apn("{field.name} : {dtype_ss(field.dtype)}")
+		dec indent
+
+	//---- const / note can't sort them by name because order is critical
+	apn("")
+	loop across:doc.syms[NK_CONST] ptr:sym
+		apn("const {symname(sym)}") //  not yet implemented emit
+		
+	//---- var / sorted by name
+	apn("")
+	loop across:doc.syms[NK_VAR] sort:field name ptr:sym
+		apn("var {symname(sym)}") //  not yet implemented emit
+			
+	//---- functions / sorted by name
+	// --- will have to do main init and main_draw first, but otherwise in alphabetical order
+	loop across:doc.syms[NK_FUNC] sort:field name ptr:sym
+		emit_func(sym)
+
+	//log "g_code={g_code}"
+--------------------
+calc emit_func_kind(
+	sym : a_sym
+	) ------
+	case sym.func_spec.func_kind
+	| FUNC_CALC
+		app("calc ")
+	| FUNC_DRAW
+		app("draw ")
+	| FUNC_SLICE
+		if sym.func_spec.func_is_horz
+			app("horz slice ")
+		else
+			app("vert slice ")
+
+	| FUNC_SCROLL
+		if sym.func_spec.func_is_horz
+			app("horz scroll ")
+		else
+			app("vert scroll ")
+	| FUNC_GRID
+		app("grid ")
+	| FUNC_REPORT
+		app("report ")
+	else
+		app("???:{sym.func_spec.func_kind} ")
+
+--------------------
+calc emit_func(
+	sym : a_sym
+	) --------
+	func_header
+	emit_func_kind(sym)
+	app(symname(sym))
+	if sym.comment <> U
+		app("  --- ")
+		app(sym.comment)
+
+	//  do parameters for the func
+	//apn(FUNC_DIVIDER)
+	apn("") //  end of parameter list
+	// apn("--------")
+
+	inc indent
+
+	//  function body
+	apn("nop")
+
+	//  end of function
+	dec indent
+
+--------------------
+draw section3
+	draw_rect(b.box, fill:GRAY6)
+
+	case g.mode_tabs.selx
+	| MODE_BUILD
+		//  emit the code
+		gen_code
+		draw_str(b.box, g_code, size:11 pt, leading:13 pt, font:"Iosevka Aile" /* MONOSPACE */, vert:0, just:LEFT, wrap:Y, indent:5 pt, shrink:N, color:C_TOOL_LABEL)
+
+--------------------
+horz slice draw_color_entry( --- draw color expression and then the chip
+	ctl : a_color_ctl  // g.work_color_ctl or g.intf_fill_color
+	) -------
+	add 30 al draw_entry(hint:ctl.color_ss)  //  source code string for color
+	skip 1 al
+	//  even if we don't have a compile time resolved color give them option
+	add 10 al draw_color_sample(ctl)
+	
+--------------------
+horz slice draw_font_entry( --- draw font name and then the sample
+	data : ptr to a_font_spec
+	) -------
+	add 30 al draw_entry(hint:data.font_exp)  //  source code string for color
+	skip 1 al
+	//  even if we don't have a compile time resolved font give them option
+	add 10 al draw_font_sample(data)
+
+--------------------
+draw draw_color_sample(  --- draw sample to the right for color ctl
+	ctl : ptr to a_color_ctl
+	) -------
+	draw_rect(b.box, fill:color_ctl_getv(ctl))
+	//  if this is the color ctl that is connected to the bottom color palette
+	if g.palette_targ_ptr == ctl
+		draw_rect(b.box, color:BUTT_HI_BACK, thick:3.5 pt)
+	draw_rect(b.box, color:ENTRY_LO_BORD, thick:BUTT_THICK pt)
+--------
+track EV_TAP
+	//  if we tap in here we want to change the binding to a color bar
+	g.bar_tabx = PICKER_COLOR_TABS
+	sync_palette(ctl)
+
+--------------------
+draw draw_font_sample(  --- draw sample to the right for font ctl
+	p : ptr to a_font_spec
+	) -------
+	
+	if p.font_net <> U
+		//  we know the font how it will look
+		//  show some text in this font
+		draw_str(b.box, "abcEFG", size:0.5, font:p.font_net, color:ENTRY_LO_TEXT)
+
+	//  if this font ctl is tied to the bar, then show a hilite here
+	if g.fontpicker_targ_ptr == p
+		draw_rect(b.box, color:BUTT_HI_BACK, thick:3.5 pt)
+	draw_rect(b.box, color:ENTRY_LO_BORD, thick:BUTT_THICK pt)
+--------
+track EV_TAP
+	//  if we tap in here we want to change the binding to font bar
+	g.bar_tabx = PICKER_FONT_TABS
+	//  sync the font
+
+--------------------
+calc sync_palette(  --- set up the picker to point to this kind of object
+	targ : ptr to a_color_ctl
+	) ------
+	//  ctl is a pointer to a_color_ctl
+	//  find the color that matches in the active bar
+	//  palette1 works by matching color
+	g.palette_ferrari_selx = ferr_closest_chip(color_ctl_getv(targ))
+	
+--------------------
+// calc find_fontname(
+// 	targname : str  -- font to look for
+// 	) -------
+// 	loop across:FONTLIST val:fname index:ix
+// 		if fname == targname
+// 			//  we found the font, set the selection
+// 			g.intf_fontx = ix
+// 	//  failed
+// 	g.intf_fontx = U
+
+--------------------
+draw draw_entry (
+	hint : str = "..."
+	) -----
+	draw_rect(b.box, fill:ENTRY_LO_BACK, color:ENTRY_LO_BORD, thick:BUTT_THICK pt)
+	draw_str(b.box, hint, color:ENTRY_LO_TEXT, size:0.55, just:LEFT, indent:4 pt)
+
+--------------------
+draw draw_toggle (  --- draw an inline toggle
+	label : str
+	val   : inout yesno
+	) --------
+	var c_back:color
+	var c_bord:color
+	var c_text:color
+	var prefix : str
+
+	//  set the colors for this choice
+	if val
+		// ON
+		c_back = BUTT_HI_BACK
+		c_bord = BUTT_HI_BORD
+		c_text = BUTT_HI_TEXT
+		prefix = "☒"
+	else
+		// OFF
+		c_back = BUTT_LO_BACK
+		c_bord = BUTT_LO_BORD
+		c_text = BUTT_LO_TEXT
+		prefix = "☐"
+	draw_rect(b.box, fill:c_back, color:c_bord, thick:BUTT_THICK pt, corner:TOGGLE_CORNER pt)
+	draw_str(b.box, prefix, color:c_text, size:0.75, indent:5 pt, just:LEFT, shrink:N)
+	draw_str(b.box, label, color:c_text, size:0.45, indent:22 pt, just:LEFT)
+-------
+track EV_TAP
+	//  toggle the value
+	//log "before toggle, val={val}"
+	toggle val
+	//log "after toggle, val={val}"
+
+--------------------
+calc choice_get_selx(
+	c : a_choice_set
+	) : num
+	if c.selx_ptr <> U
+		//  use pointer form
+		return c.selx_ptr^^
+	else
+		//  use value form
+		return c.selx
+
+--------------------
+calc choice_set_selx(
+	c : a_choice_set
+	newval : num
+	) 
+	if c.selx_ptr <> U
+		//  use pointer form
+		c.selx_ptr^^ = newval
+	else
+		//  use value form
+		c.selx = newval
+
+--------------------
+draw draw_dropdown(  --- draw a dropdown menu
+	c : a_choice_set
+	) --------------
+	var r_arrow : a_rect
+	var r_label : a_rect
+	var arrow_h = 20 pt
+
+	//  if the menu is inactive, just show the current item in a box with a triangle
+	if c.is_open
+		draw_rect(b.box, fill:PINK)
+	else
+		//  resting state, draw box with text inside, arrow to right
+		draw_rect(b.box, fill:BUTT_LO_BACK, corner:CHOICE_CORNER pt)
+				
+		r_arrow <=== solve_rect(basis:b.box, pin:6, width:arrow_h)
+		draw_rect(r_arrow, fill:DROPDOWN_ARROW_BACK, corner_tr:CHOICE_CORNER pt, corner_br:CHOICE_CORNER pt)
+		draw_str(r_arrow, "⬍", color:DROPDOWN_ARROW_TEXT, size:0.6)
+
+		//  frame the whole thing
+		draw_rect(b.box, color:BUTT_LO_BORD, thick:BUTT_THICK pt, corner:CHOICE_CORNER pt)
+	
+		r_label <=== solve_rect(basis:b.box, pin:4, width:b.box.width - arrow_h)
+		var selx = choice_get_selx(c)
+		draw_str(r_label, c.label_list[selx], size:0.6, color:BUTT_LO_TEXT) 	
+
+--------------------
+draw draw_oneshot (
+	label : str
+	action : calc()
+	enterkey : yesno = N
+	) --------------
+	var back:color
+	var bord:color
+	var text:color
+
+	//  set the colors for this choice
+	if N
+		// selected item
+		back = BUTT_HI_BACK
+		bord = BUTT_HI_BORD
+		text = BUTT_HI_TEXT
+	else
+		//  regular item
+		back = BUTT_LO_BACK
+		bord = BUTT_LO_BORD
+		text = BUTT_LO_TEXT
+	draw_rect(b.box, fill:back, color:bord, thick:BUTT_THICK pt, corner:ONESHOT_CORNER pt)
+	draw_str(b.box, label, color:text, size:0.6, indent:4 pt)
+--------
+track EV_TAP
+	log "-- action: {action}" on:TRACE_ONESHOT
+	exec_action(label, action)
+--------
+track EV_KEYBOARD
+	if enterkey and e.keycode == KEYCODE_ENTER
+		exec_action(label, action)
+		return Y
+	else
+		return N
+
+--------------------
+calc exec_action (
+	label  : str
+	action : calc()
+	)
+	if action == U
+		alert("NOT YET IMPLEMENTED action for {label}")
+	else
+		action()
+
+--------------------
+horz slice draw_tabs(
+	tabs : a_tabset
+	deadspace : num  --- out of 100 aliquots, how much to devote to dead space on each side
+	) ------------
+	const tabw = (100 - deadspace) / tree_count(tabs)
+	const skip_per_side = deadspace / 2
+
+	skip skip_per_side al
+	loop across:tabs.label_list index:ix
+		add tabw al draw_tabs2(tabs, ix)
+	skip skip_per_side al
+
+--------------------
+draw draw_tabs2(
+	tabs : inout a_tabset
+	ix : num
+	) --------
+	var back : color
+	var text : color
+	var bord : color
+	if tabs.selx == ix
+		back = TAB_HI_BACK
+		bord = TAB_HI_BORD
+		text = TAB_HI_TEXT
+	else	
+		back = TAB_LO_BACK
+		bord = TAB_LO_BORD
+		text = TAB_LO_TEXT
+	draw_rect(b.box, fill:back, color:bord, thick:TAB_BORD pt, corner_tl:TAB_CORNER pt, corner_tr:TAB_CORNER pt)
+	draw_str(b.box, tabs.label_list[ix], indent:1.5 pt, size:0.6, color:text)
+---------------------------
+track EV_TAP
+	if ix <> tabs.selx
+		//  user is changing which tab is selected
+		tabs.selx = ix
+		//  not all tabs have an action function
+		if tabs.action <> U
+			tabs.action()
+
+var
+	GRID_NPARTS
+	GRID_NROWS
+	GRID_NCOLS
+
+-------------------------
+grid draw_choice_grid(
+-------------------------
+	o : a_choice_set
+	textsize : num
+	)
+	horz slice
+		GRID_NPARTS = tree_count(o.label_list)
+		GRID_NROWS = if o.nrows <> U then o.nrows else 1
+		GRID_NCOLS = GRID_NPARTS/GRID_NROWS
+
+		loop reps:GRID_NCOLS
+			add 12 al 
+
+	vert slice
+		loop reps:GRID_NROWS
+			add 12 al
+
+	cell
+		//  this compiles to a separate function so we used global vars above
+		var opacity = if o.enabled == N then DIMMED else 1
+		var back:color
+		var bord:color
+		var text:color
+		var tl = 0
+		var tr = 0
+		var bl = 0
+		var br = 0
+
+		if b.cell_seq == choice_get_selx(o)
+			// selected item
+			back = BUTT_HI_BACK
+			bord = BUTT_HI_BORD
+			text = BUTT_HI_TEXT
+		else
+			//  regular item
+			back = BUTT_LO_BACK
+			bord = BUTT_LO_BORD
+			text = BUTT_LO_TEXT
+			
+		//  calculate the corners
+		if b.cell.x == 1
+			if b.cell.y == 1
+				tl = CHOICE_CORNER pt
+			if b.cell.y == GRID_NROWS
+				bl = CHOICE_CORNER pt
+		if b.cell.x == GRID_NCOLS
+			if b.cell.y == 1
+				tr = CHOICE_CORNER pt
+			if b.cell.y == GRID_NROWS
+				br = CHOICE_CORNER pt
+		
+		//  draw the background for this cell
+		draw_rect(b.box, fill:back, color:bord, thick:BUTT_THICK pt, pos:0, 
+			corner_tl:tl, corner_tr:tr, corner_bl:bl, corner_br:br, opacity:opacity)
+
+		//  if the cell has a drawing function, use that
+		var f : draw(a_rect) = o.label_func[b.cell_seq]
+		if f <> U
+			//  has a drawing function
+			f(b.box)
+		else
+			//  has no custom drawing function, draw the text
+			draw_str(b.box, o.label_list[b.cell_seq], color:text, indent:1.5 pt, size:textsize, opacity:opacity)
+----------------------
+track EV_TAP
+	choice_set_selx(o, b.cell_seq)
+	//  if this choice grid has a delta func call it
+	if o.choice_func <> U
+		o.choice_func()
+
+/*.....
+zzzzzzzz
+	
+	const WIDTH = (b.box.width/NPARTS)
+	const TEXTV = b.box.height*0.5
+
+	var fudge_left   //  a little extra space we include to make inner divisions overlap
+	var fudge_right
+	var x = b.box.left
+
+	//  loop through the array of choices
+	loop across:o.label_list index:ix
+		//  set the colors for this choice
+		if ix == o.selx
+			// selected item
+			back = BUTT_HI_BACK
+			bord = BUTT_HI_BORD
+			text = BUTT_HI_TEXT
+		else
+			//  regular item
+			back = BUTT_LO_BACK
+			bord = BUTT_LO_BORD
+			text = BUTT_LO_TEXT
+
+		//  if this is the first box round NW, SW corners
+		tl = 0
+		tr = 0
+		bl = 0
+		br = 0
+
+		//  most of the cells will be interior
+		fudge_left = (BUTT_THICK pt)/2
+		fudge_right = (BUTT_THICK pt)/2
+		
+		if ix == 1
+			//  round top left and bot left corners
+			tl = CHOICE_CORNER pt
+			bl = tl
+			fudge_left = 0
+		elif ix == NPARTS
+			//  round top right and bot right corners
+			tr = CHOICE_CORNER pt
+			br = tr
+			fudge_right = 0
+
+		//  calculate the box for this item
+		r <=== solve_rect(basis:b.box, left:x - fudge_left, width:WIDTH+fudge_left+fudge_right)
+		WIDTH +=> x
+
+		//  draw the background for this cell
+		draw_rect(r, fill:back, color:bord, thick:BUTT_THICK pt, pos:0, 
+			corner_tl:tl, corner_tr:tr, corner_bl:bl, corner_br:br, opacity:opacity)
+
+		//  if the cell has a drawing function, use that
+		var f : draw(a_rect) = o.label_func[ix]
+		if f <> U
+			//  has a drawing function
+			f(r)
+		else
+			//  has no custom drawing function, draw the text
+			draw_str(r, o.label_list[ix], color:text, size:TEXTV, opacity:opacity)
+	-- end loop
+track EV_TAP
+	//  figure out which of the sections we clicked in
+	//  note: we inherit the args of choice_draw, but not the local variables
+	//  we have to calculate things again
+	const NPARTS = tree_count(o.label_list)
+	const WIDTH = round(b.box.width/NPARTS)
+	o.selx = round_up(e.x / WIDTH)
+
+	//  set the user's value state variable
+	//o.valptr^^ = o.val_list[o.selx]
+....*/
+
+--------------------
+calc do_block_add
+	log "do_block_add"
+
+--------------------
+calc do_block_skip
+	log "do_block_skip"
+
+--------------------
+calc do_block_dup
+	log "do_block_dup"
+
+--------------------
+calc do_block_del
+	log "do_block_del"
+
+
+//====================================
+//   START OF FONT PICKER
+//====================================
+grid draw_font_picker order:TBLR
+	horz slice
+		const NCOLS = 3
+		const NROWS = round_up(NFONTS/NCOLS)
+		const FONTV = 24
+		const GAP = 2
+	
+		loop reps:NCOLS
+			skip 8 pt
+			add 10 al
+		skip 8 pt
+
+	vert slice
+		loop reps:NROWS
+			skip 4 pt
+			add 10 al
+		skip 4 pt
+		
+	cell
+		if b.cell_seq <= NFONTS
+			d_font_example(FONTLIST[b.cell_seq])
+-----------------------
+track EV_TAP
+	//  make a sound effect 
+	if b.cell_seq == U or b.cell_seq > NFONTS
+		//  bad selection, clicked on dead space, a gap or past end of list
+		sound_play(BEEP)
+	else
+		//  valid font choice
+		sound_play(CLICK)
+		var ix = b.cell_seq
+		log "selected font {ix}"
+		//  save the font selection and close the picker
+		g.fontpicker_targ_ptr^^.font_exp = FONTLIST[ix]
+		g.fontpicker_targ_ptr^^.font_net = FONTLIST[ix]
+-------
+track EV_HOVER
+	//  if we are on a clickable thing, show the finger cursor
+	//  this will be false if cell_seq is U (which it will be if on dead space)
+	if b.cell_seq <= NFONTS
+		cursor_set(CURS_FINGER)
+	else
+		//  not on a clickable thing
+		cursor_set(CURS_ARROW)
+
+---------------
+//  these transient variables are used inside a nested context
+var c_back : color
+var c_text : color
+
+horz slice d_font_example(
+	fontname : str
+	) --------
+	if fontname == g.fontpicker_targ_ptr^^.font_exp
+		c_back = BUTT_HI_BACK
+		c_text = BUTT_HI_TEXT
+	else
+		c_back = GRAY7
+		c_text = BUTT_LO_TEXT
+	draw_rect(b.box, fill:c_back)
+	skip 10 pt
+	add 100 pt
+		draw_str(b.box, fontname, size:0.6, just:LEFT, font:fontname, color:c_text)
+	skip 14 pt
+	add 100 al
+		draw_str(b.box, "The five boxing wizards jump quickly", size:0.6, just:LEFT, font:fontname, color:c_text)
+	skip 4 pt
+
+//====================================
+//   START OF COLOR PICKER
+//====================================
+const
+	TRACE_COLORS = N
+	TRACE_FUDGE = N
+	TRACE_SIZING = N
+
+record a_slot
+	name  : str   //  color name
+	color : color //  rgb color 
+	//  the sort key
+	key1  // color category  1:color band  98:low sat, 99:gray ramp
+	key2  // value band
+	key3  //  hue
+
+var SET1 : array of a_slot <=== [ {name:"ALICE_BLUE", color:ALICE_BLUE}, 
+	{name:"ANTIQUE_WHITE", color:ANTIQUE_WHITE},
+	{name:"AQUA", color:AQUA},
+	{name:"AQUAMARINE", color:AQUAMARINE},
+	{name:"AZURE", color:AZURE}, 
+	{name:"BEIGE", color:BEIGE},
+	{name:"BISQUE", color:BISQUE},
+	{name:"BLANCHED_ALMOND", color:BLANCHED_ALMOND},
+	{name:"BLUE", color:BLUE},
+	{name:"BLUE_VIOLET", color:BLUE_VIOLET}, 
+	{name:"BROWN", color:BROWN},
+	{name:"BURLY_WOOD", color:BURLY_WOOD},
+	{name:"CADET_BLUE", color:CADET_BLUE},
+	{name:"CHARTREUSE", color:CHARTREUSE},
+	{name:"CHOCOLATE", color:CHOCOLATE}, 
+	{name:"CORAL", color:CORAL},
+	{name:"CORNFLOWER_BLUE", color:CORNFLOWER_BLUE},
+	{name:"CORNSILK", color:CORNSILK},
+	{name:"CRIMSON", color:CRIMSON},
+	{name:"CYAN", color:CYAN}, 
+	{name:"DARK_BLUE", color:DARK_BLUE},
+	{name:"DARK_CYAN", color:DARK_CYAN},
+	{name:"DARK_GOLDENROD", color:DARK_GOLDENROD},
+	{name:"DARK_GRAY", color:DARK_GRAY},
+	{name:"DARK_GREEN", color:DARK_GREEN}, 
+	{name:"DARK_KHAKI", color:DARK_KHAKI},
+	{name:"DARK_MAGENTA", color:DARK_MAGENTA},
+	{name:"DARK_OLIVE_GREEN", color:DARK_OLIVE_GREEN},
+	{name:"DARK_ORANGE", color:DARK_ORANGE},
+	{name:"DARK_ORCHID", color:DARK_ORCHID}, 
+	{name:"DARK_RED", color:DARK_RED},
+	{name:"DARK_SALMON", color:DARK_SALMON},
+	{name:"DARK_SEA_GREEN", color:DARK_SEA_GREEN},
+	{name:"DARK_SLATE_BLUE", color:DARK_SLATE_BLUE},
+	{name:"DARK_SLATE_GRAY", color:DARK_SLATE_GRAY}, 
+	{name:"DARK_TURQUOISE", color:DARK_TURQUOISE},
+	{name:"DARK_VIOLET", color:DARK_VIOLET},
+	{name:"DEEP_PINK", color:DEEP_PINK},
+	{name:"DEEP_SKY_BLUE", color:DEEP_SKY_BLUE},
+	{name:"DIM_GRAY", color:DIM_GRAY}, 
+	{name:"DODGER_BLUE", color:DODGER_BLUE},
+	{name:"FIREBRICK", color:FIREBRICK},
+	{name:"FLORAL_WHITE", color:FLORAL_WHITE},
+	{name:"FOREST_GREEN", color:FOREST_GREEN},
+	{name:"FUCHSIA", color:FUCHSIA}, 
+	{name:"GAINSBORO", color:GAINSBORO},
+	{name:"GHOST_WHITE", color:GHOST_WHITE},
+	{name:"GOLD", color:GOLD},
+	{name:"GOLDENROD", color:GOLDENROD},
+	{name:"GRAY", color:GRAY}, 
+	{name:"GREEN", color:GREEN},
+	{name:"GREEN_YELLOW", color:GREEN_YELLOW},
+	{name:"HONEYDEW", color:HONEYDEW},
+	{name:"HOT_PINK", color:HOT_PINK},
+	{name:"INDIAN_RED", color:INDIAN_RED}, 
+	{name:"INDIGO", color:INDIGO},
+	{name:"IVORY", color:IVORY},
+	{name:"KHAKI", color:KHAKI},
+	{name:"LAVENDER", color:LAVENDER},
+	{name:"LAVENDER_BLUSH", color:LAVENDER_BLUSH}, 
+	{name:"LAWN_GREEN", color:LAWN_GREEN},
+	{name:"LEMON_CHIFFON", color:LEMON_CHIFFON},
+	{name:"LIGHT_BLUE", color:LIGHT_BLUE},
+	{name:"LIGHT_CORAL", color:LIGHT_CORAL},
+	{name:"LIGHT_CYAN", color:LIGHT_CYAN}, 
+	{name:"LIGHT_GOLDENROD", color:LIGHT_GOLDENROD},
+	{name:"LIGHT_GREEN", color:LIGHT_GREEN},
+	{name:"LIGHT_GREY", color:LIGHT_GREY},
+	{name:"LIGHT_PINK", color:LIGHT_PINK},
+	{name:"LIGHT_SALMON", color:LIGHT_SALMON}, 
+	{name:"LIGHT_SEA_GREEN", color:LIGHT_SEA_GREEN},
+	{name:"LIGHT_SKY_BLUE", color:LIGHT_SKY_BLUE},
+	{name:"LIGHT_SLATE_GRAY", color:LIGHT_SLATE_GRAY},
+	{name:"LIGHT_STEEL_BLUE", color:LIGHT_STEEL_BLUE},
+	{name:"LIGHT_YELLOW", color:LIGHT_YELLOW}, 
+	{name:"LIME", color:LIME},
+	{name:"LIME_GREEN", color:LIME_GREEN},
+	{name:"LINEN", color:LINEN},
+	{name:"MAGENTA", color:MAGENTA},
+	{name:"MAROON", color:MAROON}, 
+	{name:"MEDIUM_AQUAMARINE", color:MEDIUM_AQUAMARINE},
+	{name:"MEDIUM_BLUE", color:MEDIUM_BLUE},
+	{name:"MEDIUM_ORCHID", color:MEDIUM_ORCHID},
+	{name:"MEDIUM_PURPLE", color:MEDIUM_PURPLE},
+	{name:"MEDIUM_SEA_GREEN", color:MEDIUM_SEA_GREEN}, 
+	{name:"MEDIUM_SLATE_BLUE", color:MEDIUM_SLATE_BLUE},
+	{name:"MEDIUM_SPRING_GREEN", color:MEDIUM_SPRING_GREEN},
+	{name:"MEDIUM_TURQUOISE", color:MEDIUM_TURQUOISE},
+	{name:"MEDIUM_VIOLET_RED", color:MEDIUM_VIOLET_RED},
+	{name:"MIDNIGHT_BLUE", color:MIDNIGHT_BLUE}, 
+	{name:"MINT_CREAM", color:MINT_CREAM},
+	{name:"MISTY_ROSE", color:MISTY_ROSE},
+	{name:"MOCCASIN", color:MOCCASIN},
+	{name:"NAVAJO_WHITE", color:NAVAJO_WHITE},
+	{name:"NAVY", color:NAVY}, 
+	{name:"OLD_LACE", color:OLD_LACE},
+	{name:"OLIVE", color:OLIVE},
+	{name:"OLIVE_DRAB", color:OLIVE_DRAB},
+	{name:"ORANGE", color:ORANGE},
+	{name:"ORANGE_RED", color:ORANGE_RED}, 
+	{name:"ORCHID", color:ORCHID},
+	{name:"PALE_GOLDENROD", color:PALE_GOLDENROD},
+	{name:"PALE_GREEN", color:PALE_GREEN},
+	{name:"PALE_TURQUOISE", color:PALE_TURQUOISE},
+	{name:"PALE_VIOLET_RED", color:PALE_VIOLET_RED}, 
+	{name:"PAPAYA_WHIP", color:PAPAYA_WHIP},
+	{name:"PEACH_PUFF", color:PEACH_PUFF},
+	{name:"PERU", color:PERU},
+	{name:"PINK", color:PINK},
+	{name:"PLUM", color:PLUM}, 
+	{name:"POWDER_BLUE", color:POWDER_BLUE},
+	{name:"PURPLE", color:PURPLE},
+	{name:"REBECCA_PURPLE", color:REBECCA_PURPLE},
+	{name:"RED", color:RED},
+	{name:"ROSY_BROWN", color:ROSY_BROWN}, 
+	{name:"ROYAL_BLUE", color:ROYAL_BLUE},
+	{name:"SADDLE_BROWN", color:SADDLE_BROWN},
+	{name:"SALMON", color:SALMON},
+	{name:"SANDY_BROWN", color:SANDY_BROWN},
+	{name:"SEA_GREEN", color:SEA_GREEN}, 
+	{name:"SEASHELL", color:SEASHELL},
+	{name:"SIENNA", color:SIENNA},
+	{name:"SILVER", color:SILVER},
+	{name:"SKY_BLUE", color:SKY_BLUE},
+	{name:"SLATE_BLUE", color:SLATE_BLUE}, 
+	{name:"SLATE_GRAY", color:SLATE_GRAY},
+	{name:"SNOW", color:SNOW},
+	{name:"SPRING_GREEN", color:SPRING_GREEN},
+	{name:"STEEL_BLUE", color:STEEL_BLUE},
+	{name:"TAN", color:TAN}, 
+	{name:"TEAL", color:TEAL},
+	{name:"THISTLE", color:THISTLE},
+	{name:"TOMATO", color:TOMATO},
+	{name:"TURQUOISE", color:TURQUOISE},
+	{name:"VIOLET", color:VIOLET}, 
+	{name:"WHEAT", color:WHEAT},
+	{name:"WHITE_SMOKE", color:WHITE_SMOKE},
+	{name:"YELLOW", color:YELLOW},
+	{name:"YELLOW_GREEN", color:YELLOW_GREEN}]
+
+const SET2 : array of a_slot <=== [ {name:"GRAY1", color:GRAY1},
+	{name:"GRAY2", color:GRAY2},
+	{name:"GRAY3", color:GRAY3},
+	{name:"GRAY4", color:GRAY4},
+	{name:"GRAY5", color:GRAY5}, 
+	{name:"GRAY6", color:GRAY6},
+	{name:"GRAY7", color:GRAY7},
+	{name:"GRAY8", color:GRAY8},
+	{name:"GRAY9", color:GRAY9},
+	{name:"BLACK", color:BLACK},
+	{name:"WHITE", color:WHITE}]
+
+const hue_fudge = 150  // break the HSV wheel not at 0/359 which is in the middle of red
+const AREA_THRESHOLD = 140000  // below this screen area in points we switch to compact form
+const TARG_WIDTH = 100
+const C_PALTEXT = MINT_CREAM
+
+//  these functions as constants after the resize event is processed, which calculates basic geometry
+var NCOLS
+var NROWS
+var NCELLS
+var BARV
+
+var slotlist : array of ptr to a_slot  //  sorted array of pointers to a_slot
+
+record a_colorchart_state
+	//selectedx  // which color slot is currently selected
+	format  : (FORMAT_BEADS, FORMAT_HTML, FORMAT_HEX)
+	sizing  : (COMPACT_SIZE, FULL_SIZE)
+
+var gsc : a_colorchart_state  //  our tracked mutable state
+
+-------------------------
+//   Ferrari palette
+
+//  we had 7 custom color
+//  #FF0000, #00FF00, #0000FF, #FFFF00, #8080FF, #FFFF00, #8080FF, 
+
+const FERRARI : array of color <=== [ #000000, #FFFFFF,  //  first 2: black, white
+	#290000, #330000, #420000, #560000, #6F0001, #8B0001, #A70001, #C10100, #DB0101, #EF0101, #FE0101,
+	#FE1111, #FF2626, #FE403F, #FE5C5C, #FF7A7A, #FE9999, #FFB6B5, #FFCFCF, #FFE5E4, #FFF4F4,
+	#330F00, #401300, #521800, #671E01, #802600, #992D00, #B23400, #C93B01, #DF4101, #F14601,
+	#FE4A01, #FE5511, #FE6526, #FE7740, #FF8B5C, #FFA07A, #FFB699, #FFCAB5, #FFDCCF, #FFECE5,
+	#FFF7F4, #331900, #402800, #513100, #673A00, #7F4500, #984F01, #B25A01, #CA6601, #DF6E01,
+	#F17602, #FE7C02, #FE8411, #FE8F27, #FE9C41, #FEAB5D, #FFBB7B, #FFCA99, #FFD9B6, #FFE6CF,
+	#FFF1E4, #FFF9F4, #332300, #402B00, #523600, #674400, #805401, #996301, #B27301, #C98201,
+	#DF9001, #F19B02, #FEA302, #FFA912, #FEB027, #FEBA40, #FEC45D, #FFCF7B, #FEDA99, #FEE4B6,
+	#FFEED0, #FFF5E5, #FFFBF4, #332A00, #403C00, #524A01, #685C01, #7F7001, #998501, #B29901,
+	#CAAD02, #DFBF02, #F1CD02, #FED802, #FEDA12, #FEDD27, #FEE241, #FFE65D, #FEEA7B, #FFEF99,
+	#FFF4B6, #FFF7CF, #FFFBE4, #FFFDF4, #333100, #403E00, #525001, #686600, #807E01, #989801,
+	#B1B101, #CAC902, #DFDF01, #F1F002, #FEFE02, #FEFE12, #FEFE27, #FEFE40, #FEFE5D, #FEFE7B,
+	#FEFF99, #FFFFB5, #FEFFCF, #FFFFE4, #FFFFF4, #2A3200, #353F01, #435100, #556601, #687E02,
+	#7C9702, #91B003, #A4C803, #B6DD04, #C4EF03, #CFFC04, #D2FC13, #D6FC28, #DBFC42, #E0FD5E,
+	#E6FD7C, #EBFE9A, #F2FEB6, #F6FED0, #FAFFE5, #FDFFF4, #1A3400, #204100, #2A5300, #356801,
+	#427F01, #4F9801, #5CB202, #68C903, #74DF03, #7DF003, #84FD03, #94FD24, #9FFE3A, #ACFE54,
+	#B9FE6F, #C6FE8B, #D4FEA6, #E0FFBF, #EBFFD6, #F5FEE9, #FBFFF7, #033500, #034200, #055401,
+	#056800, #078001, #099801, #0AB101, #0BC801, #0DDD02, #0DEF02, #0EFB02, #2EFC23, #43FC39,
+	#5CFC53, #75FD6F, #90FD8B, #AAFEA6, #C2FEBF, #D8FED6, #EAFFE9, #F7FFF7, #00360F, #00360F,
+	#004513, #005819, #017121, #018C29, #01A630, #01C138, #02D940, #02ED46, #02FC4A, #23FC62,
+	#39FC72, #53FD85, #6FFD98, #8BFEAC, #A6FEBF, #BFFED1, #D6FFE1, #E9FFEF, #F7FFF9, #003425,
+	#003526, #014430, #00583F, #017051, #028C63, #03A677, #03C189, #03D99B, #04ECA9, #04FBB3,
+	#25FBBD, #3BFCC4, #55FDCC, #70FDD4, #8BFDDD, #A7FEE5, #C0FEEC, #D6FFF3, #E9FEF9, #F7FFFD,
+	#003333, #003333, #004242, #015656, #016E6E, #018A8A, #01A5A5, #03C0C0, #03D8D8, #03EDEC,
+	#03FBFB, #24FCFC, #3BFCFC, #54FDFC, #6FFDFD, #8BFEFD, #A6FDFE, #C0FEFE, #D6FFFF, #E9FFFE,
+	#F7FFFF, #012633, #012633, #023142, #024056, #01536F, #02688A, #027DA6, #0292C2, #03A4DA,
+	#03B4EE, #03BFFD, #12C3FD, #28C9FD, #42CFFD, #5FD6FE, #7DDEFE, #9CE6FE, #B8EDFE, #D2F4FF,
+	#E8F9FF, #F7FDFF, #001633, #001633, #001C41, #002556, #01306F, #013B8A, #0147A6, #0253C1,
+	#025DDA, #0266EF, #026CFD, #1175FD, #2781FD, #4291FE, #5EA2FE, #7CB3FE, #9BC4FE, #B7D5FE,
+	#D2E5FF, #E7F1FF, #F7FAFF, #000233, #000240, #010352, #010468, #010580, #010599, #0106B3,
+	#0207CB, #0207E0, #0208F2, #0208FF, #1118FF, #272DFF, #4146FF, #5E62FF, #7C7FFF, #9B9DFF,
+	#B8B9FF, #D2D3FF, #E7E7FF, #F7F7FF, #0E0034, #120141, #170052, #1D0068, #240180, #2B0199,
+	#3301B2, #3A01CA, #4002DF, #4502F1, #4902FE, #5412FE, #6427FE, #7741FF, #8B5EFE, #A17CFE,
+	#B79BFF, #CCB7FE, #DED2FF, #EEE7FE, #F9F7FF, #240034, #240034, #2E0043, #3D0157, #4F0170,
+	#62018B, #7602A6, #8902C2, #9B02DA, #A903EF, #B403FD, #B913FD, #BF29FD, #C742FE, #D05FFD,
+	#D87DFE, #E29CFE, #EAB8FE, #F2D2FF, #F8E8FF, #FDF7FF, #330032, #40003F, #520051, #680066,
+	#7F017E, #990197, #B201B0, #CB02C8, #E002DD, #F202EF, #FF02FC, #FF23FD, #FF3AFC, #FF53FD,
+	#FF6EFE, #FF8AFE, #FFA6FE, #FFC0FE, #FFD7FE, #FFE9FF, #FFF7FF, #330023, #330023, #42002D,
+	#57013B, #70004D, #8A0160, #A70173, #C20186, #DC0297, #F002A6, #FF02B0, #FF23BA, #FF39C1,
+	#FF53C9, #FF6FD2, #FF8ADB, #FFA6E3, #FFBFEB, #FFD6F2, #FFE9F8, #FFF7FD, #330014, #400019,
+	#520020, #670029, #800131, #99013C, #B20245, #CB024E, #E00257, #F2025E, #FF0263, #FF126D,
+	#FF277A, #FF418A, #FF5F9C, #FF7CAF, #FF9BC2, #FFB8D3, #FFD2E3, #FFE7F1, #FFF7FA, #211212,
+	#2A1717, #331C1C, #3F2322, #4F2B2B, #5F3333, #703D3C, #804646, #904D4E, #9C5455, #A55959,
+	#AA6363, #B27171, #BA8281, #C49494, #CFA8A8, #D9BCBB, #E3CFCF, #EDDFDF, #F4EDED, #F9F7F7,
+	#211612, #2A1D17, #33231B, #402C23, #4F362B, #5F4034, #714C3C, #815745, #90614E, #9D6A55,
+	#A56F59, #AB7863, #B28471, #BB9282, #C5A295, #CFB3A8, #DAC4BC, #E3D4CE, #ECE3DF, #F4EFED,
+	#F9F8F7, #211912, #2B2017, #34271C, #403123, #503D2B, #604A34, #72573D, #826547, #91704E,
+	#9E7956, #A67F5A, #AB8764, #B39172, #BC9E82, #C5AD95, #D0BBA9, #DACBBC, #E4D9CF, #ECE6DF,
+	#F4F1ED, #F9F8F7, #211C12, #2B2417, #342C1B, #413723, #4F432B, #605134, #71613D, #826E47,
+	#917A4E, #9E8456, #A68A5A, #AB9164, #B39A72, #BCA782, #C5B495, #D0C1A9, #DACFBC, #E3DBCE,
+	#EDE7DF, #F3F1ED, #F9F8F7, #211F12, #2B2817, #34311B, #403C23, #504C2B, #605C34, #726D3E,
+	#837C46, #91894F, #9E9456, #A69A5A, #ACA064, #B3A872, #BBB382, #C5BE95, #D0CAA9, #DAD5BC,
+	#E3E0CF, #ECEADF, #F4F3ED, #F9F9F7, #212112, #2A2B17, #33341C, #404123, #4E4F2B, #606033,
+	#71713D, #818147, #90914E, #9D9D55, #A6A65A, #ABAC64, #B3B372, #BBBB83, #C6C595, #D0CFA9,
+	#DADABC, #E4E3CE, #EDEDDF, #F4F4ED, #F9F9F7, #1E2112, #272A17, #2F331C, #3A3F23, #484E2B,
+	#585F34, #66703E, #758146, #83904E, #8F9C55, #97A55A, #9EAA64, #A6B271, #B0BB82, #BCC495,
+	#C8CFA9, #D4DABC, #DFE4CF, #EAECE0, #F2F4ED, #F9F9F7, #1A2112, #212B17, #28341C, #324022,
+	#3D4F2B, #4A6034, #58713D, #658147, #70904E, #7A9C55, #81A55A, #89AA64, #93B271, #9FBA82,
+	#ADC595, #BCCFA8, #CBD9BC, #D9E4CF, #E6ECDF, #F1F4ED, #F8F9F7, #132112, #182B17, #1D341C,
+	#244022, #2C4F2B, #365F33, #3F703D, #488045, #518F4D, #589B54, #5DA459, #67A963, #74B171,
+	#85BA82, #97C494, #AACEA8, #BDD9BC, #CFE3CE, #DFECDF, #EDF3ED, #F7F9F7, #122116, #172A1D,
+	#1C3323, #223F2B, #2B4E35, #345F40, #3D6F4B, #468056, #4D8F60, #549B69, #59A46E, #63AA77,
+	#71B183, #82BA92, #94C4A2, #A8CEB3, #BCD9C4, #CEE3D5, #DFECE3, #EDF3EF, #F7F9F8, #12211C,
+	#172B24, #1C342C, #224037, #2B4F43, #335F51, #3D6F60, #47806E, #4E8F7B, #559B86, #5AA48E,
+	#64AA95, #71B19E, #83BAAA, #95C4B5, #A9CFC3, #BCD9D0, #CFE3DC, #DFECE7, #EDF4F1, #F7F9F8,
+	#122121, #172B2B, #1C3434, #224140, #2B4F4E, #33605F, #3C7070, #468080, #4E8F8F, #549B9B,
+	#59A4A4, #63AAAA, #71B1B1, #82BABA, #95C4C4, #A8CECF, #BBD9D9, #CEE3E3, #DFECEC, #ECF4F4,
+	#F7F9F9, #121D21, #17252B, #1C2D34, #233840, #2B454F, #33545F, #3D6370, #467181, #4E7F90,
+	#558A9C, #5A92A5, #6498AB, #72A1B2, #82ACBA, #95B8C4, #A8C5CF, #BCD2D9, #CFDEE3, #DFE8EC,
+	#EDF2F3, #F7F8F9, #121821, #171F2B, #1C2634, #232F40, #2B3A4F, #34465F, #3D5371, #465F81,
+	#4F6B90, #55739C, #5A7AA5, #6483AB, #728DB2, #839BBB, #95AAC5, #A9B9CF, #BCC9D9, #CFD7E3,
+	#DFE5EC, #EDF0F3, #F7F8F9, #121221, #17172B, #1C1C34, #232341, #2B2B4F, #343560, #3D3E71,
+	#464881, #4F5090, #55579D, #5A5CA6, #6466AB, #7273B3, #8284BB, #9596C5, #A8AACF, #BCBDDA,
+	#CFCFE4, #DFE0ED, #EDEDF4, #F7F7F9, #161221, #1D172B, #231C34, #2B2340, #352B50, #403460,
+	#4B3D71, #574682, #614E90, #69569D, #6F5AA6, #7864AC, #8472B3, #9283BB, #A395C6, #B3A9D0,
+	#C5BCD9, #D5CFE4, #E4DFEC, #EFEDF4, #F8F7F9, #1D1221, #26172B, #2E1C34, #382340, #452B4F,
+	#543460, #623D71, #704681, #7C4E90, #87559D, #8F5AA5, #9664AB, #9F72B2, #AA82BB, #B795C5,
+	#C4A8CF, #D0BCDA, #DDCFE4, #E8DFEC, #F1EDF4, #F8F7F9, #29162A, #351D35, #3E223D, #492749,
+	#562F56, #663865, #764075, #844884, #924F91, #9D569D, #A65AA5, #AC64AA, #B372B2, #BB83BB,
+	#C595C5, #D0A8CF, #D9BCDA, #E4CEE3, #ECDFEC, #F4EDF3, #F9F7F9, #21121C, #2A1724, #331C2C,
+	#402236, #4F2B43, #5F3452, #713D60, #81466E, #904F7B, #9D5686, #A65A8E, #AB6495, #B3729E,
+	#BC82AA, #C595B6, #D0A8C3, #DABCD0, #E3CFDD, #ECDFE8, #F4EDF1, #F9F7F8, #211218, #2B171F,
+	#341C26, #40222F, #502B39, #603445, #713D51, #82465D, #914E68, #9D5571, #A65A77, #AC647F,
+	#B3728A, #BB8298, #C595A8, #D0A8B7, #DABCC7, #E3CED7, #ECE0E4, #F4EDF0, #F9F7F8, #000000,
+	#070706, #0F0F0F, #191918, #232424, #2F3030, #3C3D3C, #494949, #585858, #676666, #757575,
+	#848484, #939393, #A1A1A1, #AFAFAF, #BDBDBD, #CACAC9, #D5D6D6, #E0E0E1, #EAEAEA, #F2F2F2 ]
+
+const 
+	FERR_NROW = 7
+	FERR_NCOL = 6
+	FERR_NRAMPS = 42
+	CHIPS_PER_RAMP = 21  //  first ramp is special, shows black and white
+	CHIPS_PER_ROW = FERR_NCOL * CHIPS_PER_RAMP
+
+var
+	chip_h : num
+
+horz slice ferrari_palette_draw
+	//  calculate so that the chips are even in width
+	chip_h = round_down(b.box.width / CHIPS_PER_ROW)
+	var used = chip_h*CHIPS_PER_ROW
+
+	//  we want perfect pixel alignment for this
+// 	var leftover = b.box.width - used
+// 	var leftover1 = round_down(leftover/2)
+// 	var leftover2 = leftover - leftover1
+// 	log "used={used}, leftover={leftover}, l1={leftover1}, l2={leftover2}"
+	//skip leftover1 px
+	add used px d_ferrari_grid
+	skip 10 al
+	//skip leftover2 px
+
+=================================
+grid d_ferrari_grid  order:TBLR
+	//  calculate the size of the palette box
+	//  we want 7 even height rows
+	//  and 42 ramps of 21 chips
+	horz slice
+		loop reps:FERR_NCOL
+			add 10 al
+
+	vert slice
+		loop reps:FERR_NROW
+			add 10 al
+	cell
+		//  draw this ramp
+		if b.cell_seq == 1
+			ferr_first_ramp
+		else
+			ferr_ramp(b.cell_seq)
+
+=================================
+horz slice ferr_first_ramp  //  ferrari palette - black and white chips
+	add 10 al
+		ferr_ramp_chip(1)
+	add 10 al
+		ferr_ramp_chip(2)
+
+=================================
+horz slice ferr_ramp(  //  ferrari palette - regular ramp
+	rampx : num
+	) -----
+	loop reps:CHIPS_PER_RAMP count:chipx
+		var colorx = 2 + (rampx-2)*CHIPS_PER_RAMP + chipx
+		add 10 al ferr_ramp_chip(colorx)
+
+=================================
+draw ferr_ramp_chip(  //  ferrari palette - chip in ramp
+	colorx
+	) ----
+	draw_rect(b.box, fill:FERRARI[colorx])
+	if g.palette_ferrari_selx == colorx
+		ferr_hilite_chip(b.box)
+--------------
+track EV_TAP
+	//  user is selecting a color chip
+	g.palette_ferrari_selx = colorx
+	log "ferrari tap, targ_ptr={g.palette_targ_ptr}, intf_band.ptr={g.work_color_ctl.color_ptr}" on:TRACE_PALETTE
+	color_ctl_setv(g.palette_targ_ptr^^, FERRARI[colorx])
+
+=================================
+draw ferr_hilite_chip(  //  ferrari palette - hilite color chip
+	box : a_rect
+	) ------
+	draw_rect(b.box, thick:4 px, pos:0, color:BLACK)
+	draw_rect(b.box, thick:2 px, pos:0, color:RED)
+
+=================================
+calc ferr_closest_chip (  //  ferrari palette - find closest color match
+	targcolor : color
+	) : num  --- index that is the closest match
+	var targ_r : num = color_r(targcolor)
+	var targ_g : num = color_g(targcolor)
+	var targ_b : num = color_b(targcolor)
+	var dx
+	var badness
+	var lowest  //  lowest badness so far
+	var lowestx
+	var testcolor : color
+
+	lowest = INFINITY
+	loop across:FERRARI val:testcolor index:ix
+		dx = targ_r - color_r(testcolor)
+		dx*dx => badness
+
+		dx = targ_g - color_g(testcolor)
+		dx*dx +=> badness
+
+		dx = targ_b - color_b(testcolor)
+		dx*dx +=> badness
+
+		//  if we find an exact match stop immediately
+		if badness == 0
+			return ix
+
+		if badness < lowest
+			lowest = badness
+			lowest = ix
+	
+	//  loop is over. this will return closest match 
+	return lowestx		
+	
+=================================
+calc html_palette_init  --  one time init func for palette
+=================================
+	if NCELLS <> U
+		return  // already done our one time init
+
+	//  pass 1 - compute the sort keys for the colors
+	log "-- rebuilding with fudge {hue_fudge}" on:TRACE_FUDGE
+
+	var hsv:a_hsv
+	loop across:SET1 ptr:p index:ix
+		//  hue 0..360, saturation 0..100, value 0..100
+		hsv <=== color_to_hsv(p.color)
+
+		//  fudge the hue because splitting inside red is very bad
+		//  a mistake in the design of HSV
+		var hue2 = rem(hsv.hue + hue_fudge, 360)
+
+		if hsv.saturation <= 10
+			//  low saturation color, sort at end
+			p.key1 = 90  //  low saturation, sort near end
+			p.key2 = hue2
+			p.key3 = hsv.value
+		elif hsv.saturation >= 90
+			p.key1 = 10  //  high saturation, first band
+			p.key2 = hue2
+			p.key3 = hsv.value
+		else
+			//  a regular color, not faint or bold
+			p.key1 = 50  //  medium saturation
+			p.key2 = hue2 // round_down(hsv.value/100*FERR_NRAMPS)
+			p.key3 = hsv.saturation // // hsv.hue
+		//log "{ix}: {p.name}, keys=[{p.key1},{p.key2},{p.key3}], rgb=[{color_r(p.color)},{color_g(p.color)},{color_b(p.color)}], hsv=[{hsv.hue},{hsv.saturation},{hsv.value}]" on:TRACE_COLORS
+	//..end loop
+
+	//  pass 2 - now loop through the set in sort order
+	//           and build an array of pointers to these values
+	loop across:SET1 ptr:p sort:func compare_slots index:ix count:cx
+		append p => slotlist
+		log "  {cx}: sorted traversal ix={ix}, name={p.name}" on:TRACE_COLORS
+
+	//  add the grays, which are already sorted in the order we want
+	loop across:SET2 ptr:p
+		append p => slotlist
+
+	if TRACE_COLORS
+		log "----- after sort ------"
+		loop across:slotlist val:p index:ix
+			log "{ix}: {p.name}, keys=[{p.key1},{p.key2},{p.key3}], color={p.color}"
+
+	gsc.format = FORMAT_BEADS	
+	NCELLS = tree_count(slotlist)
+
+=================================
+graphics html_palette_resize
+	BARV = 0 // max(14 pt, min(20 pt, b.box.height/17))
+	var h_pts = dots_to_pt(b.box.width)
+	var v_pts = dots_to_pt(b.box.height-BARV)
+	var area = h_pts * v_pts
+	log "-- resize, h={h_pts}, v={v_pts}, area={area}, thresh={AREA_THRESHOLD}" on:TRACE_SIZING
+
+	if area >= AREA_THRESHOLD
+		log "-- full size mode" on:TRACE_SIZING
+		//  full size mode, show name
+		gsc.sizing = FULL_SIZE
+		NCOLS = round_down(h_pts/TARG_WIDTH)
+	else
+		log "-- compact mode" on:TRACE_SIZING
+		gsc.sizing = COMPACT_SIZE
+		//  calculate the approx. area per cell we are going to have
+		var cell_area = round_down(area / NCELLS)
+		
+		//  now calculate the size so we have a 3:1 aspect ratio
+		var cell_height = sqrt(cell_area/3)
+		var cell_width = cell_area/cell_height
+		NCOLS = round(h_pts/cell_width)
+		
+	NROWS = round_up(NCELLS/NCOLS)
+	log "-- end resize, NCELLS={NCELLS}, NCOLS={NCOLS}, NROWS={NROWS}, BARV={BARV}" on:TRACE_SIZING
+
+=================================
+grid html_palette_draw order:TBLR
+=================================
+	//  stores result in palette_targ_ptr
+	horz slice
+		skip 10 al
+		loop reps:NCOLS count:col
+			if col > 1 and gsc.sizing == FULL_SIZE
+				skip 10 al
+			add 250 al
+		skip 10 al		
+
+	vert slice
+		skip 3 pt
+		loop reps:NROWS count:row
+			if row > 1 and gsc.sizing == FULL_SIZE
+				skip 5 al
+			add 80 al
+		skip 3 pt
+	cell
+		// inside: b.box, b.cell_seq, b.cell.x/y, b.cell_id.x/y
+		if b.cell_seq <= NCELLS
+			var slotx = b.cell_seq
+			html_color_chip(slotlist[slotx]^^)
+		//  ignore cells at the end due to partial last row fill
+// 	over
+// 		//  draw the sizing square in the corner
+// 		var r : a_rect <=== solve_rect(basis:b.box, pin:BOT_RIGHT, width:12 pt, height:12 pt)
+// 		draw_rect(r, fill:PINK, corner_tl:4 pt)
+// 		draw_str(r, "\u2921", size: 10 pt)  //  NW-SE arrow
+-----------------------
+track EV_TAP
+	//  make a sound effect 
+	if b.cell_seq == U or b.cell_seq > NCELLS
+		//  bad selection, clicked on dead space, a gap or past end of list
+		sound_play(BEEP)
+	else
+		//  color choice
+		sound_play(CLICK)
+		var ix = b.cell_seq
+		log "selected {ix}, name={slotlist[ix]^^.name}, color={slotlist[ix]^^.color}"
+		//  save the selection and close the picker
+		color_ctl_setss(g.palette_targ_ptr^^, slotlist[ix]^^.name, slotlist[ix]^^.color)
+-------
+track EV_HOVER
+	//  if we are on a clickable thing, show the finger cursor
+	if b.cell_seq <= NCELLS
+		//  this will be false if cell_seq is U (which it will be if on dead space)
+		cursor_set(CURS_FINGER)
+	else
+		cursor_set(CURS_ARROW)
+-------
+// track EV_KEYBOARD
+// 	//  allow the fudge amount to be tweaked
+// 	case e.keycode
+// 	| KEYCODE_UP, KEYCODE_DOWN
+// 		if e.keycode == KEYCODE_UP
+// 			10 +=> hue_fudge
+// 		else
+// 			10 -=> hue_fudge
+// 		main_init
+// 		return Y
+// 	return N
+
+var hilite :yesno
+
+=================================
+horz slice html_color_chip(  //  inside each cell we draw the color and the name
+=================================
+	myslot : a_slot  // color slot we are drawing
+	)
+	hilite = g.palette_targ_ptr <> U and myslot.name == g.palette_targ_ptr^^.color_ss 
+
+	add 50 al
+		draw_rect(b.box, fill:myslot.color, corner:3 pt)
+		//if myslot.frame
+		if hilite
+			draw_rect(b.box, color:FIREBRICK, thick:4 pt, corner:3 pt)
+		else
+			draw_rect(b.box, color:BLACK, thick:1 pt, corner:3 pt)
+	if gsc.sizing == FULL_SIZE
+		//  add the name or hex value
+		add 140 al
+			//  inline code
+			var tcolor : color
+			if hilite
+				var radius = b.box.height/6
+				draw_rect(b.box, fill:PEACH_PUFF, corner_tr:radius, corner_br:radius)
+				tcolor = BLACK
+			else
+				tcolor = C_PALTEXT
+			var ss : str = html_slot_str(myslot)
+
+			//  if this is a hex format, we can make it 1/8th the width, else 1/12th
+			case gsc.format
+			| FORMAT_BEADS, FORMAT_HTML
+				//  show the name
+				draw_str(b.box, ss, just:LEFT, indent:4 pt, size:b.box.width/11, color:tcolor)
+			| FORMAT_HEX
+				//  show the hex value in slightly larger type
+				draw_str(b.box, ss, just:LEFT, indent:4 pt, size:b.box.width/8, color:tcolor, font:"_typewriter")
+
+=================================
+calc compare_slots(  -- compare sort keys of the color records, in ascending order
+=================================
+	a : a_slot  //  ptr to a_slot
+	b : a_slot  //  ptr to a_slot
+	) : num  // -1, a less than b
+
+	//  implement a simple 3 level sort key
+	if a.key1 < b.key1
+		return -1
+	elif a.key1 > b.key1
+		return +1
+
+	if a.key2 < b.key2
+		return -1
+	elif a.key2 > b.key2
+		return +1
+
+	if a.key3 < b.key3
+		return -1
+	elif a.key3 > b.key3
+		return +1
+
+	return 0  // slots are equal 
+
+======================
+calc html_slot_str ( -- calculate the string for the color slot
+======================
+	slot : a_slot  -- index in our color chart
+	) : str
+	return slot.name
+
+//---- END COLOR PICKER

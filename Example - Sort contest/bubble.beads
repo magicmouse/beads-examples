@@ -1,5 +1,9 @@
 beads level 1 program bubble title "Bubble Sort vs. Quicksort Animation"
-//  written by edj Sept 2019 - complexity rating:  440 words
+//  a visual comparison showing performance difference between bubble sort and quicksort
+//  written by edj 2019
+//  complexity rating:  440 words
+//  Copyright and related rights waived
+
 //  for comparison to a pure JS codebase:  https://bubb.sink.in/bubble-sort-css-javascript-animation/
 //  this program shows the difference between quicksort and bubble sort
 //  the larger the number of values, the slower the bubble sort goes
@@ -42,19 +46,21 @@ calc main_init
 	//  we will use this several times to give each sort the same value set
 	loop from:1 to:NVALS index:ix
 		start[ix] = random_int(1, 99)
-		log "at slot {ix} val {bubb.vals[ix]}" on:TRACE 
+		log "at slot {ix} val {start[ix]}" on:TRACE 
 
 	//  do our bubble sort and record the history
 	bubb.label = "Bubble Sort"
 	bubb.vals <=== start
 	bubb.ntot = 0
 	do_bubb_sort
+	log "bubble done, nhist={tree_count(bubb.history)}" on:TRACE 
 
 	//  do a quicksort and record the history
 	quik.label = "Quicksort"
 	quik.vals <=== start
 	quik.ntot = 0
 	do_quik_sort(1, tree_count(quik.vals))
+	log "quicksort done, nhist={tree_count(quik.history)}" on:TRACE 
 
 	//   get ready for the replay by restoring the sort values
 	bubb.vals <=== start
@@ -66,16 +72,15 @@ calc main_init
 	//  we will manually stop the timer when all the sorts are done
 	//  for protection against an infinite loop, put in worst case of N^2
 	//  note that we put in a delay because we want the initial refresh of histx1 to finish
-	g.timer_id = loom_timer(do_tick, reps:NVALS^2, delay:DURATION, interval:DURATION)
+	g.timer_id = loom_timer(do_tick, reps:NVALS^2, delay:DURATION sec, interval:DURATION sec)
 
 =================================
 draw main_draw
 =================================
 	//  fill the screen with a pale color, and then inset to draw our main box
 	draw_rect(b.box, fill:rgb(207,222,227))
-	var r <=== solve_rect(basis:b.box, pin:5, inset:12 pt)
-	layer area:r
-		d_main
+	var r <=== solve_rect(basis:b.box, pin:MID_CENTER, inset:12 pt)
+	layer area:r d_main
 
 =================================
 vert slice d_main
@@ -100,17 +105,18 @@ draw d_replay( //  bubble sort drawing function, uses g.histx to draw current pa
 	//  since histx has different lengths for different sorts
 	//  this record assignment may copy nothing
 	//  pending a fix to JS runtime for merge, do the copy manually
-	var comp : path = adr data.history[g.histx]  // shortcut for accessing this record
+	var comp : ptr to a_hist = adr data.history[g.histx]  // shortcut for accessing this record
 	if comp.swapf
 		//  replay the sort operation swap
 		swap data.vals[comp.comp1] <=> data.vals[comp.comp2]
 
 	//  draw all of the sort values as a bar chart
-	loop array:data.vals index:ix
+	loop across:data.vals index:ix
+		log "--dloop, ix={ix}" on:TRACE
 		var r:a_rect <=== solve_rect(left:(2 pt) + (ix-1)*hh, width:hh - 4 pt, height:data.vals[ix]*vv, bottom:b.box.height)
 		if ix == comp.comp1 or ix == comp.comp2
 			//  this is a pair being looked at. if we sorted them, show purple			
-			c = if comp.swapf then PURPLE else C_ACTIVE
+			c = (if comp.swapf then PURPLE else C_ACTIVE)
 		else
 			//  this bar not being scanned, draw in blue
 			c = C_PLAIN
@@ -205,7 +211,6 @@ calc do_bubb_sort  //  classic bubble sort
 				did_swap = N
 			else
 				//  did a whole row without needing to swap anything, we are done with the sort
-				log "bubble done, nhist={tree_count(bubb.history)}" on:TRACE 
 				exit
 		// end if out of place
 	// end loop

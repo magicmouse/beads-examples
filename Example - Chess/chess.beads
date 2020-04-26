@@ -1,7 +1,12 @@
 beads level 1 program chess  -- written by edj september 2019
+//  a simulation of the expensive watch in the world, with apologies to Patek Philippe
+//  written by edj 2019
+//  Copyright and related rights waived
+
 //  note that due to a bug still not fixed as of Chrome 76, Chrome incorrectly renders 
-//  the black chess piece in emoji instead of in text form. Has been reported to Google,
+//  the black chess piece in emoji form instead of in text form. Has been reported to Google,
 //  but don't expect them to fix it ever.
+
 //  if you wish to see an amazing feat of obscuration, Oscar Toledo wrote a chess program that is 
 //  so tiny it is unbelievable. See it at nanochess.org/archive/toledo_javascript_chess_3.html
 //  good luck understanding that code!
@@ -106,7 +111,7 @@ merge [WHITE WHITE WHITE WHITE WHITE WHITE WHITE WHITE] ===> game.board[8, ?].si
 	//  reset the chess board to starting position
 	//  an empty square has a piece of EMPTY. 
 	var myside
-	loop array:[1, 8] val:row
+	loop across:[1, 8] val:row
 		myside ⇐ if row == 1 then BLACK else WHITE
 		game.board[1 row] <=== { side:myside, piece:ROOK }
 		game.board[2 row] <=== { side:myside, piece:KNIGHT }
@@ -146,8 +151,7 @@ horz slice square_layout
 
 ==================
 draw square_board
-	layer area:solve_rect(basis:b.box, pin:5, aspect:1.0)
-		chessboard
+	layer area:solve_rect(basis:b.box, pin:MID_CENTER, aspect:1.0) chessboard
 
 ==================
 horz slice landscape_layout
@@ -169,7 +173,7 @@ vert slice button_and_history
 draw newgame_button
 	var r : a_rect ⇐ solve_rect(basis:b.box, inset_x:30 pt, inset_y:4 pt)
 	draw_rect(r, fill:DARK_SQUARE, corner:15 pt, color:LIGHT_SQUARE, thick:2 pt)
-	draw_str(r, "New Game", size:r.height*0.75, color:LIGHT_SQUARE)
+	draw_str(r, "New Game", size:r.height*0.60, indent:4 pt, color:LIGHT_SQUARE)
 track EV_TAP
 	main_init
 
@@ -179,7 +183,7 @@ draw move_history
 	move_history2
 
 ==================
-table move_history2  -- move history display
+grid move_history2  -- move history display
 	horz slice
 		var box_pt ⇐ dots_to_pt(b.box.width)  -- our box width in pixels converted to points
 		var ncol ⇐ max(1, round_down(box_pt / 150))  -- fit as many columns as we can, 150 pts each
@@ -259,7 +263,7 @@ calc square_to_str (  -- convert the square's coordinates to algebraic form
 	return to_char(from_char('a')+square.x-1) & to_str(9-square.y)
 
 ==================
-table chessboard
+grid chessboard
 	horz slice
 		skip 8 pt
 		loop reps:8
@@ -321,12 +325,12 @@ table chessboard
 			//  you can suppress for force the emoji upgrade
 			//  HOWEVER: Chrome as of version 76 has a bug and ignores the variation selector suffix!
 			//  was reported to Google in Sept 2019.
-			draw_str(b.box, icon & "\uFE0E", size:b.box.height*0.8, color:fill)
+			draw_str(b.box, icon & "\uFE0E", size:0.8, color:fill)
 
 			//  draw the outline in black. alignment is a bit off because the solid knight is wider in outline
 			//  note that in unicode, the chess outline form is 6 slots in Unicode before the solid
 			icon ⇐ to_char(from_char(icon) - 6)
-			draw_str(b.box, icon & "\uFE0E", size:b.box.height*0.8, color:stroke)
+			draw_str(b.box, icon & "\uFE0E", size:0.8, color:stroke)
 	//----------------
 	over
 		//  draw a black frame around the checkerboard
@@ -388,7 +392,7 @@ calc is_threatened (  -- see if the opponent is attacking a square
 	---------------
 	//  ROOK, QUEEN
 	---------------
-	loop array:[-1, +1] val:dir
+	loop across:[-1, +1] val:dir
 		//  horizontal movement
 		loop from:1 to:7 index:delta
 			netx ⇐ x + delta*dir
@@ -408,8 +412,8 @@ calc is_threatened (  -- see if the opponent is attacking a square
 	//  BISHOP, QUEEN
 	---------------
 	//  check all four diagonals for an attack
-	loop array:[-1, +1] val:dx
-		loop array:[-1, +1] val:dy
+	loop across:[-1, +1] val:dx
+		loop across:[-1, +1] val:dy
 			loop from:1 to:7 index:delta -- radiate outwards up to 7 squares from the current square
 				netx ⇐ x + delta*dx
 				nety ⇐ y + delta*dy
@@ -502,7 +506,7 @@ calc gen_possible_moves (  -- list all possible moves of a piece
 	| ROOK
 	---------------
 		//  can reach 14 squares max
-		loop array:[-1, +1] val:dir
+		loop across:[-1, +1] val:dir
 			//  look horizontal
 			loop from:1 to:7 index:delta
 				if not check_rel(curr, delta*dir, 0)
@@ -516,8 +520,8 @@ calc gen_possible_moves (  -- list all possible moves of a piece
 	| BISHOP
 	---------------
 		//  can reach 13 squares max
-		loop array:[-1, +1] val:dirx
-			loop array:[-1, +1] val:diry
+		loop across:[-1, +1] val:dirx
+			loop across:[-1, +1] val:diry
 				//  we check in all four directions until we hit something
 				loop from:1 to:7 index:delta
 					if not check_rel(curr, delta*dirx, delta*diry)
