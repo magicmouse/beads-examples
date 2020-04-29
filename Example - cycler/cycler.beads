@@ -1,0 +1,245 @@
+beads level 1 monitor cycler  --  A monitor program that lets you cycle through different devices
+
+record a_device  --  information about each of the devices we support emulating
+	dev_name : str  --  device name
+	dev_h			--  horz pixels (in portrait mode)
+	dev_v			--  vert pixels
+	dev_ppi  		--  pixels per inch
+
+const DEVICES : array of a_device <=== [<
+	dev_name    				dev_h   dev_v 	dev_ppi
+	---------					------	-----	---------		
+	"Kindle Fire 7 inch",		600,	1024,	189
+	"Kindle Fire HD 8 inch",	800,	1280,	171
+	"Kindle Fire HD 10 inch",	1200,	1920,	223
+	"Apple iPhone 5/SE",		640,	1136,	326
+	"Apple iPhone 6/7/8",		750,	1334,	326
+	"Apple iPhone 6+/7+",		1080,	1920,	401
+	"Apple iPhone 8+",			1242,	2208,	401
+	"Apple iPhone Xr",			828,	1792,	326
+	"Apple iPhone X/Xs",		1125,	2436,	458
+	"Apple iPhone Xs Max",		1242,	2688,	458
+	"Apple iPad",				1536,	2048,	264
+	"Apple iPad Mini",			1536,	2048,	326
+	"Apple iPad Air",			1536,	2048,	264
+	"Apple iPad Pro 10.5 inch",	1668,	2224,	264
+	"Apple iPad Pro 11 inch",	1668,	2388,	264
+	"Apple iPad Pro 12.9 inch",	2048,	2732,	264
+	>]
+
+const BROWN_GRAD:a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM,
+   grad_stops:[ { stop_pos:0, stop_color:#402C23 },
+   { stop_pos:19.175871549185796, stop_color:#714C3C },
+   { stop_pos:82.75902458069659, stop_color:#815745 },
+   { stop_pos:100, stop_color:#4F362B },
+    ] }
+
+const NDEV = tree_count(DEVICES)
+const LINEV = 20
+
+const
+	COLOR_DEAD = #655e58
+
+	PREVIEW_BACK ⇐ #2b212d
+	PREVIEW_FORE ⇐ #efe1f1
+
+	TAB_LO_BACK = #7F6B6B
+	TAB_LO_BORD = #054056 
+	TAB_LO_TEXT = #F0F0EA
+
+	TAB_HI_BACK = #F6F7CA
+	TAB_HI_BORD = #054056
+	TAB_HI_TEXT = #2B2927
+
+	BUTT_LO_BACK = TAB_LO_BACK 
+	BUTT_LO_BORD = TAB_LO_BORD 
+	BUTT_LO_TEXT = TAB_LO_TEXT
+
+	//  colors used for orientation icons
+	COLOR_ORIENT_B_LO ⇐ #c3cfe5
+	COLOR_ORIENT_B_HI ⇐ #e53959
+	COLOR_ORIENT_ICON ⇐ GRAY7
+
+record a_state
+	ide_active : yesno  -- is the IDE visible?
+	dix  --  index in DEVICES of our selected hardware emulation
+	//  parameters that affect the display of the preview window
+	portrait : yesno  --  device shown in landscape orientation
+	net_zoom  --  derived quantity in draw, is zoom factor like 0.32 for 32%
+	run_id : num  -- timer ID
+
+var g : a_state nolog
+
+=========================
+draw d_oneshot(
+	prompt : str
+	action : calc()
+	)
+	draw_rect(b.box, corner:b.box.height/4, fill:BUTT_LO_BACK, color:BUTT_LO_BORD, thick:3 pt)
+	draw_str(b.box, prompt, size:0.6, indent:1.5 pt, color:BUTT_LO_TEXT)
+track EV_TAP
+	action()
+
+================================
+calc main_init
+	runtime.monitor_active = Y //  inform runtime the monitored state
+
+	g.ide_active ⇐ Y  -- Y=start out with IDE visible
+	g.dix = 1
+	g.portrait = Y
+
+================================
+horz slice main_draw
+	draw_rect(b.box, fill:PREVIEW_BACK)
+	
+	add 150 pt order:2 d_toolbar  //  show device list and controls
+	add 10 al preview_area3
+
+================================
+vert slice d_toolbar
+	draw_rect(b.box, fill:#2e2330)
+
+	skip 20 pt
+	add (LINEV*NDEV) pt d_dev_grid
+	skip 10 pt
+	add 40 pt d_orient_butts
+	skip 20 pt
+	add 18 pt
+		draw_str(b.box, "{DEVICES[g.dix].dev_name}", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+	add 18 pt
+		draw_str(b.box, "{DEVICES[g.dix].dev_h} x {DEVICES[g.dix].dev_v}", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+	add 18 pt
+		draw_str(b.box, "{DEVICES[g.dix].dev_ppi} dpi", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+	add 18 pt
+		draw_str(b.box, "drawn at {to_str(g.net_zoom*100, digits:0)}%", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+	skip 20 pt
+	add 24 pt d_run_butts
+	skip 10 al
+
+================
+horz slice d_orient_butts
+	skip 1 al
+	add 10 al d_orient_port
+	add 10 al d_orient_land
+	skip 1 al
+
+================
+draw d_orient_port --  button to let user switch orientation below the preview window
+	var color : color
+
+	//  draw the button background
+	if g.portrait
+		color ⇐ COLOR_ORIENT_B_HI
+	else
+		color ⇐ COLOR_ORIENT_B_LO
+	draw_rect(b.box, fill:color, corner:2 pt)
+
+	//  draw the icon for the portrait orientation
+	var r:a_rect ⇐ solve_rect(basis:b.box, pin:5, height:b.box.height*0.8, width:b.box.height*0.38)
+	draw_rect(r, fill:GRAY7, corner:2 pt)
+track EV_TAP
+	g.portrait ⇐ Y
+
+================
+draw d_orient_land   --  button to let user switch orientation below the preview window
+	var color : color
+
+	//  draw the button background
+	if g.portrait
+		color ⇐ COLOR_ORIENT_B_LO
+	else
+		color ⇐ COLOR_ORIENT_B_HI
+	draw_rect(b.box, fill:color, corner:2 pt)
+
+	//  draw the icon for the portrait orientation
+	var r:a_rect ⇐ solve_rect(basis:b.box, pin:5, height:b.box.height*0.4, width:b.box.height*0.8)
+	draw_rect(r, fill:GRAY7, corner:2 pt)
+track EV_TAP
+	g.portrait ⇐ N
+
+================================
+horz slice d_run_butts
+	skip 5 al
+	if g.run_id <> U
+		add 40 al d_oneshot("Stop", do_stop)
+	else
+		skip 40 al
+	if g.run_id <> U
+		skip 40 al // is running don't start another timer
+	else
+		add 40 al d_oneshot("Run", do_run)
+	skip 5 al
+
+================================
+calc do_stop
+	//  kill our timer
+	loom_clear(id:g.run_id)
+	g.run_id = U
+
+================================
+calc do_run
+	const INTV = 0.5 sec
+	// start up a repeat process
+	g.dix = 1  // go back to first one
+	//  leave portrait/landscape where it was
+	g.run_id = loom_timer(do_next, interval:INTV, delay:INTV, reps:1000)
+	
+================================
+calc do_next
+	//log "-- do next, dix={g.dix}"
+	inc g.dix
+	if g.dix > NDEV
+		g.dix = 1
+		toggle g.portrait
+
+================================
+grid d_dev_grid
+	horz slice
+		add 10 al
+	vert slice
+		loop across:DEVICES
+			add 10 al
+	cell
+		draw_rect(b.box, grad:BROWN_GRAD)
+		if b.cell_seq == g.dix
+			draw_str(b.box, "\u2705", just:LEFT, indent:3 pt size:0.5, color:CORAL)
+		draw_str(b.box, DEVICES[b.cell_seq].dev_name, just:LEFT, indent:20 pt, size:0.6, color:WHITE)
+track EV_TAP
+	g.dix = b.cell_seq
+
+================================
+draw preview_area3  --  the area that holds the device preview inset slightly
+	//draw_rect(b.box, fill:)
+	//  we are about to draw a device preview
+	//  since our window will be in general way smaller than the device window
+	//  calculate our best fit for the device preview
+	var aspect
+	var r : a_rect
+	var dh = DEVICES[g.dix].dev_h
+	var dv = DEVICES[g.dix].dev_v
+
+	if not g.portrait
+		swap dh <=> dv
+
+	//  try to find a rectangle that has the same aspect ratio, with slight margin
+	//  yet fits inside our current box.
+	aspect = dh / dv
+	r <=== solve_rect(basis:b.box, pin:5, aspect:aspect, inset:6 pt, round:Y)
+	g.net_zoom ⇐ r.width / dh
+
+	//  don't allow the screen to be magnified. clamp at 100% zoom
+	if g.net_zoom > 1
+		//log "don't magnify, r={r}"
+		r <=== solve_rect(basis:b.box, pin:5, width:dh, height:dv, round:Y)
+		g.net_zoom = 1
+
+	//log "aspect={to_str(aspect, digits:2)}, basis={b.box}, zoom={g.net_zoom}\nr={r}"
+
+	//  reduce the dpi to match the zoom factor, so that 10 pt objects are reasonable
+	var net_dpi ⇐ runtime.screen_dpi * g.net_zoom
+	//draw_rect(r, pos:1, thick:1)  --  draw thin black border around the outside of the preview
+	layer area:r dpi:net_dpi monitored_draw  -- std library / call the monitored main draw function
+
+//  dummy slave program
+draw d_dummy_slave
+	draw_rect(b.box, fill:BROWN)

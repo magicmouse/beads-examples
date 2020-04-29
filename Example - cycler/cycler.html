@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8"/>
+<title>cycler</title>
+<link rel="shortcut icon" href="favicon.ico" />
+<style>
+/*  this disables the annoying double click highlighting of DIV blocks  */
+div { outline-style:none;}
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 12pt; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover {
+    background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0;">
+<script type="module">
+import * as std from '../../runtime/beads_std.js';
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, addr } from '../../runtime/beads_std.js';
+import * as str from '../../runtime/beads_str.js';
+import * as k   from '../../runtime/beads_k.js';
+import { CODE_HASH as SLAVE_HASH } from '../../projects/chess/chess.js';
+export const CODE_HASH= 0x8eefaa36;
+const _M = "cycler";
+std.rtl_init();
+std.aaaa.mon_init = main_init;
+std.aaaa.mon_drawer = new std.a_function("cycler", "main_draw", main_draw);
+//------- enums
+const F_net_zoom=9007190892864127; std.g_enum_ss[9007190892864127]="net_zoom";
+std.FIELDS[F_net_zoom] = true;
+const F_dev_name=9007192145472315; std.g_enum_ss[9007192145472315]="dev_name";
+std.FIELDS[F_dev_name] = true;
+const F_run_id=9007193977752563; std.g_enum_ss[9007193977752563]="run_id";
+std.FIELDS[F_run_id] = true;
+const F_dev_v=9007190153298922; std.g_enum_ss[9007190153298922]="dev_v";
+std.FIELDS[F_dev_v] = true;
+const F_dev_h=9007190186854160; std.g_enum_ss[9007190186854160]="dev_h";
+std.FIELDS[F_dev_h] = true;
+const R_a_device=9007192287416554; std.g_enum_ss[9007192287416554]="a_device";
+const F_dix=9007194014077973; std.g_enum_ss[9007194014077973]="dix";
+std.FIELDS[F_dix] = true;
+const F_portrait=9007190251475747; std.g_enum_ss[9007190251475747]="portrait";
+std.FIELDS[F_portrait] = true;
+const R_a_state=9007192953576597; std.g_enum_ss[9007192953576597]="a_state";
+const F_ide_active=9007191210486575; std.g_enum_ss[9007191210486575]="ide_active";
+std.FIELDS[F_ide_active] = true;
+const F_dev_ppi=9007193402083683; std.g_enum_ss[9007193402083683]="dev_ppi";
+std.FIELDS[F_dev_ppi] = true;
+//[reflAAA]
+std.merge_lit(_M,0,std.META,_M, std.F_mod_const, "BROWN_GRAD", std.F_vv_rec, VAL, "a_gradient", std.F_vv_typek, VAL, std.TYPE_RECORD, POP, "BUTT_LO_BACK", std.F_vv_typek, VAL, 
+std.TYPE_COLOR, POP, "BUTT_LO_BORD", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "BUTT_LO_TEXT", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "COLOR_DEAD", std.F_vv_typek, VAL, 
+std.TYPE_COLOR, POP, "COLOR_ORIENT_B_HI", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "COLOR_ORIENT_B_LO", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "COLOR_ORIENT_ICON", std.F_vv_typek
+, VAL, std.TYPE_COLOR, POP, "DEVICES", std.F_vv_rec, VAL, "a_device", std.F_vv_typek, VAL, std.TYPE_RECORD, POP, "LINEV", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "NDEV", std.F_vv_typek
+, VAL, std.TYPE_NUM, POP, "PREVIEW_BACK", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "PREVIEW_FORE", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "TAB_HI_BACK", std.F_vv_typek
+, VAL, std.TYPE_COLOR, POP, "TAB_HI_BORD", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "TAB_HI_TEXT", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "TAB_LO_BACK", std.F_vv_typek
+, VAL, std.TYPE_COLOR, POP, "TAB_LO_BORD", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "TAB_LO_TEXT", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, POP, std.F_mod_funcs, "d_dev_grid"
+, std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_dummy_slave", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_oneshot", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk
+, VAL, std.PK_POS, std.F_vv_parmn, VAL, "prompt", std.F_vv_typek, VAL, std.TYPE_STR, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "action", std.F_vv_typek
+, VAL, std.TYPE_FUNC, POP, POP, POP, "d_orient_butts", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_orient_land", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_orient_port", std.F_vv_funck
+, VAL, std.FK_DRAW, POP, "d_run_butts", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_toolbar", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_toolbar_108", std.F_vv_funck, VAL, std.FK_DRAW
+, POP, "d_toolbar_110", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_toolbar_112", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_toolbar_114", std.F_vv_funck, VAL, std.FK_DRAW, POP
+, "do_next", std.F_vv_funck, VAL, std.FK_CALC, POP, "do_run", std.F_vv_funck, VAL, std.FK_CALC, POP, "do_stop", std.F_vv_funck, VAL, std.FK_CALC, POP, "main_draw", std.F_vv_funck
+, VAL, std.FK_DRAW, POP, "main_init", std.F_vv_funck, VAL, std.FK_CALC, POP, "preview_area3", std.F_vv_funck, VAL, std.FK_DRAW, POP, POP, std.F_mod_recs, "a_device", std.F_vv_fields
+, "dev_h", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "dev_name", std.F_vv_typek, VAL, std.TYPE_STR, POP, "dev_ppi", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "dev_v", std.F_vv_typek
+, VAL, std.TYPE_NUM, POP, POP, POP, "a_state", std.F_vv_fields, "dix", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "ide_active", std.F_vv_typek, VAL, std.TYPE_YESNO, POP, "net_zoom"
+, std.F_vv_typek, VAL, std.TYPE_NUM, POP, "portrait", std.F_vv_typek, VAL, std.TYPE_YESNO, POP, "run_id", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, POP, std.F_mod_vars
+, "g", std.F_vv_rec, VAL, "a_state", std.F_vv_typek, VAL, std.TYPE_RECORD);
+//[reflZZZ]
+//-------  func const
+const d_toolbar_F = new std.a_function("cycler", "d_toolbar", d_toolbar);
+const d_oneshot_F = new std.a_function("cycler", "d_oneshot", d_oneshot, track_d_oneshot);
+const d_toolbar_110_F = new std.a_function("cycler", "d_toolbar_110", d_toolbar_110);
+const d_run_butts_F = new std.a_function("cycler", "d_run_butts", d_run_butts);
+const do_next_F = new std.a_function("cycler", "do_next", do_next);
+const d_orient_port_F = new std.a_function("cycler", "d_orient_port", d_orient_port, track_d_orient_port);
+const d_orient_butts_F = new std.a_function("cycler", "d_orient_butts", d_orient_butts);
+const d_dev_grid_F = new std.a_function("cycler", "d_dev_grid", d_dev_grid, track_d_dev_grid);
+const d_dev_grid_cell_F= new std.a_function("cycler", "d_dev_grid_cell", d_dev_grid_cell);
+const d_orient_land_F = new std.a_function("cycler", "d_orient_land", d_orient_land, track_d_orient_land);
+const do_run_F = new std.a_function("cycler", "do_run", do_run);
+const d_toolbar_112_F = new std.a_function("cycler", "d_toolbar_112", d_toolbar_112);
+const d_toolbar_114_F = new std.a_function("cycler", "d_toolbar_114", d_toolbar_114);
+const d_toolbar_108_F = new std.a_function("cycler", "d_toolbar_108", d_toolbar_108);
+const do_stop_F = new std.a_function("cycler", "do_stop", do_stop);
+const preview_area3_F = new std.a_function("cycler", "preview_area3", preview_area3);
+//-------  top nodes
+const DEVICES = new std.a_tree("cycler","DEVICES", std.NF_TOPLEVEL); std.merge_tree(_M, 9, std.table_litP(F_dev_name, F_dev_h, F_dev_v, F_dev_ppi, VAL, "Kindle Fire 7 inch"
+  , 600, 1024, 189, VAL, "Kindle Fire HD 8 inch", 800, 1280, 171, VAL, "Kindle Fire HD 10 inch", 1200, 1920, 223, VAL, "Apple iPhone 5/SE", 640, 1136, 326, VAL, "Apple iPhone 6/7/8"
+  , 750, 1334, 326, VAL, "Apple iPhone 6+/7+", 1080, 1920, 401, VAL, "Apple iPhone 8+", 1242, 2208, 401, VAL, "Apple iPhone Xr", 828, 1792, 326, VAL, "Apple iPhone X/Xs", 1125
+  , 2436, 458, VAL, "Apple iPhone Xs Max", 1242, 2688, 458, VAL, "Apple iPad", 1536, 2048, 264, VAL, "Apple iPad Mini", 1536, 2048, 326, VAL, "Apple iPad Air", 1536, 2048, 264
+  , VAL, "Apple iPad Pro 10.5 inch", 1668, 2224, 264, VAL, "Apple iPad Pro 11 inch", 1668, 2388, 264, VAL, "Apple iPad Pro 12.9 inch", 2048, 2732, 264), addr(DEVICES));
+const BROWN_GRAD = new std.a_tree("cycler","BROWN_GRAD", std.NF_TOPLEVEL); std.merge_lit(_M, 30, BROWN_GRAD, std.F_grad_shape, VAL, std.LINEAR_GRADIENT, std.F_grad_angle, 
+  VAL, std.GRAD_TO_BOTTOM, std.F_grad_stops, 1, std.F_stop_pos, VAL, 0, std.F_stop_color, VAL, 0x402C23, POP, 2, std.F_stop_pos, VAL, 19.175871549185796, std.F_stop_color, VAL
+  , 0x714C3C, POP, 3, std.F_stop_pos, VAL, 82.75902458069659, std.F_stop_color, VAL, 0x815745, POP, 4, std.F_stop_pos, VAL, 100, std.F_stop_color, VAL, 0x4F362B, POP, POP);
+const NDEV = std.tree_count(addr(DEVICES));
+const LINEV = 20;
+const COLOR_DEAD = 0x655E58;
+const PREVIEW_BACK = 0x2B212D;
+const PREVIEW_FORE = 0xEFE1F1;
+const TAB_LO_BACK = 0x7F6B6B;
+const TAB_LO_BORD = 0x54056;
+const TAB_LO_TEXT = 0xF0F0EA;
+const TAB_HI_BACK = 0xF6F7CA;
+const TAB_HI_BORD = 0x54056;
+const TAB_HI_TEXT = 0x2B2927;
+const BUTT_LO_BACK = TAB_LO_BACK;
+const BUTT_LO_BORD = TAB_LO_BORD;
+const BUTT_LO_TEXT = TAB_LO_TEXT;
+const COLOR_ORIENT_B_LO = 0xC3CFE5;
+const COLOR_ORIENT_B_HI = 0xE53959;
+const COLOR_ORIENT_ICON = std.GRAY7;
+let g = new std.a_tree("cycler","g", std.NF_TOPLEVEL|std.NF_STATEFUL);
+
+//====================
+//   d_dev_grid
+//====================
+function d_dev_grid(b) {
+k.k_enter(b);
+k.div_begin(b, true, false, false, false);
+  k.div_add(b, U, 0, 10, std.al, d_dev_grid_cell_F, 0);
+  var loop434 = new std.a_loop({ across:addr(DEVICES) });
+  while (loop434.next()) {
+    k.div_add(b, U, 1, 10, std.al, d_dev_grid_cell_F, 0);
+  }
+  k.div_end(b);
+  k.draw_grid(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_dev_grid_cell
+//====================
+function d_dev_grid_cell(b) {
+  k.k_enter(b);
+  std.draw_rect(b, addr(b.extra, std.F_box), { grad:addr(BROWN_GRAD) });
+  if (std.eq2(getn(b.extra, std.F_cell_seq), getn(g, F_dix))) {
+    std.draw_str(b, addr(b.extra, std.F_box), "✅", { just:std.LEFT, indent:std.pt_to_dots(b, 3), size:0.5, color:std.CORAL });
+  }
+  std.draw_str(b, addr(b.extra, std.F_box), gets(DEVICES, getn(b.extra, std.F_cell_seq), F_dev_name), { just:std.LEFT, indent:std.pt_to_dots(b, 20), size:0.6, color:std.WHITE
+   });
+  k.k_leave(b);
+}
+
+//====================
+//   track_d_dev_grid
+//====================
+function track_d_dev_grid(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 208, addr(g, F_dix), getn(b.extra, std.F_cell_seq));
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_dummy_slave
+//====================
+function d_dummy_slave(b) {
+k.k_enter(b);
+  std.draw_rect(b, addr(b.extra, std.F_box), { fill:std.BROWN });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_oneshot
+//====================
+function d_oneshot(b, prompt, action) {
+k.k_enter(b);
+  std.draw_rect(b, addr(b.extra, std.F_box), { corner:std.div(b.bounds.height, 4), fill:BUTT_LO_BACK, color:BUTT_LO_BORD, thick:std.pt_to_dots(b, 3) });
+  std.draw_str(b, addr(b.extra, std.F_box), prompt, { size:0.6, indent:std.pt_to_dots(b, 1.5), color:BUTT_LO_TEXT });
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_oneshot
+//====================
+function track_d_oneshot(b, e, prompt, action) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    action.code();
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_orient_butts
+//====================
+function d_orient_butts(b) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  k.div_spa(b, 0, 1, std.al);
+  k.div_add(b, U, 0, 10, std.al, d_orient_port_F, 0);
+  k.div_add(b, U, 0, 10, std.al, d_orient_land_F, 0);
+  k.div_spa(b, 0, 1, std.al);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_orient_land
+//====================
+function d_orient_land(b) {
+k.k_enter(b);
+  let color = U;
+  if (getn(g, F_portrait) === Y) {
+    color = COLOR_ORIENT_B_LO;
+  } else {
+    color = COLOR_ORIENT_B_HI;
+  }
+  std.draw_rect(b, addr(b.extra, std.F_box), { fill:color, corner:std.pt_to_dots(b, 2) });
+  let r = new std.a_tree("cycler","r"); std.merge_tree(_M, 155, std.solve_rect({ basis:addr(b.extra, std.F_box), pin:5, height:std.mul(b.bounds.height, 0.4), width:std.mul(b
+  .bounds.height, 0.8) }), addr(r));
+  std.draw_rect(b, addr(r), { fill:std.GRAY7, corner:std.pt_to_dots(b, 2) });
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_orient_land
+//====================
+function track_d_orient_land(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 158, addr(g, F_portrait), N);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_orient_port
+//====================
+function d_orient_port(b) {
+k.k_enter(b);
+  let color = U;
+  if (getn(g, F_portrait) === Y) {
+    color = COLOR_ORIENT_B_HI;
+  } else {
+    color = COLOR_ORIENT_B_LO;
+  }
+  std.draw_rect(b, addr(b.extra, std.F_box), { fill:color, corner:std.pt_to_dots(b, 2) });
+  let r = new std.a_tree("cycler","r"); std.merge_tree(_M, 138, std.solve_rect({ basis:addr(b.extra, std.F_box), pin:5, height:std.mul(b.bounds.height, 0.8), width:std.mul(b
+  .bounds.height, 0.38) }), addr(r));
+  std.draw_rect(b, addr(r), { fill:std.GRAY7, corner:std.pt_to_dots(b, 2) });
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_orient_port
+//====================
+function track_d_orient_port(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 141, addr(g, F_portrait), Y);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_run_butts
+//====================
+function d_run_butts(b) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  k.div_spa(b, 0, 5, std.al);
+  if (getn(g, F_run_id) !== U) {
+    k.div_add(b, U, 0, 40, std.al, d_oneshot_F, 0, ["Stop", do_stop_F]);
+  } else {
+    k.div_spa(b, 0, 40, std.al);
+  }
+  if (getn(g, F_run_id) !== U) {
+    k.div_spa(b, 0, 40, std.al);
+  } else {
+    k.div_add(b, U, 0, 40, std.al, d_oneshot_F, 0, ["Run", do_run_F]);
+  }
+  k.div_spa(b, 0, 5, std.al);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_toolbar
+//====================
+function d_toolbar(b) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  std.draw_rect(b, addr(b.extra, std.F_box), { fill:0x2E2330 });
+  k.div_spa(b, 1, 20, std.pt);
+  k.div_add(b, U, 1, std.mul(LINEV, NDEV), std.pt, d_dev_grid_F, 0);
+  k.div_spa(b, 1, 10, std.pt);
+  k.div_add(b, U, 1, 40, std.pt, d_orient_butts_F, 0);
+  k.div_spa(b, 1, 20, std.pt);
+  k.div_add(b, U, 1, 18, std.pt, d_toolbar_108_F, 0);
+  k.div_add(b, U, 1, 18, std.pt, d_toolbar_110_F, 0);
+  k.div_add(b, U, 1, 18, std.pt, d_toolbar_112_F, 0);
+  k.div_add(b, U, 1, 18, std.pt, d_toolbar_114_F, 0);
+  k.div_spa(b, 1, 20, std.pt);
+  k.div_add(b, U, 1, 24, std.pt, d_run_butts_F, 0);
+  k.div_spa(b, 1, 10, std.al);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  std.draw_rect(b, addr(b.extra, std.F_box), { fill:PREVIEW_BACK });
+  k.div_add(b, U, 0, 150, std.pt, d_toolbar_F, 2);
+  k.div_add(b, U, 0, 10, std.al, preview_area3_F, 0);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   preview_area3
+//====================
+function preview_area3(b) {
+k.k_enter(b);
+  let aspect = U;
+  let r = new std.a_tree("cycler","r");
+  let dh = getn(DEVICES, getn(g, F_dix), F_dev_h);
+  let dv = getn(DEVICES, getn(g, F_dix), F_dev_v);
+  if (getn(g, F_portrait) === N) {
+    var temp_435 = dh;
+    dh = dv;
+    dv = temp_435;
+  }
+  aspect = std.div(dh, dv);
+  std.copy_tree(_M, 227, std.solve_rect({ basis:addr(b.extra, std.F_box), pin:5, aspect:aspect, inset:std.pt_to_dots(b, 6), round:Y }), addr(r));
+  std.path_setv(_M, 228, addr(g, F_net_zoom), std.div(getn(r, std.F_width), dh));
+  if (std.gt2(getn(g, F_net_zoom), 1)) {
+    std.copy_tree(_M, 233, std.solve_rect({ basis:addr(b.extra, std.F_box), pin:5, width:dh, height:dv, round:Y }), addr(r));
+    std.path_setv(_M, 234, addr(g, F_net_zoom), 1);
+  }
+  let net_dpi = std.mul(getn(std.runtime, std.F_screen_dpi), getn(g, F_net_zoom));
+  var b20=k.k_layer(b, std.monitored_draw_F, { area:r, dpi:net_dpi });
+  std.monitored_draw(b20);
+k.k_leave(b);
+}
+
+
+//====================
+//   do_next
+//====================
+function do_next() {
+  std.tree_add(_M, 190, 1, addr(g, F_dix));
+  if (std.gt2(getn(g, F_dix), NDEV)) {
+    std.path_setv(_M, 192, addr(g, F_dix), 1);
+    std.toggle(_M, 193, addr(g, F_portrait));
+  }
+}
+
+
+//====================
+//   do_run
+//====================
+function do_run() {
+  const INTV = std.meas(0.5, std.N_sec, std.Y_Time);
+  std.path_setv(_M, 183, addr(g, F_dix), 1);
+  std.path_setv(_M, 185, addr(g, F_run_id), std.loom_timer(do_next_F, { interval:INTV, delay:INTV, reps:1000 }));
+}
+
+
+//====================
+//   do_stop
+//====================
+function do_stop() {
+  std.loom_clear({ id:getn(g, F_run_id) });
+  std.path_setv(_M, 177, addr(g, F_run_id), U);
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.path_setv(_M, 85, addr(std.runtime, std.F_monitor_active), Y);
+  std.path_setv(_M, 87, addr(g, F_ide_active), Y);
+  std.path_setv(_M, 88, addr(g, F_dix), 1);
+  std.path_setv(_M, 89, addr(g, F_portrait), Y);
+}
+
+
+//====================
+//   d_toolbar_108
+//====================
+function d_toolbar_108(b) {
+k.k_enter(b);
+  std.draw_str(b, addr(b.extra, std.F_box), gets(DEVICES, getn(g, F_dix), F_dev_name), { just:std.LEFT, indent:std.pt_to_dots(b, 10), size:0.8, color:std.WHITE });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_toolbar_110
+//====================
+function d_toolbar_110(b) {
+k.k_enter(b);
+  std.draw_str(b, addr(b.extra, std.F_box), std.cat("", str.to_str(getn(DEVICES, getn(g, F_dix), F_dev_h), {show_u:Y}), " x ", str.to_str(getn(DEVICES, getn(g, F_dix), F_dev_v
+  ), {show_u:Y})), { just:std.LEFT, indent:std.pt_to_dots(b, 10), size:0.8, color:std.WHITE });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_toolbar_112
+//====================
+function d_toolbar_112(b) {
+k.k_enter(b);
+  std.draw_str(b, addr(b.extra, std.F_box), std.cat("", str.to_str(getn(DEVICES, getn(g, F_dix), F_dev_ppi), {show_u:Y}), " dpi"), { just:std.LEFT, indent:std.pt_to_dots(b, 
+  10), size:0.8, color:std.WHITE });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_toolbar_114
+//====================
+function d_toolbar_114(b) {
+k.k_enter(b);
+  std.draw_str(b, addr(b.extra, std.F_box), std.cat("drawn at ", str.to_str(std.mul(getn(g, F_net_zoom), 100), { digits:0 }), "%"), { just:std.LEFT, indent:std.pt_to_dots(b, 
+  10), size:0.8, color:std.WHITE });
+k.k_leave(b);
+}
+
+main_init();
+k.rebuild_all();
+
+</script>
+</body>
+</html>
