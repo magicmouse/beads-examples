@@ -14,6 +14,17 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 7. a simple and flexible module system 
 8. no make system needed for most projects
 
+### Example: Cycler utility
+
+This handy utility shows how you can run a program inside another program in Beads (by using the *monitor* keyword instead of program on the first line of code).
+
+![screenshot](https://beadslang.com/examples/cycler/screenshot.jpg)
+
+Here is a short video talking about it.
+
+[video example on YouTube](https://www.youtube.com/watch?v=AoACdQSSsZM)
+
+
 ### Example: Heat transfer simulation
 
 In this example we show how you can use the physical units of measure features in the Beads language, where you can easily switch between the different temperature scales. Beads includes all the basic units used in engineering and science, with the unit conversions built into the language.
