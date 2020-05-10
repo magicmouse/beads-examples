@@ -14,6 +14,16 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 7. a simple and flexible module system 
 8. no make system needed for most projects
 
+### Example: Temperature control
+
+This is a simple temperature control which demonstrates the physical units of measurement in Beads, and how you can have a dual control and either one will update the model and refresh the other version of the control that uses the same data, all without locks or conflicts arising.
+
+![screenshot](https://beadslang.com/projects/temperature/screenshot.png)
+
+Here is a short video talking about it.
+
+[Beads ep.005 video on YouTube](https://www.youtube.com/watch?v=GctjdVo8O7Y)
+
 ### Example: Cycler utility
 
 This handy utility shows how you can run a program inside another program in Beads (by using the *monitor* keyword instead of program on the first line of code).

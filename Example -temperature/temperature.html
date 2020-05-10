@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8"/>
+<title>temperature</title>
+<link rel="shortcut icon" href="favicon.ico" />
+<style>
+/*  this disables the annoying double click highlighting of DIV blocks  */
+div { outline-style:none;}
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 12pt; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover {
+    background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0;">
+<script type="module">
+import * as std from '../../runtime/beads_std.js';
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, addr } from '../../runtime/beads_std.js';
+import * as str from '../../runtime/beads_str.js';
+import * as k   from '../../runtime/beads_k.js';
+export const CODE_HASH= 0xeee422b8;
+const _M = "temperature";
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_module = "temperature";
+std.aaaa.main_drawer = new std.a_function("temperature", "main_draw", main_draw);
+//------- enums
+const F_hi_set=9007191108967404; std.g_enum_ss[9007191108967404]="hi_set";
+std.FIELDS[F_hi_set] = true;
+const F_lo_set=9007192762891706; std.g_enum_ss[9007192762891706]="lo_set";
+std.FIELDS[F_lo_set] = true;
+const R_record_26=9007194082680954; std.g_enum_ss[9007194082680954]="record_26";
+//[reflAAA]
+std.merge_lit(_M,0,std.META,_M, std.F_mod_const, "GRAD1", std.F_vv_rec, VAL, "a_gradient", std.F_vv_typek, VAL, std.TYPE_RECORD, POP, "HI_C", std.F_vv_typek, VAL, std.TYPE_NUM
+, POP, "HI_F", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "LO_C", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "LO_F", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "TRACING", std.F_vv_typek
+, VAL, std.TYPE_YESNO, POP, POP, std.F_mod_funcs, "d_arrow", std.F_vv_cat, VAL, "||controller arrow", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, 
+std.PK_POS, std.F_vv_parmn, VAL, "lo", std.F_vv_typek, VAL, std.TYPE_NUM, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "hi", std.F_vv_typek, VAL, std.TYPE_NUM
+, POP, 3, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "units", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "d_dual", std.F_vv_funck, VAL, std.FK_DRAW, POP, 
+"d_scale", std.F_vv_cat, VAL, "||draw the temperature scale to the right like 10 degF", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS
+, std.F_vv_parmn, VAL, "lo", std.F_vv_typek, VAL, std.TYPE_NUM, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "hi", std.F_vv_typek, VAL, std.TYPE_NUM, POP, 
+3, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "units", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "d_scale2", std.F_vv_cat, VAL, "||each scale mark", std.F_vv_funck
+, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "value", std.F_vv_typek, VAL, std.TYPE_NUM, POP, 2, std.F_vv_parmk, VAL, std.PK_POS
+, std.F_vv_parmn, VAL, "units", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "d_therm", std.F_vv_cat, VAL, "||the thermometer control has arrows, bar, and scale", std.F_vv_funck
+, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "lo", std.F_vv_typek, VAL, std.TYPE_NUM, POP, 2, std.F_vv_parmk, VAL, std.PK_POS
+, std.F_vv_parmn, VAL, "hi", std.F_vv_typek, VAL, std.TYPE_NUM, POP, 3, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "units", std.F_vv_typek, VAL, std.TYPE_NUM, POP
+, POP, POP, "d_therm_67", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "lo", std.F_vv_typek, VAL, std.TYPE_NUM
+, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "hi", std.F_vv_typek, VAL, std.TYPE_NUM, POP, 3, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "units"
+, std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "main_draw", std.F_vv_funck, VAL, std.FK_DRAW, POP, "main_draw_46", std.F_vv_funck, VAL, std.FK_DRAW, POP, "main_init", 
+std.F_vv_funck, VAL, std.FK_CALC, POP, POP, std.F_mod_recs, "record_26", std.F_vv_fields, "hi_set", std.F_vv_typek, VAL, std.TYPE_MEAS, POP, "lo_set", std.F_vv_typek, VAL, 
+std.TYPE_MEAS, POP, POP, POP, POP, std.F_mod_vars, "g", std.F_vv_rec, VAL, "record_26", std.F_vv_typek, VAL, std.TYPE_RECORD, POP, "g_drag_starty", std.F_vv_typek, VAL, std.TYPE_NUM
+, POP, "g_drag_temp", std.F_vv_typek, VAL, std.TYPE_MEAS);
+//[reflZZZ]
+//-------  func const
+const main_draw_46_F = new std.a_function("temperature", "main_draw_46", main_draw_46);
+const d_arrow_F = new std.a_function("temperature", "d_arrow", d_arrow, track_d_arrow);
+const d_therm_67_F = new std.a_function("temperature", "d_therm_67", d_therm_67);
+const d_scale_F = new std.a_function("temperature", "d_scale", d_scale);
+const d_dual_F = new std.a_function("temperature", "d_dual", d_dual);
+const d_therm_F = new std.a_function("temperature", "d_therm", d_therm);
+const d_scale2_F = new std.a_function("temperature", "d_scale2", d_scale2);
+//-------  top nodes
+const TRACING = N;
+const LO_C = 5;
+const HI_C = 40;
+const LO_F = 40;
+const HI_F = 100;
+const GRAD1 = new std.a_tree("temperature","GRAD1", std.NF_TOPLEVEL); std.merge_lit(_M, 18, GRAD1, std.F_grad_shape, VAL, std.LINEAR_GRADIENT, std.F_grad_angle, VAL, std.GRAD_TO_BOTTOM
+  , std.F_grad_stops, 1, std.F_stop_pos, VAL, 0, std.F_stop_color, VAL, std.ORANGE_RED, POP, 2, std.F_stop_pos, VAL, 20, std.F_stop_color, VAL, std.ORANGE, POP, 3, std.F_stop_pos
+  , VAL, 60, std.F_stop_color, VAL, std.LIGHT_BLUE, POP, 4, std.F_stop_pos, VAL, 100, std.F_stop_color, VAL, std.MEDIUM_BLUE, POP, POP);
+let g = new std.a_tree("temperature","g", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+let g_drag_starty = U;
+let g_drag_temp = null;
+
+//====================
+//   d_arrow
+//====================
+function d_arrow(b, lo, hi, units) {
+k.k_enter(b);
+  let val = std.to_unit(std.get_meas(g, F_hi_set), units);
+  let y = std.interpolate(val, lo, hi, b.bounds.height, 0, { clamp:Y });
+  let r = new std.a_tree("temperature","r"); std.merge_tree(_M, 97, std.solve_rect({ cy:y, left:0, width:b.bounds.width, height:std.div(b.bounds.height, 12) }), addr(r));
+  std.draw_str(b, addr(r), std.cat(str.to_str(val, { digits:1 }), " ▶"), { size:0.75, color:std.CRIMSON, just:std.RIGHT, indent:std.pt_to_dots(b, 1) });
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_arrow
+//====================
+function track_d_arrow(b, e, lo, hi, units) {
+  var case6 = getn(e, std.F_evkind);
+  if (case6 === std.EV_HOVER) {
+    std.cursor_set(std.CURS_FINGER);
+  } else if (case6 === std.EV_DRAG_BEGIN) {
+    g_drag_starty = getn(e, std.F_global_y);
+    g_drag_temp = std.get_meas(g, F_hi_set);
+  } else if (case6 === std.EV_DRAG_MOVE) {
+    let delta_mouse = std.sub(g_drag_starty, getn(e, std.F_global_y));
+    let delta = std.div(std.mul(std.div(delta_mouse, 3), std.sub(hi, lo)), b.bounds.height);
+    let newval = std.clamp(std.add(std.to_unit(g_drag_temp, units), delta), lo, hi);
+    std.path_setv(_M, 123, addr(g, F_hi_set), std.to_meas(newval, units));
+    return Y;
+  } else if (case6 === std.EV_DRAG_END) {
+    std.cursor_set(std.CURS_ARROW);
+  } else {
+    return N;
+  }
+  return Y;
+  return N;
+}
+
+//====================
+//   d_dual
+//====================
+function d_dual(b) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  k.div_spa(b, 0, 200, std.al);
+  k.div_add(b, U, 0, 200, std.al, d_therm_F, 0, [LO_C, HI_C, std.N_degC]);
+  k.div_spa(b, 0, 60, std.al);
+  k.div_add(b, U, 0, 200, std.al, d_therm_F, 0, [LO_F, HI_F, std.N_degF]);
+  k.div_spa(b, 0, 200, std.al);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_scale
+//====================
+function d_scale(b, lo, hi, units) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  k.div_add(b, U, 1, 10, std.al, d_scale2_F, 0, [hi, units]);
+  k.div_spa(b, 1, 100, std.al);
+  k.div_add(b, U, 1, 10, std.al, d_scale2_F, 0, [lo, units]);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_scale2
+//====================
+function d_scale2(b, value, units) {
+k.k_enter(b);
+  let suffix = std.eq2(units, std.N_degF) ? " °F" : " °C";
+  std.draw_str(b, addr(b.extra, std.F_box), std.cat("", str.to_str(value, {show_u:Y, digits:0}), "", suffix), { size:0.75, color:std.LIGHT_BLUE, just:std.LEFT, indent:std.pt_to_dots(
+  b, 4) });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_therm
+//====================
+function d_therm(b, lo, hi, units) {
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  k.div_add(b, U, 0, 70, std.al, d_arrow_F, 0, [lo, hi, units]);
+  k.div_add(b, U, 0, 30, std.al, d_therm_67_F, 0, [lo, hi, units]);
+  k.div_add(b, U, 0, 70, std.al, d_scale_F, 0, [lo, hi, units]);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+k.k_root2(b);
+k.k_enter(b);
+k.div_begin(b, false, false, false, false);
+  std.draw_rect(b, addr(b.extra, std.F_box), { fill:std.DARK_SLATE_GRAY });
+  k.div_spa(b, 1, 10, std.al);
+  k.div_add(b, U, 1, 20, std.al, main_draw_46_F, 0);
+  k.div_spa(b, 1, 20, std.al);
+  k.div_add(b, U, 1, 100, std.al, d_dual_F, 0);
+  k.div_spa(b, 1, 40, std.al);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.path_setv(_M, 37, addr(g, F_hi_set), std.meas(70, std.N_degF, std.Y_Temperature));
+  std.path_setv(_M, 38, addr(g, F_lo_set), std.meas(60, std.N_degF, std.Y_Temperature));
+}
+
+
+//====================
+//   d_therm_67
+//====================
+function d_therm_67(b, lo, hi, units) {
+k.k_enter(b);
+  std.draw_rect(b, addr(b.extra, std.F_box), { grad:addr(GRAD1), corner:std.pt_to_dots(b, 2) });
+k.k_leave(b);
+}
+
+
+//====================
+//   main_draw_46
+//====================
+export function main_draw_46(b) {
+k.k_enter(b);
+  std.draw_str(b, addr(b.extra, std.F_box), "Temperature Control", { size:0.7, color:std.GHOST_WHITE });
+k.k_leave(b);
+}
+
+main_init();
+k.rebuild_all();
+
+</script>
+</body>
+</html>

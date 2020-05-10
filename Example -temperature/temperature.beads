@@ -1,0 +1,135 @@
+beads level 1 program temperature  // a simple temperature control
+
+//  this program lets you show two synchronized temperature sliders
+//  whatever you set in one, the other tracks it.
+//  this shows how you update the underlying model and then refresh is automatic
+//  written by e. dejong May 2020
+
+const
+	TRACING = N // during debugging we turn this on
+
+	//  the scale markings to the side of each bar
+	LO_C = 5
+	HI_C = 40
+	
+	LO_F = 40
+	HI_F = 100
+
+	//  the gradient going from orange to blue
+	GRAD1 : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM, 
+		grad_stops:[ { stop_pos:0, stop_color:ORANGE_RED },
+				     { stop_pos:20, stop_color:ORANGE },
+					 { stop_pos:60, stop_color:LIGHT_BLUE },
+					 { stop_pos:100, stop_color:MEDIUM_BLUE }] }
+
+//  our global mutable state. Take that FP! We do mutable state the right way!
+var g : record
+	hi_set : Temperature  // target temperature
+	lo_set : Temperature  //  reserved for future when we add a low control also
+
+var	
+	//  variables used during tracking
+	g_drag_starty
+	g_drag_temp : Temperature
+
+==========================
+calc main_init
+	//  set our target temperature
+	g.hi_set = 70 degF
+	g.lo_set = 60 degF  
+
+==========================
+vert slice main_draw
+	draw_rect(b.box, fill:DARK_SLATE_GRAY)
+
+	skip 10 al
+	add 20 al
+		draw_str(b.box, "Temperature Control", size:0.7, color:GHOST_WHITE)
+	skip 20 al
+	add 100 al d_dual
+	skip 40 al
+
+==========================
+horz slice d_dual
+	skip 200 al
+	add 200 al d_therm(LO_C, HI_C, enum degC)
+	skip 60 al
+	add 200 al d_therm(LO_F, HI_F, enum degF)
+	skip 200 al
+
+==========================
+horz slice d_therm (  --- the thermometer control has arrows, bar, and scale
+	lo
+	hi
+	units  // degF or degC
+	)
+	add 70 al d_arrow(lo, hi, units)
+	add 30 al
+		draw_rect(b.box, grad:GRAD1, corner:2 pt)
+	add 70 al d_scale(lo, hi, units)
+
+==========================
+vert slice d_scale(  --- draw the temperature scale to the right like 10 degF
+	lo
+	hi
+	units
+	)
+	add 10 al d_scale2(hi, units)
+	skip 100 al
+	add 10 al d_scale2(lo, units)
+
+==========================
+draw d_scale2 (  --- each scale mark
+	value
+	units
+	)
+	var suffix : str = if units == enum degF then " °F" else " °C"
+	draw_str(b.box, "{value}{suffix}", size:0.75, color:LIGHT_BLUE, just:LEFT, indent:4 pt)
+
+==========================
+draw d_arrow (  --- controller arrow
+	lo
+	hi
+	units 
+	)
+	var val = to_unit(g.hi_set, units) //  value in degF or degC
+	var y = interpolate(val, lo, hi, b.box.height, 0, clamp:Y)
+	log "val={val}, lo={lo}, hi={hi}, height={b.box.height}, y={y}" on:TRACING
+	var r : a_rect <=== solve_rect(cy:y, left:0, width:b.box.width, height:b.box.height/12)
+	draw_str(r, to_str(val, digits:1) & " ▶", size:0.75, color:CRIMSON, just:RIGHT, indent: 1 pt)
+track
+	case e.evkind
+	| EV_HOVER
+		//  we let the drag operation start anywhere in the arrow area
+		//  in future versions we could tighten this
+		cursor_set(CURS_FINGER)
+
+	| EV_DRAG_BEGIN
+		g_drag_starty = e.global_y
+		g_drag_temp = g.hi_set
+
+	| EV_DRAG_MOVE
+		//  calculate the new temperature
+		//  make the scale move not by mouse tracking but with a gear reduction
+		//  so it is very precise.
+		var delta_mouse = g_drag_starty - e.global_y
+
+		//  put a 3:1 gear ratio on the slider so it is more precise
+		var delta = delta_mouse/3*(hi-lo)/b.box.height 
+		//  in the units we are moving, adjust the temperature change, relative to the 
+		//  starting temp in the units we are using, such that the entire range of movement
+		//  will yield a change equal to the difference between top and bot temp in that unit
+		var newval = clamp(to_unit(g_drag_temp, units) + delta, lo, hi)
+		log "delta_mouse={delta_mouse}, range={hi-lo}, height={b.box.height}, delta={delta}, newval={to_str(newval, digits:1)}" on:TRACING
+		g.hi_set = to_meas(newval, units)  // this will trigger refresh of arrows
+		return Y
+		
+	| EV_DRAG_END
+		cursor_set(CURS_ARROW)
+
+	else
+		//  wrong kind of event, don't absorb
+		return N
+
+	//  absorb the event
+	return Y
