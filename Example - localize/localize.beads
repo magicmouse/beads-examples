@@ -1,0 +1,1097 @@
+beads 1 program localize
+
+//  localization tool for Beads
+//  in this tool, you pick a file to scan
+//  it looks for strings that have no localization string index yet
+//  such as "Hello"[].  It then assigns the next available unused stringtable slot
+//  you emit various .csv files which are used by the compiler to include strings
+//  
+//  written by edj 2020
+//  Copyright and related rights waived
+
+assets local:"art/" remote:"http://foobar.com/art/"
+	file:"icon_folder_yellow.png" label:ICON_FOLDER
+	file:"zing.mp3" label:SOUND_ZING
+
+record a_legend
+	name  : str
+	color : color
+
+const
+	TRACE = Y
+	TRACE_MODAL = N
+	TRACE_ATOMS = N
+	DETAIL = Y
+	SCAFFOLDING = N
+
+	VERSION = 1  //  version of the modal file format
+	
+	C_DEAD = #121D21  // rgb(51, 84, 95)
+	C_DEAD2 = #121D21  // dark blue
+	C_ITEM_DIV = PURPLE  //  dividing line color
+	C_ITEM_TEXT = BEIGE
+	C_ITEM_DEAD = GRAY9
+	C_ITEMLIST_FOOT = #4D441A  // tan
+	C_ITEMLIST_EDGE = #918031 // light tan
+
+	C_BUTT_BACK = rgb(1,59,138) // rgb(2,93,218)  blue
+	C_BUTT_NEXT = #700A48  //  magenta, encourage user to press this button
+	C_BUTT_TEXT = IVORY
+	C_BUTT_BORD = DODGER_BLUE
+	C_BUTT_DEL = rgb(255,38,38)  // color for delete X in store picker
+
+	C_ENTRY_LO_BACK = #395D74  // teal
+	C_ENTRY_LO_BORD = DODGER_BLUE
+	C_ENTRY_LO_TEXT = C_BUTT_TEXT
+
+	C_BUTT_BACK_HI = #8AAAE5
+	C_BUTT_TEXT_HI = #042350
+
+	FOOTER_INDENT = 4 //  horz space between rightmost buttons and scrollbar
+
+	START_STRX = 1000  //  index we start numbering strings from
+
+	FONT1 = "_typewriter"
+	
+	//  status
+	STATUS_OK = 1
+	STATUS_ATTN = 2
+	STATUS_TENT = 3
+	STATUS_MISSING = 4
+	STATUS_EXTRA = 5
+	STATUS_MASTER = 6
+
+	STATUSES : array of str = ["OK", "ATTN", "TENTATIVE", "MISSING", "EXTRA", "MASTER"]
+
+	LEGENDS : array of a_legend = [ { name:"ok", color:MEDIUM_SEA_GREEN },
+		{ name:"attn", color:CRIMSON },
+		{ name:"tentative", color:GOLDENROD },
+		{ name:"missing", color:WHITE },
+		{ name:"extra", color:DARK_VIOLET },
+		{ name:"master", color:CORNFLOWER_BLUE } ]
+
+	//-------  item sizes
+	CELLNV = 5  // how many cells vertically per band
+	ATOMSV = 70  //  points high for the band of cells
+	LANGGAP = 10
+	ENTRYV = 24
+	LEGENDV = 18
+	BUTTH = 95
+	LANGNAMEH = 100
+
+//  we show the languages in this order
+record a_lang_info
+	blangx   //  beads index
+	google: str  // google translate language code
+	human : str  //  human name like Español
+
+const LANGINFO : array of a_lang_info = [<
+	human			google		blangx
+	"English"		"en"		LANG_ENG
+	"Deutsch"		"de"		LANG_DEU
+	"Español"		"es"		LANG_ESP
+	"Français"		"fr"		LANG_FRA
+	"Italiano"		"it"		LANG_ITA
+	"Nederlands"	"nl"		LANG_NED
+	"Dansk"			"dk"		LANG_DAN
+	"Norsk"			"nn"		LANG_NOR
+	"Suomi"			"fi"		LANG_FIN
+	"Svenska"		"sv"		LANG_SVE
+	"日本語"			"jp"		LANG_JAP
+	"한국어"			"kr"		LANG_KOR
+	"简体中文"		"zh-CN"		LANG_CHS
+	"繁體中文"		"zh-TW"		LANG_CHT
+	>]
+
+const NLANGS = tree_count(LANGINFO)
+
+//  maps from Beads language enum into index in LANGINFO
+var LANG_INDEX : array of num  //  set in main_init
+
+record a_phrase
+	strx	    //  the string index (also the subscript in the array)
+	status	    //  status of the phrase (MISSING, OK, etc.)
+	line	    //  line number phrase first appeared on
+	orig  : str //  the original text
+	tran  : str //  the translated text
+	note  : str //  translator's note
+
+record a_phrase_table
+	langx    //  enum of language
+	nphrases //  num of elements in phrases
+	phrases : array of a_phrase //  indexed sequentially (packed)
+
+var intf : record
+	proj_fobj : object  // File object, of the beads project file we loaded
+	proj_fpath : str  // the full path filesystem path of the project file
+	proj_name : str  // the name of the project
+
+	max_ncells   // total number of cells we can fit on the screen
+	//mast_input : a_input_field  //  our input field for the master text
+	tran_field : a_input_field  //  our input field for the translated text
+	modal_active : yesno
+
+	//  when we select a cell, we set these
+	hilite_bandx //  which language band did we click in
+	hilite_seq    //  which cell index in the band we are clicking on
+	hilite_phrase : ptr to a_phrase //  which phrase we are editing
+	hilite_master : ptr to a_phrase //  which master we related to (might be U if extra)
+
+var master_index : array of num  // maps master phrase strx to the index
+
+//  when we bring in another language table, we make sure that the string numbers
+//  exactly match the master language, so that all extras end up pushed at the end
+var g : array of a_phrase_table  //  indexed sequentially
+
+var ncells : array of num // number of cells in each trans indexed by langx
+
+var input : str  //  input buffer to fix
+var output : str //  output buffer to write into
+
+// we have an array of fixes to make to the orig .beads source file
+// to fix the "asd"[] ==> "asd"[123]
+record a_fix
+	lbracket  // where left bracket is
+	strx      //  string index in our existing trans table
+	msg : str
+
+var gfixes : array of a_fix  //  indexed by 1..
+
+---------------------------
+calc main_init
+---------------------------
+	var strx 
+	//intf.mast_input.in_label = "master input"
+	intf.tran_field.in_label = "translated input"
+	intf.tran_field.in_validator = on_tran_field
+	intf.tran_field.in_maxlen = 250 //  should be enough
+
+	if SCAFFOLDING
+		intf.proj_name = "myproject"
+		intf.proj_fpath = "/beads/projects/foody/myproject.beads"
+		intf.proj_fobj = ERR
+
+		//  build some master strings
+		loop reps:33 count:jx
+			var sx = 1000+jx
+			g[1].phrases[jx] <=== { status:STATUS_MASTER, strx:sx, orig:"{random_word4()} of {random_word4()} in {random_word4()} by {random_word4()}" }
+		g[1].phrases[3].note = "kind of 中文 繁體中文 shoe"
+		g[1].nphrases = jx
+		g[1].langx = LANG_ENG
+
+		gen_master_index
+
+		// add in a french language table with lots of missing data
+// 		loop reps:30 count:ix
+// 			var tx = 1000+ix
+// 			g[2].phrases[ix] <=== { strx:tx, 
+// 			status:random_int(STATUS_OK, STATUS_MISSING),
+// 			orig:g[1].phrases[ix].orig,
+// 			tran:"{random_word4()} is {random_word4()} of {random_word4()} by {random_word4()}" }
+// 		g[2].nphrases = 30
+// 		g[2].langx = LANG_FRA
+		if read_string_file(LANG_FRA)
+			//  language file read worked
+			select_cell(2, 3)
+
+		update_max_ncells  //  we added another language
+
+	//  build the reverse mapping table to go from language index to our table
+	loop across:LANGINFO index:seqx
+		LANG_INDEX[LANGINFO[seqx].blangx] = seqx
+
+---------------------------
+calc gen_master_index
+	var strx
+	loop across:g[1].phrases index:ix ptr:phrase
+		//  build the reverse mapping of strx back to sequential index
+		strx = phrase.strx
+		master_index[strx] = ix
+
+---------------------------
+//  must call this routine after opening a project
+calc update_max_ncells
+	//  the max number of cells is the max of all the loaded languages	
+	var totn = 0
+	loop across:g index:bandx
+		totn = max(totn, g[bandx].nphrases)
+	intf.max_ncells = totn
+
+---------------------------
+//  called on each keystroke of the trans input field
+calc on_tran_field (
+	field : a_input_field
+	) : yesno
+	//log "-- updating trans to {field.in_value}"
+	//  a change happened in the input field
+	//  store the input back into the current phrase
+	intf.hilite_phrase.tran = field.in_value
+	return Y  // accept all fixes
+
+---------------------------
+// calc gen_master_strx
+// 	trunc master_strx
+// 	loop across:g[MASTER_LANG] index:ix
+// 		master_strx[ix] = translatons[MASTER_LANG, ix].strx
+draw main_draw
+	main_draw2
+	if intf.modal_active
+		//  add a modal dialog layer on top
+		layer area:bb, d_modal_overlay
+
+---------------------------
+vert slice main_draw2
+	add 10 al d_main_body
+	add 24 pt d_main_footer
+
+---------------------------
+horz slice d_main_footer
+	draw_rect(bb, fill:C_ITEMLIST_FOOT)
+	var r <=== solve_rect(basis:bb, pin:2, height:1 pt)
+	draw_rect(r, fill:C_ITEMLIST_EDGE)
+
+	skip FOOTER_INDENT pt
+	if intf.proj_fpath <> U
+		add 100 pt butt_simple("Save All", do_save)
+	else
+		skip 100 pt
+	add 50 al 
+		draw_str(bb, "Localization utility ver {VERSION}", size:0.5, color:C_BUTT_TEXT)
+	skip 100 pt
+	skip FOOTER_INDENT pt
+
+---------------------------
+calc do_save
+	sound_play(SOUND_ZING)
+	loop across:g index:bandx
+		if bandx > 1
+			export_trans(bandx)
+
+---------------------------
+vert slice d_main_body
+	draw_rect(bb, fill:C_DEAD2)
+
+	skip 10 pt
+	add 28 pt d_toprow  // icon, name of project, some buttons
+
+	if intf.proj_fpath <> U
+		//  we have a project open
+		skip 8 pt
+		add LEGENDV pt d_legend
+	
+		//  loop through all the languages we have added
+		loop across:g index:bandx
+			skip LANGGAP pt
+			add ATOMSV pt d_atom_band(bandx)
+
+		//  add a plus button
+		skip LANGGAP pt
+		add 20 pt d_add_lang
+
+		if intf.hilite_seq <> U
+			//  we have a cell selected, show the current string number
+			skip 12 pt
+			add 20 pt d_note
+			skip 6 pt
+			add ENTRYV pt d_master_entry
+			skip 6 pt
+			if intf.hilite_bandx <> 1
+				add ENTRYV pt d_slave_entry
+				skip LANGGAP pt
+				add 22 pt pick_status
+				skip (LANGGAP*3) pt
+				add 20 pt d_action_butts
+
+---------------------------
+grid pick_status  -- mutually exclusive status picker grid
+	horz slice
+		const NCOL = tree_count(LEGENDS)
+		const cellh = round(min(80 pt, bb.width/NCOL))
+		const horzpct = 40
+
+		skip horzpct al
+		loop reps:NCOL
+			add cellh px
+		skip (100-horzpct) al
+
+	vert slice
+		add 10 al
+
+	cell
+		//  the cells in the status picker have numbers 1, 2, which are the same as status enum
+		draw_status_cell(bb, b.cell_seq, b.cell_seq == intf.hilite_phrase.status)
+-------------
+track EV_TAP
+	//  user has made a status selection
+	intf.hilite_phrase.status = b.cell_seq
+
+---------------------------
+draw draw_status_cell (
+	box : a_rect
+	statusx : num  //  status index
+	hilite : yesno
+	)  -------
+	var back : color
+	var text : color
+
+	//  calculate the colors		
+	if hilite
+		back = C_BUTT_BACK_HI
+		text = C_BUTT_TEXT_HI
+	else
+		back = C_BUTT_BACK
+		text = C_BUTT_TEXT
+
+	//  draw the cell background
+	draw_rect(box, fill:back, thick:0.7 pt, color:C_BUTT_BORD)
+	draw_str(box, LEGENDS[statusx].name, size:0.55, color:text, bold:hilite)
+
+---------------------------
+horz slice d_action_butts
+	skip 10 al
+	add BUTTH pt butt_simple("Copy", do_copy)
+	skip 2 al
+	add BUTTH pt butt_simple("Ask Google", do_ask_google)
+	skip 2 al
+	//  since paste is only really any good in AIR, disable this button for web
+	if runtime.os_kind <> OS_WEB
+		add BUTTH pt butt_simple("Paste", do_paste)
+	skip 10 al
+
+---------------------------
+horz slice d_legend
+	skip 10 pt
+	loop across:LEGENDS ptr:lptr
+		add 80 al draw_legend_cell(lptr)
+	skip 10 pt
+
+---------------------------
+horz slice draw_legend_cell (
+	lptr : ptr to a_legend
+	)
+	add 10 al
+		draw_str(bb, lptr.name, size:0.7, just:RIGHT, indent:5 pt, color:C_BUTT_TEXT)
+	add (LEGENDV*1.5) pt
+		draw_rect(bb, fill:lptr.color, corner:3)
+
+---------------------------
+horz slice d_add_lang
+	skip 100 pt
+	add BUTTH pt butt_simple("+ Add Lang", do_pick_add_lang)
+	skip 10 al
+
+---------------------------
+horz slice d_note
+	//  draw the string number, and the optional note
+	skip 10 pt
+	add 150 pt 
+		draw_str(bb, "String #{intf.hilite_phrase.strx}", size:0.7, just:LEFT, color:C_BUTT_TEXT)
+	skip 10 pt
+	add 10 al
+		//  we gotta go back to the base language for the note
+		//  the sequential indices won't match between bands
+		//  see if there is an original with the same strx
+		var base_phrase : ptr to a_phrase = find_base_phrase(intf.hilite_phrase.strx)
+		if base_phrase <> U
+			//  there is a matching base phrase
+			var note = base_phrase.note
+			if note <> U
+				draw_str(bb, "note: {note}", size:0.7, just:LEFT, color:C_BUTT_TEXT, font:FONT1)
+	skip 8 pt
+
+---------------------------
+calc find_base_phrase (
+	strx 
+	) : ptr to a_phrase
+	var ix = master_index[strx]  //  convert string index to seq in base language
+	if ix <> U
+		return adr g[1].phrases[ix]
+	return U
+
+---------------------------
+calc do_pick_add_lang
+	//  add another language
+	intf.modal_active = Y
+
+---------------------------
+calc band_human_lang_ss (  -- return the human readable language string for this band
+	bandx  -- index of band 1..N
+	) : str  //  human language of this band
+	var lang_enum = g[bandx].langx
+	var lang_seq = LANG_INDEX[lang_enum]
+	//  lang_enum={lang_enum}, lang_seq={lang_seq}"
+	return LANGINFO[lang_seq].human
+
+---------------------------
+calc band_google_lang_ss (  -- return the google language string for this band
+	bandx  -- index of band 1..N
+	) : str  //  human language of this band
+	var lang_enum = g[bandx].langx
+	var lang_seq = LANG_INDEX[lang_enum]
+	//  lang_enum={lang_enum}, lang_seq={lang_seq}"
+	return LANGINFO[lang_seq].google
+
+---------------------------
+horz slice d_atom_band (
+	bandx // which band we are drawing
+	)
+	log "d_atom_band, bandx={bandx}"
+	//  draw the language name
+	add LANGNAMEH pt 
+		draw_str(bb, band_human_lang_ss(bandx), size:12 pt, just:CENTER, indent:8 pt, color:C_BUTT_TEXT)
+	add 10 al d_chips(bandx)
+	skip 4 pt
+
+---------------------------
+//  has bandx as argument
+//  draw the phrase chips for this band
+grid d_chips order:TBLR ditto
+	horz slice
+		log "d_chips, bandx={bandx}, nphrases={g[bandx].nphrases}" on:TRACE_ATOMS
+		//  we set the cell size so that we can fit our max cells
+		//  we only allow for a small number of excess cells
+		const CELLTOT = round(bb.height / CELLNV)
+		const CELLSIZE = round(CELLTOT*0.8)
+		const CELLPAD = round(CELLTOT - CELLSIZE)
+		//const MAXNH = round_down(bb.width / CELLTOT)
+		const CELLNH = round_up(intf.max_ncells / CELLNV)
+
+		//  allow the horz to be up to twice the width
+		const CELLTOTH = min(CELLTOT*2, round_down(bb.width/CELLTOT))
+		const CELLSIZEH = round(CELLTOTH * 0.8)
+		const CELLPADH = round(CELLTOTH - CELLSIZEH)
+
+		loop reps:CELLNH
+			add CELLSIZEH px 
+			skip CELLPADH px
+		skip 8 pt
+	vert slice
+		loop reps:CELLNV
+			add CELLSIZE px
+			skip CELLPAD px
+	cell
+		//  draw the cell
+		if b.cell_seq <= g[bandx].nphrases
+			//  in our working set
+			//  the cell seq has to be mapped to the string index
+			var status = g[bandx].phrases[b.cell_seq].status
+			if status == U
+				draw_str(bb, "U", color:WHITE, size:0.7)
+			else
+				draw_rect(bb, fill:LEGENDS[status].color, corner:3)
+
+			if (b.cell_seq <= 4)
+				log " cell, bandx={bandx}, seq={b.cell_seq}, status={to_str(status, show_u:Y)}" on:TRACE_ATOMS
+
+			//  if this is the current hilited cell show it
+			if bandx == intf.hilite_bandx and b.cell_seq == intf.hilite_seq
+				draw_str(bb, "✅", size:0.7, color:BLACK)
+
+track EV_TAP
+	if b.cell_seq <= g[bandx].nphrases
+		//  select this cell
+		select_cell(bandx, b.cell_seq)
+
+---------------------------
+//  master text of the current cell
+horz slice d_master_entry
+	add LANGNAMEH pt  //  base language label
+		draw_str(bb, band_human_lang_ss(1), size:0.6, just:CENTER, indent:8 pt, color:C_BUTT_TEXT)
+	add 10 al  // text
+		var ss : str
+		//  see if the base language has this phrase present
+		if intf.hilite_master == U
+			ss = "(extraneous string)"
+			draw_str(bb, ss, size:0.6, just:LEFT, indent:2 pt, color:C_BUTT_TEXT, font:FONT1)
+		else
+			ss = intf.hilite_master.orig
+			//draw_input(bb, intf.mast_input, indent:2 pt, size:0.6, just:LEFT, fill:GRAY8, color:C_BUTT_TEXT, font:FONT1)
+			draw_str(bb, ss, size:0.6, just:LEFT, indent:2 pt, color:C_BUTT_TEXT, font:FONT1, selectable:Y)
+	skip 8 pt
+
+---------------------------
+//  the trans entry field
+horz slice d_slave_entry
+	add LANGNAMEH pt
+		draw_str(bb, band_human_lang_ss(intf.hilite_bandx), size:0.6, just:CENTER, indent:8 pt, color:C_BUTT_TEXT)
+	add 10 al
+		//  draw an entry field , font:FONT1
+		draw_input(bb, intf.tran_field, size:0.6, just:LEFT, indent:2 pt, fill:GRAY8, 
+			color:C_BUTT_TEXT, font:FONT1, border_color:DODGER_BLUE)
+	skip 8 pt
+
+---------------------------
+horz slice d_toprow
+	skip 10 pt
+	add 30 pt d_folder_icon
+	skip 8 pt
+	skip 8 pt
+	add 50 al 
+		var ss = intf.proj_fpath
+		if ss == U 
+			ss = "⬅ select a Beads program file"
+		draw_str(bb, ss, just:LEFT, size:0.5, color:C_BUTT_TEXT)
+	if intf.proj_fpath <> U
+		add 80 pt butt_simple("Close", do_close_proj)
+	else
+		skip 80 pt
+	skip 10 pt
+
+---------------------------
+calc do_copy
+	var data = intf.hilite_phrase.orig
+	log "do_copy, data={data}"
+	os_clipboard_copy(data)
+
+	//  set the selection range of the input field so the paste is easier
+	input_set_selection(intf.tran_field)  //  default is entire range
+
+---------------------------
+calc do_paste
+	//  this will not work inside a browser, unless manifest is present
+	var data = os_clipboard_paste()
+	log "do_paste, data={data}"
+
+---------------------------
+calc do_close_proj
+	intf.proj_fobj = U
+	intf.proj_fpath = U
+	intf.proj_name = U
+
+---------------------------
+calc do_ask_google
+	//  ask google for a trans
+	log "ask google, hilite_master={intf.hilite_master}"
+
+	//  the user might have an incorrect source phrase, ask for the true master phrase
+	if intf.hilite_master <> U
+		//  ask google for not the current phrase, but the master phrase
+		var text = http_encodeURIComponent(intf.hilite_master.orig)
+
+		//  build the query string:
+		//   https://translate.google.com/#view=home&op=translate&sl=xx&tl=xx&text=xx
+		//
+		var sl = band_google_lang_ss(1)
+		var tl = band_google_lang_ss(intf.hilite_bandx)
+
+		var url = "https://translate.google.com/#view=home&op=translate&sl={sl}&tl={tl}&text={text}"
+		
+		//  post the query and wait for the return value
+		//log "text=[{intf.hilite_master.orig}], url=[{url}]"
+		launch_url(url)
+
+---------------------------
+//  pick the cell we are editing now
+calc select_cell (
+	bandx 
+	cellx  //  which cell in the grid
+	)
+	intf.hilite_bandx = bandx
+	intf.hilite_seq = cellx
+	intf.hilite_phrase = adr g[bandx].phrases[cellx]
+
+	//  get the pointer to the master phrase with same strx
+	//  if it is extra there might not be one
+	if bandx == 1
+		intf.hilite_master = intf.hilite_phrase
+		log ">> select master, cellx={cellx}"
+	else
+		//  get the strx from the current cell
+		var strx = intf.hilite_phrase.strx
+
+		//  find that strx in the master table
+		var mastx = master_index[strx]
+		log ">> select bandx={bandx}, cellx={cellx}, strx={strx}, mastx={mastx}"
+
+		//  if this string is not in the master table, we don't have a master phrase pointer
+		if mastx == U
+			intf.hilite_master = U
+		else
+			intf.hilite_master = adr g[1].phrases[mastx]
+
+	//intf.mast_input.in_value = g[MASTER_LANG, cellx].tran
+	intf.tran_field.in_value = intf.hilite_phrase.tran
+
+---------------------------
+//  uses 'input'
+//  loop through the beads source code file looking for "aaa"[] patterns
+//  the variable 'input' holds our orig source code
+//  the variable 'output' holds the updated source code
+calc do_scan_beads
+	var linenum
+	var cc : str
+	var quote_beg  // includes the quote mark
+	var quote_end
+	var msg : str  // the message, without quotes
+	var curr_strx
+	var new_strx
+	var seq = 1
+	var temp : array of a_phrase  //  sparse, indexed by strx
+
+	//  we gotta do this in 2 passes because already used slots have to be first used up
+	loop from:1 to:2 index:pass
+		//  scan the string
+		linenum = 1
+		loop from:1 to:str_len(input) index:inpos
+			cc = peek(inpos)
+			if cc == LF
+				inc linenum
+
+			if cc == "["
+				if peek(inpos-1) == '"'
+					//  see if this was a triple quoted localize str
+					if peek(inpos-2) == '"' and peek(inpos-3) == '"'
+						//  a triple quote """[ pattern
+						log "--- triple quote not yet imp"
+					else
+						//  we found "[
+						//  now go backwards to find orig beginning quote
+						quote_end = inpos-1
+						quote_beg = find_quote_rev(quote_end, '"')
+						msg = subset(input, from:quote_beg+1, to:quote_end-1)
+						//log "--- at pos {inpos} found msg [{msg}]"
+
+						//  see if we already have a number specified
+						curr_strx = extract_number(inpos+1)
+						if curr_strx <> U
+							//  we have an already assigned string number
+							//  (only run in pass 1)
+							if pass == 2 
+								continue
+							//  we did have a string index, check for disagreement
+							log "  pass 1: [{msg}] has index {curr_strx}" on:DETAIL
+							
+							//  see if we already have this string added
+							if temp[curr_strx].strx == U
+								//  this string has an assigned index, but this is first occurrence
+								merge { orig:msg, strx:curr_strx, line:linenum, status:STATUS_MASTER } ===> temp[curr_strx]
+							else
+								//  we already have this string defined in our table
+								//  the raw strings better match
+								if temp[curr_strx].orig <> msg
+									log "\nERROR: mismatch of string {curr_strx} between\n  line {to_str(temp[curr_strx].line, min:4)}: {temp[curr_strx].orig}\n  line {to_str(linenum, min:4)}: {msg}"  
+						else
+							//  (only run in pass 2)
+							//  no number yet, we will assign a new string index
+							if pass == 1
+								continue
+
+							//  if this is the second use of the message, it will be in the table already
+							new_strx = find_phrase(temp, msg)
+							if new_strx == U
+								//  this string not yet in the table, allocate a new slot		
+								new_strx = tree_next_hi(temp)
+								if new_strx == 1
+									new_strx = START_STRX  // we prefer to use not one for the first one
+						
+								//  add this to the string table
+								merge { orig:msg, strx:new_strx, line:linenum, status:STATUS_MASTER } ===> temp[new_strx]
+								log "  pass 2: appended [{msg}] at strx {new_strx}" on:DETAIL
+							else
+								log "  pass 2: already added [{msg}] at {new_strx}" on:DETAIL
+							//  even if we didn't add a new string, add to our change list
+							append { lbracket:inpos, strx:new_strx, msg:msg } ===> gfixes
+
+				//..end if [
+			//..end loop
+	//..end pass
+				
+	//  we have a sparse array of the strings, pack it down tight
+	trunc g  // clear all previous language data
+	loop across:temp index:tempx count:count
+		append temp[tempx] ===> g[1].phrases
+	g[1].nphrases = count
+	g[1].langx = LANG_ENG	
+
+	if DETAIL
+		loop across:g[1].phrases ptr:phrase count:cx
+			if cx > 5
+				exit
+			log "phrase[{cx}]: strx={phrase.strx}, status={phrase.status}"
+
+	//  build the index
+	gen_master_index
+
+	//  now read in all the possible translation files that might exist
+	//  just brute force all of them
+	loop across:LANGINFO ptr:info
+		read_string_file(info.blangx)
+
+---------------------------
+calc find_phrase (  // find a string by value in the trans table
+	phrases : ptr
+	targ : str  //  phrase text to find
+	) : num  //  return the stringx if found
+	loop across:phrases ptr:phrase 
+		if targ == phrase.orig
+			return phrase.strx
+	return U
+
+---------------------------
+//  uses 'input'
+calc extract_number (  // find a number going forwards
+	pos : num  // position of first character
+	) : num
+	var cc : str
+	var digits : str = ""
+
+	//  build an array of digits in reverse order
+	loop
+		cc = peek(pos)
+		if cc >= '0' and cc <= '9'
+			//  another digit
+			cc &=> digits
+		else
+			exit
+		inc pos
+
+	if digits == ""
+		return U
+
+	//  convert the digit array into a numeric value
+	return to_num(digits)
+
+---------------------------
+//  uses 'input'
+calc find_quote_rev (  // find a quote going backwards
+	pos : num  // position of starting quote
+	cc  : str  // character to look for (must match)
+	) : num
+	loop
+		if pos == 1
+			return U
+		dec pos
+		if peek(pos) == cc and peek(pos-1) <> "\\"
+			return pos
+	return U
+
+---------------------------
+//  uses 'input'
+//  peek at a character in the input
+calc peek (
+	pos : num  //  abs position 1=first
+	) : str
+	return subset(input, from:pos, len:1)
+
+---------------------------
+draw d_folder_icon
+	draw_image(bb, ICON_FOLDER)
+track EV_TAP
+	os_pick_files("Pick a Beads file", await_file_pick, prompt:"Beads files", suffixes:"*.beads")
+
+---------------------------
+//  called when user has picked a single file
+calc await_file_pick (
+	list : array of object  -- array of file objects
+	data : ptr  --  additional data (not used)
+	)
+	//  read the beads code and process the language strings for the master
+	intf.proj_fobj = list[1]
+	intf.proj_fpath = os_file_name(intf.proj_fobj)
+	//  extract the project name from the full path
+	intf.proj_name = fs_extract_filename(intf.proj_fpath)
+	log "user picked fpath={intf.proj_fpath}, proj={intf.proj_name}"
+
+	//  now read in the file
+	os_read_str(intf.proj_fobj, await_file_read)
+
+---------------------------
+calc await_file_read (
+	content : str  -- content of file as string
+	)
+	//  copy the file stuff to our input buffer
+	input = content
+	log "await_file_read, len={str_len(input)}"
+	
+	//  now scan the beads source file
+	do_scan_beads
+	update_max_ncells
+
+---------------------------
+draw butt_simple (  -- just draw a button on the bottom area
+	label : str
+	action : calc (frozen)  // a memorized function call with parms
+	back : color = C_BUTT_BACK  //  can optionally override the normal background color
+	)
+	//var dy = max(2, round(1 pt))
+	//var usable <=== solve_rect(basis:box, pin:8, inset_n:dy)
+	draw_rect(bb, fill:back, corner:bb.height*0.3, thick:1 pt, pos:0, color:C_BUTT_BORD)
+	draw_str(bb, label, size:0.6, indent:4 pt, color:C_BUTT_TEXT)
+------------
+track EV_TAP
+	action()  //  execute the frozen func call
+
+---------------------------
+draw d_modal_overlay
+	//  dim the background
+	log "d_modal_overlay" on:TRACE_MODAL
+	draw_rect(bb, fill:TAN, opacity:0.8)
+
+	//  create a subset
+	var H = min(bb.width*0.8, 800 pt)
+	var V = min(bb.height*0.8, 400 pt)
+	var totbox <=== solve_rect(basis:bb, pin:5, width:H, height:V)
+	layer area:totbox d_pick_lang
+
+---------------------------
+vert slice d_pick_lang
+	draw_rect(bb, fill:GRAY9, corner:5 pt, thick:2 pt, color:C_BUTT_BORD)
+
+	log "d_pick_lang, bb={bb}" on:TRACE_MODAL
+	skip 10 al
+	add 100 al d_lang_grid
+	skip  5 al
+	add 20 pt d_lang_butts
+	skip 10 al
+
+---------------------------
+horz slice d_lang_butts
+	skip 10 al
+	add 120 pt butt_simple("Cancel", do_cancel_modal)
+	skip 10 al
+
+---------------------------
+calc do_cancel_modal
+	intf.modal_active = N
+
+---------------------------
+grid d_lang_grid order:TBLR
+	horz slice
+		const NCOL = 4
+		const NROW = round_up(NLANGS/NCOL)
+		log "d_lang_grid, NCOL={NCOL}, NROW={NROW}" on:TRACE_MODAL
+		skip 10 al
+		loop reps:NCOL count:cx
+			if cx > 1
+				skip 2 al
+			add 100 pt
+		skip 10 al
+
+	vert slice
+		skip 10 al
+		loop reps:NROW count:rx
+			if cx > 1
+				skip 2 al
+			add 20 pt
+		skip 10 al
+
+	cell
+		if b.cell_seq <= NLANGS
+			var opacity = if is_lang_active(b.cell_seq) then 0.2 else 1
+			draw_rect(bb, fill:C_BUTT_BACK, corner:bb.height*0.3, thick:1 pt, pos:0, color:C_BUTT_BORD, opacity:opacity)
+			draw_str(bb, LANGINFO[b.cell_seq].human, size:0.6, indent:4 pt, color:C_BUTT_TEXT, opacity:opacity)
+
+track EV_TAP
+	if b.cell_seq <= NLANGS
+		log "picked lang# {b.cell_seq} to add" on:TRACE_MODAL
+		//  don't allow duplicates to be built
+		if not is_lang_active(b.cell_seq)
+			do_cancel_modal
+			//  create a new language, by initializing all the strings to MISSING
+			var newlang = LANGINFO[b.cell_seq].blangx
+
+			//  copy over the master to the slave
+			append g[1] ===> g index:newband  // copy over all the phrases
+			newlang => g[newband].langx  // fix the new language
+
+			//  the master has status of STATUS_MASTER, fix that
+			loop across:g[newband].phrases ptr:phrase
+				//  a new language has all missing translations
+				phrase.status = STATUS_MISSING
+
+---------------------------
+calc is_lang_active (
+	slotx   //  language slot number in array
+	) : yesno
+	var targ_langx = LANGINFO[slotx].blangx
+	loop across:g index:bandx
+		if g[bandx].langx == targ_langx
+			return Y
+	return N
+
+---------------------------
+calc fpath_replace_filename (
+	fpath : str
+	new_name : str
+	) : str  //  fpath with file name substituted
+	var result : str
+	var list : array of a_find
+	str_find(fpath, "/", list, reps:INFINITY)
+	var nlist = tree_count(list)
+	if nlist > 0
+		//  include up to the slash
+		result = subset(fpath, from:1, to:list[nlist].find_start) & new_name
+	else
+		//  orig path didn't have slash, so replace the entire file name
+		result = new_name
+	//log "replace_filename, fpath={fpath}, new={new_name}, result={result}"
+	return result
+
+---------------------------
+calc write_fixes  //  write back the original .beads file with all the fixes
+	//log "...end do_scan_beads, would make {tree_count(gfixes)} fixes" on:TRACE
+	if tree_count(gfixes) > 0
+		log "-- writing fixes for project {intf.proj_name}"
+		//  rewrite the input file
+		output = input
+		if TRACE
+			loop across:gfixes ptr:c rev:Y
+				log "  fix at {c.lbracket}, [{c.msg}] strx {c.strx}" on:TRACE
+				//  insert the new index in front of the right bracket (one after the left bracket)
+				output = str_ins(output, to_str(c.strx), to:c.lbracket+1)
+
+		//  delete the old backup if there was one
+		rename_to_backup (intf.proj_fpath)
+
+		//  save the modified beads source code file
+		fs_write_str(intf.proj_fpath, output)
+
+---------------------------
+//  rename a file to .bak so we can restore it if we don't like the result
+calc rename_to_backup (
+	fpath : str  -- file to rename
+	)
+	var backup_path = fs_replace_suffix(fpath, ".bak")
+	fs_delete(backup_path)  //  remove 2nd backup 
+	fs_rename (fpath, backup_path)  //  now rename should always work
+
+---------------------------
+calc read_string_file (
+	langx  // which language you want to read
+	) : yesno
+	//  calculate the path of the string file
+	//  has to be in the same folder as the base project name
+	var fpath = gen_translation_filepath(langx)
+	log "reading translation {fpath}"
+	if not fs_exists(fpath) 
+		log "-- translation file is missing {fpath}"
+		return N
+
+	// file does exist
+	var buf : str = fs_read_str(fpath, encoding:UNICODE_LE)
+
+	//  split the buffer into lines
+	var lines : array of str
+	var words : array of str
+	var table : a_phrase_table
+	var orig   : str
+	var tran   : str
+	var note   : str
+	var status : num
+	var strx   : num
+	var mastx  : num
+
+	table.langx = langx
+
+	split_lines(buf, lines)
+
+	//  line 1 is the header
+	//  beads T 1 T from T <lang> T to T <lang>
+	split_words(lines[1], words)
+	if words[1] <> "beads"
+		log "--- bad format, didn't find 'beads' as first word. file must be in Unicode 16 LE"
+		return N
+
+	//  get the from to languages
+	//from_lang = find_lang(words[4])
+	//to_lang = find_lang(words[6])
+
+	//  loop through the translations
+	var line : str
+	loop across:lines val:line count:cx
+		if cx <= 2
+			continue  //  ignore the first 2 lines
+
+		//  lines are in the format:
+		//   string T orig T trans T status T notes
+		split_words(line, words)
+		strx = to_num(words[1])
+		if is_numeric(strx) <> Y
+			log "encountered bad string number on line {cx} of {fpath}"
+			return N
+
+		status = find_status(words[4])
+		if status == U
+			log "encountered bad status of {words[4]} on line {cx} of {fpath}"
+			return N
+
+		orig = words[2]
+		tran = words[3]
+		note = words[5]
+			
+		//  check if the original has changed, if so, mark as attention
+		mastx = master_index[strx]
+		if orig <> g[1].phrases[mastx].orig
+			log "mismatch in original for string {strx}, marking as attn"
+			status = STATUS_ATTN
+
+		//  add this to the table
+		log "adding {strx}: tran={tran}, status={status}"
+		append { strx:strx, status:status, line:cx, orig:orig, tran:tran, note:note } ===> table.phrases
+
+	//  table successfully built, add it as another band
+	table.nphrases = tree_count(table.phrases)
+	append table ===> g
+	return Y
+
+---------------------------
+calc find_status (
+	targ : str
+	) : num
+	var ss : str
+	loop across:STATUSES val:ss index:ix
+		if targ == ss
+			return ix
+	return U //  not found	
+	
+---------------------------
+calc export_trans (
+	bandx
+	)
+	//  update the original beads source file if we had any fixes
+	write_fixes
+
+	//  loop through the phrases, and emit the csv file
+	//  we will emit even extra items
+	//  first line:  beads TAB 1 TAB ENG TAB FRA
+	//  Excel is well known to malfunction on many combinations of BOM, etc.
+	//  https://stackoverflow.com/questions/155097/microsoft-excel-mangles-diacritics-in-csv-files
+	//  they recommend UTF16le with BOM, with tab
+	var buf : str = "beads\t1\tfrom\t{g[1].langx}\tto\t{g[bandx].langx}\nstring\torig\ttrans\tstatus\tnotes\n"
+	var row : str
+	loop across:g[bandx].phrases index:ix ptr:phrase sort:field strx
+		//  emit strx TAB orig TAB trans TAB status
+		//  we could mark an unused slot, but better to leave it empty
+		var net : str = if phrase.status == STATUS_MISSING then "" else phrase.tran
+		//  when we fix an item to no longer be attn, we will zap the original
+
+		//  get the note from the master
+		var note: str
+		var strx = phrase.strx
+		var mix = master_index[strx]
+		if mix <> U
+			note = g[1].phrases[mix].note
+		if note == U
+			note = ""
+
+		row = "{phrase.strx}\t{phrase.orig}\t{net}\t{STATUSES[phrase.status]}\t{note}\n"
+		row &=> buf
+
+	//  write out the file as project_FRA.txt
+	var fpath = gen_translation_filepath(g[bandx].langx)
+	log "writing translation {fpath}"
+
+	//  make a backup of the old version
+	rename_to_backup (fpath)
+
+	//  Excel mangles UTF8 files when they have foreign letters
+	//  people say only way is to use UTF16 little endian, with BOM written
+	//  中 (middle)	4E2D (20013)	E4 B8 AD	4E2D	4E2D
+	fs_write_str(fpath, buf, encoding:UNICODE_LE)
+
+---------------------------
+calc gen_translation_filepath (  -- calculate the file name for a translated file
+	langx 
+	) : str
+	var filename = "{intf.proj_name}_{langx}.txt"
+	return fpath_replace_filename(intf.proj_fpath, filename)

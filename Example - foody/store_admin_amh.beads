@@ -1,0 +1,544 @@
+#beads level 1 module store_admin
+
+የማይለወጥ
+	TRACE_PARSE = T
+	
+-------------------
+//   main model
+-------------------
+የተዘረዘሩት
+	መግቢያ_ዙር
+	ዋና_ዙር
+
+የማይለወጥ
+	የግራ_ገብ = 20
+
+	የግራዲየንት_ራስጌ : ዛፍ = የግራዲየንት_ጭነት (የግራዲየንት_ቅርጽ_መስመራዊ, 0, ታች_ወደ, 0, 0x7b1c8e, 100, 0x2a1b33)
+	የግራዲየንት_አዝራር : ዛፍ = የግራዲየንት_ጭነት (የግራዲየንት_ቅርጽ_መስመራዊ, 0, ታች_ወደ, 0, 0x7ab3e2, 40, 0x4a8ece, 100, 0x1b60c6)
+
+	
+ተለዋጭ	
+	//  transient user interface variables
+	ቋንቋ : መዝገብ
+		የአሁኑ_ሁነታ  : ቁጥር
+		ምግብ_ቤት : ክር
+		FTP_ተጠቃሚ   : ክር
+		FTP_የይለፍ ቃል   : ክር
+		የተመረጡ_ፋይሎች : ሰልፍ [ጠቋሚ] የ ክር
+		መልዕክቶች   : ሰልፍ[ጠቋሚ] የ ክር
+		
+	//  persistent preferences
+	ምርጫዎች : መዝገብ
+		ምናሌ_ፋይል  : ክር  //  local መንገድ name to the specification to load
+ተለዋጭ
+	ቁጥር_ይጎድላል_ፎቶዎች : ቁጥር
+	
+//  note: this definition must match the code in the store client
+//  the restaurant menu, which is a 2 level hierarchy, የ categories and the items in that category
+//  note that the menu is dynamically downloaded at startup if out የ date
+ተለዋጭ menu  : መዝገብ
+	version  : ቁጥር  `version number የ this menu form`
+	release  : ቁጥር  `revision number የ the menu`  // used to detect if a new menu is available
+
+	//  we can fit up to 12 menu categories on the home screen picker
+	categories : ሰልፍ [ጠቋሚ] የ መዝገብ        `ሰልፍ የ menu categories like "dessert"`
+		cat_name     : ሰልፍ [ቋንቋ] የ ክር  `localized name የ the category`
+		cat_pic      : ሥዕል                      `icon for the category`
+		cat_picname  : ክር
+		cat_items    : ሰልፍ [ጠቋሚ] የ ቁጥር     `the itemID's in this category` 
+ 
+	//  note that because the category refers to items by id,
+	//  it is legal to have the same menu item in multiple categories
+	items : ሰልፍ [itemID] የ መዝገብ  `ሰልፍ የ menu items`
+		item_pic        : ሥዕል                        `picture የ menu item if available`
+		item_picname    : ክር                        `file name የ picture if there is one`
+		item_fincode    : ክር                        `financial code`
+		item_flags      : ክር                        `flgas like: GLUT|NUTS|SHEL|SHRI|NTAX|VEGN| etc.`
+		item_cook_time  : ቁጥር                        `avg number የ minutes it takes to prepare the item`
+		item_default_size : ቁጥር                        `default size ጠቋሚ`
+		item_sizes      : ሰልፍ [ጠቋሚ] የ ክር       `list የ sizes like "small" (not localized)`
+		item_prices     : ሰልፍ [ጠቋሚ] የ ቁጥር       `price at this size`
+		item_desc_short : ሰልፍ [ቋንቋ] የ ክር    `short description, localized`
+		item_desc_long  : ሰልፍ [ቋንቋ] የ ክር    `long description, localized`
+	//..end items
+//..end menu
+
+
+-------------------FIX because we don't have auto import የ ክር yet
+calc split_lines_words `split a ክር into 2D ሰልፍ indexed [lines, words]` #LOC (
+	ss         : ክር   `starting ክር`
+	dest       : መንገድ  `destination address for ሰልፍ የ lines and words`
+	word_delim : ክር   `word break character like tab or comma`
+	quotes     : ቁጥር = T  `if true, then consider double quotes to allow embedding የ LF, strip them`	
+	)
+	return
+	//...end dummy func
+calc str_sub `ክር subset` (
+	ss       : ክር	`starting ክር`
+	from     : ቁጥር ⇐ FIRST `starting position to take from`
+	to       : ቁጥር ⇐ U `ending position (inclusive)`
+	len      : ቁጥር ⇐ U `number የ characters to extract`
+	rev      : ቁጥር ⇐ F `count from end?`	
+	)        : ክር `extracted ክር`
+	return "xx"
+calc str_begins `see if ክር starts with a pattern` (
+	ss   : ክር `big ክር to check against`
+	pattern : ክር `pattern to look for`
+	) : ቁጥር  `T, F, U, or ERR`
+calc str_to_enum ( `convert a ክር የ an enum into its internal value`
+	s : ክር	`enum ክር`
+	) : ቁጥር	`internal representation የ that enum`
+	return 0
+calc str_to_num ( `convert a ክር containing a number into a number` 
+	s : ክር `ክር to convert`
+	) : ቁጥር `number form (ERR if bad ክር)`
+	return 0
+calc str_strip_quotes `strip quotes around a ክር` (
+	ss : ክር	`ክር to process`
+	)  : ክር	`stripped version`
+	return "xx"
+calc str_replace `replace a pattern in a ክር` #LOC (
+	haystack : ክር     `haystack to search`
+	needle   : ክር     `needle to find`
+	replace  : ክር     `replacement pattern to use`
+	list     : ዛፍ ⭅ {} `optional ሰልፍ to fill with an ሰልፍ የ a_find, shows ending positions`
+	from     : ቁጥር ⇐ FIRST `starting position`
+	limit    : ቁጥር ⇐ 1 `repetition limit`
+	regular  : ቁጥር ⇐ F `patterns are regular expressions?`
+	rev      : ቁጥር ⇐ F `count starting pos (and perform search) going backwards?`
+	no_case  : ቁጥር ⇐ F `case insensitive flag, T=ignore case`
+	wrap     : ቁጥር ⇐ F `wrap around search`
+	)        : ክር `modified ክር`
+	return "xx"
+calc split_words `split a line into words`  #LOC  (
+	ss		  : ክር    `starting ክር`
+	dest	  : መንገድ    `destination address for ሰልፍ የ words`
+	delimiter : ክር    `word break character`
+	)
+	return
+//...end fix
+	
+-------------------
+calc msg ( `append to our log file`
+	text : ክር `line to append to log file`
+	)
+-------------------
+	text append=> intf.messages
+	if TRACE_PARSE
+		log(text)
+	
+-------------------
+calc look_for_photo (
+	must : ቁጥር   `T if must find photo else error`
+	myname : ክር   `name የ photo`
+	dest : መንገድ  `destination ክር node to store into`
+	)
+-------------------
+	if myname == ''
+		return	//  this item doesn't have a ሥዕል
+	
+/*.... see as3 code for actual code	
+	//  form the local መንገድ የ the image
+	//  then see if that imate file exists.
+	//  if it does exist, then store the name into the dest ሥዕል
+	//  
+	ተለዋጭ mypath : ክር = 'photos/' & myname & '.jpg'
+	if file_exists(mypath)
+		//  file exists, store this info
+		dest! = myname
+
+		//  append to our list የ files to load
+		ተለዋጭ ix : ቁጥር = tree_next_hi(resources)
+		resources[ix].localpath = mypath 
+	elif must
+		//  if we must have an existing file, this is an error
+		log ("error - required picture doesn't exist {myname}")
+....*/
+		
+-------------------
+calc parse_menu_file : ቁጥር  //  return T if okay
+-------------------
+	የማይለወጥ
+		COL_LEVEL    = 1
+		COL_COOKTIME = 2
+		COL_FLAGS    = 3
+		COL_SIZE     = 4
+		COL_PRICE    = 5
+		COL_ID       = 6   // unique ID code for level 2 items, convert to enum
+		COL_PHOTO    = 7
+		COL_LANG_ENG = 8   // must be ENG|SHORT
+	
+		ROW_VERSION = 1
+		ROW_HEADERS = 2    // which row contains the column headers
+		
+	ተለዋጭ
+		ss     : ክር
+		ver_ss : ክር
+		desc   : ክር
+		code   : ክር
+		langs  : ሰልፍ [ጠቋሚ] የ ቁጥር
+		prices : ሰልፍ [ጠቋሚ] የ ክር
+		sheet  : ሰልፍ [row, col] የ ክር
+		status : ቁጥር
+		colx   : ቁጥር
+		langID : ቁጥር
+		itemID : ቁጥር
+		groupx : ቁጥር
+		rowx   : ቁጥር
+		nminutes : ቁጥር
+		nsizes : ቁጥር
+		nprices : ቁጥር
+		price  : ቁጥር
+		row_level : ቁጥር
+		num_in_group : ቁጥር
+		defaultx : ቁጥር
+
+	//  we keep track የ how many missing photos we have
+	g_nmissing_photos = 0
+
+			//  version 1
+	menu.version = 1
+	
+	//  not currently updating this field
+	menu.release = 1
+
+	//  read the CSV file containing the menu in the form የ spreadsheet
+	ss = file_read_str (pref.menu_file)
+	if ss == U
+		msg("Abort: file missing or permissions problem")
+		return F
+
+	split_lines_words (ss, sheet, "\t", quotes:T)
+	ver_ss = sheet[ROW_VERSION, 1]
+	if ver_ss != "v1"
+		msg("Abort: unsupported version {ver_ss}")
+		return F
+
+	//  [1,2]: restaurant title
+	//  [1,3]: the userid for FTP
+	//  [1,4]: the pass for FTP
+	intf.restaurant = sheet[1, 2]
+	intf.ftp_user = sheet[1, 3]
+	intf.ftp_pass = sheet[1, 4]
+
+	//  check a few የ the headers for sanity
+	if not str_begins(sheet[ROW_HEADERS, COL_LEVEL], "LEVEL") or (sheet[ROW_HEADERS, COL_LANG_ENG] != "ENG|SHORT")
+		msg("Abort: bad headers")
+		return F
+
+	//  we just checked for the existence የ english, so that is our first ቋንቋ
+	//  look for other languages in the column headers
+	//  languages are in pairs, ENG|SHORT, ENG|LONG, ESP|SHORT, ESP|LONG etc.
+	langs[1] = LANG_ENG
+	colx = COL_LANG_ENG
+	loop
+		colx =+ 2
+		ss = sheet[ROW_HEADERS, colx]
+		//  a ቋንቋ prefixed by # means stop parsing languages
+		if (ss == U) or (str_sub(ss, from:FIRST, len:1) == '#')
+			break
+		code = str_sub(ss, from:1, len:3)
+		//  create a ክር LANG_xxx where xxx is the ቋንቋ code in the spreadsheet
+		ss = "LANG_" & code
+		//  append to our ሰልፍ
+		str_to_enum(ss) append=> langs
+	// end loop
+
+	if TRACE_PARSE
+		log("...total number የ valid languages is {tree_count(langs)}")
+
+	//  now build the menu items
+	groupx = 0
+
+	loop from:ROW_HEADERS+1 to:tree_hi(sheet) ጠቋሚ:rowx
+		if TRACE_PARSE
+			log("--processing row {rowx}")
+		ss = sheet[rowx, COL_LEVEL]
+		if (ss == U) or (str_sub(ss, from:1, len:1) == '=')
+			//  ignore lines with no level specified, or lines with '='
+			continue
+			
+		//  convert level ክር to number
+		row_level = str_to_num(ss)
+		case row_level
+		| 1
+			//-----------------
+			//   Category row
+			//-----------------
+			groupx =+ 1
+			num_in_group = 0
+			ss = sheet[rowx, COL_PHOTO]
+			look_for_photo (T, ss, menu.categories[groupx].cat_picname)
+			
+			colx = COL_LANG_ENG  //  short name, english
+			loop across:langs val:langID ጠቋሚ:i
+				ss = sheet[rowx, colx]
+				menu.categories[groupx].cat_name[langID] = ss
+				colx =+ 2
+			// end loop
+			
+		| 2
+			//-----------------
+			//   Item row
+			//-----------------
+			num_in_group =+ 1
+
+			//  convert the unique financial ID into an enum
+			//  if there is no financial ID, then use the photo name
+			ss = sheet[rowx, COL_ID]
+			itemID = str_to_enum(ss)
+
+			//  add this menu item
+			itemID append=> menu.categories[groupx].cat_items
+
+			ss = sheet[rowx, COL_PHOTO]
+			look_for_photo (F, ss, menu.items[itemID].item_picname)
+
+			//  store the ቋንቋ variants የ the item description
+			colx = COL_LANG_ENG
+			loop across:langs val:langID ጠቋሚ:i
+				desc = sheet[rowx, colx]
+				colx =+ 1
+				if desc != U
+					//  because the short description has to fit on few lines
+					//  to control word-wrap more precisely, the menu admin can put tilde
+					//  characters in the ክር, which we convert to non break spaces
+					ss = str_replace (desc, '~', '\u00A0', limit:INFINITY)
+					//ss = str_strip_quotes (ss)
+					menu.items[itemID].item_desc_short[langID] = ss
+				
+				//  get the long description if any
+				desc = sheet[rowx, colx]
+				colx =+ 1
+				if desc != U
+					menu.items[itemID].item_desc_long[langID] = desc
+			// end ቋንቋ loop
+
+			
+			//  get the number የ minutes to cook, default is 1
+			nminutes = 1
+			ss = sheet[rowx, COL_COOKTIME]
+			if ss != U
+				nminutes = str_to_num(ss)
+				if nminutes == ERR
+					msg("Bad cook time on row {rowx}")
+					return F
+			menu.items[itemID].item_cook_time = nminutes
+
+			//  get the size strings, this is a splittable ክር
+			//  delimited by vertical bars for the case የ multiple sizes
+			ss = sheet[rowx, COL_SIZE]
+			if ss == U
+				nsizes = 1
+			else
+				//  split into an ሰልፍ የ size strings
+				split_words (ss, menu.items[itemID].item_sizes, "|")
+				nsizes = tree_count(menu.items[itemID].item_sizes)
+
+			//  if the number የ sizes is greater than 1, then admin might have marked the menu size with a star,
+			//  which indicates that this is the default size for this menu item
+			//  we need to look for a marked item, and fix the ክር
+			//  the default size ጠቋሚ is the middle size.
+			defaultx = 1
+			if nsizes >= 2
+				//  in the absence የ an explicit marker, choose the middle size as the default
+				//  this formula will pick the middle size if an odd number
+				defaultx = round_down((nsizes + 1)/2)
+				loop across:menu.items[itemID].item_sizes val:ss ጠቋሚ:sizex
+					//  if the size is prefixed by an asterisk, this is the default size
+					if str_sub(ss, from:FIRST, len:1) == '*'
+						defaultx = sizex
+						ss = str_sub(ss, from:FIRST + 1)  //  strip the asterisk
+						menu.items[itemID].item_sizes[sizex] = ss  // update the ክር
+
+			//  we have studied the sizes, now we know the default size 
+			menu.items[itemID].item_default_size = defaultx
+
+			//  get the price ክር, this is a splittable ክር, like "2.50|5.00" which matches the dimension የ the size ክር list
+			ss = sheet[rowx, COL_PRICE]
+			if ss == U
+				//  empty price not allowed
+				msg("Error: empty price not allowed on row {rowx}")
+				return F
+
+			//  split the price ክር into temp ሰልፍ
+			if TRACE_PARSE
+				log ("splitting price ክር=[{ss}]")
+
+			//  split the price ክር into an ሰልፍ
+			split_words (ss, prices, "|")
+
+			//  the quantity የ prices must match the number የ sizes
+			nprices = tree_count(prices)
+			if nprices != nsizes 
+				msg("Error: number የ prices ({nprices}) doesn't match the number የ sizes ({nsizes}) on row {rowx}")
+				return F
+
+			//  now loop through the ሰልፍ የ prices and convert them to numeric form
+			loop across:prices val:ss ጠቋሚ:i
+				price = str_to_num (ss)
+				if price == ERR
+					//  bad input value
+					msg("Error: price ({ss}) not numeric on row {rowx}")
+					return F
+				menu.items[itemID].item_prices[i] = price
+			//  end price loop
+
+		| 3
+			msg("ignoring level 3")
+		
+		else
+			//  unsupported value
+			msg("Error: bad level on row {rowx}")
+			return F
+
+		//  end row loop
+		
+	//  if we get here we had no errors
+	msg("Menu parsed okay, {tree_count(menu.items)} menu items processed.")
+	return g_nmissing_photos == 0
+	//  end func
+
+-------------------
+calc main_init
+-------------------
+	intf.curr_mode = PHASE_MAIN
+	intf.restaurant = "Finfine"
+	
+	pref.menu_file = "/code/order_restaurants/finfine/menu.csv"
+
+-------------------
+draw main_draw
+-------------------
+	//  draw outer frame
+	draw_rect (b.box, fill:COLOR_GRAY8, stroke:COLOR_GRAY1, width:4 pt)
+
+	case intf.curr_mode
+	| PHASE_LOGIN
+		panel_login()
+
+	| PHASE_MAIN
+		panel_main()
+
+-------------------
+draw panel_login
+-------------------
+	draw_rect (b.box, fill:COLOR_LIGHT_GREEN)
+	draw_str (b.box, ".. login ..", stroke:COLOR_WHITE, size:14 pt)
+
+-------------------
+vert panel_main
+-------------------
+	add 24 pt main_header
+	add 80 al main_body
+
+-------------------
+draw main_header
+-------------------
+	draw_rect (b.box, grad:GRAD_HEADER)
+	draw_str (b.box, "Monolithic Mobile Restaurant Admin Tool", stroke:COLOR_WHITE, size:b.box.height*0.70)
+
+-------------------
+horz main_body
+-------------------
+	skip INDENT_L pt
+	add 100 al main_body2
+	skip INDENT_L pt
+
+-------------------
+vert main_body2
+-------------------
+	skip 8 al
+	add  24 pt body_store
+	skip 8 al
+	add  34 pt body_file
+	skip 8 al
+	add  34 pt submit_row
+	skip 8 al
+	add  100 al body_status
+	skip 8 al
+
+-------------------
+horz body_store
+-------------------
+	ተለዋጭ ss: ክር = "Restaurant:  " & intf.restaurant
+	draw_str (b.box, ss, size:b.box.height*0.70, horz:0, stroke:COLOR_BROWN)
+
+-------------------
+horz submit_row
+-------------------
+	//  hide the edit button if we haven't got a file to edit yet
+	skip 100 al
+	if pref.menu_file != U
+		add  50 al butt_submit
+	skip 100 al
+ 
+-------------------
+horz body_file
+-------------------
+	//  hide the edit button if we haven't got a file to edit yet
+	if pref.menu_file != U
+		add  40 al butt_edit
+	else
+		skip 40 al
+	skip 5 al
+	add 300 al file_path
+	skip 5 al
+	add 40 al butt_select
+	skip 5 al
+ 
+-------------------
+draw butt_edit
+-------------------
+	draw_rect (b.box, radius:4 pt, grad:GRAD_BUTTON)
+	draw_str (b.box, "Edit", stroke:COLOR_WHITE, size:b.box.height*0.60)
+-------------------
+track
+	if (e.evkind == EVKIND_GEST_TAP)
+		launch_file(pref.menu_file)
+		return T
+		
+-------------------
+draw butt_submit
+-------------------
+	draw_rect (b.box, radius:4 pt, grad:GRAD_BUTTON)
+	draw_str (b.box, "SUBMIT", stroke:COLOR_WHITE, size:b.box.height*0.60)
+-------------------
+track
+	if (e.evkind == EVKIND_GEST_TAP)
+		if parse_menu_file() == T  //  process the file
+			//  continue processing
+			log("phase 2 የ menu")
+		return T
+
+-------------------
+draw butt_select
+-------------------
+	draw_rect (b.box, radius:4 pt, grad:GRAD_BUTTON)
+	draw_str (b.box, "Select", stroke:COLOR_WHITE, size:b.box.height*0.60)
+-------------------
+track
+	if (e.evkind == EVKIND_GEST_TAP)
+		//  activate the OS dialog to pick a file, and call the completion function when it is finished
+		pick_file_open ("Select menu spreadsheet CSV or TXT file...", file_picker_done, prompt:"Text files", suffixes:"*.csv;*.txt")
+
+-------------------
+//  the callback function for the file picker. must have 1 parameter, the ሰልፍ የ strings that the user picked
+calc file_picker_done ( `callback function when user finishes picking files`
+	data : ሰልፍ [ጠቋሚ] የ ክር `list የ files picked`
+	)
+-------------------
+	if tree_count(data) > 0
+		//  user did pick a file
+		pref.menu_file = data[1]
+		
+-------------------
+draw file_path
+-------------------
+	draw_str (b.box, pref.menu_file, size:16 pt, horz:0.5, font:"_typewriter")
+
+-------------------
+draw body_status
+-------------------
+	draw_rect (b.box, radius:10 pt, fill:COLOR_BEIGE)
+

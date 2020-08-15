@@ -1,0 +1,532 @@
+#beads level 1 module galvans
+
+-------------------
+//   main model
+-------------------
+enum
+	ORDER_BUILDING 		//  order being constructed
+	ORDER_SUBMITTED		//  order has been transmitted to HQ, awaiting reply
+	ORDER_ACK			//  order has been acknowledged, cooking started
+	ORDER_READY			//  order ready for pickup
+	ORDER_CANCELLED		//  order was cancelled for some reason
+
+	//  user interface modes
+	MODE_HOME
+	MODE_MAP
+	MODE_CONTACT
+	MODE_SETTINGS
+	MODE_RECENT
+	MODE_NEW_ORDER
+	MODE_REORDER
+	MODE_ITEM_LIST
+	MODE_ITEM_DETAIL
+
+const
+	N_ORDERS_SAVED = 10		//  how many previous orders do we save
+
+//  record for each store
+record a_store
+	store_name     : str   // name of this store
+	store_addr     : str   // address of the store
+	store_taxrate  : num   // sales tax rate for this store
+
+//  item on the menu, indexed by ID
+record a_menu_item
+	item_pic       : pic  //  picture of item if available
+	item_cooktime  : num  //  number of minutes it takes to prepare
+	item_taxable   : num  //  T if taxable, otherwise non-taxable
+	item_allergy   : str  //  allergy strings concatenated, like: GLUT|NUTS|SHEL|SHRI etc.
+	item_sizes     : tree //  array 1..N of str
+	item_prices    : tree //  array 1..N of num
+
+// an item in the cart
+record a_cart_item
+	//  the id + sizex specify an item that we are ordering
+	id	    : num  //  unique enum id of the menu item
+	sizex   : num  //  size index (1, 2,...)
+	qty     : num
+	extprice: num  //  extended price including tax
+
+//  each menu item belongs to a menu category, like chicken/sides/beverages
+record a_menu_cat
+	cat_name     : str  //  "chicken", "fish", etc.
+	cat_icon     : pic  //  icon for the group
+	cat_items    : tree //  array 1..N of a_menu_item
+
+//  the menu consists of a list of groups, and then an item tables
+record a_menu
+	menu_cats    : tree // array 1..N of a_menu_cat
+	menu_items   : tree // array 1..N of a_menu_item
+
+//  the shopping cart
+record a_cart
+	cart_items    : tree // array 1..N of a_line_item
+	cart_est_cooktime : num   //  (derived) estimated cooktime, the max of all item_cooktimes in the cart
+	cart_act_cooktime : num   //  restaurant estimate of cooking time after order is acknowledged (updated periodically)
+	cart_subtot   : num  //  (derived) overall subtotal
+	cart_adjust   : num  //  manager adjustment or store coupon to subtotal
+	cart_subtot2  : num  //  (derived) subtotal after adjustments/coupons
+	cart_tax      : num  //  sales tax on subtotal2 
+	cart_tot      : num  //  (derived) net amount billed to card
+	cart_date     : num  //  date/time the cart was sent
+	cart_status   : num  //  status of the cart: ORDER_BUILDING, etc.
+	cart_cc_trn   : str  //  card transaction number
+
+//  user preferences stored on the local machine
+record a_user
+	user_name : str   //  user name we use to log into the system
+	user_lang : num   //  which language they like to use
+	user_allergies : str //  which allergy strings we wish to avoid
+
+//  state values related to the user interface
+record a_intf
+	intf_lang : num  //  currently selected language LANG_ENG, ...
+	intf_mode : num  //  MODE_HOME, etc.
+	intf_cat  : num  //  currently selected menu category (fish, chicken, etc.)
+	intf_item : num  //  currently selected item index
+	
+//  state variables holding the model
+var history : tree // array 1..10 of a_cart  //  array of shopping carts, first record is most recent
+var stores  : tree // array 1..N of a_store
+var menu : a_menu
+var user : a_user // user preferences
+var intf : a_intf //  user interface state
+
+//  global variables to keep user interface elements consistent in size
+var buttv : num
+
+const 
+	bitmap_logo : pic = pic_load ('Z:/CodeW/art_galvans/galvans_logo.png')
+	bitmap_gear : pic = pic_load ('Z:/CodeW/art_galvans/icon_gear_100.png')
+
+resource
+	//file: 'Z:/CodeW/art_galvans/galvans_logo.png'  as: bitmap_logo
+	//file: 'Z:/CodeW/art_galvans/icon_gear_100.png' as: bitmap_gear
+	folder: 'Z:/CodeW/art_galvans/menu_cat' into: menu[menu_cats, ?, cat_icon] index:tail
+	
+---------------------------
+calc main_init
+---------------------------
+	//  read in the menu from the spreadsheet - in production we grab this over the internet
+	// xxx
+
+	//  leave history empty for now
+
+	//  for now just store the data into the store record
+	stores[1].store_name = "Laurel district"
+	stores[1].store_addr = "1234 Macarthur Blvd."
+	stores[1].store_taxrate = 0.0950
+
+	//  hardcode the user name
+	user.user_name = "John Q. Public"
+	user.user_lang = LANG_ENG
+	// user_allergies = ""
+
+	//  init our interface
+	intf.intf_mode = MODE_HOME
+	intf.intf_lang = LANG_ENG
+
+---------------------------
+draw main_draw
+---------------------------
+	draw_rect (b.box, fill:0x303030)
+	case intf.intf_mode
+		| MODE_HOME
+			home_base()
+		| MODE_MAP
+			home_map()
+		| MODE_SETTINGS
+			home_settings()
+		| MODE_RECENT
+			home_recent()
+		| MODE_CONTACT
+			home_contact()
+		| MODE_NEW_ORDER
+			home_new_order()
+		| MODE_REORDER
+			home_reorder()
+		| MODE_ITEM_LIST
+			d_item_list()
+		| MODE_ITEM_DETAIL
+			d_item_detail()
+			
+---------------------------
+draw d_item_list
+---------------------------
+	//  split the screen into a header and a srolling list
+	div vert
+		sect 30 pt  sub_header ("List")
+		sect 10 al  d_items_scrolling
+
+---------------------------
+draw d_items_scrolling
+---------------------------
+	//  the body of the scrolling list.
+	var catx : num = intf.intf_cat // current menu category
+	var rowv : num
+	
+	//  this is where the action is! 
+	table mytable
+		columns
+			add 10 pt // quantity
+			add 10 al // name
+			add  1 pt // guard space
+			add 30 pt // price
+			add  3 pt // indent
+			
+		kind line_item
+			sect sect_qty 1
+			sect sect_name 1
+			skip 1
+			sect sect_price 1
+		
+		rows
+			-- add a row for each tiem in the current menu category
+			loop across: menu.menu_cats[catx].cat_items index:itemx
+				--  look at the item detail, if it has more than 1 price, give it a fatter row
+				var nprices : num = 1 //  xxx temp fix xcount()
+				if nprices == 1
+					-- single price, can use a thinner slot
+					rowv = 19
+				else
+					rowv = 29
+				--  add a row of the given height
+				row rowv pt line_item
+	
+
+---------------------------
+draw d_item_detail
+---------------------------
+	draw_str (b.box, "item detail", size:10 pt)
+
+---------------------------
+draw home_map
+---------------------------
+	div vert
+		sect 30 pt  sub_header ("Map")
+		sect 10 al  body_map
+
+---------------------------
+draw home_settings
+---------------------------
+	div vert
+		sect 30 pt  sub_header ("Settings")
+		sect 10 al  body_settings
+
+---------------------------
+draw home_recent
+---------------------------
+	div vert
+		sect 30 pt  sub_header ("Recent Orders")
+		sect 10 al  body_recent
+
+---------------------------
+draw home_contact
+---------------------------
+	div vert
+		sect 30 pt  sub_header ("Contact Us")
+		sect 10 al  body_contact
+
+---------------------------
+draw home_new_order
+---------------------------
+	div vert
+		sect 30 pt  sub_header ("Menu")
+		sect 10 al  category_picker
+
+---------------------------
+draw home_reorder
+---------------------------
+	div vert
+		sect 30 pt  sub_header ("Recent Orders")
+		sect 10 al  body_reorder
+
+---------------------------
+draw sub_header (
+	label : str  `label to draw at top`
+	)
+---------------------------
+	draw_rect (b.box, fill:COLOR_GRAY2)
+	div horz
+		sect 50 al hdr_butt_back
+		sect 50 al hdr_label(label)
+		//  if the cart is empty we should hide this button
+		sect 50 al hdr_butt_cart
+
+		
+---------------------------
+draw category_picker
+---------------------------
+	//  background fill
+	draw_rect (b.box, fill:COLOR_GRAY1)
+	
+	//  so that the black grid seems square, calculate the smaller of the two grids
+	//  we used to use 10 al for the grid space, which is 10/320th of the total
+	var spacing = min(b.box.width/32, b.box.height/32)
+	
+	//  draw the grid of 3x4 = 12 cells
+	grid category_cell
+		horz
+			//skip    2 pt
+			sect  100 al 
+			skip   spacing px 
+			sect  100 al 
+			skip   spacing px 
+			sect  100 al 
+			//skip    2 pt
+		vert
+			//skip    1 pt
+			sect  100 al 
+			skip   spacing px 
+			sect  100 al 
+			skip   spacing px 
+			sect  100 al 
+			skip   spacing px 
+			sect  100 al 
+			//skip    1 pt
+---------------------------
+track
+	if e.evkind == EVKIND_GEST_TAP
+		var cellx : num = b.cell_ix
+		if menu[cellx].item_prices[1] != U
+			intf.intf_mode = MODE_ITEM_LIST
+			intf.intf_cat  = cellx
+		return T
+
+------------------
+draw category_cell
+------------------
+//  inside grid draw function, b has properties cell_box, cell_ix, cell_col, cell_row
+	var groupx : num = b.cell_ix
+	var label : str = menu.menu_cats[groupx].cat_name[intf.intf_lang]
+	if label != ""
+		//  this is not an empty cell in the category grid, it has a label
+		
+		var image : pic = menu.menu_cats[groupx].cat_icon 
+		draw_pic (image, box:b.cell_box)
+		
+		var r : a_rect = solve_rect (basis:b.cell_box, pin:8, height:14 pt)
+		draw_rect (r, radius:2 pt, fill:COLOR_DARK_GREEN, opacity:0.5)
+		draw_str (r, label, stroke:COLOR_WHITE, size:12 pt)
+	
+---------------------------
+draw body_reorder
+---------------------------
+	draw_str (b.box, "body reorder", size:36, fill:COLOR_DARK_GREEN, stroke:COLOR_WHITE)
+
+---------------------------
+draw body_recent
+---------------------------
+	draw_str (b.box, "body recent", size:36, fill:COLOR_DARK_GREEN, stroke:COLOR_WHITE)
+
+---------------------------
+draw body_contact
+---------------------------
+	draw_str (b.box, "body contact", size:36, fill:COLOR_DARK_GREEN, stroke:COLOR_WHITE)
+
+---------------------------
+draw body_map
+---------------------------
+	draw_str (b.box, "body Map", size:36, fill:COLOR_DARK_GREEN, stroke:COLOR_WHITE)
+
+---------------------------
+draw body_settings
+---------------------------
+	draw_str (b.box, "body Settings", size:36, fill:COLOR_DARK_GREEN, stroke:COLOR_WHITE)
+
+---------------------------
+draw hdr_butt_back
+---------------------------
+	var r : a_rect = solve_rect (basis:b.box, pin:5, inset:2 pt)
+	draw_rect (r, fill:COLOR_BROWN, radius:3 pt)
+	draw_str (b.box, "\u25c0 Back", size:b.box.height*0.30, stroke:COLOR_WHITE)
+---------------------------
+track
+	if e.evkind == EVKIND_GEST_TAP
+		//  so we can re-use this function, if we are in the detail page go back to the list
+		case intf.intf_mode
+			| MODE_ITEM_DETAIL
+				intf.intf_mode = MODE_ITEM_LIST
+			| MODE_ITEM_LIST
+				intf.intf_mode = MODE_NEW_ORDER
+			else
+				intf.intf_mode = MODE_HOME
+	
+		return T
+
+---------------------------
+draw hdr_butt_cart
+---------------------------
+	var r : a_rect = solve_rect (basis:b.box, pin:5, inset:2 pt)
+	draw_rect (r, fill:COLOR_BROWN, radius:3 pt)
+	draw_str (b.box, "Cart", size:b.box.height*0.30, stroke:COLOR_WHITE)
+---------------------------
+track
+	if e.evkind == EVKIND_GEST_TAP
+		intf.intf_mode = MODE_HOME
+		return T
+		
+---------------------------
+draw hdr_label (
+	label : str  `label to draw at top`
+	)
+---------------------------
+	draw_str (b.box, label, size:b.box.height*0.4, stroke:COLOR_WHITE)
+	
+
+---------------------------
+draw home_base
+---------------------------
+	div vert
+		sect 40 al d_main_header
+		sect  2 al d_main_divider
+		sect 20 al d_kitchen_warning
+		skip  2 al
+		sect 36 al d_new_order
+		skip  8 al 
+		sect 90 al d_reorder
+		skip  2 al
+		sect 36 al d_motd
+		skip  2 al
+		sect 36 al d_main_footer
+
+---------------------------
+draw d_main_header
+---------------------------
+	draw_rect (b.box, fill:0x015106)
+	div horz
+		sect 50 al d_header_txt
+		sect 10 al d_header_icon
+
+---------------------------
+draw d_header_txt
+---------------------------
+	var inner = solve_rect (basis:b.box, pin:5, inset:2 pt)
+	draw_pic (bitmap_logo, box:inner)
+
+---------------------------
+draw d_header_icon
+---------------------------
+	var back = solve_rect (basis:b.box, pin:5, inset:1 pt, square:T)
+	draw_rect (back, fill:COLOR_BROWN, radius:4 pt)
+	var inner = solve_rect (basis:b.box, pin:5, inset:2 pt, square:T)
+	draw_pic (bitmap_gear, box:inner)
+
+---------------------------
+draw d_main_divider
+---------------------------
+	draw_rect (b.box, fill:0x1d7069)
+
+---------------------------
+draw d_kitchen_warning
+---------------------------
+	draw_str (b.box, "Kitchen closes in 32 min.", size:b.box.height*0.5, stroke:COLOR_LINEN, indent:b.box.width/20)
+
+---------------------------
+draw d_motd
+---------------------------
+	//  we are supposed to retrieve the MOTD from the server
+	draw_str (b.box, "We will be closed\nSunday, July 32", size:b.box.height*0.25, stroke:COLOR_LINEN, indent:b.box.width/20, wrap:T)
+
+---------------------------
+draw d_recent_order
+---------------------------
+	draw_str (b.box, "12 pc Chicken\n2 cole slaw\n2 mashed potato\n2 diet coke\n1 rum cake", horz:0, size:12 pt, stroke:COLOR_WHITE)
+
+---------------------------
+draw butt_recent
+---------------------------
+	draw_rect (b.box, fill:COLOR_BROWN, radius:8 pt)
+	draw_str (b.box, "Recent", size:b.box.height*0.45, stroke:COLOR_WHITE, indent:2 pt)
+---------------------------
+track 
+	if e.evkind == EVKIND_GEST_TAP
+		intf.intf_mode = MODE_RECENT
+		return T
+
+---------------------------
+draw butt_map
+---------------------------
+	draw_rect (b.box, fill:COLOR_BROWN, radius:8 pt)
+	draw_str (b.box, "Map", size:b.box.height*0.45, stroke:COLOR_WHITE, indent:2 pt)
+---------------------------
+track 
+	if e.evkind == EVKIND_GEST_TAP
+		intf.intf_mode = MODE_MAP
+		return T
+	//  we automatically imply a return of F if we don't return T
+	
+---------------------------
+draw butt_contact
+---------------------------
+	draw_rect (b.box, fill:COLOR_BROWN, radius:8 pt)
+	draw_str (b.box, "Contact", size:b.box.height*0.45, stroke:COLOR_WHITE, indent:2 pt)
+---------------------------
+track 
+	if e.evkind == EVKIND_GEST_TAP
+		intf.intf_mode = MODE_CONTACT
+		return T
+
+---------------------------
+draw butt_new_order
+---------------------------
+	//  since the new order button gets drawn first, save its size so that later buttons match it
+	buttv = b.box.height
+	draw_rect (b.box, fill:COLOR_BROWN, radius:8 pt)
+	draw_str (b.box, "New order", size:b.box.height*0.5, stroke:COLOR_WHITE, indent:2 pt)
+---------------------------
+track 
+	if e.evkind == EVKIND_GEST_TAP
+		intf.intf_mode = MODE_NEW_ORDER
+		return T
+
+---------------------------
+draw butt_reorder
+---------------------------
+	draw_rect (b.box, fill:COLOR_BROWN, radius:8 pt)
+	draw_str (b.box, "Reorder", size:b.box.height*0.4, stroke:COLOR_WHITE, indent:2 pt)
+---------------------------
+track 
+	if e.evkind == EVKIND_GEST_TAP
+		intf.intf_mode = MODE_REORDER
+		return T
+
+---------------------------
+draw d_new_order
+---------------------------
+	//  new order button for home screen
+	div horz
+		skip 10 al
+		sect 50 al butt_new_order
+		skip 10 al
+
+---------------------------
+draw d_reorder
+---------------------------
+	//  reorder area for home screen
+	div horz
+		skip  2 al
+		sect 40 al d_reorder_butt1
+		skip  2 al
+		sect 60 al d_recent_order
+		skip  1 al
+
+---------------------------
+draw d_reorder_butt1
+---------------------------
+	div vert
+		skip 100 al
+		sect  buttv px butt_reorder
+		skip 100 al
+
+---------------------------
+draw d_main_footer
+---------------------------
+	div horz
+		skip  2 al
+		sect 80 al butt_recent
+		skip  6 al
+		sect 80 al butt_map
+		skip  6 al
+		sect 80 al butt_contact
+		skip  2 al

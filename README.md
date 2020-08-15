@@ -14,6 +14,17 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 7. a simple and flexible module system 
 8. no make system needed for most projects
 
+### Example: Translation tool
+
+This is the handy graphical interactive localization utility for Beads. It allows you to visit Google translate to get your translation started, and lets you keep track of your translation progress, add new languages, etc.
+
+Beads has a wonderful localization methodology, that people will find user friend and convenient.
+
+for a [video explanation of how to use it](https://youtu.be/xKQ9Uj8o_4w)
+
+![screenshot](https://beadslang.com/examples/localize/screenshot.gif)
+
+
 ### Example: Temperature control
 
 This is a simple temperature control which demonstrates the physical units of measurement in Beads, and how you can have a dual control and either one will update the model and refresh the other version of the control that uses the same data, all without locks or conflicts arising.

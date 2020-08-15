@@ -1,0 +1,2777 @@
+beads 1 program foody
+
+const
+	TRACE_SCROLL = N
+	TRACE_MODE = N
+	TRACE_ANIMATE = Y
+	TRACE_MODAL = N
+
+	VERSION = "0.12"
+
+	SKIP_ANIMATE_TAP = Y
+
+	BACK_SS = "⬅  Back"[] //  string we use for back buttons
+	MORE_SS = "⬅  Order more"[]
+	CART_SS = "⬅  Cart"[]
+	MINUS_SS = "\u2212"  //  unicode minus sign
+
+	LANGUAGES_AVAIL = [LANG_ENG, LANG_ESP]
+	LANGUAGE_NAMES = ["English", "Español"]
+
+---------------------------
+//resource
+---------------------------
+	// must come after state variables are defined
+	//folder: 'Z:/CodeW/art_galvans/category_photos' into: menu[categories, ?, pic] index:tail
+	//folder: 'Z:/CodeW/art_galvans/item_photos' into: menu[items, ?, item_pic] index:name
+
+var ANIM_ACTIVITY : array of image notrack nolog
+
+assets local:"art/" remote:"http://beaslang.com/examples/foody/art"
+	file:"generic_map.jpg" label:GENERIC_MAP
+	//file:"icons/icon_gear_100.png" label:ICON_GEAR preload
+	//file:"icons/card_security_100w.png" label:ICON_CSC
+	//font:"avenir_demi_cond_freefonts.otf" label:MAIN_FONT
+	folder:"mcdonalds/animations" into:ANIM_ACTIVITY index:seq preload
+
+=================================================
+//  our table of credit card issuers
+assets local:"art/" remote:"http://beaslang.com/examples/foody/art"
+	//  icons are 128x80, which is aspect ratio of 1.6
+	file:"icons/card_amex_128.png" label:ICON_AMEX
+	file:"icons/card_discover_128.png" label:ICON_DISC
+	file:"icons/card_mastercard_128.png" label:ICON_MC
+	file:"icons/card_visa_128.png" label:ICON_VISA
+
+//  credit card issuer rules:
+//    3... AMEX
+//    4... VISA
+//    5... MC
+//    6... DISCOVER
+
+record a_card_issuer
+	icon : image
+	numlen   //  AMEX is 15, rest are 16
+	codelen  //  AMEX is 3, rest are 4
+	prefix : str
+
+enum
+	ISSUER_AMEX
+	ISSUER_DISC
+	ISSUER_MC
+	ISSUER_VISA
+	//ISSUER_DINERS
+	//ISSUER_JCB
+
+const ISSUERS : array of a_card_issuer <=== { ISSUER_AMEX:{icon:ICON_AMEX, numlen:15, codelen:4, prefix:"3" },
+	ISSUER_DISC:{icon:ICON_DISC, numlen:16, codelen:3, prefix:"4" },
+	ISSUER_MC:{icon:ICON_MC, numlen:16, codelen:3, prefix:"5" },
+	ISSUER_VISA:{icon:ICON_VISA, numlen:16, codelen:3, prefix:"6" } }
+
+=================================================
+
+const MAIN_FONT = "_serif"
+
+-------------------
+//   main model
+-------------------
+enum
+	//  if we allow enum's to be 2D, then we can use the upper type as a type restriction
+	//  which can then prevent assignment by mistake at compile time.
+	ORDER_BUILDING 		//  order being constructed
+	ORDER_SUBMITTED		//  order has been transmitted to HQ, awaiting reply
+	ORDER_ACK			//  order has been acknowledged, cooking started
+	ORDER_READY			//  order ready for pickup
+	ORDER_CANCELLED		//  order was cancelled for some reason
+
+	//  user interface modes (intf.curr_mode)
+	MODE_STORE_LIST  //  pick a restaurant
+	MODE_CAT_LIST    //  pick a category
+	MODE_ITEM_LIST   //  pick an item inside a category
+	MODE_ITEM_DETAIL //  look at an item in detail (coming from item list)
+	MODE_CART_DETAIL //  edit an item in detail (coming from cart)
+	MODE_CART	     //  view the shopping cart
+	MODE_PAYMENT	 //  pick which payment card to use
+	MODE_ADDCARD	 //  add another credit card
+	MODE_EDITCARD	 //  edit an existing card on file
+	MODE_SUBMIT      //  final order submission
+
+	MODE_MAP
+	MODE_CONTACT
+	MODE_SETTINGS
+	MODE_RECENT
+	MODE_REORDER
+
+const
+	DUMMY_RECENT = Y		//  during testing, dummy up a recent order
+
+	N_ORDERS_SAVED = 10   //  how many previous orders do we save
+
+	C_DEAD = #121D21  // rgb(51, 84, 95)
+	C_DEAD2 = #121D21  // dark blue
+	C_ITEM_DIV = PURPLE  //  dividing line color
+	C_ITEM_TEXT = BEIGE
+	C_ITEM_DEAD = GRAY9
+	C_ITEMLIST_FOOT = #4D441A  // tan
+	C_ITEMLIST_EDGE = #918031 // light tan
+
+	C_BUTT_BACK = rgb(1,59,138) // rgb(2,93,218)  blue
+	C_BUTT_NEXT = #700A48  //  magenta, encourage user to press this button
+	C_BUTT_TEXT = IVORY
+	C_BUTT_BORD = DODGER_BLUE
+	C_BUTT_DEL = rgb(255,38,38)  // color for delete X in store picker
+
+	C_ENTRY_LO_BACK = #395D74  // teal
+	C_ENTRY_LO_BORD = DODGER_BLUE
+	C_ENTRY_LO_TEXT = C_BUTT_TEXT
+
+	C_BUTT_BACK_HI = #8AAAE5
+	C_BUTT_TEXT_HI = #042350
+
+	C_SIZE_BACK_LO = DARK_GREEN
+	C_SIZE_BACK_HI = C_BUTT_BACK
+	C_SIZE_FORE    = WHITE
+	C_SIZE_TRIANGLE = #5d1715  //  used on top of SIZE_BACK_HI
+
+	ITEM_QTY_LIMIT = 20
+	ITEM_SIZE      = 10
+	ITEM_LEADING   = 12
+	ITEM_INDENT    = 1
+	DESC_INDENT    = 4  // points to indent on the left
+	
+	//MAIN_FONT      = "$Avenir"
+	QTY_FONT       = "_sans"  //  is fatter than the main font, better for a letter inside a circle
+	BUTT_FONT      = "_sans"
+
+	DUMMY_CART     = Y
+	BUTT_RADIUS    = 3
+
+	GRADIENT_LIST:a_gradient <=== { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM, 
+		grad_stops:[ { stop_pos:0,   stop_color:#ebf4f4 },
+					 { stop_pos:100, stop_color:#c2e1e1 }] }
+	GRADIENT_TOTAL:a_gradient <=== { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM, 
+		grad_stops:[ { stop_pos:0,   stop_color:#ebf4f4 },
+					 { stop_pos:100, stop_color:#d2d1dd }] }
+
+	FOOTER_INDENT = 4 //  horz space between rightmost buttons and scrollbar
+	SBAR_THICK = 20  //  thickness of scrollbar. 
+
+//--------------------
+//   restaurant variables
+//--------------------
+
+record a_creditcard
+	nickname  : str
+	cardholder: str
+	cardnum   : str
+	zipcode   : str  //  billing zipcode
+	csc       : str  //  3 or 4 digit card security code
+	expire_mm   //  01 = jan
+	expire_yyyy	//  4 digit year like 2025
+	
+var cards_on_file : array of a_creditcard
+
+record a_deal 
+	dealkind  : (DEAL_PRICE,   //  deal is a fixed price
+			DEAL_DIFF)		//  deal is a differential amt on some set of products
+		
+	startdate : a_date //  U means any time before end date
+	enddate   : a_date //  U means no ending date, always available
+	enabled   : yesno  //  Y means this deal is active
+	req_item  : str    //  key of required item or item set
+	discount_item : str //  key of discounted item or item set
+	discount_price     //  lowered final price or differential
+
+record a_variant
+	name : str  // also used as the key for the variant
+	price   //  additional cost of this item to base price
+	cal     //  calories of this variant
+
+//  the ID of a menu item will be used on the receipt
+record a_menu_item
+	kind       : (ITEM, INGRED, ADDON, OTHER)
+	listed    : yesno  -- if N, then item is hidden from menu
+	available : yesno  -- if N, then item is sold out or unavailable
+	//id       : str  -- ID that we use 
+	name       : str  -- med length name used on receipt
+	name2      : str  -- alternate med length name for this item (chinese for example)
+	abbrev     : str  -- abbreviated string for receipt
+	desc       : str  -- long description
+	flags      : str  -- EGGS,FISH, etc.
+	picfile    : str     -- file system location of picture
+	pic        : image   -- picture of menu item if available
+
+	// these fields are used for items, not ingredients
+	cooktime          -- how many minutes to cook
+	timeslot          -- index in timeslot table
+	meals   : array of num  // subscript in meal array
+	sizes   : array of a_variant //  if only 1 variant, then use [1]
+	default_sizex   : num  -- which variant is selected by default
+	ingred : array of str // array[num] keys to ingredients used inside the item
+	addons : array of str // array[num] keys to things you can add on
+
+record a_item_mod  //  a cart_item modification
+	kind  : (INGRED_MOD, ADDON_MOD)  //  what kind of modification
+	key : str   //  index of ingredient or addon
+	sizex       //  the variant of the item that the user picked
+	cost        //  net cost of the adjustments
+	
+record a_cart_item
+	key : str		//  which item
+	menuitem : ptr to a_menu_item  //  shortcut for adr menu.items[key]
+	qty				//  quantity of the item
+	sizex     	    //  which size (or variant) of the item
+	mods : array of a_item_mod  // customizations of ingredients here
+	has_mods : yesno  //  has active mods?  derived: set in calc_work_totals
+	per_price       //  price of the item after all the addons are factored in
+	adjustment		//  some override for this item's price
+	item_total		//  total for this item qty * price - adjustment
+
+record a_cart
+	cart_items : array of a_cart_item  // indexed by num
+	cooktime_est      //  estimated cooktime, the max of all item_cooktimes in the cart
+	cooktime_actual   //  restaurant estimate of actual cooking time after order is acknowledged (updated periodically)
+	subtot        // derived: derive_cart_subtot //  overall subtotal
+	coupon        //  store coupon
+	adjustment    //  manager adjustment
+	subtot2       // derived: derive_cart_subtot2 //  = subtot + adjustments + coupons
+	tax           // derived: derive_cart_tax //  sales tax on subtotal2 
+	grand_tot     // derived: derive_cart_tot //  net amount billed to card
+	ask_date      //  epoch time the user asked for this order to be ready by
+	bill_date    //  epoch time the billing transaction was done
+	bill_status  //  status of the cart: ORDER_BUILDING, etc.
+	bill_err     //  card transaction error code
+
+record a_timeslot
+	name : str 
+	//  times are in military time 0500 is 5:30 AM, 1300 is 1 PM,  midnite is 2400 1 AM is 2500
+	start_hour  --  start time we can order this item
+	end_hour	--  last time we can order this item
+
+record a_subcat
+	name   : str  -- name of the subcat
+	keys   : array of str  -- array of items that are in this subcat
+
+record a_category  //  first level has subcategory names
+	name     : str       -- name of the category
+	pic      : image     -- icon for the category
+	picfile  : str
+	subcats  : array of a_subcat  -- array of subcategories if present
+
+record a_meal_part
+	item  : str	 --  the category of item or item code, in the meal like "FRIES", or "BEV"
+	credit: num  --  the amount of money towards that kind of item, above that user is given surcharge
+
+record a_meal_desc
+	name  : str  // label for this meal
+	parts : array of a_meal_part
+
+var history : array of a_cart // shopping history, first record is most recent
+var timeslots : array of a_timeslot  // array [num] of various time slots
+var cart : a_cart  // our current shopping cart
+
+//  the restaurant menu, which is a 2 level hierarchy, of categories and the items in that category
+//  note that the menu is dynamically downloaded at startup if out of date
+//  the restaurant menu, which is a 2 level hierarchy, of categories and the items in that category
+//  note that the menu is dynamically downloaded at startup if out of date
+var menu  : record
+	version  --- version number of this menu form
+	release  --- revision number of the menu  // used to detect if a new menu is available
+
+	//  we can fit up to 12 menu categories on the home screen picker
+	categories : array of a_category
+	ncats   //  tree_count(menu.categories)
+
+	//  special meals
+	meals : array of a_meal_desc 
+
+	//  note that because the category refers to items by id,
+	//  it is legal to have the same menu item in multiple categories
+	items : array of a_menu_item  --- indexed by [str]
+//..end menu
+
+
+// user preferences
+var user : record
+	user_name     : str   //  user account name we use to log into the system
+	user_avoid    : str   //  which allergy strings we wish to avoid, like "GLUTEN"
+	user_require  : str   //  which allergy strings we must have, like "VEGAN"
+
+	user_favorites : array of str  //  array of user's favorite items
+
+const 
+	MAX_FAVORITES = 20  // max number of favorite items we will store
+	MAX_ORDER_AMT = 250  //  max order size before we require phone call confirmation
+	MAX_DECLINES  = 3    //  max number of credit card declines before we abort
+
+// user interface state
+var intf : record
+	curr_lang   //  currently selected language enum: LANG_ENG, ...
+	curr_mode   //  MODE_STORE_LIST, etc.
+	curr_store : ptr to a_store //  currently selected store
+	curr_cat    //  currently selected menu category index
+	curr_subcat //  currently selected subcat
+	curr_customizing : yesno //  Y when item being customized
+	curr_edit_item : ptr to a_cart_item  // cart item being edited
+	curr_pay_cardx   //  which card on file the user picked to pay with
+	sbar_pixels  //  how thick the scrollbar is in pixels
+	curr_issuer : ptr to a_card_issuer //  which credit card issuer we have
+	form_ready : yesno
+
+	old_size 
+
+	//------- variables related to animating a tap ripple
+	//ripple_gxy   : a_point  // the center point of the animation in global coord
+	ripple_gx  //  coordinates of animation ripple center in global coord
+	ripple_gy 
+	ripple_running : yesno  //  Y if animation in progress
+	ripple_step   //  animated value 
+
+	//----- variables related to busy animation
+	busy_framex
+	busy_running : yesno
+	busy_id   // id of the loom event
+
+	//----- variables related to scrolling
+	//sbar_stores : a_scrollbar	//  slider for store picker
+	//sbar_items : a_scrollbar	//  slider for items in a category
+
+	//----- variables related to a modal dialog
+	modal_prompt : str
+	modal_cancel : str
+	modal_ok     : str
+	modal_active : yesno
+	modal_action : calc (frozen)
+
+var work : a_cart_item  //  our working cart item, visible in item detail
+//var work_card : a_creditcard  //  our working credit card info record
+
+var input_nickname : a_input_field
+var input_owner : a_input_field
+var input_zipcode : a_input_field
+var input_cardnum : a_input_field
+var input_expire_mm : a_input_field
+var input_expire_yy : a_input_field
+var input_csc : a_input_field
+
+//  global variables to keep user interface elements consistent in size
+var buttv
+
+record a_store
+	name     : str
+	address  : str   // address of the store
+	tax_pct  : num  //  rate in percent
+	pic      : image
+
+var	g_stores : array of a_store
+var	g_nstores
+var g_last_dpi = 0   //  last DPI that we styled the CSS for
+var g_cartitem : ptr to a_cart_item  //  temporary variable
+
+	//  used for animating overlay stuff
+var	mycanvas : a_canvas  -- our canvas bitmap that we draw into
+
+const
+	ANIM_START_DIAM = 25
+	ANIM_STOP_DIAM  = 100 // outer radius before we 
+	ANIM_THICKNESS  = 10
+	ANIM_DURATION   = 0.1  // seconds
+
+var CATEGORY_PICS : array of image
+var HEADER_V  //  used throughout the program
+var FOOTER_V
+	
+assets local:"art/" remote:"http://beaslang.com/examples/foody/art"
+	// store icons are in aspect ratio 2.25
+	file:"barneys/restaurant_logo.jpg" label:STORE_BARNEY
+	file:"chickfilA/restaurant_logo.jpg" label:STORE_CHICK
+	file:"finfine/restaurant_logo.jpg" label:STORE_FINFINE
+	file:"joes_diner/restaurant_logo.jpg" label:STORE_JOES
+	file:"mcdonalds/restaurant_logo.jpg" label:STORE_MCD preload
+
+	//  photos for food are supposed to be 1.33:1 aspect ratio (400 x 300 for example)
+	file:"mcdonalds/DubQPounder-with-Cheese.jpg"  label:PIC_DUBQPCH
+	file:"mcdonalds/QPounderCheese.jpg"  label:PIC_QPCH
+	file:"mcdonalds/bigmac.jpg"  label:PIC_BIGMAC
+	file:"mcdonalds/cheeseburger.jpg"  label:PIC_CHEE
+	file:"mcdonalds/fries.jpg"  label:PIC_FRIES
+	file:"mcdonalds/apple.png"  label:PIC_APPLE
+	file:"mcdonalds/oatmeal.jpg"  label:PIC_OATMEAL
+
+	//  category art should be 2.25:1  (500 x 222 for example)
+	folder:"mcdonalds/categories/" into:CATEGORY_PICS index:head
+
+	//  art for ingred should be 4:3 (1.33)
+	file:"mcdonalds/ingred/salt.jpg"  label:PIC_SALT
+	file:"mcdonalds/ingred/cream.png"  label:PIC_CREAM
+	file:"mcdonalds/ingred/cran_raisins.png"  label:PIC_CRAN
+
+//=============
+calc load_menu  --  load default menu
+	//  create some default stores
+	g_stores <=== [<
+		name  address  tax_pct  pic
+		"McDonald's"  "1234 Macarthur Blvd." 9.5 STORE_MCD
+		"Finfiné Ethiopian Restaurant"  "1234 Macarthur Blvd." 9.5  STORE_FINFINE
+		"Chick-Fil A"  "1234 Macarthur Blvd." 9.5 STORE_CHICK
+		"Barney's Beanery"  "1234 Macarthur Blvd." 9.5  STORE_BARNEY
+		"Joe's Diner"  "1234 Macarthur Blvd." 9.5  STORE_JOES
+		>]
+	g_nstores = tree_count(g_stores)
+
+	//  create some default timeslots
+	timeslots <=== [<
+		name    	start_hour	end_hour
+		"Breakfast"[]	0600		1000  // 1
+		"Lunch"[]		1000		1300  // 2
+		"Dinner"[]	1700		2100  // 3
+		>]
+		
+	menu.version = 1
+	menu.release = 1
+	
+	menu.categories <=== { 1:{ name:"Deals" },
+		2:{ name:"Sandwiches & Meals" },
+		3:{ name:"Sweets & Treats", subcats:["Shakes", "McFlurry", "Pies"] },
+		4:{ name:"Happy Meal" },
+		5:{ name:"Condiments" },
+		6:{ name:"Fries, Sides & More", subcats:["Fries", "Sides"] },
+		7:{ name:"McCafé", subcats:["Coffee & Classics", "Frappé", "Macchiato"] },
+		8:{ name:"McCafé Bakery" },
+		9:{ name:"Beverages", subcats:["Soft Drinks & Juices", "Bottled Drinks", "Slushies", "Tea, Milk & Juice"] },
+		10:{ name:"$1 $2 $3 Dollar Menu", subcats:["Sandwiches & Meals", "McCafé", "Beverages"] },
+// 		11:{ name:"Eleven" },
+// 		12:{ name:"Twelve" },
+// 		13:{ name:"Thirteen" },
+		}	
+	menu.ncats = tree_count(menu.categories)
+	
+	//  build some data for testing / sandwiches and meals
+
+	// --- CAT 2 SANDWICHES
+	//-----------------------
+	menu.categories[2].subcats <=== [ {name:"Sandwiches", keys:["DUBQPCH", 
+		"QPCH", "CHEE", "BIGMAC", "DUBCH", "QPCHDLX", "HAM", "MCD", "DUBHAM"] },
+		{name:"Chicken", keys:["BUTTCHIK", "MCCHIK", "4NUGG", "6NUGG", "10NUGG", "20NUGG", "40NUGG"] },
+		{name:"Fish", keys:["OFISH"] } ]
+
+	menu.items["BIGMAC"]  <=== { name:"Big Mac", sizes:[{price:3.99, cal:560}], pic:PIC_BIGMAC }
+	menu.items["DUBQPCH"]  <=== { name:"Double Quarter Pounder with Cheese", sizes:[{price:5.79, cal:720}], pic:PIC_DUBQPCH }
+	menu.items["QPCH"] <=== { name:"Quarter Pounder with Cheese", sizes:[{price:4.59, cal:510}], pic:PIC_QPCH }
+	menu.items["QPCHDLX"] <=== { name:"Quarter Pounder with Cheese Deluxe", sizes:[{price:4.69, cal:620}] }
+	menu.items["DUBCH"] <=== { name:"Double Cheeseburger", sizes:[{price:1.99, cal:440}] }
+	menu.items["CHEE"] <=== { name:"Cheeseburger", sizes:[{price:1.29, cal:300}], pic:PIC_CHEE }
+	menu.items["HAM"] <=== { name:"Hamburger", name2:"漢堡包", sizes:[{price:1.00, cal:250}] }
+	menu.items["MCD"] <=== { name:"McDouble", sizes:[{price:2.19, cal:380}] }
+	menu.items["DUBHAM"] <=== { name:"Double Hamburger", name2:"双汉堡", sizes:[{price:1.50, cal:340}] }
+	menu.items["BUTTCHIK"] <=== { name:"Crispy Buttermilk Chicken", name2:"脆皮酪乳鸡", sizes:[{price:5.29, cal:600}] }
+	menu.items["MCCHIK"] <=== { name:"McChicken", sizes:[{price:2.00, cal:400}] }
+	menu.items["4NUGG"] <=== { name:"4 Piece McNuggets", sizes:[{price:1.39, cal:170}] }
+	menu.items["6NUGG"] <=== { name:"6 Piece McNuggets", sizes:[{price:3.39, cal:250}] }
+	menu.items["10NUGG"] <=== { name:"10 Piece McNuggets", sizes:[{price:4.19, cal:420}] }
+	menu.items["20NUGG"] <=== { name:"20 Piece McNuggets", sizes:[{price:5.00, cal:830}] }
+	menu.items["40NUGG"] <=== { name:"40 Piece McNuggets", sizes:[{price:9.49, cal:1660}] }
+	menu.items["OFISH"] <=== { name:"Filet O Fish", sizes:[{price:4.19, cal:380}] }
+
+	// --- CAT 6 - fries
+	menu.categories[6].subcats <=== [ {name:"Fries", keys:["FRIES"] },
+				{name:"Sides", keys:["OATMEAL", "APPLE"] } ]
+
+	menu.items["FRIES"]  <=== { name:"Fries", pic:PIC_FRIES, ingred:["SALT"], default_sizex:2,
+		sizes:[  { name:"Small", price:1.79, cal:220 },
+					{ name:"Medium", price:2.80, cal:320 },
+					{ name:"Large", price:3.09, cal:490} ] }
+	menu.items["OATMEAL"]  <=== { name:"Oatmeal", ingred:["RAISINS", "CREAM"],
+		sizes:[{price:2.69, cal:310}], pic:PIC_OATMEAL }
+	menu.items["APPLE"] <=== { name:"Apple Slices", sizes:[{price:0.50, cal:15}], pic:PIC_APPLE }
+
+	loop across:menu.items ptr:ip
+		ip.kind = ITEM
+		//  for each item, calculate the default variant selected if it wasn't specified above
+		if ip.default_sizex == U
+			//  by default pick the middle size, hopefull medium
+			ip.default_sizex = (1+tree_count(ip.sizes))/2
+
+	//  ingredients
+	//-----------------------
+	menu.items["RAISINS"]  <=== { pic:PIC_CRAN, kind:INGRED, name:"Raisins & Cranberries", default_sizex:2, 
+		sizes:[ {name:"0", price:0, cal:0},
+				{name:"1", price:0, cal:70},
+				{name:"2", price:0.60, cal:140},
+				{name:"3", price:1.20, cal:210} ]}
+	menu.items["CREAM"] <=== {  pic:PIC_CREAM, kind:INGRED, name:"Cream", default_sizex:2, 
+		sizes:[ {name:"0", price:0, cal:0},
+				{name:"1", price:0, cal:20},
+				{name:"2", price:0, cal:40},
+				{name:"3", price:0, cal:60},
+				{name:"4", price:0, cal:80},
+				{name:"5", price:0, cal:100},
+				{name:"6", price:0, cal:120},
+				{name:"7", price:0, cal:140} ]}
+	menu.items["SALT"] <=== {  pic:PIC_SALT, kind:INGRED, name:"Salt", default_sizex:2, 
+		sizes:[ {name:"None", price:0, cal:20},
+		{name:"Regular", price:0, cal:20}, 
+		{name:"Extra", price:0, cal:20} ]}
+
+	//  set up the special meal deals
+	//menu.meals[1] = ddd
+	//menu.meals[2] = ddd
+
+//=============
+calc do_mode_change (
+	next_mode
+	) ---------------------------
+	log "do_mode_change, new_mode={next_mode}" on:TRACE_MODE
+	intf.curr_mode = next_mode  // will trigger redraw
+	
+//=============
+draw animate_tap ( --- animated feedback for a user tap 
+	tap_x     --- local coordinate of tap 
+	tap_y     --- local coordinate of tap
+	next_mode --- next mode to change to after tap animation is finished, U=no change
+	) 
+	if SKIP_ANIMATE_TAP
+		intf.curr_mode = next_mode
+		return
+	
+	//  convert local coordinate to global coord
+	intf.ripple_gx = tap_x
+	intf.ripple_gy = tap_y
+	
+	//  draw an expanding ring
+	intf.ripple_step = ANIM_START_DIAM
+	var ripple_id = loom_animate_num_linear (intf.ripple_step, busyflag:intf.ripple_running, endval:ANIM_STOP_DIAM, duration:ANIM_DURATION sec)
+	
+	if next_mode <> U
+		//  schedule a mode change after the animation is done
+		loom_timer (do_mode_change, pre:ripple_id, next_mode)
+		
+---------------------------
+calc main_init
+---------------------------
+	//  read in the menu from the spreadsheet - in production we grab this over the internet
+	//  read_menu_from_file ().... in AS3 code only at present
+	load_menu
+
+	//  leave history empty for now
+
+	//  hardcode the user name
+	user.user_name = "John Q. Public"
+	// user_allergies = ""
+	// user_require = ""
+	
+	//  init our interface
+	intf.curr_mode = MODE_ITEM_LIST // MODE_STORE_LIST
+	intf.curr_lang = LANG_ENG
+	intf.curr_store = adr g_stores[1]
+
+	//  simulate picking a category
+	intf.curr_cat = 6 //  fries
+
+	{ nickname:"Chase Sapphire", cardholder:"Tom Jones", zipcode:"90012", cardnum:"4123000022223123", csc:"123", expire_mm:3, expire_yyyy:2022 } ===> cards_on_file[1]
+	{ nickname:"Aunt Mary's card", cardholder:"Mary Smith", zipcode:"12345", cardnum:"5123000022226333", csc:"123", expire_mm:5, expire_yyyy:2020 } ===> cards_on_file[2]
+
+---------------------------
+draw main_draw
+---------------------------
+	draw_rect(bb, fill:GRAY8)
+	const SCALE = 0.50
+	const DEVV = 750  // iphone 7/ new iPhone SE resolution
+	const DEVH = 1334
+	const DPI = 326  //  dpi
+	const NOTCHV = 90  //  pixels for the notch on iphone XR
+	//  iphone XR: 1792 x 828, notch is 90 pixels high
+
+	var r:a_rect <=== solve_rect(basis:bb, pin:5, width:DEVH*SCALE, height:DEVV*SCALE)
+	layer area:r dpi:DPI*SCALE d_foody_main
+
+---------------------------
+graphics regen_css
+	//  build the stylesheet info for our scrollbar
+	//  we want a 22 pt scrollbar at the current block DPI
+	intf.sbar_pixels = pt_to_dots(SBAR_THICK)
+	log "regen_css, pts={SBAR_THICK}, pixels={intf.sbar_pixels}"
+	var css = "::-webkit-scrollbar \{ width:{intf.sbar_pixels}px; \}" & """
+::-webkit-scrollbar-track {
+	background-color:#422B1E;
+    box-shadow: inset 0 0 4pt #4e6e17; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb { 
+    background: linear-gradient(90deg, #97461a 0%, #fbd8c5 30%, #6c2e16 83%, #efdbcd 100%); 
+	border-style:solid;
+	border-color:black;
+	border-width:1pt;
+    border-radius: 6pt; }
+ ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(90deg, #d76489 0%, #fcf1f6 20%, #f4d7df 40%, #e69bb2 60%, #cf3c69 80%, #5c172c 100%); 
+	border-style:solid;
+	border-color:black;
+	border-width:1pt;
+    border-radius: 6pt; }"""
+	css_append(css)
+
+---------------------------
+draw d_foody_main //  this layer is at the target device DPI, not the running screen DPI
+	//  whenever the DPI changes we gotta rebuild our CSS style for scrollbars
+	if b.dpi <> g_last_dpi
+		regen_css
+		g_last_dpi = b.dpi
+
+	//  create a dependency on the runtime ui language so we get a refresh on a language switch
+	var lang = runtime.ui_language
+
+	case intf.curr_mode
+	| MODE_ITEM_LIST
+		draw_rect (bb, fill:C_ITEM_DEAD)
+	else
+		draw_rect (bb, fill:C_DEAD)
+
+	HEADER_V = min(18 pt, bb.height*0.07)
+	FOOTER_V = min(24 pt, bb.height*0.09)
+
+	case intf.curr_mode
+	| MODE_STORE_LIST
+		home_pick_store
+	| MODE_CAT_LIST
+		home_pick_cat
+	| MODE_ITEM_LIST
+		home_pick_item
+	| MODE_ITEM_DETAIL
+		d_item_detail
+	| MODE_CART_DETAIL
+		d_cart_detail
+	| MODE_CART
+		d_cart
+	| MODE_PAYMENT
+		d_pick_payment
+	| MODE_ADDCARD, MODE_EDITCARD
+		d_add_card
+	| MODE_SUBMIT
+		d_submit
+	| MODE_MAP
+		home_map()
+	| MODE_SETTINGS
+		d_settings()
+	| MODE_RECENT
+		home_recent()
+	| MODE_CONTACT
+		home_contact()
+	| MODE_REORDER
+		home_reorder()
+	else
+		draw_str(bb, "Bad Mode {intf.curr_mode}", size:14 pt, color:WHITE)
+
+	if intf.busy_running
+		//  add another layer for animation effects
+		layer area:bb d_tot_overlay2 // canvas:mycanvas
+
+	if intf.modal_active
+		//  add a modal dialog layer on top
+		layer area:bb, d_modal_overlay
+
+---------------------------
+//  modal alert box
+const
+	C_ALERT_BACK = rgb(62,34,61)  // dark purple
+	C_ALERT_BORD = rgb(102,56,101)  // purple
+	C_ALERT_TEXT = rgb(236,223,236)  // light
+
+//  only one modal dialog box can be up at once. 
+//  before using, you must set:  modal_active, modal_action, which is a frozen function to call
+ 
+draw d_modal_overlay
+	log "d_modal_overlay" on:TRACE_MODAL
+	//  draw patial white to dim the background
+	draw_rect(bb, fill:BLACK, opacity:0.7)
+
+	var H = min(bb.width*10.7, 200 pt)
+	var V = min(bb.height*10.3, 120 pt)
+	var totbox <=== solve_rect(basis:bb, pin:5, width:H, height:V)
+
+	//  calculate the various rectangles
+	const BUTTH = H*0.28
+	const BUTTV = V*0.14
+
+	var iconbox <=== solve_rect(basis:totbox, inset_w:H*0.08, inset_n:V*0.2, width:H*0.15, height:H*0.15)
+	var promptbox <=== solve_rect(basis:totbox, inset_w:H*0.26, inset_n:V*0.1, width:H*0.70, height:V*0.65)
+	var cancelbox <=== solve_rect(basis:totbox, inset_w:H*0.1, inset_n:V*0.78, width:BUTTH, height:BUTTV)
+	var okbox <=== solve_rect(basis:totbox, right:totbox.left+H-H*0.1, inset_n:V*0.78, width:BUTTH, height:BUTTV)
+
+	//  now draw the prompt area
+	draw_rect(totbox, fill:C_ALERT_BACK, thick:3 pt, color:C_ALERT_BORD, corner:V/16)
+	
+	//  draw the warning icon
+	draw_str(iconbox, "⚠️", size:0.8, color:C_ALERT_TEXT, shrink:N)
+	
+	//  draw the prompt
+	//draw_rect(promptbox, thick:1, color:PINK)
+	draw_str(promptbox, intf.modal_prompt, color:C_ALERT_TEXT, size:12 pt, just:LEFT, vert:0.2, wrap:Y)
+
+	//  draw the buttons, they must be drawn as a layer else their event handlers won't work
+	//  at present the layer syntax doesn't support args yet
+	if intf.modal_cancel <> U and intf.modal_cancel <> ""
+		layer area:cancelbox butt_simple(intf.modal_cancel, do_alert_cancel)
+
+	layer area:okbox butt_simple(intf.modal_ok, do_alert_ok)
+track EV_TAP
+	//  if user presses ENTER, synonym for OK
+	//  if user presses ESC, synonym for cancel
+	if e.keycode == KEYCODE_ESC
+		do_alert_cancel
+		return Y
+	elif e.keycode == KEYCODE_ENTER
+		do_alert_ok
+		return Y
+	else
+		return N
+
+calc do_alert_cancel
+	//log ">> do_alert_cancel" on:TRACE_MODAL
+	intf.modal_active = N
+
+calc do_alert_ok
+	//log ">> do_alert_ok" on:TRACE_MODAL
+	intf.modal_active = N
+	if intf.modal_action <> U
+		intf.modal_action()
+
+//  we don't have a way to call a canvas draw function in loom_callback
+//  so we had to create this wrapper function
+---------------------------
+calc next_busy_frame  // advance to the next frame in the busy animation
+	//d_tot_overlay in mycanvas
+
+	//  this will imply the refresh of the overlay2
+	inc intf.busy_framex
+	if intf.busy_framex > tree_count(ANIM_ACTIVITY)
+		intf.busy_framex = 1
+
+---------------------------
+calc toggle_busy  -- toggle the busy animation	
+	toggle intf.busy_running  //  this will make the overlay visible
+	if intf.busy_running
+		intf.busy_framex = 1 
+		//  start up the callback, advance the frame after letting first frame show for a bit
+		intf.busy_id = loom_timer(next_busy_frame, delay:1/12 sec, rate:12, reps:100000)
+	else
+		//  we are stopping the busy animation
+		loom_clear(id:intf.busy_id)
+
+---------------------------
+//  add another layer which can draw animations on top of everything else
+canvas d_tot_overlay
+	//  it's too hard to figure out how to erase intelligently, so just zap the whole canvas
+	clear_rect(bb)
+
+	if intf.busy_running
+		//log "{to_str(elapsed,digits:3)}: d_tot_overlay, frame {intf.busy_framex}"
+		var img = ANIM_ACTIVITY[intf.busy_framex]
+		draw_image(U, img, grow:N, x:50, y:50)
+
+	if intf.ripple_running
+		//  ripple animation is running, draw the ring
+		var step = intf.ripple_step
+		
+		//  create an ever expanding circular ripple, starting at the origin point
+		//  note that the animation point stored is in global coordinates, must convert to the block's coordinates
+		log "in animation, cx={intf.ripple_gx}, cy={intf.ripple_gy}, step={intf.ripple_step}" on:TRACE_ANIMATE
+		var box <=== solve_rect (cx:intf.ripple_gx, cy:intf.ripple_gy, width:step pt, height:step pt)
+		
+		//  animate the opacity from full to faint over the animation time
+		var opacity : num = interpolate (step, ANIM_START_DIAM, ANIM_STOP_DIAM, 1, 0.3)
+		draw_oval (box, color:DODGER_BLUE, thick:ANIM_THICKNESS pt, pos:0.5)
+
+draw d_tot_overlay2  // non-canvas version of the animation
+	//log "{to_str(elapsed,digits:3)}: d_tot_overlay2, frame {intf.busy_framex}"
+	var img = ANIM_ACTIVITY[intf.busy_framex]
+	draw_image(U, img, grow:N, x:50, y:50)
+	
+---------------------------
+draw hdr_label (
+	label : str --- label to draw at top
+	)	
+	draw_str (bb, label, size:0.4, color:WHITE, font:MAIN_FONT)
+	
+---------------------------
+// horz slice home_pick_item		
+// 	add 10 al pick_item_in_cat
+// 	if intf.sbar_items.is_active
+// 		add SLIDERH pt draw_scrollbar_vert(intf.sbar_items)
+
+---------------------------
+vert slice home_pick_item  //  pick an item in the current category
+	//  split the screen into a header and a scrolling list
+	var catx = intf.curr_cat
+	var cat_ss : str = menu.categories[catx].name
+
+	add 10 al  d_cat_itemlist
+	add FOOTER_V px  itemlist_footer (cat_ss)
+
+---------------------------
+horz slice itemlist_footer(
+	category : str  -- the category of items like "Condiments"
+	)
+	draw_rect(bb, fill:C_ITEMLIST_FOOT)
+	var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
+	draw_rect(r, fill:C_ITEMLIST_EDGE)
+
+	skip FOOTER_INDENT pt
+	add 30 al butt_simple(BACK_SS, go_mode(MODE_CAT_LIST))
+	add 70 al
+		draw_str(bb, category, size:0.5, color:C_BUTT_TEXT)
+	var ncart = qty_in_cart(U)  //  number of total items
+	if ncart > 0
+		add 30 al butt_view_cart
+	else
+		skip 30 al
+	skip FOOTER_INDENT pt
+
+---------------------------
+vert slice home_pick_cat
+---------------------------
+	//  pick the menu category
+	add 10 al category_picker
+	add FOOTER_V px  d_cat_footer
+
+horz slice d_cat_footer
+	draw_rect(bb, fill:C_ITEMLIST_FOOT)
+
+	skip FOOTER_INDENT pt
+	add 30 al butt_simple("⇪  Exit"[], do_exit_store)
+	add 70 al
+		draw_str(bb, "Choose a category"[], size:0.5, color:C_BUTT_TEXT)
+	var ncart = qty_in_cart(U)  //  number of total items
+	if ncart > 0
+		add 30 al butt_view_cart
+	else
+		skip 30 al
+	skip FOOTER_INDENT pt
+	
+---------------------------
+calc do_exit_store
+	if tree_count(cart.cart_items) > 0
+		//  confirm that the user wants to abandon their cart
+		//  they are going to lose work!
+		ask_yesno("Are you sure you want to leave the restaurant?\nYour cart will be emptied."[], abandon_cart)
+	else
+		//  cart was empty, go back without asking
+		intf.curr_mode = MODE_STORE_LIST
+
+---------------------------
+calc abandon_cart //  used when we quit out of a store
+	//  clear the cart
+	trunc cart.cart_items
+	gen_cart_totals
+
+	//  go back to the store selection
+	intf.curr_mode = MODE_STORE_LIST
+
+---------------------------
+calc go_mode (  //  action function for buttons
+	next_mode 
+	) ------
+	intf.curr_mode = next_mode
+	//  currently have no way to get this data into a frozen function
+	//  as the xy coordinate of the mouse is not known at the time we froze the call
+	//animate_tap (e.global_x, e.global_y, nextmode)
+	
+---------------------------
+draw butt_simple (  -- just draw a button on the bottom area
+	label : str
+	action : calc (frozen)  // a memorized function call with parms
+	back : color = C_BUTT_BACK  //  can optionally override the normal background color
+	)
+	//var dy = max(2, round(1 pt))
+	//var usable <=== solve_rect(basis:box, pin:8, inset_n:dy)
+	draw_rect(bb, fill:back, corner:bb.height*0.3, thick:1 pt, pos:0, color:C_BUTT_BORD)
+	draw_str(bb, label, size:0.6, indent:4 pt, color:C_BUTT_TEXT)
+------------
+track EV_TAP
+	action()  //  execute the frozen func call
+
+---------------------------
+horz slice butt_view_cart  -- special button for Cart where we draw the count to the left
+	draw_rect(bb, fill:C_BUTT_BACK, corner:bb.height*0.3, thick:1 pt, pos:0, color:C_BUTT_BORD)
+	skip 6 pt
+	add 17 pt d_cart_count
+	add 10 al
+		draw_str(bb, "Cart  ⮕"[], size:0.6, color:C_BUTT_TEXT)
+	skip 3 pt
+------------
+track EV_TAP
+	intf.curr_mode = MODE_CART
+
+---------------------------
+draw d_cart_count
+	//   show even if 0
+	var ncart = qty_in_cart(U)  //  number of total items
+	var r <=== solve_rect(basis:bb, pin:6, inset_y:1.6 pt, round:Y)
+	draw_oval(r, fill:CRIMSON, thick:round(0.6 pt), color:WHITE) // , corner:round(r.height/3))
+	draw_str(r, to_str(ncart), size:0.7, color:WHITE)
+	
+---------------------------
+grid category_picker
+---------------------------
+	//  draw the grid of category picker cells
+	horz slice
+		//  depending on the ncategories, 
+		var NCOL
+		var NROW
+		case menu.ncats
+		| 1 .. 6
+			NCOL = 2
+			NROW = 3
+		| 7 .. 9
+			NCOL = 3
+			NROW = 3
+		| 10 .. 12
+			NCOL = 3
+			NROW = 4
+		else
+			NCOL = 4
+			NROW = 4
+
+		const GAP = bb.height/50
+		skip GAP px
+		loop reps:NCOL
+			add 100 al
+			skip GAP px
+
+	vert slice
+		skip GAP px
+		loop reps:NROW
+			add 100 al
+			skip GAP px
+
+// 	under
+// 		//  background fill
+// 		draw_rect (bb, fill:GRAY9, corner:8 pt)
+	
+	//  so that the black grid seems square, calculate the smaller of the two grids
+	//  we used to use 10 al for the grid space, which is 10/320th of the total
+	---------------------------
+	cell
+		if b.cell_seq <= menu.ncats
+			const RADIUS = 3 pt
+			// inside: bb, b.cell_seq, b.cell.x/y, b.cell_id.x/y
+			var groupx = b.cell_seq
+			var box <=== solve_rect(basis:bb, pin:5, aspect:2.25)
+
+			//  draw the category picture
+			var label : str = menu.categories[groupx].name
+			var image : image = CATEGORY_PICS[groupx]
+			if image == U
+				//  we don't have an image to draw, 
+				draw_rect(box, fill:C_BUTT_BACK, corner:RADIUS, thick:1 pt, pos:0, color:C_BUTT_BORD)
+				if label <> U
+					draw_str (box, label, font:MAIN_FONT, color:C_BUTT_TEXT, size:0.3, indent:4 pt)
+			else
+				draw_image (box, image, corner:RADIUS) // image)	
+				if label <> U
+					//  draw the text label at the bottom of the photo
+					const SIZE = 0.8
+					var r <=== solve_rect (basis:box, pin:7, height:box.height*0.30)
+					//var label_size : a_xy
+					//draw_str(r, label, font:MAIN_FONT, size:SIZE, indent:2 pt, metrics:label_size)
+
+					//r <=== solve_rect(basis:r, pin:7, width:label_size.x+(10 pt))
+					draw_rect(r,  corner_bl:RADIUS, corner_br:RADIUS, fill:C_BUTT_BACK, opacity:1)
+					draw_str(r, label, font:MAIN_FONT, color:C_BUTT_TEXT, indent:2 pt, size:SIZE)
+				draw_rect(box, corner:RADIUS, thick:1 pt, pos:0, color:C_BUTT_BORD)
+-----------------
+track EV_TAP
+	//  user is selecting a category
+	var newcat = b.cell_seq
+	if newcat <= menu.ncats
+	//  since we don't require all categories to be filled in,
+	//  we need to ignore clicks in categories that have no items in them
+		animate_tap (e.global_x, e.global_y, MODE_ITEM_LIST)
+		intf.curr_cat = newcat
+
+---------------------------
+calc qty_in_cart ( --- calculate the count of this item in the cart
+	targ_id : str --- target item id, U means count all items
+	) : num ---------------
+	var sum = 0
+	
+	//  we are supplied the item id, but loop through all the sizes of the item
+	//  this needs to be a stdlib function like tree_sum (ptr)
+	loop across:cart.cart_items ptr:item_ptr
+		if targ_id == U or item_ptr.key == targ_id
+			sum = sum + item_ptr.qty
+			//log "after adding item {menu.items[item_ptr.key].name}, sum={sum}"
+	return sum
+
+const
+	ITEMV = 32   //  vertical space for each item listed
+	ITEM_PHOTO_MARG = 3  //  how much space around the photo
+	ITEM_PHOTO_V = ITEMV - ITEM_PHOTO_MARG*2
+	ITEM_PHOTO_H = ITEM_PHOTO_V*1.33
+
+	ITEM_FONT = "Clearface Gothic LT Std 65 Medium"
+
+	GRADIENT_ITEM:a_gradient <=== { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM, 
+		grad_stops:[ { stop_pos:0,   stop_color:#167e9e },
+					 { stop_pos:23,   stop_color:#0f586e },
+					 { stop_pos:100, stop_color:#042049 }] }
+
+record a_itemlist_rec
+	key : str  //  index of item
+	subcat : num  //  subcategory this item belongs to
+
+var itemlist : array of a_itemlist_rec
+var nitemlist
+
+---------------------------
+grid d_cat_itemlist  -- scrolling list of items in the current category
+	horz slice
+		add 10 al
+		//  subtract the space for the scrollbar
+		skip (SBAR_THICK+3) pt
+
+	vert scroll
+		//  loop through all the items
+		trunc itemlist
+		loop across:menu.categories[intf.curr_cat].subcats index:subcatx ptr:subcat_ptr
+			loop across:subcat_ptr.keys val:mykey count:cx
+				//log "  adding key {mykey} in subcat {subcatx}"
+				append { key:mykey, subcat:subcatx } ===> itemlist
+				if cx > 1
+					skip 1.5 pt
+				add ITEMV pt
+
+		//  add a final item for the end of list marker
+		add END_MARKER pt
+		nitemlist = tree_count(itemlist)+1
+		//log "itemlist for category {intf.curr_cat} has {nitemlist} items"
+	
+// 	under
+// 		draw_rect(bb, fill:C_ITEM_DEAD)
+	
+	cell
+		//log "itemlist_cell, seq={b.cell_seq}"
+		if b.cell_seq == nitemlist
+			//  special end of list marker
+			draw_str(bb, "❖     ❖     ❖     ❖     ❖", size:0.6, color:#1B85B1)
+		else
+			//  regular cell
+			var item_key : str = itemlist[b.cell_seq].key
+			var item_ptr : ptr to a_menu_item = adr menu.items[item_key]
+	// 		if item_ptr.price == U
+	// 			//  we screwed up building the item list
+	// 			log "!!! BAD item key: {item_key}"
+			d_item_row(item_ptr)
+track EV_TAP
+	//log "user tapped on item {b.cell_seq}"
+	if b.cell_seq < nitemlist
+		//-------- SELECTING AN ITEM ------------
+		item_select(itemlist[b.cell_seq].key)
+
+---------------------------
+//  make this item the one we are editing
+calc item_select (
+	key : str
+	) ---------
+	var subkey : str
+
+	//log ">> selecting item {key}"
+	
+	//  we are going to the item detail screen
+	intf.curr_mode = MODE_ITEM_DETAIL
+
+	//  always start with customization off to simplify the interface
+	intf.curr_customizing = N
+
+	//  init the work record, which is a_cart_item
+	work.key = key
+	work.menuitem = adr menu.items[key]
+	work.sizex = work.menuitem.default_sizex
+	work.qty = 1
+
+	//  reset the work area to default variants
+	reset_work_mods
+
+---------------------------
+//  called when we press the reset button while in item detail, or we are entering item detail
+calc reset_work_mods
+	var modx = 1
+	//  reset all ingredients of the working menu item to default variant
+	loop across:work.menuitem.ingred val:subkey
+		//  subkey is the ingredient that is being discussed
+		{ kind:INGRED_MOD, key:subkey, sizex:menu.items[subkey].default_sizex, cost:0 } ===> work.mods[modx]
+		inc modx
+
+	//  reset all extras to zero qty
+	loop across:work.menuitem.addons val:subkey
+		//  subkey is the ingredient that is being discussed
+		{ kind:ADDON_MOD, key:subkey, sizex:menu.items[subkey].default_sizex, cost:0 } ===> work.mods[modx]
+		inc modx
+
+---------------------------
+horz slice d_item_row (
+	item : ptr to a_menu_item
+	) -------
+	const CORNER = 6 pt
+	//const INDENT = 2
+	draw_rect(bb, fill:C_ITEM_DEAD)
+	var r <=== solve_rect(basis:bb, pin:3, width:bb.width)
+	draw_rect(r, grad:GRADIENT_ITEM, corner:CORNER) // , corner_bl:CORNER)
+
+	//var footline <=== solve_rect(basis:bb, pin:8, height:1 pt)
+	//draw_rect(footline, fill:C_ITEM_DIV)
+
+	skip ITEM_PHOTO_MARG pt
+	if item.pic <> U
+		//  has photo		
+		add ITEM_PHOTO_H pt
+			draw_image(bb, item.pic, corner:4 pt)
+	skip (ITEM_PHOTO_MARG*2) pt
+	add 10 al d_item_desc(item, item.default_sizex)
+	skip 2 pt
+
+// draw d_item_pic (
+// 	itempic : image
+// 	) -------
+// 	draw_image(bb, itempic
+
+---------------------------
+vert slice d_item_desc (
+	item : ptr to a_menu_item
+	sizex  // which size to draw
+	) -------
+	//  totals 32 pt
+	skip 1 pt
+	add 11 al d_desc1(item)
+	add 9 al d_desc2(item, sizex)
+	add 9 al d_desc3(item)
+	skip 2 pt
+
+---------------------------
+//  item detail row 1
+horz slice d_desc1 (  //  row1 - "Hamburger"
+	item : ptr to a_menu_item
+	) -------
+	add 30 al
+		draw_str(bb, item.name, just:LEFT, size:0.80, bold:Y, color:C_ITEM_TEXT, font:ITEM_FONT)
+	//  only if we have a second language do we restrict the item name to be 1/2 the width
+	if item.name2 <> U
+		skip 2 pt
+		add 30 al
+			draw_str(bb, item.name2, just:LEFT, size:0.80, color:C_ITEM_TEXT, font:ITEM_FONT)
+		skip 1 pt
+
+---------------------------
+calc gen_price_ss (  	// build the string for Price + calories
+	item : ptr to a_menu_item
+	sizex : num
+	) : str
+	var ss : str = "${to_str(item.sizes[sizex].price, digits:2, zero_drop:N)}"
+	if item.sizes[sizex].cal <> U
+		"    {to_str(item.sizes[sizex].cal)} Cal." &=> ss
+	return ss
+
+---------------------------
+//  item detail row 2
+draw d_desc2 (  //  row2 - $3.92  400 Cal.
+	item : ptr to a_menu_item
+	sizex : num
+	) -------
+	draw_str(bb, gen_price_ss(item, sizex), just:LEFT, size:0.80, shrink:N, color:C_ITEM_TEXT)
+
+---------------------------
+//  item detail row 3
+draw d_desc3 (   // row3 - if this is in a meal, draw the 3rd line
+	item : ptr to a_menu_item
+	) -------
+	//draw_str(bb, "--meal info--", just:LEFT, size:0.80, shrink:N, color:C_ITEM_TEXT)
+	nop
+
+---------------------------
+vert slice d_item_detail
+	add 10 al detail_body
+	add FOOTER_V px item_detail_footer
+
+---------------------------
+horz slice item_detail_footer  //  item detail header/footer
+	draw_rect (bb, fill:C_ITEMLIST_FOOT)
+
+	skip FOOTER_INDENT pt
+	add 30 al butt_simple(BACK_SS, go_mode(MODE_ITEM_LIST))
+	skip 70 al
+	add 30 al butt_simple("+  Add to Cart"[], do_add_to_cart, back:C_BUTT_NEXT)
+	skip FOOTER_INDENT pt
+	
+---------------------------
+vert slice d_cart_detail
+	add 10 al detail_body
+	add FOOTER_V px cart_detail_footer
+
+---------------------------
+horz slice cart_detail_footer  //  cart detail header/footer
+	draw_rect (bb, fill:C_ITEMLIST_FOOT)
+
+	skip FOOTER_INDENT pt
+	add 30 al butt_simple("Cancel"[], go_mode(MODE_CART))
+	skip 70 al
+	add 30 al butt_simple("Update Cart"[], do_update_item, back:C_BUTT_NEXT)
+	skip FOOTER_INDENT pt
+	
+---------------------------
+calc do_update_item  //  user is confirming their changes to the item
+	log "do_update_item"
+	//  calculate the derived items in the work record
+	calc_work_totals
+
+	//  copy the work back to the current item we were editing
+	work ===> intf.curr_edit_item^^
+
+	//  recalc the cart totals which have changed
+	gen_cart_totals
+
+	//  jump back to the cart
+	intf.curr_mode = MODE_CART
+
+---------------------------
+calc gen_cart_totals
+	//  now that this item is recalculated, rebuild the cart grand total
+	var sum = 0
+	var cart_item : ptr to a_cart_item
+	loop across:cart.cart_items ptr:cart_item
+		cart_item.item_total +=> sum
+	
+	//  calculate grand totals for the cart 
+	cart.subtot = sum
+	cart.coupon = 0
+	cart.adjustment = 0
+	cart.subtot2 = cart.subtot + cart.coupon + cart.adjustment
+	log "subtot={cart.subtot}, coupon={cart.coupon}, adj={cart.adjustment}, tax={intf.curr_store.tax_pct}"
+	cart.tax = round(cart.subtot2*intf.curr_store.tax_pct*0.01, digits:-2) //  round to even cents
+	cart.grand_tot = cart.subtot2 + cart.tax
+
+---------------------------
+calc calc_work_totals
+	//  calc the net cost of the working item, by taking the base price
+	//  and adding in all the modifications. we price the mods as we go through them
+	var base_price = menu.items[work.key].sizes[work.sizex].price
+	var total_mods = 0
+	var some_mods = N
+
+	//  loop through all the cart mods and add them together
+	loop across:work.mods ptr:mod
+		//  if this is not at the default size, note that we have a mod
+		if mod.sizex <> menu.items[mod.key].default_sizex
+			some_mods = Y
+
+			//  calc the cost of this mod
+			menu.items[mod.key].sizes[mod.sizex].price => mod.cost
+			mod.cost +=> total_mods
+
+	work.has_mods = some_mods
+
+	//log "  cart item base price={base_price}, addons={total_mods}"
+	work.per_price = base_price + total_mods
+	work.adjustment = 0  //  not yet
+	work.item_total = work.per_price*work.qty + work.adjustment
+	//log "    per_price={work.per_price}, qty={work.qty}, total={work.item_total}"
+
+---------------------------
+calc do_add_to_cart  //  add this item to the cart
+	log "adding to cart, key={work.key}, work.qty={work.qty}"
+
+	//  calculate the derived items in the work record
+	calc_work_totals
+
+	//  append it to the cart
+	append work ===> cart.cart_items
+
+	//  recalc the cart totals which have changed
+	gen_cart_totals
+
+	//  go back to the item list mode (we were in item detail)
+	intf.curr_mode = MODE_ITEM_LIST
+
+const
+	DETAILV = 36   //  vertical space for each item desc
+	DETAIL_PHOTO_MARG = 4  //  how much space around the photo
+	DETAIL_PHOTO_V = DETAILV - DETAIL_PHOTO_MARG*2
+	DETAIL_PHOTO_H = DETAIL_PHOTO_V*1.33
+
+---------------------------
+//  a menu item is customizable if you can tweak the ingredients or do addons
+calc is_customizable(
+	itemp : ptr to a_menu_item
+	) : yesno
+	//  if this menu item has ingredients listed, or has addons
+	//  then it will be customizable
+	return tree_count(itemp.ingred) > 0 or tree_count(itemp.addons) > 0
+
+---------------------------
+vert scroll detail_body  // item list detail
+---------------------------
+	//  this takes the work record, and draws it
+	//draw_rect (bb, grad:GRADIENT_LIST)
+
+	//  add the detail subassembly
+	add DETAILV pt d_det_desc
+	
+	//  add any size picker
+	//  if this item has more than one size, ask for the size
+	if tree_count(work.menuitem.sizes) > 1
+		skip 2 pt
+		add 22 pt pick_item_size(work.menuitem, 55 pt, 50, work.sizex)
+
+	//  add the customization button if there is such a thing available
+	if is_customizable(work.menuitem)
+		//  add the customization option button
+		skip 4 pt
+		add 16 pt butt_customize
+
+		if intf.curr_customizing
+			//  show the customizations available for this menu item
+			loop across:work.mods ptr:mod
+				skip 4 pt
+				add 22 pt d_customization(mod)
+
+			//  add end marker
+//			add 12 pt
+//				draw_str(bb, "❖     ❖     ❖     ❖     ❖", size:0.6, color:#1B85B1)
+
+---------------------------
+grid pick_language  -- mutually exclusive language picker grid
+	horz slice
+		const NCOL = tree_count(LANGUAGES_AVAIL)
+		const cellh = round(min(70 pt, bb.width/NCOL))
+		const horzpct = 20
+
+		skip horzpct al
+		loop reps:NCOL
+			add cellh px
+		skip (100-horzpct) al
+
+	vert slice
+		add 10 al
+
+	cell
+		var langx = LANGUAGES_AVAIL[b.cell_seq]
+		draw_language_cell(bb, b.cell_seq, langx == runtime.ui_language)
+-------------
+track EV_TAP
+	//  user has made a language selection
+	runtime.ui_language = LANGUAGES_AVAIL[b.cell_seq]
+	//set_ui_language()
+	log "language is now {runtime.ui_language}"
+
+---------------------------
+draw draw_language_cell (
+	box : a_rect
+	ix : num  //  index in available languages
+	hilite : yesno
+	)  -------
+	var back : color
+	var text : color
+
+	//  calculate the colors		
+	if hilite
+		back = C_BUTT_BACK_HI
+		text = C_BUTT_TEXT_HI
+	else
+		back = C_BUTT_BACK
+		text = C_BUTT_TEXT
+
+	//  draw the cell background
+	draw_rect(box, fill:back, thick:0.7 pt, color:C_BUTT_BORD)
+	draw_str(box, LANGUAGE_NAMES[ix], size:0.55, color:text, bold:hilite)
+
+---------------------------
+grid pick_item_size (   //  mutually exclusive button draw
+	item : ptr to a_menu_item
+	cellh  //  horz cell size
+	horzpct  //  % from 0 to 100 controlling horz justification
+	selx : inout num // ptr to selection index we are modifying
+	)
+	horz slice
+		var NCOL = tree_count(item.sizes)
+		//log "pick_item_size, ncol={NCOL}, cellh={cellh}"
+		skip horzpct al
+		loop reps:NCOL
+			add cellh px
+		skip (100-horzpct) al
+
+	vert slice
+		add 10 al
+
+	cell
+		draw_size_cell(bb, item, item.sizes[b.cell_seq], b.cell_seq == selx)
+-------------
+track EV_TAP
+	//  since we have gaps in the grid, we might have clicked in dead space
+	if b.cell_seq <> U
+		selx = b.cell_seq
+
+---------------------------
+draw draw_size_cell (
+	box : a_rect
+	item : ptr to a_menu_item
+	variant : a_variant
+	hilite : yesno
+	)  -------
+	var back : color
+	var text : color
+
+	//  calculate the colors		
+	if hilite
+		back = C_BUTT_BACK_HI
+		text = C_BUTT_TEXT_HI
+	else
+		back = C_BUTT_BACK
+		text = C_BUTT_TEXT
+
+	//  draw the cell background
+	draw_rect(box, fill:back, thick:0.7 pt, color:C_BUTT_BORD)
+
+	//  calculate the total string
+	var ss : str = variant.name 
+	if variant.price > 0
+		"\n" &=> ss
+		if item.kind == INGRED
+			//  this is an addon price
+			"+" &=> ss
+		"$" & to_str(variant.price, digits:2, zero_drop:N) &=> ss
+
+	//  draw the cell text which is 2 lines of text  medium /n +0.50
+	//  where we either draw relative prices or full price
+	var size = box.height*0.36
+	draw_str(box, ss, size:size, color:text, leading:size*1.2, wrap:Y, bold:hilite)
+
+---------------------------
+horz slice butt_customize  //  customize button
+	skip 5 al
+	if intf.curr_customizing
+		add 120 pt butt_simple("Clear customizations"[], do_toggle_customize)
+	else
+		add 90 pt butt_simple("Customize  ▶"[], do_toggle_customize)
+	skip 35 al
+
+calc do_toggle_customize
+	//  just toggle the visibility of the items
+	//  this will not reset customizations that have been done
+	toggle intf.curr_customizing
+	if not intf.curr_customizing
+		//  clear customizations
+		reset_work_mods
+
+---------------------------
+horz slice d_det_desc  //  item detail pic, description
+	//  the quantity section
+	add 40 pt d_qty_label
+
+	skip DETAIL_PHOTO_MARG pt
+	add DETAIL_PHOTO_H pt
+		draw_image(bb, work.menuitem.pic, corner:4 pt)
+	skip (DETAIL_PHOTO_MARG*1.5) pt
+	
+	//  the description sect
+	add 100 al d_det_desc2
+
+	//  must reserve room for scrollbar!
+	skip (SBAR_THICK+3) pt
+
+---------------------------
+vert slice d_det_desc2  //  2 line description detail, shows "medium fries / $2.80 320 cal"
+	// adds up to DETAILV 36
+	skip 10 al
+	add 13 pt
+		var prefix : str = if tree_count(work.menuitem.sizes) > 1 then "{work.menuitem.sizes[work.sizex].name} " else ""		
+		draw_str(bb, prefix & work.menuitem.name, just:LEFT, size:0.7, color:C_ITEM_TEXT)	
+	add 13 pt
+		draw_str(bb, gen_price_ss(work.menuitem, work.sizex), just:LEFT, size:0.7, color:C_ITEM_TEXT)		
+	skip 10 al
+
+---------------------------
+vert slice d_qty_label  //  Quantity + n + buttons
+	add 20 al 
+		draw_str(bb, "Qty "[] & to_str(work.qty), size:0.7, vert:0.6, color:C_ITEM_TEXT)
+	add 30 al d_qty_butts
+
+---------------------------
+horz slice d_qty_butts
+	if work.qty > 1
+		add 20 al butt_simple(MINUS_SS, do_qty_minus)	// 2014 is em dash, a bit too fat
+	else
+		skip 20 al
+	skip 2 al
+	if work.qty < ITEM_QTY_LIMIT
+		add 20 al butt_simple("+", do_qty_plus)
+	else
+		skip 20 al
+
+calc do_qty_minus
+	//log "butt_qty_minus"
+	dec work.qty
+
+calc do_qty_plus
+	//log "butt_qty_plus"
+	inc work.qty
+	
+---------------------------
+horz slice d_customization (  //  used to draw each mod row in the item detail screen
+	mod : a_item_mod
+	) -------
+	//  very similar to item row
+	//  compiler bug here, selxp^^ is using follow, but pointer to scalar doesn't need that
+	//zzzaaa log "d_custom, item={item.name}, selxp={selxp}, selxp^={selxp^^}"
+	var item : ptr to a_menu_item = adr menu.items[mod.key]
+
+	const CORNER = 6 pt
+	//const INDENT = 2
+// 	draw_rect(bb, fill:C_ITEM_DEAD)
+// 	var r <=== solve_rect(basis:bb, pin:3, width:bb.width)
+// 	draw_rect(r, grad:GRADIENT_ITEM, corner:CORNER) // , corner_bl:CORNER)
+
+	skip ITEM_PHOTO_MARG pt
+	if item.pic <> U
+		//  has photo		
+		add ITEM_PHOTO_H pt d_custom_pic(item)
+	skip ITEM_PHOTO_MARG pt
+	//  calculate how much space the label needs	
+	var size : a_xy
+	draw_str(bb, item.name, size:0.4, metrics:size)  // measure text size
+	add size.x px d_custom_name(item)
+	skip 3 pt
+	add 30 al d_custom_sizes(mod, item)
+
+	//  reserve space for scrollbar
+	skip (SBAR_THICK+2) pt
+
+---------------------------
+draw d_custom_sizes (
+	mod : a_item_mod
+	item : a_menu_item
+	)
+	var hh = round(min(55 pt, bb.width/tree_count(item.sizes)))
+	pick_item_size(item, hh, 10, mod.sizex)
+
+---------------------------
+draw d_custom_pic (
+	item : a_menu_item
+	)
+	draw_image(bb, item.pic, corner:4 pt)
+
+---------------------------
+draw d_custom_name (
+	item : a_menu_item
+	)
+	draw_str(bb, item.name, size:0.4, just:LEFT, color:C_BUTT_TEXT)
+		
+---------------------------
+calc find_in_cart (
+	targ_key : str   --- item ID to search for
+	targ_size   --- target size variant
+	) : num     --- index in cart if found, U=not found
+---------------------------
+	loop across:cart.cart_items index:id ptr:p
+		if (p.key == targ_key) and (p.sizex == targ_size)
+			return id
+	return U
+	
+---------------------------
+//    CART
+---------------------------
+---------------------------
+vert slice d_cart
+---------------------------
+	add 10 al cart_itemlist
+	add FOOTER_V px cart_footer
+
+//  temp mapping table so we can go backwards from cart index to item
+var cartlist : array of num notrack
+var ncartlist
+
+const PRICEH = 40
+
+---------------------------
+grid cart_itemlist  -- scrolling list of items in the current category
+	horz slice
+		add 10 al
+		//  subtract the space for the scrollbar
+		skip (SBAR_THICK+2) pt
+
+	vert scroll
+		//  loop through all the items
+		trunc cartlist
+		loop across:cart.cart_items index:cartx
+			add ITEMV pt 
+			skip 3 pt  // cart row separator
+			append cartx => cartlist
+		ncartlist = tree_count(cartlist)
+
+		//  add the subtotal area
+		skip 3 pt
+		add 18 pt
+
+		//  add a final item for the end of list marker
+		//add END_MARKER pt
+	
+	cell
+		if b.cell_seq == ncartlist+1
+			//  cart subtotal
+			//  should also show adjustments
+			d_cart_subtot
+// 		elif b.cell_seq == ncartlist+2
+// 			//  special END_MARKER
+// 			draw_str(bb, "❖     ❖     ❖     ❖     ❖", size:0.6, color:#1B85B1)
+		else
+			//  regular cell
+			var itemx = cartlist[b.cell_seq]
+			d_cartitem_row(cart.cart_items[itemx])
+
+---------------------------
+horz slice d_cart_subtot
+	add 10 al
+		draw_str(bb, "Subtotal:", just:RIGHT, indent:4 pt, size:0.6, color:C_ITEM_TEXT)	
+	add PRICEH pt
+		draw_line(x1:0, y1:0, x2:bb.width, y2:0, thick:2 pt, color:C_ITEM_TEXT)
+		draw_str(bb, "${to_str(cart.subtot, digits:2, zero_drop:N)}", size:0.6, color:C_ITEM_TEXT)	
+	skip 24 pt
+
+---------------------------
+draw d_cartitem_row_pic (
+	pic : image
+	) ----
+	draw_image(bb, pic, corner:4 pt)
+
+---------------------------
+// --- prototype for dittos
+calc gen_cart_item_desc (--- calculate the cart item description string
+	cartitem : ptr to a_cart_item
+	) : str
+	
+	var menuitem : ptr to a_menu_item = adr menu.items[cartitem.key]
+	var result : str = to_str(cartitem.qty) & " "
+	var ss : str = menuitem.sizes[cartitem.sizex].name
+	if ss <> U 
+		ss & ' ' &=> result
+	menuitem.name &=> result  //  could be description someday
+	
+	//  if there is a size string for this size, append it to the description
+	return result
+
+---------------------------
+horz slice d_cartitem_row (  // basis for ditto - do not move
+	item : ptr to a_cart_item
+	) ------
+	draw_rect(bb, grad:GRADIENT_ITEM)
+
+	//  we can't fit both qty and pic, pic is nicer to have.
+	//add 50 pt d_cartrow_qty(item)
+	//skip 3 pt
+	skip ITEM_PHOTO_MARG pt
+	var pic : image = menu.items[item.key].pic
+	if pic <> U
+		//  has photo		
+		add ITEM_PHOTO_H pt d_cartitem_row_pic(pic)
+	skip (ITEM_PHOTO_MARG*2) pt
+	add 10 al d_cartitem_row_B(item)
+	add 24 pt d_cartrow_butts(item)
+
+vert slice d_cartitem_row_B ditto
+	add 20 al d_cartrow_upper(item)
+	//skip 2 pt
+	add 24 al d_mod_list_qty(item)
+
+horz slice d_mod_list_qty ditto
+	add 10 al d_mod_list(item)
+	add PRICEH pt  // price section
+		draw_str(bb, "${to_str(item.item_total, digits:2, zero_drop:N)}", size:0.55, color:C_ITEM_TEXT)	
+
+---------------------------
+vert slice d_cartrow_butts ditto //  edit/del buttons for cart row
+	add 25 al butt_simple("X", do_cartitem_del(item))  // math × is smaller glyph
+	skip 4 al
+	add 40 al butt_simple("Edit"[], do_cartitem_edit(item))
+
+---------------------------
+horz slice d_cartrow_upper ditto
+	add 10 al
+		//  draw the Product name and calories
+		var ss = gen_cart_item_desc(item)
+		draw_str(bb, ss, just:LEFT, size:0.7, color:C_ITEM_TEXT)
+	skip 2 pt
+
+---------------------------
+//  calculate modification string
+draw d_mod_list ditto  //  the 2nd and 3rd lines, with modifications shown like "no salt"
+	const MAXLINES = 2
+	var first = Y
+	var lines : array of str = [ "" ]  //  we have up to 2 lines
+	var linex = 1  //  which line we are in
+	var chunk_size : a_xy
+	var line_size : a_xy
+	var chunk : str
+	var ingr : ptr to a_menu_item
+
+	loop across:item.mods ptr:mod
+		//  if this mod is at the default size, ignore it
+		ingr = adr menu.items[mod.key]
+		if mod.sizex == ingr.default_sizex
+			continue
+
+		if first
+			first = N
+		else
+			", " &=> lines[linex]
+
+		//  calculate the string for this modification
+		//  concatenate the modification name which might be "none" for variant[1] of SALT
+		//  replace the word "None" with "No".
+		var prefix = ingr.sizes[mod.sizex].name
+		if prefix == "None"[] 
+			prefix = "No"[]
+		chunk = prefix & " " & ingr.name
+	
+		//  now calculate the text metrics
+		draw_str(bb, chunk, metrics:chunk_size, size:0.6, shrink:N)
+		draw_str(bb, lines[linex], metrics:line_size, size:0.6, shrink:N)
+
+		log "mod chunk=[{chunk}], line=[{lines[linex]}], chunk.x={chunk_size.x}, line.x={line_size.x}"
+
+		//  if this chunk won't fit, push to a new line
+		if chunk_size.x + line_size.x > bb.width
+			//  too big, wrap to next line
+			log "  too big to fit, wrap to next line"
+			if linex < MAXLINES
+				//  wrap to second line
+				"\n" &=> lines[linex]
+				inc linex
+				chunk => lines[linex]
+				log "  wrapped to line {linex}"
+			else
+				//  already at max lines, so truncate
+				"..." &=> lines[linex]
+				log "  truncating line to [{lines[linex]}]"
+				exit  //  we are done, already full
+		else
+			//  can fit this chunk on the line
+			chunk &=> lines[linex]
+
+	//  now combine all the lines into one glob
+	var glob = ""
+	loop across:lines val:chunk
+		chunk &=> glob
+
+	//  0.6 height will match title line.
+	draw_str(bb, glob, wrap:Y, size:0.6/linex, just:LEFT, color:C_ITEM_TEXT)
+
+---------------------------
+calc do_cartitem_edit ditto //  item is current cart_item record
+	//  load the cart item into the work area for editing
+
+	log "do_cartitem_edit, key={item.key}"
+
+	//  remember the cart item pointer so we can copy back to it
+	intf.curr_edit_item = item
+
+	//  load the work area with the data from the cart item
+	item ===> work
+
+	//  we should only show customization if something is other than the default size
+	intf.curr_customizing = item.has_mods
+
+	//  now jump back to the detail page where we can edit the qty, etc.
+	intf.curr_mode = MODE_CART_DETAIL
+
+---------------------------
+calc do_cartitem_del ditto
+	//  delete this item
+	//  ask if they are sure
+	g_cartitem = item //  do_cartitem_del2 needs this
+	ask_yesno(str_inject("Are you sure you want to delete the $1?"[], menu.items[item.key].name), do_cartitem_del2)
+	//log "do_cartitem_del, key={item.key}"
+
+---------------------------
+vert slice d_cartrow_qty ditto
+	add 20 al
+		draw_str(bb, "Qty "[] & to_str(item.qty), size:0.7, color:C_ITEM_TEXT)	
+	add 30 al d_cartrow_qty_butts(item)
+
+---------------------------
+horz slice d_cartrow_qty_butts ditto
+	if item.qty > 1
+		add 20 al butt_simple(MINUS_SS, do_cartrow_minus(item))  //  − minus sign
+	else
+		skip 20 al
+	skip 2 al
+	if item.qty < ITEM_QTY_LIMIT
+		add 20 al butt_simple("+", do_cartrow_plus(item))	
+	else
+		skip 20 al
+
+---------------------------
+calc do_cartrow_minus ditto
+	//log "do_cartrow_minus"
+	dec item.qty
+
+---------------------------
+calc do_cartrow_plus ditto
+	//log "do_cartrow_plus"
+	inc item.qty
+
+---------------------------
+calc has_customizations (  //  does the current cart item have any active customizations?
+	item : ptr to a_cart_item
+	) : yesno
+	return N
+
+---------------------------
+//  >>future: use action syntax to eliminate global variable
+calc do_cartitem_del2  //  callback function for deleting a cart item
+	//  uses g_cartitem, once we have actions with memorized parms we can skip this global variable
+	clear g_cartitem
+	//  stay in the the cart mode, but update the totals
+	gen_cart_totals
+
+---------------------------
+horz slice cart_footer
+	draw_rect(bb, fill:C_ITEMLIST_FOOT)
+	var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
+	draw_rect(r, fill:C_ITEMLIST_EDGE)
+
+	skip FOOTER_INDENT pt
+	add 30 al butt_simple(MORE_SS, go_mode(MODE_ITEM_LIST))
+	//skip 10 al
+	add 50 al 
+		draw_str(bb, "Shopping Cart"[], size:0.5, color:C_BUTT_TEXT)
+	var ncart = qty_in_cart(U)  //  number of total items
+	if ncart > 0
+		add 30 al butt_simple("Payment  ⮕"[], go_mode(MODE_PAYMENT), back:C_BUTT_NEXT)
+	else
+		skip 30 al
+	skip FOOTER_INDENT pt
+
+---------------------------
+vert slice d_settings
+	//  preferences screen
+	add 10 al  d_settings_body
+	add FOOTER_V px  settings_footer
+
+---------------------------
+horz slice settings_footer
+	draw_rect(bb, fill:C_ITEMLIST_FOOT)
+	var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
+	draw_rect(r, fill:C_ITEMLIST_EDGE)
+
+	skip FOOTER_INDENT pt
+	add 30 al butt_simple(BACK_SS, go_mode(MODE_STORE_LIST))
+	//skip 10 al
+	add 50 al 
+		draw_str(bb, "Settings panel"[], size:0.5, color:C_BUTT_TEXT)
+	skip 30 al
+	skip FOOTER_INDENT pt
+
+---------------------------
+vert slice d_settings_body
+---------------------------
+	//  body of settings panel
+	skip 10 pt
+	add 18 pt 
+		draw_str(bb, "Foody version {VERSION}", size:0.6, color:BEIGE)
+	skip 20 pt
+	add 20 pt d_lang_row
+	skip 10 al
+
+horz slice d_lang_row
+	add 30 al
+		draw_str(bb, "Language:"[], just:RIGHT, indent:2 pt, size:0.6, color:C_BUTT_TEXT)
+	add 70 al pick_language
+
+---------------------------
+vert slice home_map
+	//  map to the store
+	add 10 al  body_map
+	add FOOTER_V px  generic_footer ("Map"[])
+
+---------------------------
+vert slice home_recent
+	//  list recent orders
+	add 10 al  body_recent
+	add FOOTER_V px  generic_footer ("Recent Orders"[])
+
+---------------------------
+vert slice home_contact
+	//  give options to contact us
+	add 10 al  body_contact
+	add FOOTER_V px  generic_footer ("Contacts"[])
+
+---------------------------
+vert slice home_reorder
+	//  user clicked the reorder button, add this to the cart
+	add 10 al  body_reorder
+	add FOOTER_V px  generic_footer ("Recent Orders"[])
+
+draw generic_footer (
+	label : str
+	)
+	draw_str(bb, label, size:0.6)
+
+---------------------------
+draw body_reorder
+	//  2nd phase of the reorder process
+	draw_str (bb, "body reorder", size:36, fill:DARK_GREEN, color:WHITE, font:MAIN_FONT)
+
+---------------------------
+draw body_recent
+	//  2nd phase of the recent orders process
+	draw_str (bb, "body recent", size:36, fill:DARK_GREEN, color:WHITE, font:MAIN_FONT)
+
+---------------------------
+vert slice body_contact
+	//  body of contact us screen
+	skip 10 al
+	add 15 pt d_contact_number
+
+	skip 2 pt 
+	add 30 pt butt_phone_assy
+	
+	skip 10 al
+	add 15 pt d_contact_email
+		
+	skip 2 pt
+	add 30 pt butt_email_assy
+	
+	skip 80 al
+
+---------------------------
+draw d_contact_number
+---------------------------
+	draw_str (bb, "(510) 482-1229", size:12 pt, just:CENTER, indent:4 pt, color:WHITE)
+	
+---------------------------
+draw d_contact_email
+---------------------------
+	draw_str (bb, "foody@gmail.com", size:12 pt, just:CENTER, indent:4 pt, color:WHITE)
+	
+---------------------------
+draw body_map
+---------------------------
+	// body of map
+	draw_image (bb, GENERIC_MAP)
+
+---------------------------
+horz slice butt_phone_assy
+---------------------------
+	skip 15 al
+	add 50 al butt_phone
+	skip 15 al
+	
+---------------------------
+draw butt_phone
+---------------------------
+	draw_rect (bb, fill:C_BUTT_BACK, corner:BUTT_RADIUS pt)
+	draw_str (bb, "Dial us"[], color:C_BUTT_TEXT, size:14 pt)
+track EV_TAP
+	//  use the URL redirect feature
+	animate_tap (e.global_x, e.global_y, U)
+	launch_url ("tel:5104821229")
+	return Y
+	
+---------------------------
+horz slice butt_email_assy
+---------------------------
+	skip 15 al
+	add 50 al butt_email
+	skip 15 al
+		
+---------------------------
+draw butt_email
+---------------------------
+	draw_rect (bb, fill:C_BUTT_BACK, corner:BUTT_RADIUS pt)
+	draw_str (bb, "e-mail us"[], color:C_BUTT_TEXT, size:14 pt)
+track EV_TAP
+	//  use the URL redirect feature
+	animate_tap (e.global_x, e.global_y, U)
+	launch_url ("mailto:foody@gmail.com?subject=Customer inquiry")
+	return Y
+	
+---------------------------
+draw butt_go_back  //  bad VERSION
+---------------------------
+	// back button icon used in various places
+	var r <=== solve_rect (basis:bb, pin:5, inset:2 pt)
+	draw_rect (r, fill:C_BUTT_BACK, corner:BUTT_RADIUS pt)
+	draw_str (bb, BACK_SS, size:0.6, color:WHITE, font:BUTT_FONT)
+---------------------------
+track EV_TAP
+	var next_mode
+	
+	//  so we can re-use this function, if we are in the detail page go back to the list
+	case intf.curr_mode
+	| MODE_PAYMENT
+		next_mode = MODE_CART
+	else
+		next_mode = MODE_STORE_LIST
+
+	animate_tap (e.global_x, e.global_y, next_mode)
+	return Y
+
+---------------------------
+draw butt_go_payment
+---------------------------
+	//  we are in the cart, show button to go forward one step
+	var r <=== solve_rect (basis:bb, pin:5, inset:2 pt)
+	draw_rect (r, fill:C_BUTT_BACK, corner:BUTT_RADIUS pt)
+	draw_str (bb, "Proceed"[], size:0.6, color:WHITE, font:BUTT_FONT)
+---------------------------
+track EV_TAP
+	animate_tap (e.global_x, e.global_y, MODE_PAYMENT)
+		
+---------------------------
+draw butt_go_transmit
+---------------------------
+	//  we are in the payment section, next stage places the order
+	var r <=== solve_rect (basis:bb, pin:5, inset:2 pt)
+	draw_rect (r, fill:#ad4703, corner:BUTT_RADIUS pt)
+	draw_str (bb, "Place order"[], size:0.6, color:WHITE, font:BUTT_FONT)
+---------------------------
+track EV_TAP
+	log "NOT YET"
+		
+---------------------------
+// horz slice home_pick_store
+// 	add 10 al home_pick_storeB
+// 	//  we could just reserve the space if a scrollbar is not needed
+// 	//  but for now we release the space if not needed
+// 	if intf.sbar_stores.is_active
+// 		add SLIDERH pt draw_scrollbar_vert(intf.sbar_stores)
+	
+---------------------------
+vert slice home_pick_store
+	//  home screen header/warnings/buttons/motd/footer
+	//  since the new order button gets drawn first, save its size so that later buttons match it
+	//add HEADER_V px d_main_header
+	//add  1 al d_main_divider
+	add 100 al d_store_picker
+	add FOOTER_V px d_main_footer
+
+// ---------------------------
+// horz slice d_main_header
+// ---------------------------
+// 	//  home screen header
+// 	//draw_rect (bb, fill:#015106)
+// 	draw_str(bb, "Foody ver. {VERSION}", size:0.6, color:BEIGE)
+// 
+// 	//  do the same proportions as the footer
+// 	//skip FOOTER_INDENT pt
+// 	//add 60 pt d_header_icon
+// 	//skip 10 al
+
+// ---------------------------
+// draw d_header_icon  //  gear icon in main header
+// ---------------------------	
+// 	var back <=== solve_rect (basis:bb, pin:5, inset:1 pt, aspect:1)
+// 	draw_rect (bb, fill:C_BUTT_BACK, corner:2 pt, opacity:0.9)
+// 	var inner <=== solve_rect (basis:bb, pin:4, inset:2 pt)
+// 	draw_image (inner, ICON_GEAR, horz:0)
+// 
+// track EV_TAP
+// 	animate_tap (e.global_x, e.global_y, MODE_SETTINGS)
+
+---------------------------
+const DELBOX_FRACT = 6
+const END_MARKER = 12  //  height of list end marker
+
+grid d_store_picker
+	//  for now just show 2x2
+	horz slice
+		const ICON_ASPECT = 2.25
+
+		//  determine how many columns we can fit
+		var avail = bb.width - 50 pt
+		const NPROP = round_down(avail/(120 pt))
+		const NCOLS = max(2, NPROP)
+		const GAP = round(avail/(NCOLS*30))
+		const NROWS = round_up(g_nstores/NCOLS)
+		
+
+		//  calculate a nice cellsize
+		const CELLH = round_up((avail - GAP*(NCOLS+1) )/NCOLS)
+		const CELLV = round_up(CELLH/ICON_ASPECT)
+		log "avail={avail}, NPROP={NPROP}, NCOL={NCOLS}, GAP={GAP}, NROWS={NROWS}, CELLH={CELLH}, CELLV={CELLV}"
+
+		skip 10 al
+		loop reps:NCOLS
+			add CELLH px
+			skip 10 al  //  let the gaps fill the space
+		//  now skip over the space that the scrollbar is going to overlay
+		skip (SBAR_THICK + 2) pt
+
+	vert scroll
+		//skip GAP px
+		//  
+		loop reps:NROWS
+			add CELLV px
+			skip GAP px
+		//  add a spacer for the final row
+		add END_MARKER pt
+
+	cell
+		var storex = b.cell_seq // + (2*intf.curr_store_off)
+		//log "storex {storex}, box={bb}"
+		if storex <= g_nstores
+			//  draw the store icon
+			if g_stores[storex].pic == U
+				//  placeholder graphic
+				draw_rect(bb, fill:DODGER_BLUE, corner:bb.height/14)
+				draw_str(bb, g_stores[storex].name, size:14 pt, indent:5 pt, color:WHITE)
+			else
+				//  restaurant has a photo
+				draw_image(bb, g_stores[storex].pic, corner:bb.height/14)
+				//draw_rect(bb, thick:1, color:PINK, corner:2 pt)
+			//  draw the delete X in the corner
+			const DELH = bb.height/DELBOX_FRACT
+			var delbox : a_rect <=== solve_rect(basis:bb, pin:3, width:DELH, height:DELH)
+			d_delbox(delbox)
+track EV_TAP
+	//  set the store index
+	var sx = b.cell_seq
+	if sx < g_nstores
+		//  user clicked in a store that is drawn
+		intf.curr_store = adr g_stores[sx]
+		//  first see if the user tapped in the X delete box
+		const BOXH = bb.height/DELBOX_FRACT + (2 pt)
+		var delbox <=== solve_rect(basis:bb, pin:3, width:BOXH, height:BOXH)
+		if rect_is_inside(delbox, x:e.x, y:e.y)
+			//  delete this store
+			log "delete store" on:TRACE_MODAL
+		else
+			//  pick this store
+			intf.curr_mode = MODE_CAT_LIST
+	
+---------------------------
+calc ask_yesno (
+	prompt : str  //  main prompt
+	action : calc (frozen)  // affirmative action
+	cancel_str  : str = "Cancel"[]
+	ok_str  : str = "Yes"[]  
+	) ------
+	//log "ask_yesno, prompt={prompt}" on:TRACE_MODAL
+	//  remember this prompt for our modal alert box
+	intf.modal_prompt = prompt
+	intf.modal_cancel = cancel_str
+	intf.modal_ok = ok_str
+	intf.modal_active = Y
+	intf.modal_action = action  //  if U, then is just an OK box
+
+---------------------------
+horz slice d_main_footer
+	draw_rect(bb, fill:C_ITEMLIST_FOOT)
+
+	//  currently buttons are 30 al, which comes out to a nice size
+	var BUTTH = min(bb.width*0.30, 90 pt) 
+	skip FOOTER_INDENT pt
+	add BUTTH px butt_simple("Add Restaurant"[], do_add_store)
+	skip 10 al
+	add 60 pt butt_simple("⚙️ Settings"[], go_mode(MODE_SETTINGS))
+	skip 10 al
+	add BUTTH px butt_simple("Login"[], do_login)
+	skip FOOTER_INDENT pt
+
+---------------------------
+calc do_add_store
+	log "NOT YET - do_add_store"
+
+---------------------------
+calc do_login
+	log "NOT YET - do_login"
+
+---------------------------
+draw d_delbox(
+	box : a_rect
+	)
+	draw_rect(box, fill:C_BUTT_BACK, corner:2 pt, opacity:0.7)
+
+	const LL = 25
+	const RR = 75
+	const TT = LL
+	const BB = RR
+	//  seems to look better without the box
+	var data1 <=== [ LL,TT ; RR,BB ]
+	draw_polygon (data1, thick:0.8 pt, color:C_BUTT_DEL, viewbox:box)
+	var data2 <=== [ RR,TT ; LL,BB ]
+	draw_polygon (data2, thick:0.8 pt, color:C_BUTT_DEL, viewbox:box)
+
+/*.....
+draw d_left_arrow
+	var y1 = bb.height*0.10
+	var y2 = bb.height*0.50
+	var y3 = bb.height*0.90
+	var x1 = bb.width
+	var data <=== [ x1,y1 ; 0,y2 ; x1,y3 ]
+	draw_polygon (data, fill:C_BUTT_BACK, thick:1 pt, color:C_BUTT_BORD)
+
+draw d_right_arrow
+	var y1 = bb.height*0.10
+	var y2 = bb.height*0.50
+	var y3 = bb.height*0.90
+	var x1 = bb.width
+	var data <=== [ 0,y1 ; x1,y2 ; 0,y3 ]
+	draw_polygon (data, fill:C_BUTT_BACK, thick:1 pt, color:C_BUTT_BORD)
+
+draw d_pagenum
+	const H = bb.width
+	const V = bb.height
+	draw_line(x1:H*0.2, x2:H*0.8, y1:V*0.8, y2:V*0.2, thick:H*0.05, color:C_BUTT_TEXT)
+	var r : a_rect <=== solve_rect(cx:H*0.15, cy:V*0.3, width:H*0.5, height:V*0.5)
+	draw_str(r, "12", size:0.8, just:RIGHT, color:C_BUTT_TEXT, shrink:N)
+	var r2 : a_rect <=== solve_rect(cx:H*0.85, cy:V*0.7, width:H*0.5, height:V*0.5)
+	draw_str(r2, "34", size:0.8, just:LEFT, color:C_BUTT_TEXT, shrink:N)
+....*/
+
+//  for now hard code the subcats, use worst case for McD
+var subcat_str : array of str
+var subcat_size : array of a_xy
+
+---------------------------
+draw d_subcat_picker
+---------------------------
+	const ITEM_GAP = 14 pt
+	const TSIZE = 0.4
+
+	draw_rect(bb, fill:#2e300d)
+
+	//  first calculate the width of the subcats as they will be drawn
+	subcat_str <=== ["Coffee & Classics", "Frappé", "Macchiato", 
+	"Mocha", "Smoothie", "Latte", "Cappucino", "Americano" ]
+
+	var ss : str
+	loop across:subcat_str val:ss index:ix
+		draw_str(bb, ss, size:TSIZE, metrics:subcat_size[ix])
+		log "subcat {ss} size={subcat_size[ix]}"
+	
+	//  now draw the subcats after measuring their size
+
+	draw_str(bb, "Sunday   Monday", size:TSIZE, color:WHITE)
+
+---------------------------
+draw d_recent_order (
+	recent : str
+	)	
+	draw_str (bb, recent, just:LEFT, size:12 pt, color:WHITE, font:MAIN_FONT)
+
+---------------------------
+//    REORDER
+---------------------------
+---------------------------
+draw butt_go_reorder
+	draw_rect (bb, fill:C_BUTT_BACK, opacity:0.6, corner:8 pt)
+	draw_str (bb, "Reorder"[], size:0.4, color:WHITE, indent:2 pt, font:BUTT_FONT)
+--------------
+track EV_TAP
+	animate_tap (e.global_x, e.global_y, MODE_REORDER)
+
+---------------------------
+horz slice d_reorder
+	//  NOT YET
+	//  reorder area for home screen
+
+	//  calculate the recent order string (if any)
+	var recent : str
+	
+	//  during testing, dummy up a previous order	
+	if recent == U and DUMMY_RECENT
+		recent = '1 veggie combo\n1 rum cake'
+
+	//  if there is no previous order hide this whole section
+	if recent <> U
+		skip  2 al
+		add 40 al d_reorder_butt1
+		skip  2 al
+		add 60 al d_recent_order(recent)
+		skip  1 al
+
+---------------------------
+vert slice d_reorder_butt1
+	skip 100 al
+	add  buttv px butt_go_reorder
+	skip 100 al
+	
+---------------------------
+//    PAYMENT
+---------------------------
+
+---------------------------
+vert slice d_add_card
+	add 100 al addcard_body
+	add FOOTER_V px addcard_footer
+
+const ENTRYBORD = 0.5
+const ENTRYV = 18
+const LABELH = 80
+const LABEL_F_GAP = 4  //  label field gap
+
+---------------------------
+vert slice addcard_body
+	draw_rect(bb, fill:C_DEAD2)
+	skip 10 al
+	add ENTRYV pt addcard_cardnum  //  card number
+	skip 10 al
+	add ENTRYV pt addcard_expire  //  expiration
+	skip 10 al
+	add ENTRYV pt addcard_owner   //  name on card
+	skip 10 al
+	add ENTRYV pt addcard_zipcode  //  zipcode
+	skip 10 al
+	add ENTRYV pt addcard_nickname  //  nickname
+	skip 10 al
+
+---------------------------
+horz slice addcard_nickname   //  nickname
+	skip 4 pt
+	add LABELH pt
+		draw_str(bb, "Card nickname"[], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
+	skip LABEL_F_GAP pt
+	add 150 pt
+		draw_input(b.box, input_nickname, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
+	skip 10 al
+
+---------------------------
+horz slice addcard_owner   //  name on card
+	skip 4 pt
+	add LABELH pt
+		draw_str(bb, "Name on card"[], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
+	skip LABEL_F_GAP pt
+	add 150 pt
+		draw_input(b.box, input_owner, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
+	skip 10 al
+
+---------------------------
+horz slice addcard_zipcode   //  nickname
+	skip 4 pt
+	add LABELH pt
+		draw_str(bb, "Billing zipcode"[], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
+	skip LABEL_F_GAP pt
+	add 75 pt
+		draw_input(b.box, input_zipcode, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
+	add LABELH pt
+		draw_str(bb, "(first 5 digits)"[], size:0.6, just:LEFT, italic:Y, indent:3 pt, color:C_BUTT_TEXT)
+	skip 10 al
+
+---------------------------
+horz slice addcard_cardnum  //  card number
+	skip 4 pt
+	add LABELH pt
+		draw_str(bb, "Card number"[], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
+	skip LABEL_F_GAP pt
+	add 150 pt
+		draw_input(b.box, input_cardnum, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
+	skip 6 pt
+	add (bb.height*128/80) px  //  preserve aspect ratio
+		if intf.curr_issuer <> U
+			draw_image(bb, intf.curr_issuer.icon)
+	skip 10 al
+
+---------------------------
+horz slice addcard_expire   //  expiration mm / yy
+	skip 4 pt
+	add LABELH pt
+		draw_str(bb, "Expires"[], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
+	skip LABEL_F_GAP pt
+	add 35 pt
+		draw_input(b.box, input_expire_mm, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
+	add 15 pt
+		draw_str(bb, "/", size:0.9, color:C_BUTT_TEXT)
+	add 35 pt
+		draw_input(b.box, input_expire_yy, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
+	add 40 pt
+		draw_str(bb, "Code"[], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
+	skip LABEL_F_GAP pt
+	add 45 pt
+		draw_input(b.box, input_csc, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
+	skip 4 pt
+	//  the CSC icon is not particularly clear, would need to rework it
+	//add 30 pt
+	//	draw_image(bb, ICON_CSC)
+	skip 10 al
+
+---------------------------
+horz slice addcard_footer  //  used for both MODE_ADDCARD and MODE_EDITCARD
+	draw_rect(bb, fill:C_ITEMLIST_FOOT)
+	var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
+	draw_rect(r, fill:C_ITEMLIST_EDGE)
+
+	skip FOOTER_INDENT pt
+	add 20 al butt_simple("Cancel"[], go_mode(MODE_PAYMENT))
+	//skip 10 al
+	add 50 al 
+		draw_str(bb, if intf.curr_mode == MODE_ADDCARD then "Enter new card info"[] else "Update card on file"[], size:0.5, color:C_BUTT_TEXT)
+
+	//  if card form is complete show the add button
+	if intf.form_ready
+		add 30 al butt_simple(if intf.curr_mode == MODE_ADDCARD then "Add Card"[] else "Update"[], final_add_card, back:C_BUTT_NEXT)
+	else
+		skip 30 al
+	skip FOOTER_INDENT pt
+
+calc final_add_card  -- add this card to the list of cards
+	//  the form has passed validation, all fields are known to be good
+
+	var newcard : a_creditcard <=== inputs_to_card()
+
+	//  before we add, make sure it didn't expire yet
+	if is_card_expired(newcard)
+		//  an action of U means just an OK button is presented
+		ask_yesno("This card has already expired, and cannot be added"[], U, cancel_str:"", ok_str:"Ok"[])
+	else
+		//  proceed
+		log "storing new card into slot {intf.curr_pay_cardx}"
+		newcard ===> cards_on_file[intf.curr_pay_cardx]
+		intf.curr_mode = MODE_PAYMENT //  let user pick a card
+
+---------------------------
+calc card_to_inputs (  //  copy the credit card data to the input fields
+	card : a_creditcard
+	)
+	input_nickname.in_value = card.nickname
+	input_owner.in_value = card.cardholder
+	input_cardnum.in_value = card.cardnum
+	input_zipcode.in_value = card.zipcode
+	input_csc.in_value = card.csc
+	input_expire_mm.in_value = to_str(card.expire_mm)
+	input_expire_yy.in_value = to_str(rem(card.expire_yyyy, 100))
+
+---------------------------
+calc inputs_to_card : a_creditcard	//  copy input data to a card record
+	return { nickname:input_nickname.in_value,
+		cardholder:input_owner.in_value,
+		cardnum:input_cardnum.in_value,
+		zipcode:input_zipcode.in_value,
+		csc:input_csc.in_value,
+		expire_mm:to_num(input_expire_mm.in_value),
+		expire_yyyy:2000 + to_num(input_expire_yy.in_value)  }
+
+---------------------------
+vert slice d_pick_payment
+	//  let the remainder of the space scroll if necessary
+	add 100 al payment_body
+
+	// put the footer same as the header
+	add FOOTER_V px payment_footer
+		
+---------------------------
+grid payment_body  //  show the cards on file
+	horz slice
+		const BOXH = min(120 pt, bb.width*0.42)
+		const BOXV = min(38 pt, BOXH*0.4)
+		skip 10 al
+		add BOXH px
+		skip 10 al
+		add BOXH px
+		skip 10 al
+
+	vert slice
+		skip 10 al
+		add BOXV px
+		skip 10 al
+		add BOXV px
+		skip 10 al
+
+	under
+		draw_rect(bb, fill:C_DEAD2)
+
+	cell
+		d_payment_card(b.cell_seq)		
+
+---------------------------
+horz slice d_payment_card (
+	cardx
+	)
+	//  if this is an unused slot just draw an add button
+	if cards_on_file[cardx].cardnum == U
+		add 10 al butt_add_card(cardx)
+	else
+		//  card on file, draw the card butt, then the X/EDIT buttons to the right
+		add 10 al d_card_info(cardx)
+		add 24 pt d_card_butts(cardx)
+
+---------------------------
+draw d_card_info (
+	cardx
+	)
+	draw_rect(bb, fill:C_BUTT_BACK, corner:bb.height*0.1, thick:1 pt, color:C_BUTT_BORD)
+
+	var card : ptr to a_creditcard = adr cards_on_file[cardx]
+
+	//  draw the icon for the card
+	var w = bb.width/5
+	var iconbox <=== solve_rect(basis:bb, left:3 pt, top:3 pt, width:w, height:w/1.6)
+	var issuer = get_issuer_ptr(card.cardnum)
+	if issuer <> U
+		draw_image(iconbox, issuer.icon)
+
+	//  draw the card ending digits
+	var numbox <=== solve_rect(basis:iconbox, left:iconbox.left+iconbox.width+6 pt, right:bb.width)
+	draw_str(numbox, "...{subset(card.cardnum, from:1, len:4, rev:Y)}", size:0.6, just:LEFT, color:C_BUTT_TEXT)
+
+	if is_card_expired(card)
+		draw_str(numbox, "(expired)"[], size:0.6, just:RIGHT, indent:4 pt, color:ORANGE)
+
+	//  if the card is expired mark it so
+
+	//  draw the nickname
+	draw_str(bb, card.nickname, size:0.23, vert:0.7, color:C_BUTT_TEXT)
+------
+track EV_TAP
+	//  if this cell has a credit card, we know the card to bill
+	//  if this is an empty cell, then we ask them to add card info
+	intf.curr_pay_cardx = cardx
+	if is_card_expired(cards_on_file[cardx])
+		//log "TAP on card {cardx}, EXPIRED"	
+		//  load the working card area with the current data, so if we jump to ADDCARD we are ready
+		ask_yesno("This card has expired. Either fix this card, or choose a different card."[], enter_card_edit(cardx, MODE_EDITCARD), ok_str:"Fix"[])
+	else
+		//log "TAP on card {cardx}, card is not expired"	
+		//  user picked a valid card, advance
+		intf.curr_mode = MODE_SUBMIT
+
+---------------------------
+vert slice d_card_butts (  //  the DEL and EDIT buttons for credit cards
+	cardx
+	)
+	add 25 al butt_simple("X", do_card_del(cardx))
+	skip 6 al
+	add 40 al butt_simple("Edit"[], enter_card_edit(cardx, MODE_EDITCARD))
+
+calc do_card_del ditto
+	//  delete this card on file
+	log "TAP do_card_del"
+	ask_yesno("Are you sure you want to delete this card?"[], do_card_del2(cardx))
+
+calc do_card_del2 ditto
+	log "delete the actual card"
+	clear cards_on_file[cardx]
+
+---------------------------
+draw butt_add_card ditto
+	var box <=== solve_rect(basis:bb, pin:5, width:80 pt, height:20 pt)
+	draw_rect(box, fill:C_BUTT_BACK, corner:4 pt, thick:1 pt, color:C_BUTT_BORD)
+	draw_str(box, "Add card #"[] & to_str(cardx), size:0.5, color:C_BUTT_TEXT)
+track EV_TAP
+	//  user wants to add to this slot
+	//  --- this block of 5 statements is similar to the EDIT phase above
+	enter_card_edit(cardx, MODE_ADDCARD)
+
+---------------------------
+calc enter_card_edit (
+	cardx
+	newmode
+	) -----
+	//  remember the slot we want to store back to, and change the screen
+	intf.curr_pay_cardx = cardx
+	intf.curr_mode = newmode //  must do this first
+
+	reset_ccard_fields  // zap entry fields to stone age
+	if newmode == MODE_EDITCARD
+		//  we have to take the work card and load the entry fields too
+		card_to_inputs(cards_on_file[cardx])
+
+	check_card_form  //  fix derived quantities, depends on mode
+	
+---------------------------
+pattern CARDINAL starts ends  //  match an unsigned cardinal number 0..
+	0+ digit
+
+---------------------------
+pattern CREDITCARD starts ends  //  match an unsigned cardinal number 0..
+	or
+		and
+			"3"
+			14 digit
+		and
+			set:"4-5"
+			15 digit	
+
+---------------------------
+pattern ZIPCODE starts ends  //  match an digits with dashes
+	5 digit
+	
+---------------------------
+pattern MONTH starts ends  //  matches: 1..9, 10..12
+	or
+		set: "1-9"		//  this matchs 1..9
+		and				//  this matches 01..09
+			"0"
+			set:"1-9"
+		and				//  this matches 10, 11, 12
+			"1" 
+			set:"0-2"
+
+---------------------------
+calc reset_ccard_fields  //  reset the input fields for card number entry
+	//  note that cards are 15 or 16 digits, csc is either 3 or 4 depending on issuer
+	//  we are letting the zipcode be optional, for foreign credit card holders
+	//  note: you must set in_ok to Y for all non-required fields, as an undefined okay
+	//  would mean form will not be considered totally valid until you have typed into the field
+	{ in_label:"nickname", in_name:"", in_value:"", in_minlen:1, in_maxlen:24, in_required:Y, in_form_ready:check_card_form } ===> input_nickname
+	{ in_label:"owner", in_name:"", in_value:"", in_minlen:2, in_maxlen:24, in_required:Y, in_form_ready:check_card_form } ===> input_owner
+	{ in_label:"zipcode", in_name:"", in_value:"", kind:IN_NUMBER, in_pattern:ZIPCODE, in_minlen:5, in_maxlen:5, in_required:N, in_required:N, in_ok:Y, in_form_ready:check_card_form } ===> input_zipcode
+	{ in_label:"cardnum", in_name:"", in_value:"", kind:IN_NUMBER, in_pattern:CREDITCARD, in_keyboard:"numeric", in_minlen:15, , in_maxlen:16, in_required:Y, in_form_ready:check_card_form } ===> input_cardnum
+	{ in_label:"expire_mm", in_name:"", in_value:"", in_hint:"mm", kind:IN_NUMBER, in_pattern:MONTH, in_keyboard:"numeric", in_minlen:1, in_maxlen:2, in_required:Y, in_form_ready:check_card_form } ===> input_expire_mm
+	{ in_label:"expire_yy", in_name:"", in_value:"",in_hint:"yy", kind:IN_NUMBER,  in_pattern:CARDINAL, in_keyboard:"numeric", in_minlen:2, in_maxlen:2, in_required:Y, in_form_ready:check_card_form } ===> input_expire_yy
+	{ in_label:"csc", in_name:"", in_value:"", kind:IN_NUMBER, in_pattern:CARDINAL, in_keyboard:"numeric", in_minlen:3, in_maxlen:4, in_required:Y, in_form_ready:check_card_form } ===> input_csc
+
+---------------------------
+//  this routine sets the intf_form_ready yesno value, to allow forward motion in the interface
+calc check_card_form  // called on each keystroke of the input form to enter new credit cards
+	//  set the icon based on the first character of the card	
+	intf.curr_issuer = get_issuer_ptr(input_cardnum.in_value)
+	//log "issuer={intf.curr_issuer}"
+	
+	if intf.curr_issuer <> U
+		//  we know the issuer, so fix our lengths
+		//  since we validate on each character is not that easy to have the wrong 
+		//  number of digits before it is time to finish the string
+		input_cardnum.in_minlen = intf.curr_issuer.numlen
+		input_cardnum.in_maxlen = intf.curr_issuer.numlen
+		input_csc.in_minlen = intf.curr_issuer.codelen
+		input_csc.in_maxlen = intf.curr_issuer.codelen
+
+	//  to prevent any funny business, re-validate the CSC and card number
+	//  theoretically the user could try to fool the system by putting in an amex number
+	//  and 4 digits into CSC, and then switching the card type to visa, which only uses 3 digit CSC
+	//  and the browser will not revalidate the other fields after this change
+	//  And since we use this to fix up form valid, re-validate all the fields
+	validate_input(input_nickname)
+	validate_input(input_owner)
+	validate_input(input_zipcode)
+	validate_input(input_cardnum)
+	validate_input(input_expire_mm)
+	validate_input(input_expire_yy)
+	validate_input(input_csc)
+
+	//  test that all of the fields are valid
+// 	log "nickname ok={input_nickname.in_ok}"
+// 	log "owner    ok={input_owner.in_ok}"
+// 	log "zipcode  ok={input_zipcode.in_ok}"
+// 	log "cardnum  ok={input_cardnum.in_ok}"
+// 	log "exp MM   ok={input_expire_mm.in_ok}"
+// 	log "exp YY   ok={input_expire_yy.in_ok}"
+// 	log "csc      ok={input_csc.in_ok}"
+	intf.form_ready = input_nickname.in_ok and input_owner.in_ok and input_zipcode.in_ok and input_cardnum.in_ok and input_expire_mm.in_ok and input_expire_yy.in_ok and input_csc.in_ok
+	log "..end check_card_form, form_ready={intf.form_ready}"
+		
+---------------------------
+// calc get_issuer_ix (  -- which issuer made this card
+// 	cardnum : str
+// 	) : num
+// 	var len
+// 	loop across:ISSUERS ptr:issuer index:ix
+// 		len = str_len(issuer.prefix)
+// 		if subset(cardnum, from:1, len:len) == issuer.prefix
+// 			return ix
+// 	return U
+
+---------------------------
+calc get_issuer_ptr (  //  return ptr to issuer, or U
+	cardnum : str
+	) : ptr to a_card_issuer
+	var len
+	var issuer : ptr to a_card_issuer
+	loop across:ISSUERS ptr:issuer
+		len = str_len(issuer.prefix)
+		if subset(cardnum, from:1, len:len) == issuer.prefix
+			return issuer
+	return U
+
+---------------------------
+calc is_valid_luhn_checksum (
+	ss : str --- string to validate using luhn algorithm
+	)  : yesno --- Y if okay, N if fail, ERR if too short or non-numeric
+---------------------------
+	var digit 
+	var flag = Y
+	
+	var len = str_len(ss)
+	if len < 12
+		return ERR
+
+	var checksum = 0
+	//  loop through the digits, starting at the 2nd character from the right
+	loop from:2 to:len index:ix
+		digit = str_digit (ss, from:ix, rev:Y)
+		if digit == ERR
+			return ERR
+			
+		//  every other digit is doubled; we start out doubled
+		if flag
+			2 *=> digit
+			
+		//  this will skip doubling the next digit
+		toggle flag
+		
+		//  the doubled digit might be 10..18, we are to sum the digits of this doubled value
+		if digit >= 10
+			rem(digit, 10) + 1 +=> checksum
+		else
+			digit +=> checksum
+	
+	//  we have computed the checksum, compare it with the last digit
+	var last = str_digit(ss, from:1, rev:Y)
+	if last == ERR
+		return ERR
+	
+	return rem(checksum + last, 10) == 0
+
+
+---------------------------
+calc is_card_expired(  //  is the credit card expired?
+	card : a_creditcard
+	) : yesno 
+	-----------
+	//  get today's month and year
+	var today : a_date <=== seconds_to_date()
+	log "is_card_expired, yy={card.expire_yyyy}, year={today.date_year}, mm={card.expire_mm}, month={today.date_month}"
+	return today.date_year > card.expire_yyyy or (today.date_year == card.expire_yyyy and today.date_month > card.expire_mm)
+
+---------------------------
+horz slice payment_footer
+	draw_rect(bb, fill:C_ITEMLIST_FOOT)
+	var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
+	draw_rect(r, fill:C_ITEMLIST_EDGE)
+
+	skip FOOTER_INDENT pt
+	add 20 al butt_simple(CART_SS, go_mode(MODE_ITEM_LIST))
+	//skip 10 al
+	add 50 al 
+		draw_str(bb, "Please choose a card"[], size:0.5, color:C_BUTT_TEXT)
+// 	if Y //  if payment card selected
+// 		add 30 al butt_simple("Submit  ⮕", go_mode(MODE_PAYMENT), back:C_BUTT_NEXT)
+// 	else
+	skip 20 al
+	skip FOOTER_INDENT pt
+
+---------------------------
+vert slice d_submit
+	add 100 al submit_body
+	add FOOTER_V px submit_footer
+		
+---------------------------
+vert slice submit_body  //  let user confirm the order before we pay
+	skip 10 pt
+	add 24 pt
+		draw_str(bb, "SUBMIT AREA", size:14 pt, color:C_BUTT_TEXT)
+
+---------------------------
+horz slice submit_footer
+	draw_rect(bb, fill:C_ITEMLIST_FOOT)
+	var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
+	draw_rect(r, fill:C_ITEMLIST_EDGE)
+
+	skip FOOTER_INDENT pt
+	add 20 al butt_simple(BACK_SS, go_mode(MODE_CART))
+	//skip 10 al
+	add 50 al 
+		draw_str(bb, "Final confirmation of order"[], size:0.5, color:C_BUTT_TEXT)
+// 	if Y //  if payment card selected
+// 		add 30 al butt_simple("Submit  ⮕", go_mode(MODE_PAYMENT), back:C_BUTT_NEXT)
+// 	else
+	skip 20 al
+	skip FOOTER_INDENT pt

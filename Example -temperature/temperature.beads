@@ -1,4 +1,4 @@
-beads level 1 program temperature  // a simple temperature control
+beads 1 program temperature  // a simple temperature control
 
 //  this program lets you show two synchronized temperature sliders
 //  whatever you set in one, the other tracks it.
