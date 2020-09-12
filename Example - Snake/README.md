@@ -2,7 +2,7 @@
 
 This Beads language sample program plays a Snake game, similar to the classic Nokia phone game of decades ago. It is a fun game, and one of the simplest possible games to program.
 
-![snake example](http://magicmouse.com/beads/examples/snake/snake_animated.gif)
+![snake example](http://beadslang.com/apps/snake/snake_animated.gif)
 
 
 The first line of every Beads program must declare the level of the language. We then declare the art assets that will be used with the program.
