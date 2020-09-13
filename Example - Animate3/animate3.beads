@@ -1,0 +1,100 @@
+beads 1 program animate3  // show particle animation
+// adapted from Particles - #044 of #100Days100Projects by Florin Pop
+// https://codepen.io/FlorinPop17/full/wvvrbmY
+
+record a_particle
+	pos : a_xy  //  position
+	vel : a_xy  //  velocity
+	dir : a_xy  //  direction multiplier (+1 / -1)
+
+var
+	NP = 0 -- current number of particles
+	particles : array of a_particle
+	mycanvas : a_canvas  -- our canvas bitmap that we draw into
+
+const
+	TRACE = N	//  general tracing
+
+=====================
+calc main_init
+=====================
+	//  update the particles 30 times a second
+	loom_timer(do_tick, rate:30, delay:0.2 sec, reps:10000)
+
+=====================
+draw main_draw
+=====================
+	//  this creates a canvas layer, stores it in mycanvas
+	layer area:bb canvas:mycanvas
+
+	var r <=== solve_rect(basis:bb, pin:9, dy:-20 pt, height:30 pt, width:300 pt)
+	draw_str(r, "Beadslang.com", size:20 pt, color:LAVENDER, just:RIGHT, indent:20 pt, opacity:0.5)
+---------------
+track EV_RESIZE -- whenever we resize the screen
+	var new_NP = min(round(bb.width*bb.height/8000), 100)
+	log "-- resizing, new_NP={new_NP}, old={NP}" on:TRACE
+	if new_NP > NP
+		//  add more particles
+		var n_add = new_NP - NP
+		loop reps:n_add
+			append { pos:{ x:random_range(0, bb.width), y:random_range(0, bb.height) }, 
+			         vel:{ x:random_range(0.1, 2) y:random_range(0.1, 2) },
+					 dir:{ x:random_set(-1, +1) y:random_set(-1, +1) } } ===> particles index:ix
+			log "-- added at slot {ix}" on:TRACE
+
+	else
+		//  delete any excess
+		var n_del = NP - new_NP
+		loop across:particles reps:n_del rev:Y index:ix ptr:part
+			log "-- removing at slot {ix}" on:TRACE
+			clear part  //  remove this particle
+		log "after excess delete, npart={tree_count(particles)}" on:TRACE
+	NP = new_NP
+
+=====================
+calc do_tick  -- this is called by our timer to update the canvas buffer
+=====================
+	//  if we have fewer particles than we wanted, add some
+	move_particles in mycanvas 
+	render_particles in mycanvas 
+
+=====================
+canvas render_particles
+=====================	
+	//  all the drawing in this section is done via the canvas
+	//  this will wipe out whatever was there before
+	draw_rect(bb, fill:#141414)
+
+	//  loop through all the particles
+	loop across:particles index:ix1 ptr:particle
+		//  draw the dot
+		draw_circle(xy:particle.pos, fill:WHITE, opacity:0.5, radius:5)
+
+		//  any particles near it will cause a line segment to be drawn
+		loop from:ix1+1 to:NP index:ix2
+			var d = distance(particle.pos, particles[ix2].pos)
+			if d < 120
+				//  the closer it gets the fainter it gets
+				var opacity = interpolate(d, 0, 120, 0, 0.25)
+				draw_line(p1:particle.pos, p2:particles[ix2].pos, opacity:opacity, color:WHITE, thick:2)
+
+=====================
+canvas move_particles
+=====================
+	//  loop through all the particles
+	loop across:particles index:ix1 ptr:p1
+		//  update the position
+		p1.vel.x*p1.dir.x +=> p1.pos.x
+		p1.vel.y*p1.dir.y +=> p1.pos.y
+
+		//  if resize the playing field abruptly, particles will be way outside
+		//  and it will take multiple movement steps to get them back in view
+		if p1.pos.x <= 0
+			p1.dir.x = +1 // force it to the right
+		elif p1.pos.x >= bb.width
+			p1.dir.x = -1 // force it to the left
+
+		if p1.pos.y <= 0
+			p1.dir.y = +1 // force it to the downward
+		elif p1.pos.y >= bb.height
+			p1.dir.y = -1 // force it to the upward
