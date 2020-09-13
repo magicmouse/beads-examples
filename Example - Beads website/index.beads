@@ -1,4 +1,5 @@
-beads 1 program index  
+beads 1 program index  lang:LANG_ENG,LANG_JAP
+
 //  example of how to build a website in Beads
 //  written Sept 2020
 
@@ -17,12 +18,14 @@ assets local:"./art/" remote:"http://beadslang.com/beads/projects/website/art/"
 	
 	------ icons for examples
 assets local:"./art/examples/" remote:"http://beadslang.com/beads/projects/website/art/"
+	file:"website.gif" label:ICON_WEBSITE
 	file:"chess.png" label:ICON_CHESS
 	file:"snake_animated.gif" label:ICON_SNAKE
 	file:"bearsweeper.png" label:ICON_BEAR
 	file:"calculator.gif" label:ICON_CALCULATOR
 	file:"colorchart.png" label:ICON_COLOR
 	file:"localize_screenshot.gif" label:ICON_LOCALIZE
+	file:"animate3.gif" label:ICON_ANIMATE3
 
 assets local:"./art/flags/" remote:"http://beadslang.com/beads/projects/website/art/"
 	file:"Japan.png" label:ICON_JAP preload
@@ -73,11 +76,13 @@ const
 
 	EXAMPLES : array of a_example <=== [<
 		label				icon			code_url		run_url
+		"Beads website"		ICON_WEBSITE	"Example - Beads website"	U
 		"Localizer"			ICON_LOCALIZE	"Example - Localization tool"	"https://youtu.be/ct_RSML_0D0"
 		"Chess game"		ICON_CHESS		"Example - Chess"  "chess/chess.html"
 		"Color picker"		ICON_COLOR		"Example - Color Chart" "colorchart/colorchart.html"
 		"Snake game"		ICON_SNAKE		"Example - Snake"  "snake/snake.html"
 		"Minesweeper game"	ICON_BEAR		"Example - Bearsweeper"  "bearsweeper/bearsweeper.html" 
+		"Animation #3"		ICON_ANIMATE3	"Example - Animate3"	"animate3/animate3.html"
 		"Calculator"		ICON_CALCULATOR	"Example - Calculator"	"calculator/calculator.html"
 		>]
 
@@ -162,19 +167,19 @@ track EV_TAP
 ==================================
 horz slice d_tabs
 	skip 20 al
-	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Home", TAB_HOME)
+	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Home"[1000], TAB_HOME)
 	skip 4 al
 	skip 2 pt
-	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Examples", TAB_EXAMPLES)
+	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Examples"[1001], TAB_EXAMPLES)
 	skip 4 al
 	skip 2 pt
-	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Docs", TAB_DOCS)
+	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Docs"[1002], TAB_DOCS)
 	skip 4 al
 	skip 2 pt
-	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Download", TAB_DOWNLOAD)
+	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Download"[1003], TAB_DOWNLOAD)
 	skip 4 al
 	skip 2 pt
-	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Contact", TAB_CONTACT)
+	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Contact"[1004], TAB_CONTACT)
 	skip 20 al
 
 ==================================
@@ -260,27 +265,27 @@ vert scroll d_home2
 	const GAP = 4
 
 	skip 12 pt
-	add TITLE_V pt d_title("🚀   FUTURISTIC")
+	add TITLE_V pt d_title("🚀   " & "FUTURISTIC"[1005])
 	add auto d_text(p_future)
 	skip GAP pt
 
-	add TITLE_V pt d_title("🔨   SIMPLE")
+	add TITLE_V pt d_title("🔨   " & "SIMPLE"[1006])
 	add auto d_text(p_simple)
 	skip GAP pt
 
-	add TITLE_V pt d_title("💪   POWERFUL")
+	add TITLE_V pt d_title("💪   " & "POWERFUL"[1007])
 	add auto d_text(p_powerful)
 	skip GAP pt
 
-	add TITLE_V pt d_title("💣   ROBUST")
+	add TITLE_V pt d_title("💣   " & "ROBUST"[1008])
 	add auto d_text(p_robust)
 	skip GAP pt
 
-	add TITLE_V pt d_title("💎   ELEGANT")
+	add TITLE_V pt d_title("💎   " & "ELEGANT"[1009])
 	add auto d_text(p_elegant)
 	skip GAP pt
 
-	add TITLE_V pt d_title("⚠️   LIMITATIONS")
+	add TITLE_V pt d_title("⚠️   " & "LIMITATIONS"[1010])
 	add auto d_text(p_whatnot)
 	skip GAP pt
 
@@ -449,7 +454,7 @@ horz slice d_video_row
 	skip 10 al
 	add REFMAN_H pt
 		draw_image(bb, ICON_YOUTUBE, corner:4 pt)
-	skip 5 al
+	skip 2 al
 	add 140 pt d_doc_butts("https://www.youtube.com/channel/UCiBO5hr2IVsYK8wiLznImTQ/")
 	skip 10 al
 	
@@ -458,7 +463,7 @@ horz slice d_refman_row
 	skip 10 al
 	add REFMAN_H pt
 		draw_image(bb, ICON_REFMAN, corner:4 pt)
-	skip 5 al
+	skip 2 al
 	add 140 pt d_doc_butts("http://beadslang.com/downloads/BeadsReferenceManual.pdf")
 	skip 10 al
 	
@@ -467,7 +472,7 @@ horz slice d_refcard_row
 	skip 10 al
 	add REFMAN_H pt
 		draw_image(bb, ICON_REFCARD, corner:4 pt)
-	skip 5 al
+	skip 2 al
 	add 140 pt d_doc_butts("http://beadslang.com/downloads/beads_reference_card_125.pdf")
 	skip 10 al
 
@@ -549,7 +554,7 @@ draw d_tab_control(  --  tab handling component
 		//  this tab is not currently selected, make it slightly dead
 		//opacity ⇐ 0.7
 		draw_rect(bb, fill:DEAD, opacity:0.4)
-	draw_str(bb, label, color:tab.fore, indent:2 pt, size:0.7) -- , opacity:opacity)
+	draw_str(bb, label, color:tab.fore, indent:2.5 pt, size:0.7) -- , opacity:opacity)
 ---------------------
 track EV_TAP
 	//  if user clicks on this tab, make it the current selection
@@ -606,7 +611,7 @@ canvas render_particles
 =====================	
 	//  all the drawing in this section is done via the canvas
 	//  this will wipe out whatever was there before
-	draw_rect(bb, fill:LIGHT_SLATE_GRAY)
+	draw_rect(bb, fill:#1C292D) // LIGHT_SLATE_GRAY)
 
 	//  loop through all the particles
 	loop across:particles index:ix1 ptr:particle
