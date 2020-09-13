@@ -1,0 +1,688 @@
+beads 1 program index  
+//  example of how to build a website in Beads
+//  written Sept 2020
+
+assets local:"./art/" remote:"http://beadslang.com/beads/projects/website/art/"
+	//file:"click.mp3" label:CLICK
+	//file:"beep.mp3" label:BEEP
+	file:"Beads_d.jpg" label:ICON_BEADS width:674 height:265 preload // aspect 2.54
+	file:"logo_osx.jpg" label:ICON_OSX
+	file:"logo_windows.jpg" label:ICON_WIN
+	file:"outputs.png" label:DIAGRAM_OUTPUT
+	file:"Mandala.png" label:TILE_MANDALA width:128 height:128
+	file:"Mandala_beige.gif" label:TILE_MANDALA2 width:128 height:128
+	file:"icon_refman.png" label:ICON_REFMAN
+	file:"icon_refcard.png" label:ICON_REFCARD
+	file:"icon_youtube.png" label:ICON_YOUTUBE
+	
+	------ icons for examples
+assets local:"./art/examples/" remote:"http://beadslang.com/beads/projects/website/art/"
+	file:"chess.png" label:ICON_CHESS
+	file:"snake_animated.gif" label:ICON_SNAKE
+	file:"bearsweeper.png" label:ICON_BEAR
+	file:"calculator.gif" label:ICON_CALCULATOR
+	file:"colorchart.png" label:ICON_COLOR
+	file:"localize_screenshot.gif" label:ICON_LOCALIZE
+
+assets local:"./art/flags/" remote:"http://beadslang.com/beads/projects/website/art/"
+	file:"Japan.png" label:ICON_JAP preload
+	file:"UK.png" label:ICON_ENK preload
+	file:"USA.png" label:ICON_ENG preload
+
+record a_example
+	icon : image
+	label : str
+	code_url : str
+	run_url  : str
+		
+record a_particle
+	pos : a_xy  //  position
+	vel : a_xy  //  velocity
+	dir : a_xy  //  direction multiplier (+1 / -1)
+	color : color
+
+record a_tab_group --  data for a set of mutually exclusive tabs
+	selected : num  --  current mode that is active (SHOW_CODE, etc.)
+	back : color
+	fore : color
+	
+const
+	TRACE = N	//  general tracing
+
+	HEADER_V = 46  -- total header area
+	TAB_HEIGHT ⇐ 23  --  height of window tabs
+	TAB_WIDTH  ⇐ 100 --  width of tabs
+	TAB_CORNER ⇐ 10  -- corner of tab
+	TAB_GAP ⇐ 4  -- space between tabs
+
+	//  colors
+	DEAD = WHITE
+	C_TAB_BACK ⇐ #28224d // #20242d
+	C_TAB_FORE ⇐ #e2e4e8
+
+	END_MARKER = "❖     ❖     ❖     ❖     ❖"
+	CODE_PREFIX = "http://github.com/magicmouse/beads-examples/tree/master/"
+	RUN_PREFIX = "http://beadslang.com/apps/"
+
+	LANG_SUPPORTED = [LANG_ENG, 
+		LANG_ENK, 
+		LANG_JAP]
+	LANG_ICONS = { LANG_ENG:ICON_ENG, 
+		LANG_ENK:ICON_ENK, 
+		LANG_JAP:ICON_JAP }
+
+	EXAMPLES : array of a_example <=== [<
+		label				icon			code_url		run_url
+		"Localizer"			ICON_LOCALIZE	"Example - Localization tool"	"https://youtu.be/ct_RSML_0D0"
+		"Chess game"		ICON_CHESS		"Example - Chess"  "chess/chess.html"
+		"Color picker"		ICON_COLOR		"Example - Color Chart" "colorchart/colorchart.html"
+		"Snake game"		ICON_SNAKE		"Example - Snake"  "snake/snake.html"
+		"Minesweeper game"	ICON_BEAR		"Example - Bearsweeper"  "bearsweeper/bearsweeper.html" 
+		"Calculator"		ICON_CALCULATOR	"Example - Calculator"	"calculator/calculator.html"
+		>]
+
+	N_EXAMPLES = tree_count(EXAMPLES)
+
+enum
+	//  tabs for main_tabs
+	TAB_HOME
+	TAB_EXAMPLES
+	TAB_DOCS
+	TAB_DOWNLOAD
+	TAB_CONTACT
+
+var g : record
+	curr_lang  -- which language is website running in
+	main_tabs : a_tab_group
+
+var
+	//--- used for canvas animation
+	mycanvas : a_canvas  -- our canvas bitmap that we draw into
+	NP notrack = 0 -- current number of particles
+	particles notrack : array of a_particle
+	
+==================================
+calc main_init
+	g.curr_lang = LANG_ENG
+	g.main_tabs <=== { selected:TAB_HOME, back:C_TAB_BACK, fore:C_TAB_FORE}
+
+	//  update the particles 30 times a second
+	loom_timer(do_particle_tick, rate:30, delay:0.2 sec, reps:2000)
+
+==================================
+vert slice main_draw
+	draw_rect(bb, fill:WHITE)
+
+	add HEADER_V pt d_header
+	add 10 al d_body
+
+==================================
+horz slice d_header
+	const ICON_H = HEADER_V pt * 2.54
+	add ICON_H px 
+		draw_image(bb, ICON_BEADS)
+	add 10 al d_tab_area
+
+	//  this creates a canvas layer, stores it in mycanvas
+	//layer area:bb canvas:mycanvas
+
+==================================
+vert slice d_tab_area
+	add 10 al d_lang_picker
+	skip 2 pt
+	add TAB_HEIGHT pt d_tabs
+	add (round(1 pt)) px
+		draw_rect(bb, fill:GRAY8)
+
+horz slice d_lang_picker
+	skip 20 al
+	loop across:LANG_SUPPORTED val:langx count:ix
+		if ix > 1
+			skip 6 pt
+		add 50 pt d_lang(langx)
+	skip 18 pt
+
+draw d_lang (
+	langx
+	) ------
+	var back : color = if g.curr_lang == langx then PALE_TURQUOISE else WHITE_SMOKE
+	draw_rect(bb, fill:back, corner:bb.height*0.25, thick:1, pos:0, color:GRAY3)
+	
+	//  draw the icon
+	var icon : image = LANG_ICONS[langx]
+	draw_image(bb, icon, indent:0.1 pt)
+track EV_TAP
+	//  we are changing the interface language
+	g.curr_lang = langx
+
+	//  we don't bother localizing for UK, but still show the flag.
+	var ui_lang = if langx == LANG_ENK then LANG_ENG else langx
+	set_ui_language(ui_lang)
+		
+==================================
+horz slice d_tabs
+	skip 20 al
+	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Home", TAB_HOME)
+	skip 4 al
+	skip 2 pt
+	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Examples", TAB_EXAMPLES)
+	skip 4 al
+	skip 2 pt
+	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Docs", TAB_DOCS)
+	skip 4 al
+	skip 2 pt
+	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Download", TAB_DOWNLOAD)
+	skip 4 al
+	skip 2 pt
+	add TAB_WIDTH pt d_tab_control(g.main_tabs, "Contact", TAB_CONTACT)
+	skip 20 al
+
+==================================
+draw d_body
+	//draw_rect(bb, fill:GRAY2)
+
+	case g.main_tabs.selected
+	| TAB_HOME
+		d_home
+
+	| TAB_EXAMPLES
+		d_examples
+
+	| TAB_DOCS
+		d_docs
+
+	| TAB_DOWNLOAD
+		d_download
+
+	| TAB_CONTACT
+		d_contact
+
+
+const 
+	MIN_GAP = 14
+	EXAMPLE_H = 260
+	EXAMPLE_V = EXAMPLE_H / 1.5
+
+	TITLE_V = 24
+
+==================================
+ 
+const p_future = """[html]
+Beads is a new language, released at the end of 2020, that looks 
+straight into the future, where the computer does more of the work of programming. 
+Beads uses strong typing protections to catch mistakes at compile time. Time travel faciliates testing and makes unreproducible
+bugs a thing of the past."""
+
+const p_simple = """[html]
+Imagine using just one language for client, server, web apps, 
+desktop and mobile. No more 
+complex frameworks with thousands of API calls. One concise notation, designed
+for professionals to express your intentions with a minimum of fuss.."""
+
+const p_powerful = """[html]
+Starting with a graph database as the fundamental data structure 
+(think Neo4J), we add 
+a proportion based layout system, more powerful than SwiftUI. Target a 
+wide range of targets and application types. Full support for building 
+multilingual projects."""
+
+const p_robust = """[html]
+Beads has super-strong type checking, but does it via implied typing 
+so you spend your time
+focusing on your project, not fussing with type declarations. With a closed, protected arithmetic that cannot
+crash, programs are more resilient in the face of bad inputs. The unique 
+"Black Box" feature allows you to replay client sessions, so every reported error can be reproduced."""
+
+const p_elegant = """[html]
+There are many beautiful things in the Beads language. 
+Regular Expression syntax has been completely redesigned to make them easier to maintain. There is a good 
+balance between conciseness and reading comprehension. No complex abstractions like monads or functors."""
+
+const p_whatnot = """[html]
+Beads is not intended for Machine Learning, Big Data, or Embedded Systems. 
+It does not connect well to other languages, as the time travel features require tight integration. 
+It is not suitable for heavy numerical computation. 
+It is currently only a 2D system, and the compiler is only available for Windows and Macintosh."""
+
+horz slice d_home
+	const W = min(bb.width, 650 pt)
+
+	skip 10 al
+	add W px d_home2
+	skip 10 al
+
+	particle_canvas_resize(bb)
+	layer area:bb canvas:mycanvas
+
+vert scroll d_home2
+	draw_rect(bb, fill:WHITE)
+
+	const GAP = 4
+
+	skip 12 pt
+	add TITLE_V pt d_title("🚀   FUTURISTIC")
+	add auto d_text(p_future)
+	skip GAP pt
+
+	add TITLE_V pt d_title("🔨   SIMPLE")
+	add auto d_text(p_simple)
+	skip GAP pt
+
+	add TITLE_V pt d_title("💪   POWERFUL")
+	add auto d_text(p_powerful)
+	skip GAP pt
+
+	add TITLE_V pt d_title("💣   ROBUST")
+	add auto d_text(p_robust)
+	skip GAP pt
+
+	add TITLE_V pt d_title("💎   ELEGANT")
+	add auto d_text(p_elegant)
+	skip GAP pt
+
+	add TITLE_V pt d_title("⚠️   LIMITATIONS")
+	add auto d_text(p_whatnot)
+	skip GAP pt
+
+	add 12 pt
+		draw_str(bb, END_MARKER, size:0.7, color:GRAY8)
+
+horz slice d_title (
+	prompt : str
+	)
+	skip 20 pt
+	add 10 al
+		draw_str(bb, prompt, just:LEFT, size:0.7, bold:Y, color:REBECCA_PURPLE)
+	skip 10 pt
+
+draw d_text (
+	msg : str
+	) ------
+	var r <=== solve_rect(basis:bb, height:80 pt, width:bb.width-20 pt)
+	//draw_rect(r, thick:1, color:PINK, corner:8 pt)
+	draw_str(r, msg, size:12 pt, just:LEFT, indent:20 pt, wrap:Y, font:SERIF)
+
+==================================
+grid d_examples
+	horz slice
+		const NCOL = max(1, round_down(bb.width/(EXAMPLE_H pt + MIN_GAP pt)))
+
+		skip 10 al
+		skip MIN_GAP pt
+		loop reps:NCOL
+			add EXAMPLE_H pt
+			skip MIN_GAP pt
+			skip 10 al
+		//  we gotta leave space for scrollbar on the right
+		skip 20 pt
+
+	vert scroll
+		const NROW = round_up(N_EXAMPLES / NCOL)
+		var xv = (20+MIN_GAP) pt
+		skip xv px
+		loop reps:NROW
+			add EXAMPLE_V pt
+			skip MIN_GAP pt
+			skip 20 pt
+			(EXAMPLE_V + MIN_GAP + 20) pt +=> xv
+		
+	under
+		//  we can't overdraw the SVG box, so we must change the runtime to calc
+		//  bounding box of a block when it is a scroll box to be the total content size
+		//  future: have the runtime consider the bbox to be the total bbox after scrolling calc
+		//  since this is a scrolling thing, draw past the bottom
+		//var r <=== solve_rect(basis:bb, pin:2, height:xv)
+		draw_rect(bb, tile:TILE_MANDALA)
+
+	cell
+		if b.cell_seq <= N_EXAMPLES
+			d_example_cell(b.cell_seq)
+
+================================
+vert slice d_example_cell (
+	cellx
+	) -----
+	add 20 pt
+		draw_str(bb, EXAMPLES[cellx].label, size:0.7)
+	add 10 al d_ex_image(cellx)
+	skip 4 pt
+	add 22 pt d_ex_footer(cellx)
+		
+================================
+draw d_ex_image ditto
+	if EXAMPLES[cellx].icon == U
+		draw_rect(bb, fill:PINK, corner:10 pt)
+	else
+		draw_image(bb, EXAMPLES[cellx].icon)
+
+================================
+horz slice d_ex_footer ditto
+	skip 2 al
+	add 100 pt draw_oneshot("View code", html_redirect(gen_code_url(cellx), newtab:Y)) 
+	skip 10 al
+	skip 4 pt
+
+	if EXAMPLES[cellx].run_url<>U
+		if is_video(EXAMPLES[cellx].run_url)
+			add 100 pt draw_oneshot("Movie", html_redirect(gen_run_url(cellx), newtab:Y), back:KHAKI)
+		else
+			add 100 pt draw_oneshot("Run", html_redirect(gen_run_url(cellx), newtab:Y))
+	else
+		skip 100 pt
+
+	skip 2 al
+
+calc is_video (
+	url : str
+	) : yesno
+	return str_pos(url, "youtu") <> U
+
+================================
+calc gen_code_url (
+	ix  -- example index 
+	) : str
+	return CODE_PREFIX & EXAMPLES[ix].code_url
+
+================================
+calc gen_run_url (
+	ix  -- example index 
+	) : str
+	var prefix : str = ""
+	if str_begins(EXAMPLES[ix].run_url, "http") <> Y
+		//  prepend
+		prefix = RUN_PREFIX
+	return prefix & EXAMPLES[ix].run_url
+
+================================
+vert slice d_contact
+	draw_rect(bb, tile:TILE_MANDALA)
+
+	skip 5 al
+	add 20 pt 
+		draw_str(bb, "Please visit our friendly Beads chat room, all skill levels welcome:", size:18 pt, color:GRAY7)
+	skip 15 pt
+	add 28 pt d_jump_discord
+	skip 10 al
+	add 20 pt 
+		draw_str(bb, "Send email inquiries to info@beadslang.com:", size:18 pt, color:GRAY7)
+	skip 15 pt
+	add 28 pt d_jump_email
+	skip 20 al
+
+================================
+horz slice d_jump_discord
+	skip 5 al
+	add 150 pt draw_oneshot("visit Discord", html_redirect("https://discord.gg/pTAdsSW", newtab:Y))
+	skip 5 al
+
+================================
+horz slice d_jump_email
+	skip 5 al
+	add 150 pt draw_oneshot("E-mail", html_redirect("mailto:info@beadslang.com?subject=Beads%20language", newtab:Y))
+	skip 5 al
+	
+================================
+const 
+	//  size of the box in points for the icons
+	REFMAN_H = 180
+	REFMAN_V = 154
+
+vert slice d_docs
+	draw_rect(bb, tile:TILE_MANDALA2)
+
+	skip 5 al
+	add 24 pt
+		draw_rect(bb, fill:WHITE, opacity:0.2, corner:8 pt)
+		draw_str(bb, "Documentation for Beads language, Level 1", size:18 pt, color:GRAY8)
+	skip 5 al
+	skip 4 pt
+	add REFMAN_V pt d_refman_row
+	skip 8 al
+	add REFMAN_V pt d_refcard_row
+	skip 8 al
+	add REFMAN_V pt d_video_row
+	skip 5 al
+	skip 8 pt
+
+================================
+horz slice d_video_row
+	skip 10 al
+	add REFMAN_H pt
+		draw_image(bb, ICON_YOUTUBE, corner:4 pt)
+	skip 5 al
+	add 140 pt d_doc_butts("https://www.youtube.com/channel/UCiBO5hr2IVsYK8wiLznImTQ/")
+	skip 10 al
+	
+=================================
+horz slice d_refman_row
+	skip 10 al
+	add REFMAN_H pt
+		draw_image(bb, ICON_REFMAN, corner:4 pt)
+	skip 5 al
+	add 140 pt d_doc_butts("http://beadslang.com/downloads/BeadsReferenceManual.pdf")
+	skip 10 al
+	
+================================
+horz slice d_refcard_row
+	skip 10 al
+	add REFMAN_H pt
+		draw_image(bb, ICON_REFCARD, corner:4 pt)
+	skip 5 al
+	add 140 pt d_doc_butts("http://beadslang.com/downloads/beads_reference_card_125.pdf")
+	skip 10 al
+
+================================
+vert slice d_doc_butts (
+	url : str
+	)
+	skip 10 al
+	add 30 pt draw_oneshot("View", html_redirect(url, newtab:Y))
+	skip 10 al
+	//add 30 pt draw_oneshot("Download", html_download(url))
+	//skip 10 al
+	
+================================
+vert slice d_download
+	draw_rect(bb, tile:TILE_MANDALA2)
+
+	skip 5 al
+	add 32 pt
+		draw_str(bb, "Beads SDK Version 0.118\n90 MB download, cross-platform", size:18 pt, color:GRAY7)
+	skip 5 al
+	add 80 pt d_osx_row
+	skip 8 al
+	add 80 pt d_win_row
+	skip 10 al
+	add 180 pt
+		draw_image(bb, DIAGRAM_OUTPUT)
+		//draw_rect(bb, color:PINK, thick:2)
+	skip 20 al
+	
+================================
+horz slice d_osx_row
+	skip 10 al
+	add 200 pt
+		draw_image(bb, ICON_OSX, corner:4 pt)
+	skip 5 al
+	add 140 pt d_download_butt("Download", "http://www.beadslang.com/downloads/beads.zip")
+	skip 10 al
+	
+================================
+horz slice d_win_row
+	skip 10 al
+	add 200 pt
+		draw_image(bb, ICON_WIN, corner:4 pt)
+	skip 5 al
+	add 140 pt d_download_butt("Download", "http://www.beadslang.com/downloads/beads.zip")
+	skip 10 al
+
+================================
+vert slice d_download_butt (
+	prompt : str
+	url : str
+	)
+	skip 10 al
+	add 28 pt draw_oneshot(prompt, html_download(url))
+	skip 10 al
+
+====================
+draw draw_oneshot (
+	label : str
+	action : calc(frozen)
+	back : color = POWDER_BLUE
+	)
+	draw_rect(bb, fill:back, thick:1.5 pt, color:DARK_ORCHID, corner:8 pt, pos:0)
+	draw_str(bb, label, size:0.7, indent:2 pt, color:BLACK)
+-----
+track EV_TAP
+	action()
+
+================================
+draw d_tab_control(  --  tab handling component
+	tab   : a_tab_group  --  info about the group this tab belongs to
+	label : str  --  the label for this specific tab
+	newsel: num  --  new selection to set if the user taps on this tab
+	)
+	//  draw the tab as a rounded rectangle with the top left and right corners rounded
+	draw_rect(bb, fill:tab.back, corner_tl:TAB_CORNER pt, corner_tr:TAB_CORNER pt)
+	if tab.selected <> newsel
+		//  this tab is not currently selected, make it slightly dead
+		//opacity ⇐ 0.7
+		draw_rect(bb, fill:DEAD, opacity:0.4)
+	draw_str(bb, label, color:tab.fore, indent:2 pt, size:0.7) -- , opacity:opacity)
+---------------------
+track EV_TAP
+	//  if user clicks on this tab, make it the current selection
+	tab.selected ⇐ newsel
+
+==================================
+//   Canvas animation with moving dots and lines
+==================================
+
+const
+	DOT_COLOR = GRAY2
+	DOT_RADIUS = 5
+
+var 
+	CANVAS_H
+	CANVAS_V
+
+=====================
+calc particle_canvas_resize (
+	box : a_rect
+	)
+=====================
+
+	if box.width == CANVAS_H and box.height == CANVAS_V
+		return  //  same size as before
+
+	CANVAS_H = box.width
+	CANVAS_V = box.height
+
+	NP = min(round(CANVAS_H*CANVAS_V/6000), 100)
+	log "-- resizing, NP={NP}" on:TRACE
+
+	//  start a fresh set of random particles on any resize
+	trunc particles
+	loop reps:NP
+		append { pos:{ x:random_range(0, CANVAS_H), y:random_range(0, CANVAS_V) }, 
+				 vel:{ x:random_range(0.1, 2) y:random_range(0.1, 2) },
+				 dir:{ x:random_set(-1, +1) y:random_set(-1, +1) },
+				 color:random_color() } ===> particles index:ix
+
+=====================
+calc do_particle_tick  -- this is called by our timer to update the canvas buffer
+=====================
+	//  if we have fewer particles than we wanted, add some
+	if g.main_tabs.selected <> TAB_HOME
+		return
+
+	//log "moving particles, NP={NP}"
+	move_particles in mycanvas 
+	render_particles in mycanvas 
+
+=====================
+canvas render_particles
+=====================	
+	//  all the drawing in this section is done via the canvas
+	//  this will wipe out whatever was there before
+	draw_rect(bb, fill:LIGHT_SLATE_GRAY)
+
+	//  loop through all the particles
+	loop across:particles index:ix1 ptr:particle
+		//  draw the dot, used to be DOT_COLOR
+		draw_circle(xy:particle.pos, fill:particle.color, radius:DOT_RADIUS)
+
+		//  any particles near it will cause a line segment to be drawn
+		loop from:ix1+1 to:NP index:ix2
+			var d = distance(particle.pos, particles[ix2].pos)
+			if d < 120
+				//  the closer it gets the fainter it gets
+				var opacity = interpolate(d, 0, 120, 0, 0.25)
+
+				//  create a mid color between the 2 dots, used to be GRAY3 line
+				var line_color = interpolate_color(50, 0, 100, particle.color, particles[ix2].color)
+				draw_line(p1:particle.pos, p2:particles[ix2].pos, opacity:opacity, color:line_color, thick:3)
+
+=====================
+canvas move_particles
+=====================
+	//  loop through all the particles
+	loop across:particles index:ix1 ptr:p1
+		//  update the position
+		p1.vel.x*p1.dir.x +=> p1.pos.x
+		p1.vel.y*p1.dir.y +=> p1.pos.y
+
+		//  if resize the playing field abruptly, particles will be way outside
+		//  and it will take multiple movement steps to get them back in view
+		if p1.pos.x <= 0
+			p1.dir.x = +1 // force it to the right
+		elif p1.pos.x >= bb.width
+			p1.dir.x = -1 // force it to the left
+
+		if p1.pos.y <= 0
+			p1.dir.y = +1 // force it to the downward
+		elif p1.pos.y >= bb.height
+			p1.dir.y = -1 // force it to the upward
+
+==================
+calc interpolate_color ( --- interpolate between a range of colors
+==================
+	a_cur  --- input value
+	a_min  --- minimum value
+	a_max  --- maximum value
+	color_min : color  --- color corresponding to minimum
+	color_max : color  --- color corresponding to maximum
+	) : color  --- interpolated color
+
+	//  clamp the values to the ends of the range
+	if a_cur <= a_min
+		return color_min
+
+	if a_cur >= a_max
+		return color_max
+
+	var hsv_min : a_hsv = color_to_hsv(color_min)
+	var hsv_max : a_hsv = color_to_hsv(color_max)
+	var targ_hue
+	var targ_val
+	var targ_sat
+
+	//  now interpolate the values, hue is tricky
+	var hue1 = hsv_min.hue
+	var hue2 = hsv_max.hue
+	if abs(hue1 - hue2) > 180
+		//  shorter to go the other way around the circle
+		if hue1 < hue2
+			360 +=> hue1  //  bring it closer 
+		else
+			360 +=> hue2
+
+	targ_hue = interpolate(a_cur, a_min, a_max, hue1, hue2)
+	targ_sat = interpolate(a_cur, a_min, a_max, hsv_min.saturation, hsv_max.saturation)
+	targ_val = interpolate(a_cur, a_min, a_max, hsv_min.value, hsv_max.value)
+
+	//  convert back to RGB color
+	var result = hsv(targ_hue, targ_sat, targ_val)
+	return result
+
