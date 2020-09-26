@@ -10,13 +10,16 @@ const
 
 	SKIP_ANIMATE_TAP = Y
 
-	BACK_SS = "⬅  Back"[1000] //  string we use for back buttons
-	MORE_SS = "⬅  Order more"[1001]
-	CART_SS = "⬅  Cart"[1002]
 	MINUS_SS = "\u2212"  //  unicode minus sign
 
 	LANGUAGES_AVAIL = [LANG_ENG, LANG_ESP]
 	LANGUAGE_NAMES = ["English", "Español"]
+
+	GRAD1 : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM, 
+		grad_stops:[ { stop_pos:0, stop_color:CHOCOLATE },
+				     { stop_pos:48, stop_color:BEIGE },
+					 { stop_pos:52, stop_color:BEIGE },
+					 { stop_pos:100, stop_color:CHOCOLATE }] }
 
 ---------------------------
 //resource
@@ -25,7 +28,7 @@ const
 	//folder: 'Z:/CodeW/art_galvans/category_photos' into: menu[categories, ?, pic] index:tail
 	//folder: 'Z:/CodeW/art_galvans/item_photos' into: menu[items, ?, item_pic] index:name
 
-var ANIM_ACTIVITY : array of image notrack nolog
+var ANIM_ACTIVITY notrack nolog : array of image 
 
 assets local:"art/" remote:"http://beaslang.com/examples/foody/art"
 	file:"generic_map.jpg" label:GENERIC_MAP
@@ -33,6 +36,9 @@ assets local:"art/" remote:"http://beaslang.com/examples/foody/art"
 	//file:"icons/card_security_100w.png" label:ICON_CSC
 	//font:"avenir_demi_cond_freefonts.otf" label:MAIN_FONT
 	folder:"mcdonalds/animations" into:ANIM_ACTIVITY index:seq preload
+
+assets local:"sounds/"
+	file:"Alert_on_call.ogg" label:ALERT
 
 =================================================
 //  our table of credit card issuers
@@ -107,7 +113,7 @@ const
 
 	N_ORDERS_SAVED = 10   //  how many previous orders do we save
 
-	C_DEAD = #121D21  // rgb(51, 84, 95)
+	C_DEAD = #121D21  // rgb255(51, 84, 95)
 	C_DEAD2 = #121D21  // dark blue
 	C_ITEM_DIV = PURPLE  //  dividing line color
 	C_ITEM_TEXT = BEIGE
@@ -115,11 +121,11 @@ const
 	C_ITEMLIST_FOOT = #4D441A  // tan
 	C_ITEMLIST_EDGE = #918031 // light tan
 
-	C_BUTT_BACK = rgb(1,59,138) // rgb(2,93,218)  blue
+	C_BUTT_BACK = rgb255(1,59,138) // rgb255(2,93,218)  blue
 	C_BUTT_NEXT = #700A48  //  magenta, encourage user to press this button
 	C_BUTT_TEXT = IVORY
 	C_BUTT_BORD = DODGER_BLUE
-	C_BUTT_DEL = rgb(255,38,38)  // color for delete X in store picker
+	C_BUTT_DEL = rgb255(255,38,38)  // color for delete X in store picker
 
 	C_ENTRY_LO_BACK = #395D74  // teal
 	C_ENTRY_LO_BORD = DODGER_BLUE
@@ -357,6 +363,12 @@ var input_csc : a_input_field
 //  global variables to keep user interface elements consistent in size
 var buttv
 
+//  our hypervisor controls are not recorded in history
+var hyper nolog : record  //  we don't log changes in this variable
+	is_frozen : yesno  //  have we frozen time
+	frozen_markA       // for freezing a spot
+	frozen_thumb_pct   // for tracking thumb in history
+
 record a_store
 	name     : str
 	address  : str   // address of the store
@@ -574,7 +586,7 @@ calc main_init
 ---------------------------
 draw main_draw
 ---------------------------
-	draw_rect(bb, fill:GRAY8)
+	draw_rect(fill:GRAY8)
 	const SCALE = 0.50
 	const DEVV = 750  // iphone 7/ new iPhone SE resolution
 	const DEVH = 1334
@@ -622,9 +634,9 @@ draw d_foody_main //  this layer is at the target device DPI, not the running sc
 
 	case intf.curr_mode
 	| MODE_ITEM_LIST
-		draw_rect (bb, fill:C_ITEM_DEAD)
+		draw_rect (fill:C_ITEM_DEAD)
 	else
-		draw_rect (bb, fill:C_DEAD)
+		draw_rect (fill:C_DEAD)
 
 	HEADER_V = min(18 pt, bb.height*0.07)
 	FOOTER_V = min(24 pt, bb.height*0.09)
@@ -659,7 +671,7 @@ draw d_foody_main //  this layer is at the target device DPI, not the running sc
 	| MODE_REORDER
 		home_reorder()
 	else
-		draw_str(bb, "Bad Mode {intf.curr_mode}", size:14 pt, color:WHITE)
+		draw_str("Bad Mode {intf.curr_mode}", size:14 pt, color:WHITE)
 
 	if intf.busy_running
 		//  add another layer for animation effects
@@ -672,9 +684,9 @@ draw d_foody_main //  this layer is at the target device DPI, not the running sc
 ---------------------------
 //  modal alert box
 const
-	C_ALERT_BACK = rgb(62,34,61)  // dark purple
-	C_ALERT_BORD = rgb(102,56,101)  // purple
-	C_ALERT_TEXT = rgb(236,223,236)  // light
+	C_ALERT_BACK = rgb255(62,34,61)  // dark purple
+	C_ALERT_BORD = rgb255(102,56,101)  // purple
+	C_ALERT_TEXT = rgb255(236,223,236)  // light
 
 //  only one modal dialog box can be up at once. 
 //  before using, you must set:  modal_active, modal_action, which is a frozen function to call
@@ -682,7 +694,7 @@ const
 draw d_modal_overlay
 	log "d_modal_overlay" on:TRACE_MODAL
 	//  draw patial white to dim the background
-	draw_rect(bb, fill:BLACK, opacity:0.7)
+	draw_rect(fill:BLACK, opacity:0.7)
 
 	var H = min(bb.width*10.7, 200 pt)
 	var V = min(bb.height*10.3, 120 pt)
@@ -698,14 +710,14 @@ draw d_modal_overlay
 	var okbox <=== solve_rect(basis:totbox, right:totbox.left+H-H*0.1, inset_n:V*0.78, width:BUTTH, height:BUTTV)
 
 	//  now draw the prompt area
-	draw_rect(totbox, fill:C_ALERT_BACK, thick:3 pt, color:C_ALERT_BORD, corner:V/16)
+	draw_rect(box:totbox, fill:C_ALERT_BACK, thick:3 pt, color:C_ALERT_BORD, corner:V/16)
 	
 	//  draw the warning icon
-	draw_str(iconbox, "⚠️", size:0.8, color:C_ALERT_TEXT, shrink:N)
+	draw_str("⚠️", box:iconbox, size:0.8, color:C_ALERT_TEXT, shrink:N)
 	
 	//  draw the prompt
 	//draw_rect(promptbox, thick:1, color:PINK)
-	draw_str(promptbox, intf.modal_prompt, color:C_ALERT_TEXT, size:12 pt, just:LEFT, vert:0.2, wrap:Y)
+	draw_str(intf.modal_prompt, box:promptbox, color:C_ALERT_TEXT, size:12 pt, just:LEFT, vert:0.2, wrap:Y)
 
 	//  draw the buttons, they must be drawn as a layer else their event handlers won't work
 	//  at present the layer syntax doesn't support args yet
@@ -766,7 +778,7 @@ canvas d_tot_overlay
 	if intf.busy_running
 		//log "{to_str(elapsed,digits:3)}: d_tot_overlay, frame {intf.busy_framex}"
 		var img = ANIM_ACTIVITY[intf.busy_framex]
-		draw_image(U, img, grow:N, x:50, y:50)
+		draw_image(img, grow:N, x:50, y:50)
 
 	if intf.ripple_running
 		//  ripple animation is running, draw the ring
@@ -779,18 +791,18 @@ canvas d_tot_overlay
 		
 		//  animate the opacity from full to faint over the animation time
 		var opacity : num = interpolate (step, ANIM_START_DIAM, ANIM_STOP_DIAM, 1, 0.3)
-		draw_oval (box, color:DODGER_BLUE, thick:ANIM_THICKNESS pt, pos:0.5)
+		draw_oval (box:box, color:DODGER_BLUE, thick:ANIM_THICKNESS pt, pos:0.5)
 
 draw d_tot_overlay2  // non-canvas version of the animation
 	//log "{to_str(elapsed,digits:3)}: d_tot_overlay2, frame {intf.busy_framex}"
 	var img = ANIM_ACTIVITY[intf.busy_framex]
-	draw_image(U, img, grow:N, x:50, y:50)
+	draw_image(img, grow:N, x:50, y:50)
 	
 ---------------------------
 draw hdr_label (
 	label : str --- label to draw at top
 	)	
-	draw_str (bb, label, size:0.4, color:WHITE, font:MAIN_FONT)
+	draw_str (label, size:0.4, color:WHITE, font:MAIN_FONT)
 	
 ---------------------------
 // horz slice home_pick_item		
@@ -811,14 +823,15 @@ vert slice home_pick_item  //  pick an item in the current category
 horz slice itemlist_footer(
 	category : str  -- the category of items like "Condiments"
 	)
-	draw_rect(bb, fill:C_ITEMLIST_FOOT)
-	var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
-	draw_rect(r, fill:C_ITEMLIST_EDGE)
+	under
+		draw_rect(fill:C_ITEMLIST_FOOT)
+		var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
+		draw_rect(box:r, fill:C_ITEMLIST_EDGE)
 
 	skip FOOTER_INDENT pt
-	add 30 al butt_simple(BACK_SS, go_mode(MODE_CAT_LIST))
+	add 30 al butt_simple("⬅  Back"[1000], go_mode(MODE_CAT_LIST))
 	add 70 al
-		draw_str(bb, category, size:0.5, color:C_BUTT_TEXT)
+		draw_str(category, size:0.5, color:C_BUTT_TEXT)
 	var ncart = qty_in_cart(U)  //  number of total items
 	if ncart > 0
 		add 30 al butt_view_cart
@@ -834,12 +847,13 @@ vert slice home_pick_cat
 	add FOOTER_V px  d_cat_footer
 
 horz slice d_cat_footer
-	draw_rect(bb, fill:C_ITEMLIST_FOOT)
+	under
+		draw_rect(fill:C_ITEMLIST_FOOT)
 
 	skip FOOTER_INDENT pt
 	add 30 al butt_simple("⇪  Exit"[1006], do_exit_store)
 	add 70 al
-		draw_str(bb, "Choose a category"[1007], size:0.5, color:C_BUTT_TEXT)
+		draw_str("Choose a category"[1007], size:0.5, color:C_BUTT_TEXT)
 	var ncart = qty_in_cart(U)  //  number of total items
 	if ncart > 0
 		add 30 al butt_view_cart
@@ -883,19 +897,20 @@ draw butt_simple (  -- just draw a button on the bottom area
 	)
 	//var dy = max(2, round(1 pt))
 	//var usable <=== solve_rect(basis:box, pin:8, inset_n:dy)
-	draw_rect(bb, fill:back, corner:bb.height*0.3, thick:1 pt, pos:0, color:C_BUTT_BORD)
-	draw_str(bb, label, size:0.6, indent:4 pt, color:C_BUTT_TEXT)
+	draw_rect(fill:back, corner:bb.height*0.3, thick:1 pt, pos:0, color:C_BUTT_BORD)
+	draw_str(label, size:0.6, indent:3 pt, color:C_BUTT_TEXT)
 ------------
 track EV_TAP
 	action()  //  execute the frozen func call
 
 ---------------------------
 horz slice butt_view_cart  -- special button for Cart where we draw the count to the left
-	draw_rect(bb, fill:C_BUTT_BACK, corner:bb.height*0.3, thick:1 pt, pos:0, color:C_BUTT_BORD)
+	under
+		draw_rect(fill:C_BUTT_BACK, corner:bb.height*0.3, thick:1 pt, pos:0, color:C_BUTT_BORD)
 	skip 6 pt
 	add 17 pt d_cart_count
 	add 10 al
-		draw_str(bb, "Cart  ⮕"[1009], size:0.6, color:C_BUTT_TEXT)
+		draw_str("Cart  ⮕"[1009], size:0.6, color:C_BUTT_TEXT)
 	skip 3 pt
 ------------
 track EV_TAP
@@ -906,8 +921,8 @@ draw d_cart_count
 	//   show even if 0
 	var ncart = qty_in_cart(U)  //  number of total items
 	var r <=== solve_rect(basis:bb, pin:6, inset_y:1.6 pt, round:Y)
-	draw_oval(r, fill:CRIMSON, thick:round(0.6 pt), color:WHITE) // , corner:round(r.height/3))
-	draw_str(r, to_str(ncart), size:0.7, color:WHITE)
+	draw_oval(box:r, fill:CRIMSON, thick:round(0.6 pt), color:WHITE) // , corner:round(r.height/3))
+	draw_str(to_str(ncart), box:r, size:0.7, color:WHITE)
 	
 ---------------------------
 grid category_picker
@@ -945,7 +960,7 @@ grid category_picker
 
 // 	under
 // 		//  background fill
-// 		draw_rect (bb, fill:GRAY9, corner:8 pt)
+// 		draw_rect (fill:GRAY9, corner:8 pt)
 	
 	//  so that the black grid seems square, calculate the smaller of the two grids
 	//  we used to use 10 al for the grid space, which is 10/320th of the total
@@ -962,22 +977,22 @@ grid category_picker
 			var image : image = CATEGORY_PICS[groupx]
 			if image == U
 				//  we don't have an image to draw, 
-				draw_rect(box, fill:C_BUTT_BACK, corner:RADIUS, thick:1 pt, pos:0, color:C_BUTT_BORD)
+				draw_rect(box:box, fill:C_BUTT_BACK, corner:RADIUS, thick:1 pt, pos:0, color:C_BUTT_BORD)
 				if label <> U
-					draw_str (box, label, font:MAIN_FONT, color:C_BUTT_TEXT, size:0.3, indent:4 pt)
+					draw_str (label, box:box, font:MAIN_FONT, color:C_BUTT_TEXT, size:0.3, indent:4 pt)
 			else
-				draw_image (box, image, corner:RADIUS) // image)	
+				draw_image (image, box:box, corner:RADIUS) // image)	
 				if label <> U
 					//  draw the text label at the bottom of the photo
 					const SIZE = 0.8
 					var r <=== solve_rect (basis:box, pin:7, height:box.height*0.30)
 					//var label_size : a_xy
-					//draw_str(r, label, font:MAIN_FONT, size:SIZE, indent:2 pt, metrics:label_size)
+					//draw_str(label, box:r, font:MAIN_FONT, size:SIZE, indent:2 pt, metrics:label_size)
 
 					//r <=== solve_rect(basis:r, pin:7, width:label_size.x+(10 pt))
-					draw_rect(r,  corner_bl:RADIUS, corner_br:RADIUS, fill:C_BUTT_BACK, opacity:1)
-					draw_str(r, label, font:MAIN_FONT, color:C_BUTT_TEXT, indent:2 pt, size:SIZE)
-				draw_rect(box, corner:RADIUS, thick:1 pt, pos:0, color:C_BUTT_BORD)
+					draw_rect(box:r, corner_bl:RADIUS, corner_br:RADIUS, fill:C_BUTT_BACK, opacity:1)
+					draw_str(label, box:r, font:MAIN_FONT, color:C_BUTT_TEXT, indent:2 pt, size:SIZE)
+				draw_rect(box:box, corner:RADIUS, thick:1 pt, pos:0, color:C_BUTT_BORD)
 -----------------
 track EV_TAP
 	//  user is selecting a category
@@ -1046,13 +1061,13 @@ grid d_cat_itemlist  -- scrolling list of items in the current category
 		//log "itemlist for category {intf.curr_cat} has {nitemlist} items"
 	
 // 	under
-// 		draw_rect(bb, fill:C_ITEM_DEAD)
+// 		draw_rect(fill:C_ITEM_DEAD)
 	
 	cell
 		//log "itemlist_cell, seq={b.cell_seq}"
 		if b.cell_seq == nitemlist
 			//  special end of list marker
-			draw_str(bb, "❖     ❖     ❖     ❖     ❖", size:0.6, color:#1B85B1)
+			draw_str("❖     ❖     ❖     ❖     ❖", size:0.6, color:#1B85B1)
 		else
 			//  regular cell
 			var item_key : str = itemlist[b.cell_seq].key
@@ -1111,20 +1126,20 @@ calc reset_work_mods
 horz slice d_item_row (
 	item : ptr to a_menu_item
 	) -------
-	const CORNER = 6 pt
-	//const INDENT = 2
-	draw_rect(bb, fill:C_ITEM_DEAD)
-	var r <=== solve_rect(basis:bb, pin:3, width:bb.width)
-	draw_rect(r, grad:GRADIENT_ITEM, corner:CORNER) // , corner_bl:CORNER)
-
-	//var footline <=== solve_rect(basis:bb, pin:8, height:1 pt)
-	//draw_rect(footline, fill:C_ITEM_DIV)
+	under
+		draw_rect(fill:C_ITEM_DEAD)
+		const CORNER = 6 pt
+		//const INDENT = 2
+		var r <=== solve_rect(basis:bb, pin:3, width:bb.width)
+		draw_rect(box:r, grad:GRADIENT_ITEM, corner:CORNER) // , corner_bl:CORNER)
+		//var footline <=== solve_rect(basis:bb, pin:8, height:1 pt)
+		//draw_rect(footline, fill:C_ITEM_DIV)
 
 	skip ITEM_PHOTO_MARG pt
 	if item.pic <> U
 		//  has photo		
 		add ITEM_PHOTO_H pt
-			draw_image(bb, item.pic, corner:4 pt)
+			draw_image(item.pic, corner:4 pt)
 	skip (ITEM_PHOTO_MARG*2) pt
 	add 10 al d_item_desc(item, item.default_sizex)
 	skip 2 pt
@@ -1132,7 +1147,7 @@ horz slice d_item_row (
 // draw d_item_pic (
 // 	itempic : image
 // 	) -------
-// 	draw_image(bb, itempic
+// 	draw_image(itempic
 
 ---------------------------
 vert slice d_item_desc (
@@ -1152,12 +1167,12 @@ horz slice d_desc1 (  //  row1 - "Hamburger"
 	item : ptr to a_menu_item
 	) -------
 	add 30 al
-		draw_str(bb, item.name, just:LEFT, size:0.80, bold:Y, color:C_ITEM_TEXT, font:ITEM_FONT)
+		draw_str(item.name, just:LEFT, size:0.80, bold:Y, color:C_ITEM_TEXT, font:ITEM_FONT)
 	//  only if we have a second language do we restrict the item name to be 1/2 the width
 	if item.name2 <> U
 		skip 2 pt
 		add 30 al
-			draw_str(bb, item.name2, just:LEFT, size:0.80, color:C_ITEM_TEXT, font:ITEM_FONT)
+			draw_str(item.name2, just:LEFT, size:0.80, color:C_ITEM_TEXT, font:ITEM_FONT)
 		skip 1 pt
 
 ---------------------------
@@ -1176,14 +1191,14 @@ draw d_desc2 (  //  row2 - $3.92  400 Cal.
 	item : ptr to a_menu_item
 	sizex : num
 	) -------
-	draw_str(bb, gen_price_ss(item, sizex), just:LEFT, size:0.80, shrink:N, color:C_ITEM_TEXT)
+	draw_str(gen_price_ss(item, sizex), just:LEFT, size:0.80, shrink:N, color:C_ITEM_TEXT)
 
 ---------------------------
 //  item detail row 3
 draw d_desc3 (   // row3 - if this is in a meal, draw the 3rd line
 	item : ptr to a_menu_item
 	) -------
-	//draw_str(bb, "--meal info--", just:LEFT, size:0.80, shrink:N, color:C_ITEM_TEXT)
+	//draw_str("--meal info--", just:LEFT, size:0.80, shrink:N, color:C_ITEM_TEXT)
 	nop
 
 ---------------------------
@@ -1193,10 +1208,11 @@ vert slice d_item_detail
 
 ---------------------------
 horz slice item_detail_footer  //  item detail header/footer
-	draw_rect (bb, fill:C_ITEMLIST_FOOT)
+	under
+		draw_rect (fill:C_ITEMLIST_FOOT)
 
 	skip FOOTER_INDENT pt
-	add 30 al butt_simple(BACK_SS, go_mode(MODE_ITEM_LIST))
+	add 30 al butt_simple("⬅  Back"[1000], go_mode(MODE_ITEM_LIST))
 	skip 70 al
 	add 30 al butt_simple("+  Add to Cart"[1010], do_add_to_cart, back:C_BUTT_NEXT)
 	skip FOOTER_INDENT pt
@@ -1208,7 +1224,8 @@ vert slice d_cart_detail
 
 ---------------------------
 horz slice cart_detail_footer  //  cart detail header/footer
-	draw_rect (bb, fill:C_ITEMLIST_FOOT)
+	under
+		draw_rect (fill:C_ITEMLIST_FOOT)
 
 	skip FOOTER_INDENT pt
 	add 30 al butt_simple("Cancel"[1011], go_mode(MODE_CART))
@@ -1309,7 +1326,7 @@ calc is_customizable(
 vert scroll detail_body  // item list detail
 ---------------------------
 	//  this takes the work record, and draws it
-	//draw_rect (bb, grad:GRADIENT_LIST)
+	//draw_rect (grad:GRADIENT_LIST)
 
 	//  add the detail subassembly
 	add DETAILV pt d_det_desc
@@ -1334,7 +1351,7 @@ vert scroll detail_body  // item list detail
 
 			//  add end marker
 //			add 12 pt
-//				draw_str(bb, "❖     ❖     ❖     ❖     ❖", size:0.6, color:#1B85B1)
+//				draw_str("❖     ❖     ❖     ❖     ❖", size:0.6, color:#1B85B1)
 
 ---------------------------
 grid pick_language  -- mutually exclusive language picker grid
@@ -1357,9 +1374,8 @@ grid pick_language  -- mutually exclusive language picker grid
 -------------
 track EV_TAP
 	//  user has made a language selection
-	runtime.ui_language = LANGUAGES_AVAIL[b.cell_seq]
-	//set_ui_language()
-	log "language is now {runtime.ui_language}"
+	set_ui_language(LANGUAGES_AVAIL[b.cell_seq])
+	log "=== UI language now {runtime.ui_language}"
 
 ---------------------------
 draw draw_language_cell (
@@ -1379,8 +1395,8 @@ draw draw_language_cell (
 		text = C_BUTT_TEXT
 
 	//  draw the cell background
-	draw_rect(box, fill:back, thick:0.7 pt, color:C_BUTT_BORD)
-	draw_str(box, LANGUAGE_NAMES[ix], size:0.55, color:text, bold:hilite)
+	draw_rect(box:box, fill:back, thick:0.7 pt, color:C_BUTT_BORD)
+	draw_str(LANGUAGE_NAMES[ix], box:box, size:0.55, color:text, bold:hilite)
 
 ---------------------------
 grid pick_item_size (   //  mutually exclusive button draw
@@ -1427,7 +1443,7 @@ draw draw_size_cell (
 		text = C_BUTT_TEXT
 
 	//  draw the cell background
-	draw_rect(box, fill:back, thick:0.7 pt, color:C_BUTT_BORD)
+	draw_rect(box:box, fill:back, thick:0.7 pt, color:C_BUTT_BORD)
 
 	//  calculate the total string
 	var ss : str = variant.name 
@@ -1441,7 +1457,7 @@ draw draw_size_cell (
 	//  draw the cell text which is 2 lines of text  medium /n +0.50
 	//  where we either draw relative prices or full price
 	var size = box.height*0.36
-	draw_str(box, ss, size:size, color:text, leading:size*1.2, wrap:Y, bold:hilite)
+	draw_str(ss, box:box, size:size, color:text, leading:size*1.2, wrap:Y, bold:hilite)
 
 ---------------------------
 horz slice butt_customize  //  customize button
@@ -1467,7 +1483,7 @@ horz slice d_det_desc  //  item detail pic, description
 
 	skip DETAIL_PHOTO_MARG pt
 	add DETAIL_PHOTO_H pt
-		draw_image(bb, work.menuitem.pic, corner:4 pt)
+		draw_image(work.menuitem.pic, corner:4 pt)
 	skip (DETAIL_PHOTO_MARG*1.5) pt
 	
 	//  the description sect
@@ -1482,15 +1498,15 @@ vert slice d_det_desc2  //  2 line description detail, shows "medium fries / $2.
 	skip 10 al
 	add 13 pt
 		var prefix : str = if tree_count(work.menuitem.sizes) > 1 then "{work.menuitem.sizes[work.sizex].name} " else ""		
-		draw_str(bb, prefix & work.menuitem.name, just:LEFT, size:0.7, color:C_ITEM_TEXT)	
+		draw_str(prefix & work.menuitem.name, just:LEFT, size:0.7, color:C_ITEM_TEXT)	
 	add 13 pt
-		draw_str(bb, gen_price_ss(work.menuitem, work.sizex), just:LEFT, size:0.7, color:C_ITEM_TEXT)		
+		draw_str(gen_price_ss(work.menuitem, work.sizex), just:LEFT, size:0.7, color:C_ITEM_TEXT)		
 	skip 10 al
 
 ---------------------------
 vert slice d_qty_label  //  Quantity + n + buttons
 	add 20 al 
-		draw_str(bb, "Qty "[1015] & to_str(work.qty), size:0.7, vert:0.6, color:C_ITEM_TEXT)
+		draw_str("Qty"[1015] & " " & to_str(work.qty), size:0.7, vert:0.6, color:C_ITEM_TEXT)
 	add 30 al d_qty_butts
 
 ---------------------------
@@ -1524,7 +1540,7 @@ horz slice d_customization (  //  used to draw each mod row in the item detail s
 
 	const CORNER = 6 pt
 	//const INDENT = 2
-// 	draw_rect(bb, fill:C_ITEM_DEAD)
+// 	draw_rect(fill:C_ITEM_DEAD)
 // 	var r <=== solve_rect(basis:bb, pin:3, width:bb.width)
 // 	draw_rect(r, grad:GRADIENT_ITEM, corner:CORNER) // , corner_bl:CORNER)
 
@@ -1535,7 +1551,7 @@ horz slice d_customization (  //  used to draw each mod row in the item detail s
 	skip ITEM_PHOTO_MARG pt
 	//  calculate how much space the label needs	
 	var size : a_xy
-	draw_str(bb, item.name, size:0.4, metrics:size)  // measure text size
+	draw_str(item.name, size:0.4, metrics:size)  // measure text size
 	add size.x px d_custom_name(item)
 	skip 3 pt
 	add 30 al d_custom_sizes(mod, item)
@@ -1555,13 +1571,13 @@ draw d_custom_sizes (
 draw d_custom_pic (
 	item : a_menu_item
 	)
-	draw_image(bb, item.pic, corner:4 pt)
+	draw_image(item.pic, corner:4 pt)
 
 ---------------------------
 draw d_custom_name (
 	item : a_menu_item
 	)
-	draw_str(bb, item.name, size:0.4, just:LEFT, color:C_BUTT_TEXT)
+	draw_str(item.name, size:0.4, just:LEFT, color:C_BUTT_TEXT)
 		
 ---------------------------
 calc find_in_cart (
@@ -1584,7 +1600,7 @@ vert slice d_cart
 	add FOOTER_V px cart_footer
 
 //  temp mapping table so we can go backwards from cart index to item
-var cartlist : array of num notrack
+var cartlist notrack : array of num
 var ncartlist
 
 const PRICEH = 40
@@ -1619,7 +1635,7 @@ grid cart_itemlist  -- scrolling list of items in the current category
 			d_cart_subtot
 // 		elif b.cell_seq == ncartlist+2
 // 			//  special END_MARKER
-// 			draw_str(bb, "❖     ❖     ❖     ❖     ❖", size:0.6, color:#1B85B1)
+// 			draw_str("❖     ❖     ❖     ❖     ❖", size:0.6, color:#1B85B1)
 		else
 			//  regular cell
 			var itemx = cartlist[b.cell_seq]
@@ -1628,17 +1644,17 @@ grid cart_itemlist  -- scrolling list of items in the current category
 ---------------------------
 horz slice d_cart_subtot
 	add 10 al
-		draw_str(bb, "Subtotal:", just:RIGHT, indent:4 pt, size:0.6, color:C_ITEM_TEXT)	
+		draw_str("Subtotal:", just:RIGHT, indent:4 pt, size:0.6, color:C_ITEM_TEXT)	
 	add PRICEH pt
 		draw_line(x1:0, y1:0, x2:bb.width, y2:0, thick:2 pt, color:C_ITEM_TEXT)
-		draw_str(bb, "${to_str(cart.subtot, digits:2, zero_drop:N)}", size:0.6, color:C_ITEM_TEXT)	
+		draw_str("${to_str(cart.subtot, digits:2, zero_drop:N)}", size:0.6, color:C_ITEM_TEXT)	
 	skip 24 pt
 
 ---------------------------
 draw d_cartitem_row_pic (
 	pic : image
 	) ----
-	draw_image(bb, pic, corner:4 pt)
+	draw_image(pic, corner:4 pt)
 
 ---------------------------
 // --- prototype for dittos
@@ -1660,7 +1676,8 @@ calc gen_cart_item_desc (--- calculate the cart item description string
 horz slice d_cartitem_row (  // basis for ditto - do not move
 	item : ptr to a_cart_item
 	) ------
-	draw_rect(bb, grad:GRADIENT_ITEM)
+	under
+		draw_rect(grad:GRADIENT_ITEM)
 
 	//  we can't fit both qty and pic, pic is nicer to have.
 	//add 50 pt d_cartrow_qty(item)
@@ -1682,7 +1699,7 @@ vert slice d_cartitem_row_B ditto
 horz slice d_mod_list_qty ditto
 	add 10 al d_mod_list(item)
 	add PRICEH pt  // price section
-		draw_str(bb, "${to_str(item.item_total, digits:2, zero_drop:N)}", size:0.55, color:C_ITEM_TEXT)	
+		draw_str("${to_str(item.item_total, digits:2, zero_drop:N)}", size:0.55, color:C_ITEM_TEXT)	
 
 ---------------------------
 vert slice d_cartrow_butts ditto //  edit/del buttons for cart row
@@ -1695,7 +1712,7 @@ horz slice d_cartrow_upper ditto
 	add 10 al
 		//  draw the Product name and calories
 		var ss = gen_cart_item_desc(item)
-		draw_str(bb, ss, just:LEFT, size:0.7, color:C_ITEM_TEXT)
+		draw_str(ss, just:LEFT, size:0.7, color:C_ITEM_TEXT)
 	skip 2 pt
 
 ---------------------------
@@ -1730,8 +1747,8 @@ draw d_mod_list ditto  //  the 2nd and 3rd lines, with modifications shown like 
 		chunk = prefix & " " & ingr.name
 	
 		//  now calculate the text metrics
-		draw_str(bb, chunk, metrics:chunk_size, size:0.6, shrink:N)
-		draw_str(bb, lines[linex], metrics:line_size, size:0.6, shrink:N)
+		draw_str(chunk, metrics:chunk_size, size:0.6, shrink:N)
+		draw_str(lines[linex], metrics:line_size, size:0.6, shrink:N)
 
 		log "mod chunk=[{chunk}], line=[{lines[linex]}], chunk.x={chunk_size.x}, line.x={line_size.x}"
 
@@ -1760,7 +1777,7 @@ draw d_mod_list ditto  //  the 2nd and 3rd lines, with modifications shown like 
 		chunk &=> glob
 
 	//  0.6 height will match title line.
-	draw_str(bb, glob, wrap:Y, size:0.6/linex, just:LEFT, color:C_ITEM_TEXT)
+	draw_str(glob, wrap:Y, size:0.6/linex, just:LEFT, color:C_ITEM_TEXT)
 
 ---------------------------
 calc do_cartitem_edit ditto //  item is current cart_item record
@@ -1791,7 +1808,7 @@ calc do_cartitem_del ditto
 ---------------------------
 vert slice d_cartrow_qty ditto
 	add 20 al
-		draw_str(bb, "Qty "[1015] & to_str(item.qty), size:0.7, color:C_ITEM_TEXT)	
+		draw_str("Qty"[1015] & " " & to_str(item.qty), size:0.7, color:C_ITEM_TEXT)	
 	add 30 al d_cartrow_qty_butts(item)
 
 ---------------------------
@@ -1832,15 +1849,16 @@ calc do_cartitem_del2  //  callback function for deleting a cart item
 
 ---------------------------
 horz slice cart_footer
-	draw_rect(bb, fill:C_ITEMLIST_FOOT)
-	var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
-	draw_rect(r, fill:C_ITEMLIST_EDGE)
+	under
+		draw_rect(fill:C_ITEMLIST_FOOT)
+		var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
+		draw_rect(box:r, fill:C_ITEMLIST_EDGE)
 
 	skip FOOTER_INDENT pt
-	add 30 al butt_simple(MORE_SS, go_mode(MODE_ITEM_LIST))
+	add 30 al butt_simple("⬅  Order more"[1001], go_mode(MODE_ITEM_LIST))
 	//skip 10 al
 	add 50 al 
-		draw_str(bb, "Shopping Cart"[1020], size:0.5, color:C_BUTT_TEXT)
+		draw_str("Shopping Cart"[1020], size:0.5, color:C_BUTT_TEXT)
 	var ncart = qty_in_cart(U)  //  number of total items
 	if ncart > 0
 		add 30 al butt_simple("Payment  ⮕"[1021], go_mode(MODE_PAYMENT), back:C_BUTT_NEXT)
@@ -1856,15 +1874,16 @@ vert slice d_settings
 
 ---------------------------
 horz slice settings_footer
-	draw_rect(bb, fill:C_ITEMLIST_FOOT)
-	var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
-	draw_rect(r, fill:C_ITEMLIST_EDGE)
+	under
+		draw_rect(fill:C_ITEMLIST_FOOT)
+		var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
+		draw_rect(box:r, fill:C_ITEMLIST_EDGE)
 
 	skip FOOTER_INDENT pt
-	add 30 al butt_simple(BACK_SS, go_mode(MODE_STORE_LIST))
+	add 30 al butt_simple("⬅  Back"[1000], go_mode(MODE_STORE_LIST))
 	//skip 10 al
 	add 50 al 
-		draw_str(bb, "Settings panel"[1022], size:0.5, color:C_BUTT_TEXT)
+		draw_str("Settings panel"[1022], size:0.5, color:C_BUTT_TEXT)
 	skip 30 al
 	skip FOOTER_INDENT pt
 
@@ -1874,14 +1893,14 @@ vert slice d_settings_body
 	//  body of settings panel
 	skip 10 pt
 	add 18 pt 
-		draw_str(bb, "Foody version {VERSION}", size:0.6, color:BEIGE)
+		draw_str("Foody version {VERSION}", size:0.6, color:BEIGE)
 	skip 20 pt
 	add 20 pt d_lang_row
 	skip 10 al
 
 horz slice d_lang_row
 	add 30 al
-		draw_str(bb, "Language:"[1023], just:RIGHT, indent:2 pt, size:0.6, color:C_BUTT_TEXT)
+		draw_str("Language:"[1023], just:RIGHT, indent:2 pt, size:0.6, color:C_BUTT_TEXT)
 	add 70 al pick_language
 
 ---------------------------
@@ -1911,17 +1930,17 @@ vert slice home_reorder
 draw generic_footer (
 	label : str
 	)
-	draw_str(bb, label, size:0.6)
+	draw_str(label, size:0.6)
 
 ---------------------------
 draw body_reorder
 	//  2nd phase of the reorder process
-	draw_str (bb, "body reorder", size:36, fill:DARK_GREEN, color:WHITE, font:MAIN_FONT)
+	draw_str ("body reorder", size:36, fill:DARK_GREEN, color:WHITE, font:MAIN_FONT)
 
 ---------------------------
 draw body_recent
 	//  2nd phase of the recent orders process
-	draw_str (bb, "body recent", size:36, fill:DARK_GREEN, color:WHITE, font:MAIN_FONT)
+	draw_str ("body recent", size:36, fill:DARK_GREEN, color:WHITE, font:MAIN_FONT)
 
 ---------------------------
 vert slice body_contact
@@ -1943,18 +1962,18 @@ vert slice body_contact
 ---------------------------
 draw d_contact_number
 ---------------------------
-	draw_str (bb, "(510) 482-1229", size:12 pt, just:CENTER, indent:4 pt, color:WHITE)
+	draw_str ("(510) 482-1229", size:12 pt, just:CENTER, indent:4 pt, color:WHITE)
 	
 ---------------------------
 draw d_contact_email
 ---------------------------
-	draw_str (bb, "foody@gmail.com", size:12 pt, just:CENTER, indent:4 pt, color:WHITE)
+	draw_str ("foody@gmail.com", size:12 pt, just:CENTER, indent:4 pt, color:WHITE)
 	
 ---------------------------
 draw body_map
 ---------------------------
 	// body of map
-	draw_image (bb, GENERIC_MAP)
+	draw_image (GENERIC_MAP)
 
 ---------------------------
 horz slice butt_phone_assy
@@ -1966,8 +1985,8 @@ horz slice butt_phone_assy
 ---------------------------
 draw butt_phone
 ---------------------------
-	draw_rect (bb, fill:C_BUTT_BACK, corner:BUTT_RADIUS pt)
-	draw_str (bb, "Dial us"[1027], color:C_BUTT_TEXT, size:14 pt)
+	draw_rect (fill:C_BUTT_BACK, corner:BUTT_RADIUS pt)
+	draw_str ("Dial us"[1027], color:C_BUTT_TEXT, size:14 pt)
 track EV_TAP
 	//  use the URL redirect feature
 	animate_tap (e.global_x, e.global_y, U)
@@ -1984,8 +2003,8 @@ horz slice butt_email_assy
 ---------------------------
 draw butt_email
 ---------------------------
-	draw_rect (bb, fill:C_BUTT_BACK, corner:BUTT_RADIUS pt)
-	draw_str (bb, "e-mail us"[1028], color:C_BUTT_TEXT, size:14 pt)
+	draw_rect (fill:C_BUTT_BACK, corner:BUTT_RADIUS pt)
+	draw_str ("e-mail us"[1028], color:C_BUTT_TEXT, size:14 pt)
 track EV_TAP
 	//  use the URL redirect feature
 	animate_tap (e.global_x, e.global_y, U)
@@ -1997,8 +2016,8 @@ draw butt_go_back  //  bad VERSION
 ---------------------------
 	// back button icon used in various places
 	var r <=== solve_rect (basis:bb, pin:5, inset:2 pt)
-	draw_rect (r, fill:C_BUTT_BACK, corner:BUTT_RADIUS pt)
-	draw_str (bb, BACK_SS, size:0.6, color:WHITE, font:BUTT_FONT)
+	draw_rect (box:r, fill:C_BUTT_BACK, corner:BUTT_RADIUS pt)
+	draw_str ("⬅  Back"[1000], size:0.6, color:WHITE, font:BUTT_FONT)
 ---------------------------
 track EV_TAP
 	var next_mode
@@ -2018,8 +2037,8 @@ draw butt_go_payment
 ---------------------------
 	//  we are in the cart, show button to go forward one step
 	var r <=== solve_rect (basis:bb, pin:5, inset:2 pt)
-	draw_rect (r, fill:C_BUTT_BACK, corner:BUTT_RADIUS pt)
-	draw_str (bb, "Proceed"[1029], size:0.6, color:WHITE, font:BUTT_FONT)
+	draw_rect (box:r, fill:C_BUTT_BACK, corner:BUTT_RADIUS pt)
+	draw_str ("Proceed"[1029], size:0.6, color:WHITE, font:BUTT_FONT)
 ---------------------------
 track EV_TAP
 	animate_tap (e.global_x, e.global_y, MODE_PAYMENT)
@@ -2029,8 +2048,8 @@ draw butt_go_transmit
 ---------------------------
 	//  we are in the payment section, next stage places the order
 	var r <=== solve_rect (basis:bb, pin:5, inset:2 pt)
-	draw_rect (r, fill:#ad4703, corner:BUTT_RADIUS pt)
-	draw_str (bb, "Place order"[1030], size:0.6, color:WHITE, font:BUTT_FONT)
+	draw_rect (box:r, fill:#ad4703, corner:BUTT_RADIUS pt)
+	draw_str ("Place order"[1030], size:0.6, color:WHITE, font:BUTT_FONT)
 ---------------------------
 track EV_TAP
 	log "NOT YET"
@@ -2056,8 +2075,8 @@ vert slice home_pick_store
 // horz slice d_main_header
 // ---------------------------
 // 	//  home screen header
-// 	//draw_rect (bb, fill:#015106)
-// 	draw_str(bb, "Foody ver. {VERSION}", size:0.6, color:BEIGE)
+// 	//draw_rect (fill:#015106)
+// 	draw_str("Foody ver. {VERSION}", size:0.6, color:BEIGE)
 // 
 // 	//  do the same proportions as the footer
 // 	//skip FOOTER_INDENT pt
@@ -2068,9 +2087,9 @@ vert slice home_pick_store
 // draw d_header_icon  //  gear icon in main header
 // ---------------------------	
 // 	var back <=== solve_rect (basis:bb, pin:5, inset:1 pt, aspect:1)
-// 	draw_rect (bb, fill:C_BUTT_BACK, corner:2 pt, opacity:0.9)
+// 	draw_rect (fill:C_BUTT_BACK, corner:2 pt, opacity:0.9)
 // 	var inner <=== solve_rect (basis:bb, pin:4, inset:2 pt)
-// 	draw_image (inner, ICON_GEAR, horz:0)
+// 	draw_image (ICON_GEAR, box:inner, horz:0)
 // 
 // track EV_TAP
 // 	animate_tap (e.global_x, e.global_y, MODE_SETTINGS)
@@ -2120,12 +2139,12 @@ grid d_store_picker
 			//  draw the store icon
 			if g_stores[storex].pic == U
 				//  placeholder graphic
-				draw_rect(bb, fill:DODGER_BLUE, corner:bb.height/14)
-				draw_str(bb, g_stores[storex].name, size:14 pt, indent:5 pt, color:WHITE)
+				draw_rect(fill:DODGER_BLUE, corner:bb.height/14)
+				draw_str(g_stores[storex].name, size:14 pt, indent:5 pt, color:WHITE)
 			else
 				//  restaurant has a photo
-				draw_image(bb, g_stores[storex].pic, corner:bb.height/14)
-				//draw_rect(bb, thick:1, color:PINK, corner:2 pt)
+				draw_image(g_stores[storex].pic, corner:bb.height/14)
+				//draw_rect(thick:1, color:PINK, corner:2 pt)
 			//  draw the delete X in the corner
 			const DELH = bb.height/DELBOX_FRACT
 			var delbox : a_rect <=== solve_rect(basis:bb, pin:3, width:DELH, height:DELH)
@@ -2155,6 +2174,7 @@ calc ask_yesno (
 	) ------
 	//log "ask_yesno, prompt={prompt}" on:TRACE_MODAL
 	//  remember this prompt for our modal alert box
+	sound_play(ALERT)
 	intf.modal_prompt = prompt
 	intf.modal_cancel = cancel_str
 	intf.modal_ok = ok_str
@@ -2163,7 +2183,8 @@ calc ask_yesno (
 
 ---------------------------
 horz slice d_main_footer
-	draw_rect(bb, fill:C_ITEMLIST_FOOT)
+	under
+		draw_rect(fill:C_ITEMLIST_FOOT)
 
 	//  currently buttons are 30 al, which comes out to a nice size
 	var BUTTH = min(bb.width*0.30, 90 pt) 
@@ -2187,7 +2208,7 @@ calc do_login
 draw d_delbox(
 	box : a_rect
 	)
-	draw_rect(box, fill:C_BUTT_BACK, corner:2 pt, opacity:0.7)
+	draw_rect(box:box, fill:C_BUTT_BACK, corner:2 pt, opacity:0.7)
 
 	const LL = 25
 	const RR = 75
@@ -2236,7 +2257,7 @@ draw d_subcat_picker
 	const ITEM_GAP = 14 pt
 	const TSIZE = 0.4
 
-	draw_rect(bb, fill:#2e300d)
+	draw_rect(fill:#2e300d)
 
 	//  first calculate the width of the subcats as they will be drawn
 	subcat_str <=== ["Coffee & Classics", "Frappé", "Macchiato", 
@@ -2244,26 +2265,26 @@ draw d_subcat_picker
 
 	var ss : str
 	loop across:subcat_str val:ss index:ix
-		draw_str(bb, ss, size:TSIZE, metrics:subcat_size[ix])
+		draw_str(ss, size:TSIZE, metrics:subcat_size[ix])
 		log "subcat {ss} size={subcat_size[ix]}"
 	
 	//  now draw the subcats after measuring their size
 
-	draw_str(bb, "Sunday   Monday", size:TSIZE, color:WHITE)
+	draw_str("Sunday   Monday", size:TSIZE, color:WHITE)
 
 ---------------------------
 draw d_recent_order (
 	recent : str
 	)	
-	draw_str (bb, recent, just:LEFT, size:12 pt, color:WHITE, font:MAIN_FONT)
+	draw_str (recent, just:LEFT, size:12 pt, color:WHITE, font:MAIN_FONT)
 
 ---------------------------
 //    REORDER
 ---------------------------
 ---------------------------
 draw butt_go_reorder
-	draw_rect (bb, fill:C_BUTT_BACK, opacity:0.6, corner:8 pt)
-	draw_str (bb, "Reorder"[1035], size:0.4, color:WHITE, indent:2 pt, font:BUTT_FONT)
+	draw_rect (fill:C_BUTT_BACK, opacity:0.6, corner:8 pt)
+	draw_str ("Reorder"[1035], size:0.4, color:WHITE, indent:2 pt, font:BUTT_FONT)
 --------------
 track EV_TAP
 	animate_tap (e.global_x, e.global_y, MODE_REORDER)
@@ -2310,7 +2331,8 @@ const LABEL_F_GAP = 4  //  label field gap
 
 ---------------------------
 vert slice addcard_body
-	draw_rect(bb, fill:C_DEAD2)
+	under
+		draw_rect(fill:C_DEAD2)
 	skip 10 al
 	add ENTRYV pt addcard_cardnum  //  card number
 	skip 10 al
@@ -2327,7 +2349,7 @@ vert slice addcard_body
 horz slice addcard_nickname   //  nickname
 	skip 4 pt
 	add LABELH pt
-		draw_str(bb, "Card nickname"[1036], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
+		draw_str("Card nickname"[1036], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
 	skip LABEL_F_GAP pt
 	add 150 pt
 		draw_input(b.box, input_nickname, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
@@ -2337,7 +2359,7 @@ horz slice addcard_nickname   //  nickname
 horz slice addcard_owner   //  name on card
 	skip 4 pt
 	add LABELH pt
-		draw_str(bb, "Name on card"[1037], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
+		draw_str("Name on card"[1037], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
 	skip LABEL_F_GAP pt
 	add 150 pt
 		draw_input(b.box, input_owner, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
@@ -2347,62 +2369,63 @@ horz slice addcard_owner   //  name on card
 horz slice addcard_zipcode   //  nickname
 	skip 4 pt
 	add LABELH pt
-		draw_str(bb, "Billing zipcode"[1038], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
+		draw_str("Billing zipcode"[1038], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
 	skip LABEL_F_GAP pt
 	add 75 pt
 		draw_input(b.box, input_zipcode, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
 	add LABELH pt
-		draw_str(bb, "(first 5 digits)"[1039], size:0.6, just:LEFT, italic:Y, indent:3 pt, color:C_BUTT_TEXT)
+		draw_str("(first 5 digits)"[1039], size:0.6, just:LEFT, italic:Y, indent:3 pt, color:C_BUTT_TEXT)
 	skip 10 al
 
 ---------------------------
 horz slice addcard_cardnum  //  card number
 	skip 4 pt
 	add LABELH pt
-		draw_str(bb, "Card number"[1040], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
+		draw_str("Card number"[1040], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
 	skip LABEL_F_GAP pt
 	add 150 pt
 		draw_input(b.box, input_cardnum, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
 	skip 6 pt
 	add (bb.height*128/80) px  //  preserve aspect ratio
 		if intf.curr_issuer <> U
-			draw_image(bb, intf.curr_issuer.icon)
+			draw_image(intf.curr_issuer.icon)
 	skip 10 al
 
 ---------------------------
 horz slice addcard_expire   //  expiration mm / yy
 	skip 4 pt
 	add LABELH pt
-		draw_str(bb, "Expires"[1041], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
+		draw_str("Expires"[1041], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
 	skip LABEL_F_GAP pt
 	add 35 pt
 		draw_input(b.box, input_expire_mm, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
 	add 15 pt
-		draw_str(bb, "/", size:0.9, color:C_BUTT_TEXT)
+		draw_str("/", size:0.9, color:C_BUTT_TEXT)
 	add 35 pt
 		draw_input(b.box, input_expire_yy, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
 	add 40 pt
-		draw_str(bb, "Code"[1042], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
+		draw_str("Code"[1042], size:0.6, just:RIGHT, color:C_BUTT_TEXT)
 	skip LABEL_F_GAP pt
 	add 45 pt
 		draw_input(b.box, input_csc, show_star:Y, size:0.70, indent:2 pt, color:C_ENTRY_LO_TEXT, border:ENTRYBORD pt, border_color:C_ENTRY_LO_BORD, fill:C_ENTRY_LO_BACK)
 	skip 4 pt
 	//  the CSC icon is not particularly clear, would need to rework it
 	//add 30 pt
-	//	draw_image(bb, ICON_CSC)
+	//	draw_image(ICON_CSC)
 	skip 10 al
 
 ---------------------------
 horz slice addcard_footer  //  used for both MODE_ADDCARD and MODE_EDITCARD
-	draw_rect(bb, fill:C_ITEMLIST_FOOT)
-	var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
-	draw_rect(r, fill:C_ITEMLIST_EDGE)
+	under
+		draw_rect(fill:C_ITEMLIST_FOOT)
+		var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
+		draw_rect(box:r, fill:C_ITEMLIST_EDGE)
 
 	skip FOOTER_INDENT pt
 	add 20 al butt_simple("Cancel"[1011], go_mode(MODE_PAYMENT))
 	//skip 10 al
 	add 50 al 
-		draw_str(bb, if intf.curr_mode == MODE_ADDCARD then "Enter new card info"[1043] else "Update card on file"[1044], size:0.5, color:C_BUTT_TEXT)
+		draw_str(if intf.curr_mode == MODE_ADDCARD then "Enter new card info"[1043] else "Update card on file"[1044], size:0.5, color:C_BUTT_TEXT)
 
 	//  if card form is complete show the add button
 	if intf.form_ready
@@ -2475,7 +2498,7 @@ grid payment_body  //  show the cards on file
 		skip 10 al
 
 	under
-		draw_rect(bb, fill:C_DEAD2)
+		draw_rect(fill:C_DEAD2)
 
 	cell
 		d_payment_card(b.cell_seq)		
@@ -2496,7 +2519,7 @@ horz slice d_payment_card (
 draw d_card_info (
 	cardx
 	)
-	draw_rect(bb, fill:C_BUTT_BACK, corner:bb.height*0.1, thick:1 pt, color:C_BUTT_BORD)
+	draw_rect(fill:C_BUTT_BACK, corner:bb.height*0.1, thick:1 pt, color:C_BUTT_BORD)
 
 	var card : ptr to a_creditcard = adr cards_on_file[cardx]
 
@@ -2505,19 +2528,19 @@ draw d_card_info (
 	var iconbox <=== solve_rect(basis:bb, left:3 pt, top:3 pt, width:w, height:w/1.6)
 	var issuer = get_issuer_ptr(card.cardnum)
 	if issuer <> U
-		draw_image(iconbox, issuer.icon)
+		draw_image(issuer.icon, box:iconbox)
 
 	//  draw the card ending digits
 	var numbox <=== solve_rect(basis:iconbox, left:iconbox.left+iconbox.width+6 pt, right:bb.width)
-	draw_str(numbox, "...{subset(card.cardnum, from:1, len:4, rev:Y)}", size:0.6, just:LEFT, color:C_BUTT_TEXT)
+	draw_str("...{subset(card.cardnum, from:1, len:4, rev:Y)}", box:numbox, size:0.6, just:LEFT, color:C_BUTT_TEXT)
 
 	if is_card_expired(card)
-		draw_str(numbox, "(expired)"[1049], size:0.6, just:RIGHT, indent:4 pt, color:ORANGE)
+		draw_str("(expired)"[1049], box:numbox, size:0.6, just:RIGHT, indent:4 pt, color:ORANGE)
 
 	//  if the card is expired mark it so
 
 	//  draw the nickname
-	draw_str(bb, card.nickname, size:0.23, vert:0.7, color:C_BUTT_TEXT)
+	draw_str(card.nickname, size:0.23, vert:0.7, color:C_BUTT_TEXT)
 ------
 track EV_TAP
 	//  if this cell has a credit card, we know the card to bill
@@ -2552,8 +2575,8 @@ calc do_card_del2 ditto
 ---------------------------
 draw butt_add_card ditto
 	var box <=== solve_rect(basis:bb, pin:5, width:80 pt, height:20 pt)
-	draw_rect(box, fill:C_BUTT_BACK, corner:4 pt, thick:1 pt, color:C_BUTT_BORD)
-	draw_str(box, "Add card #"[1053] & to_str(cardx), size:0.5, color:C_BUTT_TEXT)
+	draw_rect(box:box, fill:C_BUTT_BACK, corner:4 pt, thick:1 pt, color:C_BUTT_BORD)
+	draw_str("Add card #"[1053] & to_str(cardx), box:box, size:0.5, indent:3 pt, color:C_BUTT_TEXT)
 track EV_TAP
 	//  user wants to add to this slot
 	//  --- this block of 5 statements is similar to the EDIT phase above
@@ -2733,15 +2756,16 @@ calc is_card_expired(  //  is the credit card expired?
 
 ---------------------------
 horz slice payment_footer
-	draw_rect(bb, fill:C_ITEMLIST_FOOT)
-	var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
-	draw_rect(r, fill:C_ITEMLIST_EDGE)
+	under
+		draw_rect(fill:C_ITEMLIST_FOOT)
+		var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
+		draw_rect(box:r, fill:C_ITEMLIST_EDGE)
 
 	skip FOOTER_INDENT pt
-	add 20 al butt_simple(CART_SS, go_mode(MODE_ITEM_LIST))
+	add 20 al butt_simple("⬅  Cart"[1002], go_mode(MODE_ITEM_LIST))
 	//skip 10 al
 	add 50 al 
-		draw_str(bb, "Please choose a card"[1054], size:0.5, color:C_BUTT_TEXT)
+		draw_str("Please choose a card"[1054], size:0.5, color:C_BUTT_TEXT)
 // 	if Y //  if payment card selected
 // 		add 30 al butt_simple("Submit  ⮕", go_mode(MODE_PAYMENT), back:C_BUTT_NEXT)
 // 	else
@@ -2757,21 +2781,23 @@ vert slice d_submit
 vert slice submit_body  //  let user confirm the order before we pay
 	skip 10 pt
 	add 24 pt
-		draw_str(bb, "SUBMIT AREA", size:14 pt, color:C_BUTT_TEXT)
+		draw_str("SUBMIT AREA", size:14 pt, color:C_BUTT_TEXT)
 
 ---------------------------
 horz slice submit_footer
-	draw_rect(bb, fill:C_ITEMLIST_FOOT)
-	var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
-	draw_rect(r, fill:C_ITEMLIST_EDGE)
+	under
+		draw_rect(fill:C_ITEMLIST_FOOT)
+		var r <=== solve_rect(basis:bb, pin:2, height:0.5 pt)
+		draw_rect(box:r, fill:C_ITEMLIST_EDGE)
 
 	skip FOOTER_INDENT pt
-	add 20 al butt_simple(BACK_SS, go_mode(MODE_CART))
+	add 20 al butt_simple("⬅  Back"[1000], go_mode(MODE_CART))
 	//skip 10 al
 	add 50 al 
-		draw_str(bb, "Final confirmation of order"[1055], size:0.5, color:C_BUTT_TEXT)
+		draw_str("Final confirmation of order"[1055], size:0.5, color:C_BUTT_TEXT)
 // 	if Y //  if payment card selected
 // 		add 30 al butt_simple("Submit  ⮕", go_mode(MODE_PAYMENT), back:C_BUTT_NEXT)
 // 	else
 	skip 20 al
 	skip FOOTER_INDENT pt
+

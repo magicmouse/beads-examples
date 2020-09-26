@@ -1,4 +1,4 @@
-beads level 1 program clock  --  a simple analog clock, drawn with lines
+beads 1 program clock  --  a simple analog clock, drawn with lines
 //  a simple analog clock
 //  written by edj 2019
 //  Copyright and related rights waived
@@ -10,24 +10,29 @@ const GRAD1 : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTT
 					 { stop_pos:100, stop_color:CHOCOLATE }] }
 
 var g : a_date	--  the current calendar date, this record defined in std library
+var is_paused = N
+var g_alarm : record
+	nseconds
+	id
 
------------------
+===================
 calc main_init
------------------
 	//  set up a never ending callback to 'do_tick' every second, starting immediately
 	loom_timer(do_tick, delay:0 sec, interval:1 sec, reps:INFINITY)
 
------------------
+===================
 calc do_tick -- is called once a second
------------------
 	//  set our state variable g which will cause redraw to happen automatically
 	merge seconds_to_date() ===> g  --  take our local clock in epoch seconds and convert to the date/time in our local city
 
-----------------
+===================
 draw main_draw
-----------------
 	//  fill the screen with a background color
-	draw_rect(b.box, grad:GRAD1)
+	draw_rect(grad:GRAD1)
+
+	//  to allow rewind before init, ignore draw if hour is U
+	//if g.date_hour == U
+	//	return
 
 	//  calculate the size of the clock box, by taking 80% of the smaller of the total width and height
 	var diameter ⇐ 0.8*min(b.box.width, b.box.height)
@@ -38,6 +43,11 @@ draw main_draw
 	//  indent from the total screen size, set coordinate origin at the middle of the box
 	layer area:area, origin:5 d_clock(diameter)
 
+	if g_alarm.nseconds > 0
+		var foot <=== solve_rect(basis:b.box, pin:8, height:20 pt)
+		draw_str(to_str(g_alarm.nseconds), box:foot, size:0.6, color:WHITE)
+
+===================
 draw d_clock(
 	diameter
 	) -----
@@ -51,3 +61,26 @@ draw d_clock(
 
 	//  second hand (will jump because we only update once per second)
 	draw_line( x1:0, y1:0, color:BLUE, angle:g.date_second*6 - 90 deg, len:diameter*0.45, thick:4 pt)
+----------------------
+track EV_KEYBOARD
+	//  spacebar will toggle stopping time
+	if e.keycode == KEYCODE_SPACE
+		toggle is_paused
+		if is_paused
+			set_clock_scale(0)
+		else
+			set_clock_scale(1)
+		return Y
+	elif e.unicode == "a"
+		//  set alarm
+		g_alarm.nseconds = 4
+		log "--- starting countdown"
+		g_alarm.id = loom_timer(do_countdown, delay:1 sec, interval:1 sec, reps:4)
+		return Y
+	return N // we don't use this key, let the debugger have it
+
+===================
+calc do_countdown
+	log "--- countdown {g_alarm.nseconds}"
+	dec g_alarm.nseconds
+

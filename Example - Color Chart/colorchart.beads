@@ -1,4 +1,4 @@
-beads level 1 program color_chart
+beads 1 program color_chart
 //  written by edj october 2019
 //  copyright waived
 //  lets you pick a HTML color, copies the name or hex value to the clipboard
@@ -9,7 +9,7 @@ assets local:"./art/" remote:"http://beadslang.com/beads/projects/color_picker/a
 	file:"beep.mp3" label:BEEP
 
 const
-	TRACE_COLORS = Y
+	TRACE_COLORS = N
 	TRACE_FUDGE = N
 	TRACE_SIZING = N
 
@@ -279,10 +279,10 @@ track EV_RESIZE  //  this sets global BARV, NCOLS, NROWS
 horz slice d_modebar
 =================================
 	add 30 al 
-		draw_str(b.box, "Colorchart v.{runtime.app_version}", size:b.box.height*0.6, indent:6 pt)
+		draw_str("Colorchart v.{runtime.app_version}", size:b.box.height*0.6, indent:6 pt)
 	add 55 al d_format_selector
 	add 80 al
-		draw_str(b.box, "Click on the color chip or name to copy to the clipboard", size:b.box.height*0.7, indent:14 pt)
+		draw_str("Click on the color chip or name to copy to the clipboard", size:b.box.height*0.7, indent:14 pt)
 	add 40 al d_made_with
 	skip 8 pt
 
@@ -301,9 +301,9 @@ draw d_choice(  //  show a format choice button
 	short_label : str
 	) -------
 	var fill:color = if formx == g.format then TOMATO else LAVENDER_BLUSH
-	draw_rect(b.box, fill:fill, thick:1 pt, color:BLACK)
+	draw_rect(fill:fill, thick:1 pt, color:BLACK)
 	var label:str = if b.box.width > 70 pt then long_label else short_label
-	draw_str(b.box, label, size:b.box.height*0.60, indent:3 pt)
+	draw_str(label, size:b.box.height*0.60, indent:3 pt)
 track EV_TAP
 	g.format = formx
 track EV_HOVER
@@ -312,7 +312,7 @@ track EV_HOVER
 =================================
 draw d_made_with  //  show the "made with" button
 =================================
-	draw_str(b.box, "Made with Beads", size:b.box.height*0.65, just:RIGHT)
+	draw_str("Made with Beads", size:b.box.height*0.65, just:RIGHT)
 track EV_TAP
 	//  go to the beads home page
 	html_redirect("http://beadslang.com", newtab:Y)
@@ -337,6 +337,7 @@ grid chart_draw order:TBLR
 				skip 5 al
 			add 80 al
 		skip 5 al
+		skip 1 px
 	cell
 		// inside: b.box, b.cell_seq, b.cell.x/y, b.cell_id.x/y
 		if b.cell_seq <= NCELLS
@@ -346,8 +347,8 @@ grid chart_draw order:TBLR
 	over
 		//  draw the sizing square in the corner
 		var r : a_rect <=== solve_rect(basis:b.box, pin:BOT_RIGHT, width:12 pt, height:12 pt)
-		draw_rect(r, fill:PINK, corner_tl:4 pt)
-		draw_str(r, "\u2921", size: 10 pt)  //  NW-SE arrow
+		draw_rect(box:r, fill:PINK, corner_tl:4 pt)
+		draw_str("\u2921", box:r, size: 10 pt)  //  NW-SE arrow
 -----------------------
 track EV_TAP
 	//  make a sound effect 
@@ -360,7 +361,7 @@ track EV_TAP
 		sound_play(CLICK)
 		g.selectedx = b.cell_seq
 		//log "tapped on color {slotlist[g.selectedx].name}"
-		os_to_clipboard(calc_slot_str(slotlist[g.selectedx]))
+		os_clipboard_copy(calc_slot_str(slotlist[g.selectedx]))
 -------
 track EV_HOVER
 	//  if we are on a clickable thing, show the finger cursor
@@ -389,18 +390,18 @@ horz slice d_cell(  //  inside each cell we draw the color and the name
 	slotx
 	)
 	add 50 al
-		draw_rect(b.box, fill:myslot.color, corner:3 pt)
+		draw_rect(fill:myslot.color, corner:3 pt)
 		//if myslot.frame
 		if slotx == g.selectedx
-			draw_rect(b.box, color:FIREBRICK, thick:4 pt, corner:3 pt)
+			draw_rect(color:FIREBRICK, thick:4 pt, corner:3 pt)
 		else
-			draw_rect(b.box, color:BLACK, thick:1 pt, corner:3 pt)
+			draw_rect(color:BLACK, thick:1 pt, corner:3 pt)
 	if g.sizing == FULL_SIZE
 		//  add the name or hex value
 		add 140 al
 			if slotx == g.selectedx
 				var radius = b.box.height/6
-				draw_rect(b.box, fill:PEACH_PUFF, corner_tr:radius, corner_br:radius)
+				draw_rect(fill:PEACH_PUFF, corner_tr:radius, corner_br:radius)
 
 			var ss : str = calc_slot_str(myslot)
 
@@ -408,10 +409,10 @@ horz slice d_cell(  //  inside each cell we draw the color and the name
 			case g.format
 			| FORMAT_BEADS, FORMAT_HTML
 				//  show the name
-				draw_str(b.box, ss, just:LEFT, indent:4 pt, size:b.box.width/11)
+				draw_str(ss, just:LEFT, indent:4 pt, size:b.box.width/11)
 			| FORMAT_HEX
 				//  show the hex value in slightly larger type
-				draw_str(b.box, ss, just:LEFT, indent:4 pt, size:b.box.width/8, font:"_typewriter")
+				draw_str(ss, just:LEFT, indent:4 pt, size:b.box.width/8, font:"_typewriter")
 
 =================================
 calc compare_slots(  -- compare sort keys of the color records, in ascending order

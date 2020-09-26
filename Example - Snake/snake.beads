@@ -1,4 +1,4 @@
-beads level 1 program Snake title "The Classic Snake Game"
+beads 1 program Snake title:"The Classic Snake Game"
 //  the classic snake game, with the ability to wrap around added
 //  written by edj 2019
 //  Copyright and related rights waived
@@ -46,7 +46,7 @@ draw main_draw
 	var color : color
 	var box : a_rect
 	
-	draw_rect(b.box, fill:BLACK)  -- board background
+	draw_rect(fill:BLACK)  -- board background
 
 	//  draw snake as an array of boxes
 	loop across:snake index:i
@@ -57,21 +57,21 @@ draw main_draw
 
 		if i == 1  
 			//  head of the snake has a border, and is rounded more 
-			draw_rect(box, fill:color, corner:cellsize.x*0.20, color:DARK_GREEN, thick:cellsize.x*0.10)
+			draw_rect(box:box, fill:color, corner:cellsize.x*0.20, color:DARK_GREEN, thick:cellsize.x*0.10)
 		else
 			//  body snake cells have no border, only slightly rounded
-			draw_rect(box, fill:color, corner:cellsize.x*0.10)
+			draw_rect(box:box, fill:color, corner:cellsize.x*0.10)
 	//..end snake loop
 
 	//  draw the apple
 	box <=== solve_rect(left:apple.x*spacing.x, top:apple.y*spacing.y, width:cellsize.x, height:cellsize.y)
-	draw_oval (box, fill:CRIMSON)
+	draw_oval (box:box, fill:CRIMSON)
 
 	//  draw the current and high score
 	var boxheight ⇐ min(b.box.height, b.box.width)/8
 	var ss : str ⇐ "{maxlen}     high:{longest}"
 	box <=== solve_rect(basis:b.box, pin:TOP_CENTER, height:boxheight)
-	draw_str (box, ss, size:boxheight*0.85, opacity:0.4, bold:Y, color:WHITE)
+	draw_str (ss, box:box, size:boxheight*0.85, opacity:0.4, bold:Y, color:WHITE)
 
 	//  if this is a full_screen device, draw the soft keyboard
 	if runtime.full_screen
@@ -153,8 +153,8 @@ grid soft_keyboard
 		| 8
 			cc ⇐ "\u25BC" --  down triangle
 		if cc <> ""
-			draw_rect(b.box, fill:#714900, corner:b.box.width*0.2)  --  was color 684300
-			draw_str(b.box, cc, color:BLACK, size:size)
+			draw_rect(fill:#714900, corner:b.box.width*0.2)  --  was color 684300
+			draw_str(cc, color:BLACK, size:size)
 -----------------------
 track EV_TAP
 	//  if we tap on a cell that is active simulate a keyboard command

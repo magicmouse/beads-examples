@@ -1,4 +1,4 @@
-beads level 1 program TicTacToe  --  version 4
+beads 1 program TicTacToe  --  version 4
 //  the classic children's game.
 //  written by edj 2019
 //  Copyright and related rights waived
@@ -99,18 +99,18 @@ draw d_status
 	//  either announce the winner, or show whose turn it is now
 	if g.winner == U
 		//  game in progress, say X/O's turn
-		draw_str(b.box, "{g.player}’s turn", size:99 pt, indent:b.box.width/14)
+		draw_str("{g.player}’s turn", size:0.5, indent:b.box.width/14)
 	else
 		//  game is finished, say X/O/nobody has won
-		draw_str(b.box, "{g.winner} has won", size:99 pt, indent:b.box.width/14, color:CRIMSON)
+		draw_str("{g.winner} has won", size:0.5, indent:b.box.width/14, color:CRIMSON)
 
 ------------------
 draw d_newgame
 ------------------
 	var boxw = b.box.width*12/14
 	var tbox : a_rect <=== solve_rect (basis:b.box, pin:MID_CENTER, width:boxw, height:b.box.height*0.8)
-	draw_rect (tbox, fill:LIGHT_GREEN, color:DARK_GREEN, corner:8 pt, thick:2 pt)
-	draw_str (tbox, "NEW GAME", size:0.4, indent:tbox.width/14, color:DARK_GREEN)
+	draw_rect (box:tbox, fill:LIGHT_GREEN, color:DARK_GREEN, corner:8 pt, thick:2 pt)
+	draw_str ("NEW GAME", box:tbox, size:0.4, indent:tbox.width/14, color:DARK_GREEN)
 ------------------
 track EV_TAP
 	//  any click in the new game button when the game is over should start a new game
@@ -136,19 +136,19 @@ grid d_board
 	------------------
 	under
 		//  background fill
-		draw_rect (b.box, fill:#BDF7FF) -- pale blue	
+		draw_rect (fill:#BDF7FF) -- pale blue	
 	------------------
 	cell
 		//  inside: b.box, b.cell_seq, b.cell.x/y, b.cell_id.x/y
 		//  if this cell is marked for a hilite, make it stand out with a different background color
 		var color = g.tints[b.cell_seq]
 		if color <> U
-			draw_rect (b.box, fill:color)
+			draw_rect (fill:color)
 	
 		//  draw the X or O for each square that has been played	
 		var player = g.board[b.cell_seq]
 		if player <> U
-			draw_str (b.box, player, size:0.95, color:CRIMSON)
+			draw_str (player, size:0.95, color:CRIMSON)
 	------------------
 	over
 		//  subtle point: we draw the lines after the grid because we are intruding slightly into 

@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>index</title>
+<link rel="shortcut icon" href="favicon.ico" />
+<style>
+/*  this disables the annoying double click highlighting of DIV blocks  */
+div { outline-style:none;}
+</style>
+</head>
+<body style="margin:0; padding:0;">
+<script type="module">
+import * as std from '../../runtime/beads_std.js';
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, addr } from '../../runtime/beads_std.js';
+import * as str from '../../runtime/beads_str.js';
+import * as k   from '../../runtime/beads_k.js';
+export const CODE_HASH= 0xd3c0d1a8;
+const _M = "index";
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_module = "index";
+std.aaaa.main_drawer = new std.a_function("index", "main_draw", main_draw);
+//LOC for LANG_JAP
+std.merge_lit(_M, 0, std.LOCALIZED, std.LANG_JAP, _M, 1000, VAL, "ホーム", 1001, VAL, "例", 1002, VAL, "文書", 1003, VAL, "ダウンロード", 1004, VAL, "コンタック", 1005, VAL, "未来的", 1006, VAL, 
+"シンプル", 1007, VAL, "強い", 1008, VAL, "壮健", 1009, VAL, "エレガント", 1010, VAL, "制限事項", 1011, VAL, "コードを表示", 1012, VAL, "映画", 1013, VAL, "ラン", 1014, VAL, "見る");
+//LOC for LANG_AMH
+std.merge_lit(_M, 0, std.LOCALIZED, std.LANG_AMH, _M, 1000, VAL, "ቤት", 1001, VAL, "ምሳሌዎች", 1002, VAL, "ሰነድ", 1003, VAL, "አውርድ", 1004, VAL, "እውቂያ", 1005, VAL, "የወደፊት", 1006
+, VAL, "ቀላል", 1007, VAL, "ኃይለኛ", 1008, VAL, "ችግር", 1009, VAL, "ባለጌ", 1010, VAL, "ውስንነቶች", 1011, VAL, "የእይታ ኮድ", 1012, VAL, "ፊልም", 1013, VAL, "አሂድ", 1014, VAL, "አሳይ");
+//------- enums
+const F_dir=9007194114743687; std.g_enum_ss[9007194114743687]="dir";
+std.FIELDS[F_dir] = true;
+const TAB_HOME=9007191838532964; std.g_enum_ss[9007191838532964]="TAB_HOME";
+const F_color=9007193200940231; std.g_enum_ss[9007193200940231]="color";
+std.FIELDS[F_color] = true;
+const F_main_tabs=9007193391251506; std.g_enum_ss[9007193391251506]="main_tabs";
+std.FIELDS[F_main_tabs] = true;
+const F_vel=9007190046234587; std.g_enum_ss[9007190046234587]="vel";
+std.FIELDS[F_vel] = true;
+const TAB_CONTACT=9007193738194009; std.g_enum_ss[9007193738194009]="TAB_CONTACT";
+const TAB_EXAMPLES=9007193991223436; std.g_enum_ss[9007193991223436]="TAB_EXAMPLES";
+const F_mobile=9007190015169802; std.g_enum_ss[9007190015169802]="mobile";
+std.FIELDS[F_mobile] = true;
+const R_a_example=9007193057977022; std.g_enum_ss[9007193057977022]="a_example";
+const TAB_DOCS=9007192574816376; std.g_enum_ss[9007192574816376]="TAB_DOCS";
+const F_back=9007190659734859; std.g_enum_ss[9007190659734859]="back";
+std.FIELDS[F_back] = true;
+const F_selected=9007191098033561; std.g_enum_ss[9007191098033561]="selected";
+std.FIELDS[F_selected] = true;
+const F_curr_lang=9007192054586429; std.g_enum_ss[9007192054586429]="curr_lang";
+std.FIELDS[F_curr_lang] = true;
+const R_record_105=9007192590169026; std.g_enum_ss[9007192590169026]="record_105";
+const F_label=9007190039119310; std.g_enum_ss[9007190039119310]="label";
+std.FIELDS[F_label] = true;
+const TAB_DOWNLOAD=9007191511537947; std.g_enum_ss[9007191511537947]="TAB_DOWNLOAD";
+const F_pos=9007191909676042; std.g_enum_ss[9007191909676042]="pos";
+std.FIELDS[F_pos] = true;
+const F_fore=9007193509696974; std.g_enum_ss[9007193509696974]="fore";
+std.FIELDS[F_fore] = true;
+const F_icon=9007192403998961; std.g_enum_ss[9007192403998961]="icon";
+std.FIELDS[F_icon] = true;
+const F_code_url=9007190243271231; std.g_enum_ss[9007190243271231]="code_url";
+std.FIELDS[F_code_url] = true;
+const R_a_particle=9007194154025818; std.g_enum_ss[9007194154025818]="a_particle";
+const F_run_url=9007190965102015; std.g_enum_ss[9007190965102015]="run_url";
+std.FIELDS[F_run_url] = true;
+const R_a_tab_group=9007190938070915; std.g_enum_ss[9007190938070915]="a_tab_group";
+//[reflAAA]
+std.merge_lit(_M,0,std.META,_M, std.F_mod_const, "ANIMATE", std.F_vv_typek, VAL, std.TYPE_YESNO, POP, "CODE_PREFIX", std.F_vv_typek, VAL, std.TYPE_STR, POP, "C_TAB_BACK", 
+std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "C_TAB_FORE", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "DEAD", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "DIAGRAM_OUTPUT", std.F_vv_typek
+, VAL, std.TYPE_IMAGE, POP, "DOT_COLOR", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "DOT_RADIUS", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "END_MARKER", std.F_vv_typek, VAL, 
+std.TYPE_STR, POP, "EXAMPLES", std.F_vv_rec, VAL, "a_example", std.F_vv_typek, VAL, std.TYPE_RECORD, POP, "EXAMPLE_H", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "EXAMPLE_V", 
+std.F_vv_typek, VAL, std.TYPE_NUM, POP, "ICON_AMH", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "ICON_ANIMATE3", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "ICON_BEADS", std.F_vv_typek
+, VAL, std.TYPE_IMAGE, POP, "ICON_BEAR", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "ICON_CALCULATOR", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "ICON_CHESS", std.F_vv_typek
+, VAL, std.TYPE_IMAGE, POP, "ICON_COLOR", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "ICON_ENG", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "ICON_JAP", std.F_vv_typek, VAL, 
+std.TYPE_IMAGE, POP, "ICON_LOCALIZE", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "ICON_OSX", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "ICON_REFCARD", std.F_vv_typek, VAL, 
+std.TYPE_IMAGE, POP, "ICON_REFMAN", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "ICON_SNAKE", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "ICON_WEBSITE", std.F_vv_typek, VAL, 
+std.TYPE_IMAGE, POP, "ICON_WIN", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "ICON_YOUTUBE", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "LANG_ICONS", std.F_vv_typek, VAL, std.TYPE_TREE
+, POP, "LANG_SUPPORTED", std.F_vv_typek, VAL, std.TYPE_ARRAY, POP, "MIN_DEV_PTS", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "MIN_GAP", std.F_vv_typek, VAL, std.TYPE_NUM, POP
+, "N_EXAMPLES", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "REFMAN_H", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "RUN_PREFIX", std.F_vv_typek, VAL, std.TYPE_STR, POP, "TAB_CORNER"
+, std.F_vv_typek, VAL, std.TYPE_NUM, POP, "TAB_GAP", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "TAB_HEIGHT", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "TAB_WIDTH", std.F_vv_typek
+, VAL, std.TYPE_NUM, POP, "TILE_MANDALA", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "TILE_MANDALA2", std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "TITLE_V", std.F_vv_typek, VAL, 
+std.TYPE_NUM, POP, "TRACE", std.F_vv_typek, VAL, std.TYPE_YESNO, POP, "TRACE_DEV", std.F_vv_typek, VAL, std.TYPE_YESNO, POP, "TRACE_LOGG", std.F_vv_typek, VAL, std.TYPE_YESNO
+, POP, "p_elegant", std.F_vv_typek, VAL, std.TYPE_STR, POP, "p_future", std.F_vv_typek, VAL, std.TYPE_STR, POP, "p_powerful", std.F_vv_typek, VAL, std.TYPE_STR, POP, "p_robust"
+, std.F_vv_typek, VAL, std.TYPE_STR, POP, "p_simple", std.F_vv_typek, VAL, std.TYPE_STR, POP, "p_whatnot", std.F_vv_typek, VAL, std.TYPE_STR, POP, POP, std.F_mod_enums, "TAB_CONTACT"
+, VAL, TAB_CONTACT, "TAB_CONTACT", std.F_vv_cat, VAL, "Strings|Splitting|", POP, "TAB_DOCS", VAL, TAB_DOCS, "TAB_DOCS", std.F_vv_cat, VAL, "Strings|Splitting|", POP, "TAB_DOWNLOAD"
+, VAL, TAB_DOWNLOAD, "TAB_DOWNLOAD", std.F_vv_cat, VAL, "Strings|Splitting|", POP, "TAB_EXAMPLES", VAL, TAB_EXAMPLES, "TAB_EXAMPLES", std.F_vv_cat, VAL, "Strings|Splitting|"
+, POP, "TAB_HOME", VAL, TAB_HOME, "TAB_HOME", std.F_vv_cat, VAL, "Strings|Splitting|", POP, POP, std.F_mod_funcs, "$log", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck
+, VAL, std.FK_DRAW, POP, "d_body", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_contact", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck
+, VAL, std.FK_DRAW, POP, "d_contact_483", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_contact_489", std.F_vv_cat, VAL, "Strings|Splitting|"
+, std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_doc_butts", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, 
+std.PK_POS, std.F_vv_parmn, VAL, "url", std.F_vv_typek, VAL, std.TYPE_STR, POP, POP, POP, "d_docs", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW
+, POP, "d_docs_520", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_download", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, 
+std.FK_DRAW, POP, "d_download_579", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_download_586", std.F_vv_cat, VAL, "Strings|Splitting|"
+, std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_download_butt", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, 
+std.PK_POS, std.F_vv_parmn, VAL, "prompt", std.F_vv_typek, VAL, std.TYPE_STR, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "url", std.F_vv_typek, VAL, std.TYPE_STR
+, POP, POP, POP, "d_ex_footer", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn
+, VAL, "cellx", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "d_ex_image", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 
+1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "cellx", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "d_example_cell", std.F_vv_cat, VAL, "Strings|Splitting|"
+, std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "cellx", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "d_example_cell_426"
+, std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "cellx", std.F_vv_typek
+, VAL, std.TYPE_NUM, POP, POP, POP, "d_examples", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_header", std.F_vv_cat, VAL, "Strings|Splitting|"
+, std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_home", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_home2", std.F_vv_cat, VAL, "Strings|Splitting|"
+, std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_home2_345", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_home_icon", std.F_vv_cat, VAL, "Strings|Splitting|"
+, std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_jump_discord", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_jump_email", std.F_vv_cat, VAL, 
+"Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_lang", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk
+, VAL, std.PK_POS, std.F_vv_parmn, VAL, "langx", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "d_lang_picker", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck
+, VAL, std.FK_DRAW, POP, "d_lang_picker_189", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_osx_row", std.F_vv_cat, VAL, "Strings|Splitting|"
+, std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_osx_row_594", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_refcard_row", std.F_vv_cat, VAL, 
+"Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_refcard_row_556", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_refman_row"
+, std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_refman_row_547", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW
+, POP, "d_tab_area", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_tab_area_183", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck
+, VAL, std.FK_DRAW, POP, "d_tab_control", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn
+, VAL, "tab", std.F_vv_rec, VAL, "a_tab_group", std.F_vv_typek, VAL, std.TYPE_RECORD, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "label", std.F_vv_typek
+, VAL, std.TYPE_STR, POP, 3, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "newsel", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "d_tabs", std.F_vv_cat, VAL, 
+"Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_text", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk
+, VAL, std.PK_POS, std.F_vv_parmn, VAL, "msg", std.F_vv_typek, VAL, std.TYPE_STR, POP, POP, POP, "d_title", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW
+, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "prompt", std.F_vv_typek, VAL, std.TYPE_STR, POP, POP, POP, "d_title_357", std.F_vv_cat, VAL, "Strings|Splitting|"
+, std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "prompt", std.F_vv_typek, VAL, std.TYPE_STR, POP, POP, POP, "d_video_row"
+, std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_video_row_538", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW
+, POP, "d_win_row", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_win_row_603", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck
+, VAL, std.FK_DRAW, POP, "do_particle_tick", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_CALC, POP, "draw_oneshot", std.F_vv_cat, VAL, "Strings|Splitting|"
+, std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "label", std.F_vv_typek, VAL, std.TYPE_STR, POP, 2, std.F_vv_parmk
+, VAL, std.PK_POS, std.F_vv_parmn, VAL, "action", std.F_vv_typek, VAL, std.TYPE_FUNC, POP, 3, std.F_vv_parmk, VAL, std.PK_NAMED, std.F_vv_parmn, VAL, "back", std.F_vv_typek
+, VAL, std.TYPE_COLOR, POP, POP, POP, "gen_code_url", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS
+, std.F_vv_parmn, VAL, "ix", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, std.F_vv_typek, VAL, std.TYPE_STR, POP, "gen_run_url", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck
+, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "ix", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, std.F_vv_typek, VAL, std.TYPE_STR
+, POP, "interpolate_color", std.F_vv_cat, VAL, "Strings|Splitting|interpolate between a range of colors", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk
+, VAL, std.PK_POS, std.F_vv_parmn, VAL, "a_cur|input value", std.F_vv_typek, VAL, std.TYPE_NUM, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "a_min|minimum value"
+, std.F_vv_typek, VAL, std.TYPE_NUM, POP, 3, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "a_max|maximum value", std.F_vv_typek, VAL, std.TYPE_NUM, POP, 4, std.F_vv_parmk
+, VAL, std.PK_POS, std.F_vv_parmn, VAL, "color_min|color corresponding to minimum", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, 5, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn
+, VAL, "color_max|color corresponding to maximum", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, POP, std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "is_video", std.F_vv_cat, VAL, 
+"Strings|Splitting|", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "url", std.F_vv_typek, VAL, std.TYPE_STR, POP
+, POP, std.F_vv_typek, VAL, std.TYPE_YESNO, POP, "main_draw", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "main_draw_134", std.F_vv_cat
+, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "main_init", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_CALC, POP, "mob_head1"
+, std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW, POP, "move_particles", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_DRAW
+, POP, "particle_canvas_resize", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn
+, VAL, "box", std.F_vv_rec, VAL, "a_rect", std.F_vv_typek, VAL, std.TYPE_RECORD, POP, POP, POP, "render_particles", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_funck
+, VAL, std.FK_DRAW, POP, POP, std.F_mod_recs, "a_example", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_fields, "code_url", std.F_vv_typek, VAL, std.TYPE_STR, POP, "icon"
+, std.F_vv_typek, VAL, std.TYPE_IMAGE, POP, "label", std.F_vv_typek, VAL, std.TYPE_STR, POP, "run_url", std.F_vv_typek, VAL, std.TYPE_STR, POP, POP, POP, "a_particle", std.F_vv_cat
+, VAL, "Strings|Splitting|", std.F_vv_fields, "color", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "dir", std.F_vv_rec, VAL, "a_xy", std.F_vv_typek, VAL, std.TYPE_RECORD, POP
+, "pos", std.F_vv_rec, VAL, "a_xy", std.F_vv_typek, VAL, std.TYPE_RECORD, POP, "vel", std.F_vv_rec, VAL, "a_xy", std.F_vv_typek, VAL, std.TYPE_RECORD, POP, POP, POP, "a_tab_group"
+, std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_fields, "back", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "fore", std.F_vv_typek, VAL, std.TYPE_COLOR, POP, "selected", 
+std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "record_105", std.F_vv_cat, VAL, "Strings|Splitting|", std.F_vv_fields, "curr_lang", std.F_vv_typek, VAL, std.TYPE_NUM, POP
+, "main_tabs", std.F_vv_rec, VAL, "a_tab_group", std.F_vv_typek, VAL, std.TYPE_RECORD, POP, "mobile", std.F_vv_typek, VAL, std.TYPE_YESNO, POP, POP, POP, POP, std.F_mod_vars
+, "CANVAS_H", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "CANVAS_V", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "DEVICE_PTS", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "NP", std.F_vv_typek
+, VAL, std.TYPE_NUM, POP, "g", std.F_vv_rec, VAL, "record_105", std.F_vv_typek, VAL, std.TYPE_RECORD, POP, "mycanvas", std.F_vv_rec, VAL, "a_canvas", std.F_vv_typek, VAL, 
+std.TYPE_RECORD, POP, "particles", std.F_vv_rec, VAL, "a_particle", std.F_vv_typek, VAL, std.TYPE_RECORD);
+//[reflZZZ]
+//-------  func const
+const d_contact_F = new std.a_function("index", "d_contact", d_contact);
+std.FUNCS[d_contact_F.hash]=d_contact_F;
+const d_download_F = new std.a_function("index", "d_download", d_download);
+std.FUNCS[d_download_F.hash]=d_download_F;
+const d_refcard_row_F = new std.a_function("index", "d_refcard_row", d_refcard_row);
+std.FUNCS[d_refcard_row_F.hash]=d_refcard_row_F;
+const d_video_row_538_F = new std.a_function("index", "d_video_row_538", d_video_row_538);
+std.FUNCS[d_video_row_538_F.hash]=d_video_row_538_F;
+const d_win_row_F = new std.a_function("index", "d_win_row", d_win_row);
+std.FUNCS[d_win_row_F.hash]=d_win_row_F;
+const d_osx_row_594_F = new std.a_function("index", "d_osx_row_594", d_osx_row_594);
+std.FUNCS[d_osx_row_594_F.hash]=d_osx_row_594_F;
+const move_particles_F = new std.a_function("index", "move_particles", move_particles);
+std.FUNCS[move_particles_F.hash]=move_particles_F;
+const d_refman_row_547_F = new std.a_function("index", "d_refman_row_547", d_refman_row_547);
+std.FUNCS[d_refman_row_547_F.hash]=d_refman_row_547_F;
+const d_refcard_row_556_F = new std.a_function("index", "d_refcard_row_556", d_refcard_row_556);
+std.FUNCS[d_refcard_row_556_F.hash]=d_refcard_row_556_F;
+const d_header_F = new std.a_function("index", "d_header", d_header);
+std.FUNCS[d_header_F.hash]=d_header_F;
+const d_contact_483_F = new std.a_function("index", "d_contact_483", d_contact_483);
+std.FUNCS[d_contact_483_F.hash]=d_contact_483_F;
+const d_lang_F = new std.a_function("index", "d_lang", d_lang, track_d_lang);
+std.FUNCS[d_lang_F.hash]=d_lang_F;
+const d_tab_area_F = new std.a_function("index", "d_tab_area", d_tab_area);
+std.FUNCS[d_tab_area_F.hash]=d_tab_area_F;
+const d_contact_489_F = new std.a_function("index", "d_contact_489", d_contact_489);
+std.FUNCS[d_contact_489_F.hash]=d_contact_489_F;
+const do_particle_tick_F = new std.a_function("index", "do_particle_tick", do_particle_tick);
+std.FUNCS[do_particle_tick_F.hash]=do_particle_tick_F;
+const d_tab_control_F = new std.a_function("index", "d_tab_control", d_tab_control, track_d_tab_control);
+std.FUNCS[d_tab_control_F.hash]=d_tab_control_F;
+const main_draw_134_F = new std.a_function("index", "main_draw_134", main_draw_134);
+std.FUNCS[main_draw_134_F.hash]=main_draw_134_F;
+const d_jump_email_F = new std.a_function("index", "d_jump_email", d_jump_email);
+std.FUNCS[d_jump_email_F.hash]=d_jump_email_F;
+const d_download_579_F = new std.a_function("index", "d_download_579", d_download_579);
+std.FUNCS[d_download_579_F.hash]=d_download_579_F;
+const d_examples_F = new std.a_function("index", "d_examples", d_examples);
+std.FUNCS[d_examples_F.hash]=d_examples_F;
+const mob_head1_F = new std.a_function("index", "mob_head1", mob_head1);
+std.FUNCS[mob_head1_F.hash]=mob_head1_F;
+const d_lang_picker_F = new std.a_function("index", "d_lang_picker", d_lang_picker);
+std.FUNCS[d_lang_picker_F.hash]=d_lang_picker_F;
+const d_home_F = new std.a_function("index", "d_home", d_home);
+std.FUNCS[d_home_F.hash]=d_home_F;
+const d_home2_F = new std.a_function("index", "d_home2", d_home2);
+std.FUNCS[d_home2_F.hash]=d_home2_F;
+const d_jump_discord_F = new std.a_function("index", "d_jump_discord", d_jump_discord);
+std.FUNCS[d_jump_discord_F.hash]=d_jump_discord_F;
+const d_lang_picker_189_F = new std.a_function("index", "d_lang_picker_189", d_lang_picker_189);
+std.FUNCS[d_lang_picker_189_F.hash]=d_lang_picker_189_F;
+const d_body_F = new std.a_function("index", "d_body", d_body);
+std.FUNCS[d_body_F.hash]=d_body_F;
+const d_tab_area_183_F = new std.a_function("index", "d_tab_area_183", d_tab_area_183);
+std.FUNCS[d_tab_area_183_F.hash]=d_tab_area_183_F;
+const draw_oneshot_F = new std.a_function("index", "draw_oneshot", draw_oneshot, track_draw_oneshot);
+std.FUNCS[draw_oneshot_F.hash]=draw_oneshot_F;
+const d_video_row_F = new std.a_function("index", "d_video_row", d_video_row);
+std.FUNCS[d_video_row_F.hash]=d_video_row_F;
+const d_refman_row_F = new std.a_function("index", "d_refman_row", d_refman_row);
+std.FUNCS[d_refman_row_F.hash]=d_refman_row_F;
+const d_home2_345_F = new std.a_function("index", "d_home2_345", d_home2_345);
+std.FUNCS[d_home2_345_F.hash]=d_home2_345_F;
+const d_title_357_F = new std.a_function("index", "d_title_357", d_title_357);
+std.FUNCS[d_title_357_F.hash]=d_title_357_F;
+const d_win_row_603_F = new std.a_function("index", "d_win_row_603", d_win_row_603);
+std.FUNCS[d_win_row_603_F.hash]=d_win_row_603_F;
+const d_docs_520_F = new std.a_function("index", "d_docs_520", d_docs_520);
+std.FUNCS[d_docs_520_F.hash]=d_docs_520_F;
+const d_example_cell_426_F = new std.a_function("index", "d_example_cell_426", d_example_cell_426);
+std.FUNCS[d_example_cell_426_F.hash]=d_example_cell_426_F;
+const d_home_icon_F = new std.a_function("index", "d_home_icon", d_home_icon, track_d_home_icon);
+std.FUNCS[d_home_icon_F.hash]=d_home_icon_F;
+const d_download_586_F = new std.a_function("index", "d_download_586", d_download_586);
+std.FUNCS[d_download_586_F.hash]=d_download_586_F;
+const $log_F = new std.a_function("index", "$log", $log, track_$log);
+std.FUNCS[$log_F.hash]=$log_F;
+const d_tabs_F = new std.a_function("index", "d_tabs", d_tabs);
+std.FUNCS[d_tabs_F.hash]=d_tabs_F;
+const d_docs_F = new std.a_function("index", "d_docs", d_docs);
+std.FUNCS[d_docs_F.hash]=d_docs_F;
+const d_osx_row_F = new std.a_function("index", "d_osx_row", d_osx_row);
+std.FUNCS[d_osx_row_F.hash]=d_osx_row_F;
+const render_particles_F = new std.a_function("index", "render_particles", render_particles);
+std.FUNCS[render_particles_F.hash]=render_particles_F;
+//-------  top nodes
+const ICON_BEADS = new std.a_image("./art/Beads_d.jpg","ICON_BEADS",true,674,265);
+const ICON_OSX = new std.a_image("./art/logo_osx.jpg","ICON_OSX",false);
+const ICON_WIN = new std.a_image("./art/logo_windows.jpg","ICON_WIN",false);
+const DIAGRAM_OUTPUT = new std.a_image("./art/outputs.png","DIAGRAM_OUTPUT",false);
+const TILE_MANDALA = new std.a_image("./art/Mandala.png","TILE_MANDALA",true,128,128);
+const TILE_MANDALA2 = new std.a_image("./art/Mandala_beige.gif","TILE_MANDALA2",true,128,128);
+const ICON_REFMAN = new std.a_image("./art/icon_refman.png","ICON_REFMAN",false);
+const ICON_REFCARD = new std.a_image("./art/icon_refcard.png","ICON_REFCARD",false);
+const ICON_YOUTUBE = new std.a_image("./art/icon_youtube.png","ICON_YOUTUBE",false);
+
+const ICON_WEBSITE = new std.a_image("./art/examples/website.gif","ICON_WEBSITE",false);
+const ICON_CHESS = new std.a_image("./art/examples/chess.png","ICON_CHESS",false);
+const ICON_SNAKE = new std.a_image("./art/examples/snake_animated.gif","ICON_SNAKE",false);
+const ICON_BEAR = new std.a_image("./art/examples/bearsweeper.png","ICON_BEAR",false);
+const ICON_CALCULATOR = new std.a_image("./art/examples/calculator.gif","ICON_CALCULATOR",false);
+const ICON_COLOR = new std.a_image("./art/examples/colorchart.png","ICON_COLOR",false);
+const ICON_LOCALIZE = new std.a_image("./art/examples/localize_screenshot.gif","ICON_LOCALIZE",false);
+const ICON_ANIMATE3 = new std.a_image("./art/examples/animate3.gif","ICON_ANIMATE3",false);
+
+const ICON_JAP = new std.a_image("./art/flags/Japan.png","ICON_JAP",true,0,0);
+const ICON_AMH = new std.a_image("./art/flags/ethiopia.png","ICON_AMH",true,0,0);
+const ICON_ENG = new std.a_image("./art/flags/USA.png","ICON_ENG",true,0,0);
+
+const TRACE = N;
+const TRACE_DEV = N;
+const TRACE_LOGG = N;
+const ANIMATE = Y;
+const TAB_HEIGHT = 23;
+const TAB_WIDTH = 100;
+const TAB_CORNER = 10;
+const TAB_GAP = 4;
+const DEAD = std.WHITE;
+const C_TAB_BACK = 0x28224D;
+const C_TAB_FORE = 0xEDEFF3;
+const END_MARKER = "❖     ❖     ❖     ❖     ❖";
+const CODE_PREFIX = "http://github.com/magicmouse/beads-examples/tree/master/";
+const RUN_PREFIX = "http://beadslang.com/apps/";
+const LANG_SUPPORTED = new std.a_tree("index","LANG_SUPPORTED", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 73, 1, VAL, std.LANG_ENG, 2, VAL, std.LANG_AMH, 3, VAL, std.LANG_JAP
+));
+const LANG_ICONS = new std.a_tree("index","LANG_ICONS", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 76, std.LANG_ENG, VAL, ICON_ENG, std.LANG_AMH, VAL, ICON_AMH, std.LANG_JAP
+, VAL, ICON_JAP));
+const EXAMPLES = new std.a_tree("index","EXAMPLES", std.NF_TOPLEVEL|std.NF_LOGGED, std.table_lit(F_label, F_icon, F_code_url, F_run_url, VAL, "Beads website", ICON_WEBSITE
+  , "Example - Beads website", U, VAL, "Localizer", ICON_LOCALIZE, "Example - Localization tool", "https://youtu.be/ct_RSML_0D0", VAL, "Chess game", ICON_CHESS, "Example - Chess"
+  , "chess/chess.html", VAL, "Color picker", ICON_COLOR, "Example - Color Chart", "colorchart/colorchart.html", VAL, "Snake game", ICON_SNAKE, "Example - Snake", "snake/snake.html"
+  , VAL, "Minesweeper game", ICON_BEAR, "Example - Bearsweeper", "bearsweeper/bearsweeper.html", VAL, "Animation #3", ICON_ANIMATE3, "Example - Animate3", "animate3/animate3.html"
+  , VAL, "Calculator", ICON_CALCULATOR, "Example - Calculator", "calculator/calculator.html"));
+const N_EXAMPLES = std.tree_count(std.addr(EXAMPLES));
+const MIN_DEV_PTS = 160;
+const MIN_GAP = 14;
+const EXAMPLE_H = 260;
+const EXAMPLE_V = std.div(EXAMPLE_H, 1.5);
+const TITLE_V = 24;
+const p_future = "Beads is a new language, that aims straight into the future, where the computer does more of the work of programming. Beads uses strong typing protections to catch mistakes at compile time. Time travel facilitates testing and makes unreproducible bugs a thing of the past."
+;
+const p_simple = "This website was coded in Beads, without writing any CSS, HTML, or JS. Imagine using just one language for client, server, web apps, desktop and mobile. No more complex frameworks with thousands of API calls 👍 . One concise notation, designed for professionals to express their intentions with a minimum of fuss."
+;
+const p_powerful = "Starting with a graph database as the fundamental data structure (think Neo4J), we add a proportion based layout system, more convenient than SwiftUI. Build for a wide range of targets and application types. Full support for internationalization."
+;
+const p_robust = "Beads has super-strong type checking, but does it via implied typing so you spend your time focusing on your project, not fussing with type declarations. With a closed, protected arithmetic that cannot crash, programs are resilient when given bad inputs. The unique \"Black Box\" feature allows you to replay client sessions, so every reported error can be reproduced."
+;
+const p_elegant = "There are many beautiful things in the Beads language. Regular Expression syntax has been completely redesigned to make them easier to maintain. There is a good balance between conciseness and reading comprehension. No complex abstractions like monads or functors."
+;
+const p_whatnot = "Beads can make websites, web apps, mobile apps, but Beads is not intended for machine learning, big data, or embedded systems. It does not connect well to other languages, as the time travel feature requires tight integration. It is currently only a 2D system. In the first version the compiler is only available for Windows and Macintosh, but you can build web apps for Linux."
+;
+const REFMAN_H = 180;
+const DOT_COLOR = std.GRAY2;
+const DOT_RADIUS = 5;
+
+
+
+let g = new std.a_tree("index","g", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+let mycanvas = new std.a_tree("index","mycanvas", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+let NP = 0;
+let particles = new std.a_tree("index","particles", std.NF_TOPLEVEL|std.NF_LOGGED);
+let DEVICE_PTS = U;
+let CANVAS_H = U;
+let CANVAS_V = U;
+
+//====================
+//   $log
+//====================
+function $log(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, true);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   track_$log
+//====================
+function track_$log(b, e) {
+  //---------------
+  //   on EV_RESIZE
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_RESIZE) {
+    DEVICE_PTS = std.dots_to_pt(b, b.bounds.width);
+    std.path_setv(_M, 158, std.addr(g, F_mobile), std.lt4(DEVICE_PTS, MIN_DEV_PTS));
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_body
+//====================
+function d_body(b) {
+k.k_enter(b);
+  var case2 = getn(g, F_main_tabs, F_selected);
+  if (case2 === TAB_HOME) {
+    d_home(b);
+  } else if (case2 === TAB_EXAMPLES) {
+    d_examples(b);
+  } else if (case2 === TAB_DOCS) {
+    d_docs(b);
+  } else if (case2 === TAB_DOWNLOAD) {
+    d_download(b);
+  } else if (case2 === TAB_CONTACT) {
+    d_contact(b);
+  }
+k.k_leave(b);
+}
+
+
+//====================
+//   d_contact
+//====================
+function d_contact(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 1, 5, std.al);
+  k.div_add(b, U, 1, 20, std.pt, d_contact_483_F, 0);
+  k.div_spa(b, 1, 15, std.pt);
+  k.div_add(b, U, 1, 28, std.pt, d_jump_discord_F, 0);
+  k.div_spa(b, 1, 5, std.al);
+  k.div_spa(b, 1, 20, std.pt);
+  k.div_add(b, U, 1, 20, std.pt, d_contact_489_F, 0);
+  k.div_spa(b, 1, 15, std.pt);
+  k.div_add(b, U, 1, 28, std.pt, d_jump_email_F, 0);
+  k.div_spa(b, 1, 20, std.al);
+  k.div_end(b);
+  //--under
+  std.draw_rect(b, { tile:TILE_MANDALA });
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_doc_butts
+//====================
+function d_doc_butts(b, url) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  const BUTTV = getn(g, F_mobile) === Y ? 15 : 30;
+  k.div_spa(b, 1, 10, std.al);
+  k.div_add(b, U, 1, BUTTV, std.pt, new std.a_function(_M, "draw_oneshot", draw_oneshot, track_draw_oneshot, [std.loc("View", std.LANG_ENG, _M, 1014), new std.a_function(_M, 
+  "html_redirect", std.html_redirect, null, [url, { newtab:Y }]), {}]), 0);
+  k.div_spa(b, 1, 10, std.al);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_docs
+//====================
+function d_docs(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  const REFMAN_V = std.min(std.div(b.bounds.height, 6), std.pt_to_dots(b, 154));
+  k.div_spa(b, 1, 5, std.al);
+  k.div_add(b, U, 1, 24, std.pt, d_docs_520_F, 0);
+  k.div_spa(b, 1, 5, std.al);
+  k.div_spa(b, 1, 4, std.pt);
+  k.div_add(b, U, 1, REFMAN_V, std.px, d_refman_row_F, 0);
+  k.div_spa(b, 1, 8, std.al);
+  k.div_spa(b, 1, 4, std.pt);
+  k.div_add(b, U, 1, REFMAN_V, std.px, d_refcard_row_F, 0);
+  k.div_spa(b, 1, 8, std.al);
+  k.div_spa(b, 1, 4, std.pt);
+  k.div_add(b, U, 1, REFMAN_V, std.px, d_video_row_F, 0);
+  k.div_spa(b, 1, 5, std.al);
+  k.div_spa(b, 1, 8, std.pt);
+  k.div_end(b);
+  //--under
+  std.draw_rect(b, { tile:TILE_MANDALA2 });
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_download
+//====================
+function d_download(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 1, 5, std.al);
+  k.div_add(b, U, 1, 32, std.pt, d_download_579_F, 0);
+  k.div_spa(b, 1, 5, std.al);
+  k.div_add(b, U, 1, 80, std.pt, d_osx_row_F, 0);
+  k.div_spa(b, 1, 8, std.al);
+  k.div_add(b, U, 1, 80, std.pt, d_win_row_F, 0);
+  k.div_spa(b, 1, 10, std.al);
+  k.div_add(b, U, 1, 180, std.pt, d_download_586_F, 0);
+  k.div_spa(b, 1, 20, std.al);
+  k.div_end(b);
+  //--under
+  std.draw_rect(b, { tile:TILE_MANDALA2 });
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_download_butt
+//====================
+function d_download_butt(b, prompt, url) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  const BUTTV = getn(g, F_mobile) === Y ? 14 : 28;
+  k.div_spa(b, 1, 10, std.al);
+  k.div_add(b, U, 1, BUTTV, std.pt, new std.a_function(_M, "draw_oneshot", draw_oneshot, track_draw_oneshot, [prompt, new std.a_function(_M, "html_download", std.html_download
+  , null, [url, {}]), {}]), 0);
+  k.div_spa(b, 1, 10, std.al);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_ex_footer
+//====================
+function d_ex_footer(b, cellx) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, 2, std.al);
+  k.div_add(b, U, 0, 100, std.pt, new std.a_function(_M, "draw_oneshot", draw_oneshot, track_draw_oneshot, [std.loc("View code", std.LANG_ENG, _M, 1011), new std.a_function(_M, 
+  "html_redirect", std.html_redirect, null, [gen_code_url(cellx), { newtab:Y }]), {}]), 0);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_spa(b, 0, 4, std.pt);
+  if (gets(EXAMPLES, cellx, F_run_url) !== null) {
+    if (is_video(gets(EXAMPLES, cellx, F_run_url)) === Y) {
+      k.div_add(b, U, 0, 100, std.pt, new std.a_function(_M, "draw_oneshot", draw_oneshot, track_draw_oneshot, [std.loc("Movie", std.LANG_ENG, _M, 1012), new std.a_function(_M, 
+      "html_redirect", std.html_redirect, null, [gen_run_url(cellx), { newtab:Y }]), { back:std.KHAKI }]), 0);
+    } else {
+      k.div_add(b, U, 0, 100, std.pt, new std.a_function(_M, "draw_oneshot", draw_oneshot, track_draw_oneshot, [std.loc("Run", std.LANG_ENG, _M, 1013), new std.a_function(_M, "html_redirect"
+      , std.html_redirect, null, [gen_run_url(cellx), { newtab:Y }]), {}]), 0);
+    }
+  } else {
+    k.div_spa(b, 0, 100, std.pt);
+  }
+  k.div_spa(b, 0, 2, std.al);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_ex_image
+//====================
+function d_ex_image(b, cellx) {
+k.k_enter(b);
+  if (std.get_image(EXAMPLES, cellx, F_icon) === null) {
+    std.draw_rect(b, { fill:std.PINK, corner:std.pt_to_dots(b, 10) });
+  } else {
+    std.draw_image(b, std.get_image(EXAMPLES, cellx, F_icon), {});
+  }
+k.k_leave(b);
+}
+
+
+//====================
+//   d_example_cell
+//====================
+function d_example_cell(b, cellx) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  const TITLEV = getn(g, F_mobile) === Y ? 10 : 20;
+  const FOOTV = getn(g, F_mobile) === Y ? 10 : 22;
+  k.div_add(b, U, 1, TITLEV, std.pt, new std.a_function(_M, "d_example_cell_426", d_example_cell_426, null, [cellx]), 0);
+  k.div_add(b, U, 1, 10, std.al, new std.a_function(_M, "d_ex_image", d_ex_image, null, [cellx]), 0);
+  k.div_spa(b, 1, 4, std.pt);
+  k.div_add(b, U, 1, FOOTV, std.pt, new std.a_function(_M, "d_ex_footer", d_ex_footer, null, [cellx]), 0);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_examples
+//====================
+function d_examples(b) {
+k.k_enter(b);
+k.div_begin(b, new std.a_function(_M, "d_examples_cell", d_examples_cell, null), false, false, true);
+  const NCOL = std.max(1, std.round_down(std.div(b.bounds.width, std.add(std.pt_to_dots(b, EXAMPLE_H), std.pt_to_dots(b, MIN_GAP))), {}));
+  k.div_spa(b, 0, 10, std.al);
+  k.div_spa(b, 0, MIN_GAP, std.pt);
+  var loop3 = new std.a_loop({ limit:NCOL });
+  while (loop3.next()) {
+    k.div_add(b, U, 0, EXAMPLE_H, std.pt, null, 0);
+    k.div_spa(b, 0, MIN_GAP, std.pt);
+    k.div_spa(b, 0, 10, std.al);
+  }
+  k.div_spa(b, 0, 20, std.pt);
+  if (getn(g, F_mobile) === Y) {
+    const MEXV = std.min(std.div(b.bounds.height, 2), std.pt_to_dots(b, 70));
+    var loop4 = new std.a_loop({ limit:N_EXAMPLES });
+    while (loop4.next()) {
+      k.div_spa(b, 1, 10, std.pt);
+      k.div_add(b, U, 1, MEXV, std.px, null, 0);
+    }
+  } else {
+    const NROW = std.round_up(std.div(N_EXAMPLES, NCOL), {});
+    let xv = std.pt_to_dots(b, std.add(20, MIN_GAP));
+    k.div_spa(b, 1, xv, std.px);
+    var loop5 = new std.a_loop({ limit:NROW });
+    while (loop5.next()) {
+      k.div_add(b, U, 1, EXAMPLE_V, std.pt, null, 0);
+      k.div_spa(b, 1, MIN_GAP, std.pt);
+      k.div_spa(b, 1, 20, std.pt);
+      xv = std.add(xv, std.pt_to_dots(b, std.add(std.add(EXAMPLE_V, MIN_GAP), 20)));
+    }
+  }
+  k.div_end(b);
+  //--under
+  std.draw_rect(b, { box:addr(b.extra, std.F_boxtot), tile:TILE_MANDALA });
+  k.draw_grid(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_examples_cell
+//====================
+function d_examples_cell(b) {
+  k.k_enter(b);
+  if (std.le2(getn(b.extra, std.F_cell_seq), N_EXAMPLES)) {
+    d_example_cell(b, getn(b.extra, std.F_cell_seq));
+  }
+  k.k_leave(b);
+}
+
+//====================
+//   d_header
+//====================
+function d_header(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  const ICON_H = std.min(std.div(b.bounds.width, 4), std.mul(b.bounds.height, 2.54));
+  k.div_add(b, U, 0, ICON_H, std.px, d_home_icon_F, 0);
+  k.div_add(b, U, 0, 10, std.al, d_tab_area_F, 0);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_home
+//====================
+function d_home(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  const W = std.min(b.bounds.width, std.pt_to_dots(b, 650));
+  k.div_spa(b, 0, 10, std.al);
+  k.div_add(b, U, 0, W, std.px, d_home2_F, 0);
+  k.div_spa(b, 0, 10, std.al);
+  if (getn(g, F_mobile) !== Y) {
+    particle_canvas_resize(std.addr(b.extra, std.F_box));
+    var b2=k.k_layer(b, null, { canvas:std.addr(mycanvas), area:std.addr(b.extra, std.F_box) });
+  }
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_home2
+//====================
+function d_home2(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, true);
+  const GAP = getn(g, F_mobile) === Y ? 8 : 24;
+  k.div_spa(b, 1, std.div(GAP, 2), std.pt);
+  k.div_add(b, U, 1, TITLE_V, std.pt, new std.a_function(_M, "d_title", d_title, null, [std.cat("🔨   ", std.loc("SIMPLE", std.LANG_ENG, _M, 1006))]), 0);
+  k.div_add(b, U, 1, U, std.px, new std.a_function(_M, "d_text", d_text, null, [p_simple]), 0);
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_add(b, U, 1, TITLE_V, std.pt, new std.a_function(_M, "d_title", d_title, null, [std.cat("🚀   ", std.loc("FUTURISTIC", std.LANG_ENG, _M, 1005))]), 0);
+  k.div_add(b, U, 1, U, std.px, new std.a_function(_M, "d_text", d_text, null, [p_future]), 0);
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_add(b, U, 1, TITLE_V, std.pt, new std.a_function(_M, "d_title", d_title, null, [std.cat("💪   ", std.loc("POWERFUL", std.LANG_ENG, _M, 1007))]), 0);
+  k.div_add(b, U, 1, U, std.px, new std.a_function(_M, "d_text", d_text, null, [p_powerful]), 0);
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_add(b, U, 1, TITLE_V, std.pt, new std.a_function(_M, "d_title", d_title, null, [std.cat("💣   ", std.loc("ROBUST", std.LANG_ENG, _M, 1008))]), 0);
+  k.div_add(b, U, 1, U, std.px, new std.a_function(_M, "d_text", d_text, null, [p_robust]), 0);
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_add(b, U, 1, TITLE_V, std.pt, new std.a_function(_M, "d_title", d_title, null, [std.cat("💎   ", std.loc("ELEGANT", std.LANG_ENG, _M, 1009))]), 0);
+  k.div_add(b, U, 1, U, std.px, new std.a_function(_M, "d_text", d_text, null, [p_elegant]), 0);
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_add(b, U, 1, TITLE_V, std.pt, new std.a_function(_M, "d_title", d_title, null, [std.cat("⚠\ufe0f   ", std.loc("LIMITATIONS", std.LANG_ENG, _M, 1010))]), 0);
+  k.div_add(b, U, 1, U, std.px, new std.a_function(_M, "d_text", d_text, null, [p_whatnot]), 0);
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_add(b, U, 1, 12, std.pt, d_home2_345_F, 0);
+  k.div_end(b);
+  //--under
+  std.draw_rect(b, { box:addr(b.extra, std.F_boxtot), fill:std.WHITE, opacity:0.88 });
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_home_icon
+//====================
+function d_home_icon(b) {
+k.k_enter(b);
+  std.draw_image(b, ICON_BEADS, {});
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_home_icon
+//====================
+function track_d_home_icon(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 175, std.addr(g, F_main_tabs, F_selected), TAB_HOME);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_jump_discord
+//====================
+function d_jump_discord(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, 5, std.al);
+  const BUTTH = getn(g, F_mobile) === Y ? std.mul(b.bounds.width, 0.6) : std.min(std.div(b.bounds.width, 2.5), std.pt_to_dots(b, 150));
+  k.div_add(b, U, 0, BUTTH, std.px, new std.a_function(_M, "draw_oneshot", draw_oneshot, track_draw_oneshot, ["visit Discord", new std.a_function(_M, "html_redirect", std.html_redirect
+  , null, ["https://discord.gg/pTAdsSW", { newtab:Y }]), {}]), 0);
+  k.div_spa(b, 0, 5, std.al);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_jump_email
+//====================
+function d_jump_email(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, 5, std.al);
+  const BUTTH = getn(g, F_mobile) === Y ? std.mul(b.bounds.width, 0.6) : std.min(std.div(b.bounds.width, 2.5), std.pt_to_dots(b, 150));
+  k.div_add(b, U, 0, BUTTH, std.px, new std.a_function(_M, "draw_oneshot", draw_oneshot, track_draw_oneshot, ["E-mail", new std.a_function(_M, "html_redirect", std.html_redirect
+  , null, ["mailto:info@beadslang.com?subject=Beads%20language", { newtab:Y }]), {}]), 0);
+  k.div_spa(b, 0, 5, std.al);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_lang
+//====================
+function d_lang(b, langx) {
+k.k_enter(b);
+  let back = std.eq2(getn(g, F_curr_lang), langx) ? std.PALE_TURQUOISE : std.WHITE_SMOKE;
+  std.draw_rect(b, { fill:back, corner:std.mul(b.bounds.height, 0.25), thick:1, pos:0, color:std.GRAY3 });
+  let icon = std.get_image(LANG_ICONS, langx);
+  std.draw_image(b, icon, { indent:std.pt_to_dots(b, 0.1) });
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_lang
+//====================
+function track_d_lang(b, e, langx) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 210, std.addr(g, F_curr_lang), langx);
+    let ui_lang = std.eq2(langx, std.LANG_ENK) ? std.LANG_ENG : langx;
+    std.set_ui_language(ui_lang);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_lang_picker
+//====================
+function d_lang_picker(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  if (TRACE_DEV === Y) {
+    k.div_add(b, U, 0, 80, std.pt, d_lang_picker_189_F, 0);
+  }
+  k.div_spa(b, 0, 20, std.al);
+  var loop6 = new std.a_loop({ across:std.addr(LANG_SUPPORTED) });
+  while (loop6.next()) {
+  var ix = loop6.count;
+  var langx = loop6.val;
+    if (std.gt2(ix, 1)) {
+      k.div_spa(b, 0, 6, std.pt);
+    }
+    k.div_add(b, U, 0, 50, std.pt, new std.a_function(_M, "d_lang", d_lang, track_d_lang, [langx]), 0);
+  }
+  if (getn(g, F_mobile) === N) {
+    k.div_spa(b, 0, 18, std.pt);
+  }
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_osx_row
+//====================
+function d_osx_row(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_add(b, U, 0, 200, std.pt, d_osx_row_594_F, 0);
+  k.div_spa(b, 0, 5, std.al);
+  k.div_add(b, U, 0, 140, std.pt, new std.a_function(_M, "d_download_butt", d_download_butt, null, [std.loc("Download", std.LANG_ENG, _M, 1003), "http://www.beadslang.com/downloads/beads.zip"
+  ]), 0);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_refcard_row
+//====================
+function d_refcard_row(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_add(b, U, 0, REFMAN_H, std.pt, d_refcard_row_556_F, 0);
+  k.div_spa(b, 0, 2, std.al);
+  k.div_add(b, U, 0, 140, std.pt, new std.a_function(_M, "d_doc_butts", d_doc_butts, null, ["http://beadslang.com/downloads/beads_reference_card.pdf"]), 0);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_refman_row
+//====================
+function d_refman_row(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_add(b, U, 0, REFMAN_H, std.pt, d_refman_row_547_F, 0);
+  k.div_spa(b, 0, 2, std.al);
+  k.div_add(b, U, 0, 140, std.pt, new std.a_function(_M, "d_doc_butts", d_doc_butts, null, ["http://beadslang.com/downloads/refman.pdf"]), 0);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_tab_area
+//====================
+function d_tab_area(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_add(b, U, 1, 10, std.al, d_lang_picker_F, 0);
+  k.div_spa(b, 1, 2, std.pt);
+  k.div_add(b, U, 1, 14, std.al, d_tabs_F, 0);
+  k.div_add(b, U, 1, std.round(std.pt_to_dots(b, 1), {}), std.px, d_tab_area_183_F, 0);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_tab_control
+//====================
+function d_tab_control(b, tab, label, newsel) {
+k.k_enter(b);
+  const CORNER = std.div(b.bounds.height, 3.8);
+  std.draw_rect(b, { fill:getn(tab, F_back), corner_tl:CORNER, corner_tr:CORNER });
+  if (std.ne2(getn(tab, F_selected), newsel)) {
+    std.draw_rect(b, { fill:DEAD, opacity:0.4 });
+  }
+  if (getn(g, F_mobile) === Y) {
+    std.draw_str(b, label, { color:getn(tab, F_fore), indent:std.pt_to_dots(b, 1), size:0.5 });
+  } else {
+    std.draw_str(b, label, { color:getn(tab, F_fore), indent:std.pt_to_dots(b, 2.5), size:0.65 });
+  }
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_tab_control
+//====================
+function track_d_tab_control(b, e, tab, label, newsel) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 653, std.addr(tab, F_selected), newsel);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_tabs
+//====================
+function d_tabs(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, 20, std.al);
+  k.div_add(b, U, 0, TAB_WIDTH, std.pt, new std.a_function(_M, "d_tab_control", d_tab_control, track_d_tab_control, [std.addr(g, F_main_tabs), std.loc("Home", std.LANG_ENG, _M, 
+  1000), TAB_HOME]), 0);
+  k.div_spa(b, 0, 4, std.al);
+  k.div_spa(b, 0, 2, std.pt);
+  k.div_add(b, U, 0, TAB_WIDTH, std.pt, new std.a_function(_M, "d_tab_control", d_tab_control, track_d_tab_control, [std.addr(g, F_main_tabs), std.loc("Examples", std.LANG_ENG, _M, 
+  1001), TAB_EXAMPLES]), 0);
+  k.div_spa(b, 0, 4, std.al);
+  k.div_spa(b, 0, 2, std.pt);
+  k.div_add(b, U, 0, TAB_WIDTH, std.pt, new std.a_function(_M, "d_tab_control", d_tab_control, track_d_tab_control, [std.addr(g, F_main_tabs), std.loc("Docs", std.LANG_ENG, _M, 
+  1002), TAB_DOCS]), 0);
+  k.div_spa(b, 0, 4, std.al);
+  k.div_spa(b, 0, 2, std.pt);
+  k.div_add(b, U, 0, TAB_WIDTH, std.pt, new std.a_function(_M, "d_tab_control", d_tab_control, track_d_tab_control, [std.addr(g, F_main_tabs), std.loc("Download", std.LANG_ENG, _M, 
+  1003), TAB_DOWNLOAD]), 0);
+  k.div_spa(b, 0, 4, std.al);
+  k.div_spa(b, 0, 2, std.pt);
+  k.div_add(b, U, 0, TAB_WIDTH, std.pt, new std.a_function(_M, "d_tab_control", d_tab_control, track_d_tab_control, [std.addr(g, F_main_tabs), std.loc("Contact", std.LANG_ENG, _M, 
+  1004), TAB_CONTACT]), 0);
+  k.div_spa(b, 0, 20, std.al);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_text
+//====================
+function d_text(b, msg) {
+k.k_enter(b);
+  const RI = getn(g, F_mobile) === Y ? 4 : 20;
+  let r = new std.a_tree("index","r", 0, std.solve_rect({ basis:std.addr(b.extra, std.F_box), width:std.sub(b.bounds.width, std.pt_to_dots(b, RI)) }));
+  if (getn(g, F_mobile) === Y) {
+    std.draw_str(b, msg, { box:std.addr(r), size:std.pt_to_dots(b, 8), just:std.LEFT, vert:0, indent:std.pt_to_dots(b, 3), wrap:Y, font:std.SERIF, sel:Y });
+  } else {
+    std.draw_str(b, msg, { box:std.addr(r), size:std.pt_to_dots(b, 12), just:std.LEFT, vert:0, indent:std.pt_to_dots(b, 20), wrap:Y, font:std.SERIF, sel:Y });
+  }
+k.k_leave(b);
+}
+
+
+//====================
+//   d_title
+//====================
+function d_title(b, prompt) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  const VINDENT = getn(g, F_mobile) === Y ? 6 : 20;
+  k.div_spa(b, 0, VINDENT, std.pt);
+  k.div_add(b, U, 0, 10, std.al, new std.a_function(_M, "d_title_357", d_title_357, null, [prompt]), 0);
+  k.div_spa(b, 0, 10, std.pt);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_video_row
+//====================
+function d_video_row(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_add(b, U, 0, REFMAN_H, std.pt, d_video_row_538_F, 0);
+  k.div_spa(b, 0, 2, std.al);
+  k.div_add(b, U, 0, 140, std.pt, new std.a_function(_M, "d_doc_butts", d_doc_butts, null, ["https://www.youtube.com/channel/UCiBO5hr2IVsYK8wiLznImTQ/"]), 0);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_win_row
+//====================
+function d_win_row(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_add(b, U, 0, 200, std.pt, d_win_row_603_F, 0);
+  k.div_spa(b, 0, 5, std.al);
+  k.div_add(b, U, 0, 140, std.pt, new std.a_function(_M, "d_download_butt", d_download_butt, null, [std.loc("Download", std.LANG_ENG, _M, 1003), "http://www.beadslang.com/downloads/beads.zip"
+  ]), 0);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   draw_oneshot
+//====================
+function draw_oneshot(b, label, action, _o=null) {
+var back = std.POWDER_BLUE; if ((_o != null) && _o.hasOwnProperty("back")) back = _o.back;
+k.k_enter(b);
+  const THICK = std.min(std.div(b.bounds.height, 15), std.pt_to_dots(b, 1.5));
+  std.draw_rect(b, { fill:back, thick:THICK, color:std.DARK_ORCHID, corner:std.div(b.bounds.height, 3.5), pos:0 });
+  std.draw_str(b, label, { size:0.65, indent:std.pt_to_dots(b, 3), color:std.BLACK });
+k.k_leave(b);
+}
+
+
+//====================
+//   track_draw_oneshot
+//====================
+function track_draw_oneshot(b, e, label, action, _o=null) {
+var back = std.POWDER_BLUE; if ((_o != null) && _o.hasOwnProperty("back")) back = _o.back;
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.unfreeze_calc(action);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+k.k_root2(b);
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  if (getn(g, F_mobile) === Y) {
+    const ROW1V = std.min(std.div(b.bounds.height, 8), std.pt_to_dots(b, 15));
+    const ROW2V = std.min(std.div(b.bounds.height, 8), std.pt_to_dots(b, 15));
+    k.div_add(b, U, 1, ROW1V, std.px, mob_head1_F, 0);
+    k.div_add(b, U, 1, ROW2V, std.px, d_tabs_F, 0);
+    k.div_add(b, U, 1, std.round(std.pt_to_dots(b, 1), {}), std.px, main_draw_134_F, 0);
+    k.div_add(b, U, 1, 10, std.al, d_body_F, 0);
+  } else {
+    const HEADER_V = std.min(std.div(b.bounds.height, 6), std.pt_to_dots(b, 46));
+    k.div_add(b, U, 1, HEADER_V, std.px, d_header_F, 0);
+    k.div_add(b, U, 1, 10, std.al, d_body_F, 0);
+  }
+  if (TRACE_LOGG === Y) {
+    k.div_add(b, U, 1, 10, std.al, $log_F, 0);
+  }
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   mob_head1
+//====================
+function mob_head1(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_add(b, U, 0, 30, std.al, d_home_icon_F, 0);
+  k.div_add(b, U, 0, 40, std.al, d_lang_picker_F, 0);
+  k.div_end(b);
+  k.draw_slices(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   move_particles :CANVAS
+//====================
+function move_particles(b) {
+  var loop7 = new std.a_loop({ across:std.addr(particles) });
+  while (loop7.next()) {
+  var ix1 = loop7.index;
+  var p1 = loop7.path.clone();
+    std.tree_add(_M, 730, std.mul(getn(p1, F_vel, std.F_x), getn(p1, F_dir, std.F_x)), std.addr(p1, F_pos, std.F_x));
+    std.tree_add(_M, 731, std.mul(getn(p1, F_vel, std.F_y), getn(p1, F_dir, std.F_y)), std.addr(p1, F_pos, std.F_y));
+    if (std.le2(getn(p1, F_pos, std.F_x), 0)) {
+      std.path_setv(_M, 736, std.addr(p1, F_dir, std.F_x), 1);
+    } else if (std.ge2(getn(p1, F_pos, std.F_x), b.bounds.width)) {
+      std.path_setv(_M, 738, std.addr(p1, F_dir, std.F_x), -1);
+    }
+    if (std.le2(getn(p1, F_pos, std.F_y), 0)) {
+      std.path_setv(_M, 741, std.addr(p1, F_dir, std.F_y), 1);
+    } else if (std.ge2(getn(p1, F_pos, std.F_y), b.bounds.height)) {
+      std.path_setv(_M, 743, std.addr(p1, F_dir, std.F_y), -1);
+    }
+  }
+}
+
+
+//====================
+//   render_particles :CANVAS
+//====================
+function render_particles(b) {
+  std.draw_rect(b, { fill:0x1C292D });
+  var loop8 = new std.a_loop({ across:std.addr(particles) });
+  while (loop8.next()) {
+  var ix1 = loop8.index;
+  var particle = loop8.path.clone();
+    std.draw_circle(b, { xy:std.addr(particle, F_pos), fill:getn(particle, F_color), radius:DOT_RADIUS });
+    var loop9 = new std.a_loop({ from:std.add(ix1, 1), to_:NP });
+    while (loop9.next()) {
+    var ix2 = loop9.index;
+      let d = std.distance(std.addr(particle, F_pos), std.addr(particles, ix2, F_pos));
+      if (std.lt2(d, 120)) {
+        let opacity = std.interpolate(d, 0, 120, 0, 0.25, {});
+        let line_color = interpolate_color(50, 0, 100, getn(particle, F_color), getn(particles, ix2, F_color));
+        std.draw_line(b, { p1:std.addr(particle, F_pos), p2:std.addr(particles, ix2, F_pos), opacity:opacity, color:line_color, thick:3 });
+      }
+    }
+  }
+}
+
+
+//====================
+//   do_particle_tick
+//====================
+function do_particle_tick() {
+  if ((std.ne2(getn(g, F_main_tabs, F_selected), TAB_HOME) || getn(g, F_mobile) === Y)) {
+    return;
+  }
+  move_particles(std.canvb(std.addr(mycanvas)));
+  render_particles(std.canvb(std.addr(mycanvas)));
+}
+
+
+//====================
+//   gen_code_url
+//====================
+function gen_code_url(ix) {
+  return std.cat(CODE_PREFIX, gets(EXAMPLES, ix, F_code_url));
+}
+
+
+//====================
+//   gen_run_url
+//====================
+function gen_run_url(ix) {
+  let prefix = "";
+  if (str.str_begins(gets(EXAMPLES, ix, F_run_url), "http") !== Y) {
+    prefix = RUN_PREFIX;
+  }
+  return std.cat(prefix, gets(EXAMPLES, ix, F_run_url));
+}
+
+
+//====================
+//   interpolate_color
+//====================
+function interpolate_color(a_cur, a_min, a_max, color_min, color_max) {
+  if (std.le2(a_cur, a_min)) {
+    return color_min;
+  }
+  if (std.ge2(a_cur, a_max)) {
+    return color_max;
+  }
+  let hsv_min = new std.a_tree("index","hsv_min", 0, std.color_to_hsv(color_min));
+  let hsv_max = new std.a_tree("index","hsv_max", 0, std.color_to_hsv(color_max));
+  let targ_hue = U;
+  let targ_val = U;
+  let targ_sat = U;
+  let hue1 = getn(hsv_min, std.F_hue);
+  let hue2 = getn(hsv_max, std.F_hue);
+  if (std.gt2(std.abs(std.sub(hue1, hue2)), 180)) {
+    if (std.lt2(hue1, hue2)) {
+      hue1 = std.add(hue1, 360);
+    } else {
+      hue2 = std.add(hue2, 360);
+    }
+  }
+  targ_hue = std.interpolate(a_cur, a_min, a_max, hue1, hue2, {});
+  targ_sat = std.interpolate(a_cur, a_min, a_max, getn(hsv_min, std.F_saturation), getn(hsv_max, std.F_saturation), {});
+  targ_val = std.interpolate(a_cur, a_min, a_max, getn(hsv_min, std.F_value), getn(hsv_max, std.F_value), {});
+  let result = std.hsv(targ_hue, targ_sat, targ_val);
+  return result;
+}
+
+
+//====================
+//   is_video
+//====================
+function is_video(url) {
+  return std.ne4(str.str_pos(url, "youtu", {}), U);
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.path_setv(_M, 118, std.addr(g, F_curr_lang), std.LANG_ENG);
+  std.copy_tree(_M, 119, std.tree_lit(_M, 119, F_selected, VAL, TAB_HOME, F_back, VAL, C_TAB_BACK, F_fore, VAL, C_TAB_FORE), std.addr(g, F_main_tabs));
+  if (ANIMATE === Y) {
+    std.loom_timer(do_particle_tick_F, { rate:30, delay:std.meas(0.2, std.N_sec, std.Y_Time), reps:10000 });
+  }
+}
+
+
+//====================
+//   particle_canvas_resize
+//====================
+function particle_canvas_resize(box) {
+  if ((std.eq2(getn(box, std.F_width), CANVAS_H) && std.eq2(getn(box, std.F_height), CANVAS_V))) {
+    return;
+  }
+  CANVAS_H = getn(box, std.F_width);
+  CANVAS_V = getn(box, std.F_height);
+  NP = std.min(std.round(std.div(std.mul(CANVAS_H, CANVAS_V), 6000), {}), 100);
+  std.trunc_tree(_M, 683, std.addr(particles));
+  var loop10 = new std.a_loop({ limit:NP });
+  while (loop10.next()) {
+    var ix = std.append_tree(_M, 685, std.tree_lit(_M, 685, F_pos, std.F_x, VAL, std.random_range(0, CANVAS_H), std.F_y, VAL, std.random_range(0, CANVAS_V), POP, F_vel, std.F_x
+    , VAL, std.random_range(0.1, 2), std.F_y, VAL, std.random_range(0.1, 2), POP, F_dir, std.F_x, VAL, std.random_set(-1, 1), std.F_y, VAL, std.random_set(-1, 1), POP, F_color
+    , VAL, std.random_color()), std.addr(particles));
+  }
+}
+
+
+//====================
+//   d_contact_483
+//====================
+function d_contact_483(b) {
+k.k_enter(b);
+  std.draw_str(b, "Please visit our friendly Beads chat room:", { size:std.pt_to_dots(b, 18), color:std.GRAY7 });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_contact_489
+//====================
+function d_contact_489(b) {
+k.k_enter(b);
+  std.draw_str(b, "Send email inquiries to info@beadslang.com:", { size:std.pt_to_dots(b, 18), color:std.GRAY7 });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_docs_520
+//====================
+function d_docs_520(b) {
+k.k_enter(b);
+  std.draw_rect(b, { fill:std.WHITE, opacity:0.2, corner:std.pt_to_dots(b, 8) });
+  std.draw_str(b, "Documentation for Beads language", { size:std.pt_to_dots(b, 18), color:std.GRAY8 });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_download_579
+//====================
+function d_download_579(b) {
+k.k_enter(b);
+  std.draw_str(b, "Beads SDK Version 0.132\n82 MB download, cross-platform", { size:std.pt_to_dots(b, 18), color:std.GRAY7 });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_download_586
+//====================
+function d_download_586(b) {
+k.k_enter(b);
+  std.draw_image(b, DIAGRAM_OUTPUT, {});
+k.k_leave(b);
+}
+
+
+//====================
+//   d_example_cell_426
+//====================
+function d_example_cell_426(b, cellx) {
+k.k_enter(b);
+  std.draw_str(b, gets(EXAMPLES, cellx, F_label), { size:0.7 });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_home2_345
+//====================
+function d_home2_345(b) {
+k.k_enter(b);
+  std.draw_str(b, END_MARKER, { size:std.pt_to_dots(b, 8), vert:0, color:std.GRAY8 });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_lang_picker_189
+//====================
+function d_lang_picker_189(b) {
+k.k_enter(b);
+  std.draw_str(b, std.cat("", str.to_str(getn(std.runtime, std.F_screen_horz), {show_u:Y, digits:0}), " pt:", str.to_str(std.dots_to_pt(b, getn(std.runtime, std.F_screen_horz
+  )), {show_u:Y, digits:0}), " ", str.to_str(getn(std.runtime, std.F_window_horz), {show_u:Y, digits:0}), " pt:", str.to_str(std.dots_to_pt(b, getn(std.runtime, std.F_window_horz
+  )), {show_u:Y, digits:0})), { size:0.5 });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_osx_row_594
+//====================
+function d_osx_row_594(b) {
+k.k_enter(b);
+  std.draw_image(b, ICON_OSX, { corner:std.pt_to_dots(b, 4) });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_refcard_row_556
+//====================
+function d_refcard_row_556(b) {
+k.k_enter(b);
+  std.draw_image(b, ICON_REFCARD, { corner:std.pt_to_dots(b, 4) });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_refman_row_547
+//====================
+function d_refman_row_547(b) {
+k.k_enter(b);
+  std.draw_image(b, ICON_REFMAN, { corner:std.pt_to_dots(b, 4) });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_tab_area_183
+//====================
+function d_tab_area_183(b) {
+k.k_enter(b);
+  std.draw_rect(b, { fill:std.GRAY8 });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_title_357
+//====================
+function d_title_357(b, prompt) {
+k.k_enter(b);
+  std.draw_str(b, prompt, { just:std.LEFT, size:0.7, bold:Y, color:std.REBECCA_PURPLE, sel:Y });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_video_row_538
+//====================
+function d_video_row_538(b) {
+k.k_enter(b);
+  std.draw_image(b, ICON_YOUTUBE, { corner:std.pt_to_dots(b, 4) });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_win_row_603
+//====================
+function d_win_row_603(b) {
+k.k_enter(b);
+  std.draw_image(b, ICON_WIN, { corner:std.pt_to_dots(b, 4) });
+k.k_leave(b);
+}
+
+
+//====================
+//   main_draw_134
+//====================
+export function main_draw_134(b) {
+k.k_enter(b);
+  std.draw_rect(b, { fill:std.GRAY8 });
+k.k_leave(b);
+}
+
+main_init();
+k.rebuild_all();
+
+</script>
+</body>
+</html>

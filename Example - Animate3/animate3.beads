@@ -28,7 +28,7 @@ draw main_draw
 	layer area:bb canvas:mycanvas
 
 	var r <=== solve_rect(basis:bb, pin:9, dy:-20 pt, height:30 pt, width:300 pt)
-	draw_str(r, "Beadslang.com", size:20 pt, color:LAVENDER, just:RIGHT, indent:20 pt, opacity:0.5)
+	draw_str("Beadslang.com", box:r, size:20 pt, color:LAVENDER, just:RIGHT, indent:20 pt, opacity:0.5)
 ---------------
 track EV_RESIZE -- whenever we resize the screen
 	var new_NP = min(round(bb.width*bb.height/8000), 100)
@@ -63,7 +63,7 @@ canvas render_particles
 =====================	
 	//  all the drawing in this section is done via the canvas
 	//  this will wipe out whatever was there before
-	draw_rect(bb, fill:#141414)
+	draw_rect(fill:#141414)
 
 	//  loop through all the particles
 	loop across:particles index:ix1 ptr:particle

@@ -34,11 +34,11 @@ const
 	C_ITEMLIST_FOOT = #4D441A  // tan
 	C_ITEMLIST_EDGE = #918031 // light tan
 
-	C_BUTT_BACK = rgb(1,59,138) // rgb(2,93,218)  blue
+	C_BUTT_BACK = rgb255(1,59,138) // rgb(2,93,218)  blue
 	C_BUTT_NEXT = #700A48  //  magenta, encourage user to press this button
 	C_BUTT_TEXT = IVORY
 	C_BUTT_BORD = DODGER_BLUE
-	C_BUTT_DEL = rgb(255,38,38)  // color for delete X in store picker
+	C_BUTT_DEL = rgb255(255,38,38)  // color for delete X in store picker
 
 	C_ENTRY_LO_BACK = #395D74  // teal
 	C_ENTRY_LO_BORD = DODGER_BLUE
@@ -97,7 +97,7 @@ const LANGINFO : array of a_lang_info = [<
 	"Norsk"			"nn"		LANG_NOR
 	"Suomi"			"fi"		LANG_FIN
 	"Svenska"		"sv"		LANG_SVE
-	"日本語"			"jp"		LANG_JAP
+	"日本語"			"ja"		LANG_JAP
 	"한국어"			"kr"		LANG_KOR
 	"简体中文"		"zh-CN"		LANG_CHS
 	"繁體中文"		"zh-TW"		LANG_CHT
@@ -246,9 +246,10 @@ vert slice main_draw2
 
 ---------------------------
 horz slice d_main_footer
-	draw_rect(bb, fill:C_ITEMLIST_FOOT)
-	var r <=== solve_rect(basis:bb, pin:2, height:1 pt)
-	draw_rect(r, fill:C_ITEMLIST_EDGE)
+	under
+		draw_rect(fill:C_ITEMLIST_FOOT)
+		var r <=== solve_rect(basis:bb, pin:2, height:1 pt)
+		draw_rect(box:r, fill:C_ITEMLIST_EDGE)
 
 	skip FOOTER_INDENT pt
 	if intf.proj_fpath <> U
@@ -256,7 +257,7 @@ horz slice d_main_footer
 	else
 		skip 100 pt
 	add 50 al 
-		draw_str(bb, "Localization utility ver {VERSION}", size:0.5, color:C_BUTT_TEXT)
+		draw_str("Localization utility ver {VERSION}", size:0.5, color:C_BUTT_TEXT)
 	skip 100 pt
 	skip FOOTER_INDENT pt
 
@@ -269,7 +270,8 @@ calc do_save
 
 ---------------------------
 vert slice d_main_body
-	draw_rect(bb, fill:C_DEAD2)
+	under
+		draw_rect(fill:C_DEAD2)
 
 	skip 10 pt
 	add 28 pt d_toprow  // icon, name of project, some buttons
@@ -343,8 +345,8 @@ draw draw_status_cell (
 		text = C_BUTT_TEXT
 
 	//  draw the cell background
-	draw_rect(box, fill:back, thick:0.7 pt, color:C_BUTT_BORD)
-	draw_str(box, LEGENDS[statusx].name, size:0.55, color:text, bold:hilite)
+	draw_rect(box:box, fill:back, thick:0.7 pt, color:C_BUTT_BORD)
+	draw_str(LEGENDS[statusx].name, box:box, size:0.55, color:text, bold:hilite)
 
 ---------------------------
 horz slice d_action_butts
@@ -370,9 +372,9 @@ horz slice draw_legend_cell (
 	lptr : ptr to a_legend
 	)
 	add 10 al
-		draw_str(bb, lptr.name, size:0.7, just:RIGHT, indent:5 pt, color:C_BUTT_TEXT)
+		draw_str(lptr.name, size:0.7, just:RIGHT, indent:5 pt, color:C_BUTT_TEXT)
 	add (LEGENDV*1.5) pt
-		draw_rect(bb, fill:lptr.color, corner:3)
+		draw_rect(fill:lptr.color, corner:3)
 
 ---------------------------
 horz slice d_add_lang
@@ -385,7 +387,7 @@ horz slice d_note
 	//  draw the string number, and the optional note
 	skip 10 pt
 	add 150 pt 
-		draw_str(bb, "String #{intf.hilite_phrase.strx}", size:0.7, just:LEFT, color:C_BUTT_TEXT)
+		draw_str("String #{intf.hilite_phrase.strx}", size:0.7, just:LEFT, color:C_BUTT_TEXT)
 	skip 10 pt
 	add 10 al
 		//  we gotta go back to the base language for the note
@@ -396,7 +398,7 @@ horz slice d_note
 			//  there is a matching base phrase
 			var note = base_phrase.note
 			if note <> U
-				draw_str(bb, "note: {note}", size:0.7, just:LEFT, color:C_BUTT_TEXT, font:FONT1)
+				draw_str("note: {note}", size:0.7, just:LEFT, color:C_BUTT_TEXT, font:FONT1)
 	skip 8 pt
 
 ---------------------------
@@ -438,7 +440,7 @@ horz slice d_atom_band (
 	log "d_atom_band, bandx={bandx}"
 	//  draw the language name
 	add LANGNAMEH pt 
-		draw_str(bb, band_human_lang_ss(bandx), size:12 pt, just:CENTER, indent:8 pt, color:C_BUTT_TEXT)
+		draw_str(band_human_lang_ss(bandx), size:12 pt, just:CENTER, indent:8 pt, color:C_BUTT_TEXT)
 	add 10 al d_chips(bandx)
 	skip 4 pt
 
@@ -476,16 +478,16 @@ grid d_chips order:TBLR ditto
 			//  the cell seq has to be mapped to the string index
 			var status = g[bandx].phrases[b.cell_seq].status
 			if status == U
-				draw_str(bb, "U", color:WHITE, size:0.7)
+				draw_str("U", color:WHITE, size:0.7)
 			else
-				draw_rect(bb, fill:LEGENDS[status].color, corner:3)
+				draw_rect(fill:LEGENDS[status].color, corner:3)
 
 			if (b.cell_seq <= 4)
 				log " cell, bandx={bandx}, seq={b.cell_seq}, status={to_str(status, show_u:Y)}" on:TRACE_ATOMS
 
 			//  if this is the current hilited cell show it
 			if bandx == intf.hilite_bandx and b.cell_seq == intf.hilite_seq
-				draw_str(bb, "✅", size:0.7, color:BLACK)
+				draw_str("✅", size:0.7, color:BLACK)
 
 track EV_TAP
 	if b.cell_seq <= g[bandx].nphrases
@@ -496,24 +498,24 @@ track EV_TAP
 //  master text of the current cell
 horz slice d_master_entry
 	add LANGNAMEH pt  //  base language label
-		draw_str(bb, band_human_lang_ss(1), size:0.6, just:CENTER, indent:8 pt, color:C_BUTT_TEXT)
+		draw_str(band_human_lang_ss(1), size:0.6, just:CENTER, indent:8 pt, color:C_BUTT_TEXT)
 	add 10 al  // text
 		var ss : str
 		//  see if the base language has this phrase present
 		if intf.hilite_master == U
 			ss = "(extraneous string)"
-			draw_str(bb, ss, size:0.6, just:LEFT, indent:2 pt, color:C_BUTT_TEXT, font:FONT1)
+			draw_str(ss, size:0.6, just:LEFT, indent:2 pt, color:C_BUTT_TEXT, font:FONT1)
 		else
 			ss = intf.hilite_master.orig
-			//draw_input(bb, intf.mast_input, indent:2 pt, size:0.6, just:LEFT, fill:GRAY8, color:C_BUTT_TEXT, font:FONT1)
-			draw_str(bb, ss, size:0.6, just:LEFT, indent:2 pt, color:C_BUTT_TEXT, font:FONT1, selectable:Y)
+			//draw_input(intf.mast_input, indent:2 pt, size:0.6, just:LEFT, fill:GRAY8, color:C_BUTT_TEXT, font:FONT1)
+			draw_str(ss, size:0.6, just:LEFT, indent:2 pt, color:C_BUTT_TEXT, font:FONT1, sel:Y)
 	skip 8 pt
 
 ---------------------------
 //  the trans entry field
 horz slice d_slave_entry
 	add LANGNAMEH pt
-		draw_str(bb, band_human_lang_ss(intf.hilite_bandx), size:0.6, just:CENTER, indent:8 pt, color:C_BUTT_TEXT)
+		draw_str(band_human_lang_ss(intf.hilite_bandx), size:0.6, just:CENTER, indent:8 pt, color:C_BUTT_TEXT)
 	add 10 al
 		//  draw an entry field , font:FONT1
 		draw_input(bb, intf.tran_field, size:0.6, just:LEFT, indent:2 pt, fill:GRAY8, 
@@ -530,7 +532,7 @@ horz slice d_toprow
 		var ss = intf.proj_fpath
 		if ss == U 
 			ss = "⬅ select a Beads program file"
-		draw_str(bb, ss, just:LEFT, size:0.5, color:C_BUTT_TEXT)
+		draw_str(ss, just:LEFT, size:0.5, color:C_BUTT_TEXT)
 	if intf.proj_fpath <> U
 		add 80 pt butt_simple("Close", do_close_proj)
 	else
@@ -775,7 +777,7 @@ calc peek (
 
 ---------------------------
 draw d_folder_icon
-	draw_image(bb, ICON_FOLDER)
+	draw_image(ICON_FOLDER)
 track EV_TAP
 	os_pick_files("Pick a Beads file", await_file_pick, prompt:"Beads files", suffixes:"*.beads")
 
@@ -815,8 +817,8 @@ draw butt_simple (  -- just draw a button on the bottom area
 	)
 	//var dy = max(2, round(1 pt))
 	//var usable <=== solve_rect(basis:box, pin:8, inset_n:dy)
-	draw_rect(bb, fill:back, corner:bb.height*0.3, thick:1 pt, pos:0, color:C_BUTT_BORD)
-	draw_str(bb, label, size:0.6, indent:4 pt, color:C_BUTT_TEXT)
+	draw_rect(fill:back, corner:bb.height*0.3, thick:1 pt, pos:0, color:C_BUTT_BORD)
+	draw_str(label, size:0.6, indent:4 pt, color:C_BUTT_TEXT)
 ------------
 track EV_TAP
 	action()  //  execute the frozen func call
@@ -825,7 +827,7 @@ track EV_TAP
 draw d_modal_overlay
 	//  dim the background
 	log "d_modal_overlay" on:TRACE_MODAL
-	draw_rect(bb, fill:TAN, opacity:0.8)
+	draw_rect(fill:TAN, opacity:0.8)
 
 	//  create a subset
 	var H = min(bb.width*0.8, 800 pt)
@@ -835,7 +837,8 @@ draw d_modal_overlay
 
 ---------------------------
 vert slice d_pick_lang
-	draw_rect(bb, fill:GRAY9, corner:5 pt, thick:2 pt, color:C_BUTT_BORD)
+	under
+		draw_rect(fill:GRAY9, corner:5 pt, thick:2 pt, color:C_BUTT_BORD)
 
 	log "d_pick_lang, bb={bb}" on:TRACE_MODAL
 	skip 10 al
@@ -878,8 +881,8 @@ grid d_lang_grid order:TBLR
 	cell
 		if b.cell_seq <= NLANGS
 			var opacity = if is_lang_active(b.cell_seq) then 0.2 else 1
-			draw_rect(bb, fill:C_BUTT_BACK, corner:bb.height*0.3, thick:1 pt, pos:0, color:C_BUTT_BORD, opacity:opacity)
-			draw_str(bb, LANGINFO[b.cell_seq].human, size:0.6, indent:4 pt, color:C_BUTT_TEXT, opacity:opacity)
+			draw_rect(fill:C_BUTT_BACK, corner:bb.height*0.3, thick:1 pt, pos:0, color:C_BUTT_BORD, opacity:opacity)
+			draw_str(LANGINFO[b.cell_seq].human, size:0.6, indent:4 pt, color:C_BUTT_TEXT, opacity:opacity)
 
 track EV_TAP
 	if b.cell_seq <= NLANGS

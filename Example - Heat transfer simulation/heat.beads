@@ -1,4 +1,4 @@
-beads level 1 program heat
+beads 1 program heat
 //  this program runs a heat transfer simulation
 //  it draws a grid of cells, and it presumes an outside air temperature
 //  it then goes through a step by step simulation of the adjacent cells affecting each other
@@ -101,7 +101,8 @@ calc one_step
 ==================
 horz slice main_draw
 ==================
-	draw_rect (b.box, fill:GRAY5)
+	under
+		draw_rect (fill:GRAY5)
 	
 	skip 10 al
 	add 80 al grid_area
@@ -112,12 +113,12 @@ vert slice grid_area
 ==================
 	skip 3 al
 	add 8 al
-		draw_str(b.box, "Heat transfer simulation", size:0.7, font:"_serif", color:BEIGE)
+		draw_str("Heat transfer simulation", size:0.7, font:"_serif", color:BEIGE)
 	skip 3 al
 	add 80 al body_grid
 	skip 2 al
 	add 4 al
-		draw_str(b.box, "Step {g.stepx}", just:RIGHT, indent:4 pt, size:0.6, color:BEIGE)
+		draw_str("Step {g.stepx}", just:RIGHT, indent:4 pt, size:0.6, color:BEIGE)
 	skip 2 al
 
 ==================
@@ -144,8 +145,8 @@ grid body_grid
 		var celltempC = body[g.curr].cells[b.cell.x b.cell.y] as degF
 		var c : color = interpolate_color(celltempK, TEMP_LO as degK, TEMP_HI as degK, COLOR_LO, COLOR_HI)
 
-		draw_rect(b.box, fill:c, thick:1 pt, color:GRAY4)
-		draw_str(b.box, to_str(celltempC, digits:0) & 'F ' /* & to_str(celltempK, digits:0) & 'K' */, color:WHITE, size:0.45)
+		draw_rect(fill:c, thick:1 pt, color:GRAY4)
+		draw_str(to_str(celltempC, digits:0) & 'F ' /* & to_str(celltempK, digits:0) & 'K' */, color:WHITE, size:0.45)
 
 ==================
 calc interpolate_color ( --- interpolate between a range of colors

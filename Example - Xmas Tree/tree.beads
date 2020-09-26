@@ -1,4 +1,4 @@
-beads level 1 program tree
+beads 1 program tree
 //  this is a clone of the python program from Engineer-man on youtube:
 //  https://github.com/engineer-man/youtube/tree/master/089
 //  https://www.youtube.com/watch?time_continue=280&v=lbbNoCFSBV4&feature=emb_logo
@@ -55,13 +55,13 @@ calc main_init
 	{ nticks:8, is_lit:Y, color_on:DODGER_BLUE, color_off:BLUE } ===> bulbs['B']
 
 	//  set up a timer to change the state of the bulbs. stop it after a while
-	loom_timer(blink_bulbs, rate:12, delay:0.3, reps:10000)
+	loom_timer(blink_bulbs, rate:12, delay:0.3 sec, reps:10000)
 
 ===================
 calc blink_bulbs
 ===================
 	//  timer callback function, decrement the counters for each bulb kind
-	loop across:bulbs path:bulb
+	loop across:bulbs ptr:bulb
 		//  decrement the tick counter
 		//log "check_bulb color={bulb.color_on}, nticks={bulb.nticks}"
 		dec bulb.nticks
@@ -74,6 +74,10 @@ calc blink_bulbs
 			//  leave it on a little longer when on, versus off
 			bulb.nticks = if bulb.is_lit then random_int(10, 20) else random_int(2, 8)
 
+//  these will be set whenever the screen window changes
+var CELL_V
+var CELL_H
+
 ===================
 draw main_draw
 ===================
@@ -82,45 +86,47 @@ draw main_draw
 
 	//  we can assume that the vertical dimension is our limiting factor
 	//  figure out how big each cell of the tree can be to fit on the screen
-	const CELL_V = round_down(b.box.height*0.85 / NV)
-	const CELL_H = round(CELL_V*0.6)
+	CELL_V = round_down(b.box.height*0.85 / NV)
+	CELL_H = round(CELL_V*0.6)
 
+	//  now calculate the total space we need, and we will center it on the screen
+	var r : a_rect <=== solve_rect(basis:b.box, pin:5, width:CELL_H*NH, height:CELL_V*NV)
+	layer area:r main_draw2
+
+draw main_draw2
 	var x = 0
 	var y = 0
 	var size
 	var color : color
 
-	//  now calculate the total space we need, and we will center it on the screen
-	var r : a_rect <=== solve_rect(basis:b.box, pin:5, width:CELL_H*NH, height:CELL_V*NV)
-	layer area:r 
-		loop from:1 to:str_len(TREE) index:ix  // loop through the tree string
-			var cc = subset(TREE, from:ix, len:1)  // extract a single character
-			case cc
-			| "Y"
-				//  draw a star
-				color = GOLD
-				cc = STAR
-				size = 0.5
-			| "R", "G", "B"
-				//  draw lightbulb
-				color = if bulbs[cc].is_lit then bulbs[cc].color_on else bulbs[cc].color_off
-				cc = BIG_DOT
-				size = 0.6
-			else
-				color = FOREST_GREEN
-				size = 0.8
+	loop from:1 to:str_len(TREE) index:ix  // loop through the tree string
+		var cc = subset(TREE, from:ix, len:1)  // extract a single character
+		case cc
+		| "Y"
+			//  draw a star
+			color = GOLD
+			cc = STAR
+			size = 0.5
+		| "R", "G", "B"
+			//  draw lightbulb
+			color = if bulbs[cc].is_lit then bulbs[cc].color_on else bulbs[cc].color_off
+			cc = BIG_DOT
+			size = 0.6
+		else
+			color = FOREST_GREEN
+			size = 0.8
 
-			//  draw this part of the tree;  ignore \n and blank which are dead space
-			if cc > " "
-				//  calculate the bounding box of the current cell
-				var box <=== solve_rect(left:x*CELL_H, top:y*CELL_V, width:CELL_H, height:CELL_V)
-				draw_str(box, cc, size:CELL_V*size, shrink:N, color:color, font:"_typewriter")
+		//  draw this part of the tree;  ignore \n and blank which are dead space
+		if cc > " "
+			//  calculate the bounding box of the current cell
+			var box <=== solve_rect(left:x*CELL_H, top:y*CELL_V, width:CELL_H, height:CELL_V)
+			draw_str(box, cc, size:CELL_V*size, shrink:N, color:color, font:"_typewriter")
 
-			//  update our XY coordinate
-			if cc == "\n"
-				//  go to next row
-				inc y
-				x = 0
-			else
-				//  go to next column
-				inc x
+		//  update our XY coordinate
+		if cc == "\n"
+			//  go to next row
+			inc y
+			x = 0
+		else
+			//  go to next column
+			inc x

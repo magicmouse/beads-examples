@@ -1,4 +1,4 @@
-beads level 1 program animate1  // test animation of program execution
+beads 1 program animate1  // test animation of program execution
 
 record a_location  --- a location in the program
 	funcx  ---  the function index that we jumped from
@@ -239,7 +239,7 @@ canvas render_canvas
 			linecolor = DODGER_BLUE
 
 		log "  hiliting callfx={targfunc}, corner={funcs[targfunc].box.left},{funcs[targfunc].box.top}"
-		draw_rect(funcs[targfunc].box, fill:ORANGE, opacity:0.5, corner:FUNC_CORNER)
+		draw_rect(box:funcs[targfunc].box, fill:ORANGE, opacity:0.5, corner:FUNC_CORNER)
 
 		//  jump is in progress, show the line as a fraction
 		var startx = interpolate(tos.jump_num-1, 0, tos.jump_den, tos.jump_start.x, tos.jump_stop.x)
@@ -264,7 +264,7 @@ calc random_call(
 ===================
 draw main_draw
 ===================
-	draw_rect(b.box, fill:C_DEAD)
+	draw_rect(fill:C_DEAD)
 	var x = FUNC_GAPH
 	var y = FUNC_GAPV
 	loop across:funcs ptr:fp index:fx
@@ -291,13 +291,13 @@ draw draw_func (  ---  draw the function at the given Y coordinate
 	) -----------------
 	var totr <=== solve_rect(left:x, top:y, width:FUNC_H, height:fp.toty)
 	totr ===> fp.box  //  remember this
-	draw_rect(totr, fill:C_FUNC_BACK, corner:FUNC_CORNER)
+	draw_rect(box:totr, fill:C_FUNC_BACK, corner:FUNC_CORNER)
 
 	var enabler <=== solve_rect(left:x+149, top:y+6, width:9, height:9)
-	draw_rect(enabler, fill:C_FUNC_ENABLE_ON)
+	draw_rect(box:enabler, fill:C_FUNC_ENABLE_ON)
 
 	var labelr <=== solve_rect(left:x+FUNC_INDENTL, top:y+2, width:147, height:17)
-	draw_str(labelr, to_str(fx)&"  "&fp.name, size:13, color:C_FUNC_LABEL, just:LEFT)
+	draw_str(box:labelr, to_str(fx)&"  "&fp.name, size:13, color:C_FUNC_LABEL, just:LEFT)
 
 	//  draw the cells in the function
 	var firstx = x + FUNC_INDENTL
@@ -309,12 +309,12 @@ draw draw_func (  ---  draw the function at the given Y coordinate
 	loop across:fp.steps ptr:sp
 		var cellr <=== solve_rect(left:firstx + col*CELL_DH, top:firsty + row*CELL_DV, width:CELL_H, height:CELL_V)
 		cellr ===> sp.box  //  remember the box for later
-		draw_rect(cellr, fill:C_CELL_PLAIN_BACK, corner:2)
+		draw_rect(box:cellr, fill:C_CELL_PLAIN_BACK, corner:2)
 		//log "cell col={col}, row={row}, box={cellr}"
 		case sp.op
 		| OP_CALL
 			color = C_CELL_FUNC_BACK
-			draw_str(cellr, to_str(sp.callfx), size:0.8, color:TEAL)
+			draw_str(box:cellr, to_str(sp.callfx), size:0.8, color:TEAL)
 		else
 			color = C_CELL_PLAIN_BACK
 

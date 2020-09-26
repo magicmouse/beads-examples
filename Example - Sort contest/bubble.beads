@@ -1,4 +1,4 @@
-beads level 1 program bubble title "Bubble Sort vs. Quicksort Animation"
+beads 1 program bubble title:"Bubble Sort vs. Quicksort Animation"
 //  a visual comparison showing performance difference between bubble sort and quicksort
 //  written by edj 2019
 //  complexity rating:  440 words
@@ -78,7 +78,7 @@ calc main_init
 draw main_draw
 =================================
 	//  fill the screen with a pale color, and then inset to draw our main box
-	draw_rect(b.box, fill:rgb(207,222,227))
+	draw_rect(fill:rgb255(207,222,227))
 	var r <=== solve_rect(basis:b.box, pin:MID_CENTER, inset:12 pt)
 	layer area:r d_main
 
@@ -120,16 +120,16 @@ draw d_replay( //  bubble sort drawing function, uses g.histx to draw current pa
 		else
 			//  this bar not being scanned, draw in blue
 			c = C_PLAIN
-		draw_rect(r, fill:c)  // the bar
+		draw_rect(box:r, fill:c)  // the bar
 
 		//  draw the numerical value above the bar
 		var t:a_rect <=== solve_rect(bottom:r.top, height:12 pt, left:r.left, width:hh)
-		draw_str(t, to_str(data.vals[ix]), size:10 pt, color:BLACK)
+		draw_str(to_str(data.vals[ix]), box:t, size:10 pt, color:BLACK)
 
 	//  we just finished history, went off the end of the array, draw the total work done
 	if comp.comp1 == U
 		//  we went off the end of our array
-		draw_str(b.box, "{data.label} total ops: {data.ntot}", size:28 pt, vert:0.15)
+		draw_str("{data.label} total ops: {data.ntot}", size:28 pt, vert:0.15)
 	//-- end d_replay
 
 

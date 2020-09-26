@@ -1,23 +1,26 @@
-beads level 1 program Watch title "Patek Philippe Wristwatch Simulation"
+beads 1 program Watch title:"Patek Philippe Wristwatch Simulation"
 //  a simulation of the expensive watch in the world, with apologies to Patek Philippe
 //  written by edj 2019
 //  Copyright and related rights waived
 
 --  art resources that we will use later
-assets local:"art/" remote:"http://foobar.com/art/"
-	file:"patek_cleaned_750v.jpg" label:watch_background //width:1000 height:750
-	file:"hand_day.png" label:day_hand  //width:94 height:23
-	file:"hand_min.png" label:minute_hand  //width:294 height:24
-	file:"hand_hour.png" label:hour_hand  //width:203 height:37
-	file:"hand_sec.png" label:second_hand   //width:172 height:35
+assets local:"art/"
+	file:"patek_cleaned_750v.jpg" label:watch_background preload //width:1000 height:750
+	file:"hand_day.png" label:day_hand preload  //width:94 height:23
+	file:"hand_min.png" label:minute_hand preload  //width:294 height:24
+	file:"hand_hour.png" label:hour_hand preload  //width:203 height:37
+	file:"hand_sec.png" label:second_hand preload   //width:172 height:35
 
-var g : a_date --  our global state variable, a record containing fields date_minute, etc.
+var 
+	g : a_date --  our global state variable, a record containing fields date_minute, etc.
+	mycanvas : a_canvas  -- our canvas bitmap that we draw into
 
 const
 	DEG_PER_DAY  ⇐ 360/31
 	DEG_PER_SEC  ⇐ 360/60  -- also used for hour
 	DEG_PER_HOUR ⇐ 360/12
 
+	//  these coordinates are based on the 1000 x 750 background we draw
 	CENTER_X ⇐ 485  -- point that hour/min/sec hands rotate around
 	CENTER_Y ⇐ 380
 
@@ -25,35 +28,44 @@ const
 calc main_init `main init procedure`
 -----------------
 	//runtime.time_scale ⇐ 7200  -- speed up time so that each second we cover 2 hours
-	//  set up a callback to 'do_tick' every second, starting immediately
-	//  note that if we didn't start immediately, then our 'g' value would have no value on first draw
-	loom_timer (do_tick, delay:0 sec, interval:1 sec, reps:100)
+	//  set up a callback to 'do_tick' every second, but let the first refresh happen first
+	//  otherwise the canvas won't be created yet
+	loom_timer (do_tick, delay:0.1 sec, interval:1 sec, reps:100)
 
 -----------------
 calc do_tick `is called once a second`
 -----------------
 	seconds_to_date() ===> g  -- copy the current date/time into g
-	
+	render_canvas in mycanvas
+
 ----------------
 draw main_draw `main drawing procedure` 
 ----------------
 	//  calculate a subset box that is exactly the size we need, centered on the screen
+	//  in a window that is smaller than 1000 x 750 this will 
 	var area : a_rect <=== solve_rect(basis:b.box, pin:MID_CENTER, width:1000, height:750, round:Y)
 	
-	//  indent from the total screen size, set coordinate origin at the middle of the box
-	layer area:area, origin:5 d_watch
+	//  this creates a canvas layer, stores it in mycanvas
+	layer area:area canvas:mycanvas
 
-draw d_watch
-	draw_image (U, watch_background) -- will draw at [0,0]
+----------------
+canvas render_canvas
+----------------
+	//  even though we tried putting the background in a separate layer, the browser is still going to show
+	//  flickering. This is a kind of project you should use canvas because images are drawn in 
+	//  a second pass in the browser, and so a flicker will be visible.
+	draw_image(watch_background)
 
 	var angle ⇐ g.date_day*DEG_PER_DAY - 90  -- day angle
-	draw_image (U, day_hand, x:486, y:512, originx:11, originy:11, angle:angle deg)
+	draw_image(day_hand, x:486, y:512, originx:11, originy:11, angle:angle deg)
 
 	angle ⇐ (g.date_hour + g.date_minute/60)*DEG_PER_HOUR - 90  --  hour angle, moves smoothly
-	draw_image (U, hour_hand, x:CENTER_X, y:CENTER_Y, originx:11, originy:18, angle:angle deg)
+	draw_image(hour_hand, x:CENTER_X, y:CENTER_Y, originx:11, originy:18, angle:angle deg)
 
 	angle ⇐ (g.date_minute + g.date_second/60)*DEG_PER_SEC - 90  --  minute hand angle, moves smoothly
-	draw_image (U, minute_hand, x:CENTER_X, y:CENTER_Y, originx:11, originy:12, angle:angle deg)
+	draw_image(minute_hand, x:CENTER_X, y:CENTER_Y, originx:11, originy:12, angle:angle deg)
 
-	angle ⇐ round(g.date_second)*DEG_PER_SEC - 90  -- second hand angle, jumps to each second
-	draw_image (U, second_hand, x:CENTER_X, y:CENTER_Y, originx:18, originy:17, angle:angle deg)
+	angle ⇐ round_down(g.date_second)*DEG_PER_SEC - 90  -- second hand angle, jumps to each second
+	draw_image(second_hand, x:CENTER_X, y:CENTER_Y, originx:18, originy:17, angle:angle deg)
+
+	//draw_circle(x:CENTER_X, y:CENTER_Y, diam:8, fill:PURPLE) // zz

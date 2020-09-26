@@ -175,7 +175,8 @@ vert slice portrait_layout
 ==================
 vert slice button_and_history
 	//log "-- chess, buttv 32 pt = {32 pt}, dpi={72 pt}"
-	draw_rect(bb, fill:#bac3cb)
+	under
+		draw_rect(fill:#bac3cb)
 	add 22 pt newgame_button
 	add 10 al move_history
 
@@ -183,8 +184,8 @@ vert slice button_and_history
 draw newgame_button
 	var ww = min(bb.width*0.4, 250 pt)
 	var r : a_rect ⇐ solve_rect(basis:bb, pin:3, width:ww, inset_e:2 pt, inset_y:4 pt)
-	draw_rect(r, fill:DARK_SQUARE, corner:r.height*0.3, color:LIGHT_SQUARE, thick:1.5 pt)
-	draw_str(r, "New Game", size:r.height*0.60, indent:4 pt, color:LIGHT_SQUARE)
+	draw_rect(box:r, fill:DARK_SQUARE, corner:r.height*0.3, color:LIGHT_SQUARE, thick:1.5 pt)
+	draw_str("New Game", box:r, size:r.height*0.60, indent:4 pt, color:LIGHT_SQUARE)
 track EV_TAP
 	main_init
 
@@ -221,7 +222,7 @@ grid move_history2  -- move history display
 	
 		case rem(b.cell.x, 3, one:Y)  -- will resolve to 1, 2 or 3
 		| 1  // step number
-			draw_str(bb, to_str(complete_movex) & ".", size:0.7, just:RIGHT)
+			draw_str(to_str(complete_movex) & ".", size:0.7, just:RIGHT)
 
 		| 2  //  draw white's move at this stage
 			algebraic_form(bb, histx)
@@ -262,7 +263,7 @@ draw algebraic_form (  -- build the string for algebraic chess notation for a mo
 		if game.history[histx].is_stalemate
 			" stalemate" &=> ss
 
-	draw_str(box, ss, size:0.7, just:LEFT)
+	draw_str(ss, box:box, size:0.7, just:LEFT)
 
 ==================
 //  converts [1, 5] => "a4"
@@ -287,7 +288,7 @@ grid chessboard
 		skip EDGE al
 	//----------------
 	under
-		draw_rect(bb, fill:BORDER)
+		draw_rect(fill:BORDER)
 	//----------------
 	//  inside grid cell draw function, b has properties cell_box, cell_ix, cell:a_xy
 	cell
@@ -300,23 +301,23 @@ grid chessboard
 			fill ⇐ LIGHT_SQUARE
 		else
 			fill ⇐ DARK_SQUARE
-		draw_rect(bb, fill:fill)
+		draw_rect(fill:fill)
 	
 		//  if this square was involved in the previous move, lighten the background slightly
 		if tree_count(game.history) <> 0
 			var prevx ⇐ tree_hi(game.history)
 			if b.cell == game.history[prevx].from_sq or b.cell == game.history[prevx].to_sq 
-				draw_rect(bb, fill:std.WHITE, opacity:0.3)  --  note that WHITE was declared an enum, so we qualify with module name
+				draw_rect(fill:std.WHITE, opacity:0.3)  --  note that WHITE was declared an enum, so we qualify with module name
 		
 		//  if this is the current selected square, frame it in purple
 		if b.cell == game.selected
 			box <=== solve_rect(basis:bb, inset:1 pt)
-			draw_rect(box, thick:bb.width*0.09, color:HILITE_CURR, pos:0, corner:3 pt)
+			draw_rect(box:box, thick:bb.width*0.09, color:HILITE_CURR, pos:0, corner:3 pt)
 
 		//  if this is a possible move square, frame it in green
 		if game.moves[b.cell].can_move
 			box <=== solve_rect(basis:bb, inset:1 pt)
-			draw_rect(box, thick:bb.width*0.09, color:HILITE_MOVE, pos:0, corner:3 pt)
+			draw_rect(box:box, thick:bb.width*0.09, color:HILITE_MOVE, pos:0, corner:3 pt)
 	
 		//  draw the piece
 		if game.board[b.cell].piece <> EMPTY
@@ -330,7 +331,7 @@ grid chessboard
 			var icon : str ⇐ PIECE_SS[game.board[b.cell].piece] 
 
 			//if game.board[b.cell].piece == PAWN
-			//	draw_str(bb, icon & "\uFE0E", size:0.8, color:fill)
+			//	draw_str(icon & "\uFE0E", size:0.8, color:fill)
 
 			//  in Chrome and Firefox, the unicode character for the black pawn gets automatically upgraded 
 			//  (without our asking) to an astral unicode emoji of a photo of a black pawn
@@ -345,20 +346,20 @@ grid chessboard
 			if CHROME_BUG_WORKAROUND and game.board[b.cell].piece == PAWN
 				icon ⇐ to_char(from_char(icon) - 6)
 				//  draw the drop shadow
-				var shadowbox <=== solve_rect(basis:bb, dx:3 pt, dy:3 pt)
-				draw_str(shadowbox, icon, size:0.8, color:GRAY7)
-				draw_str(bb, icon, size:0.8, color:fill)
+				var shadowbox <=== solve_rect(basis:bb, dx:2 pt, dy:2 pt)
+				draw_str(icon, box:shadowbox, size:0.8, color:GRAY7, opacity:0.8)
+				draw_str(icon, size:0.8, color:fill)
 			else
-				draw_str(bb, icon & "\uFE0E", size:0.8, color:fill) // fill)
+				draw_str(icon & "\uFE0E", size:0.8, color:fill) // fill)
 
 				//  draw the outline in black. alignment is a bit off because the solid knight is wider in outline
 				//  note that in unicode, the chess outline form is 6 slots in Unicode before the solid
 				icon ⇐ to_char(from_char(icon) - 6)
-				draw_str(bb, icon & "\uFE0E", size:0.8, color:stroke)
+				draw_str(icon & "\uFE0E", size:0.8, color:stroke)
 	//----------------
 	over
 		//  draw a black frame around the checkerboard
-		draw_rect(bb, thick:1 pt)
+		draw_rect(thick:1 pt)
 
 ------------------
 track EV_TAP

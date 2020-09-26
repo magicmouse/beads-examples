@@ -1,5 +1,18 @@
-beads level 1 monitor cycler  --  A monitor program that lets you cycle through different devices
+beads 1 monitor cycler  --  A monitor program that lets you cycle through different devices
 
+//  to compile and run a monitor program like this one:
+//    -- select a project in the compiler interface as a target by clicking on the name
+//       when you click on the name it will add a suffix "<== TARGET"
+//       click again to turn off targeted mode
+//       compile the target for JS (HTML mode will automatically switch to JS mode)
+//    -- compile the monitor program like cycler for HTML
+//    -- when you run the monitor program it will import the target JS code
+//       thus you have a window inside a window, which is what the cycler is for,
+//       to simulate how the screen would render on a series of devices.
+
+const
+	SHOW_ORIENT = N   //  if N, then leave it at static orient
+	
 record a_device  --  information about each of the devices we support emulating
 	dev_name : str  --  device name
 	dev_h			--  horz pixels (in portrait mode)
@@ -9,22 +22,25 @@ record a_device  --  information about each of the devices we support emulating
 const DEVICES : array of a_device <=== [<
 	dev_name    				dev_h   dev_v 	dev_ppi
 	---------					------	-----	---------		
-	"Kindle Fire 7 inch",		600,	1024,	189
-	"Kindle Fire HD 8 inch",	800,	1280,	171
-	"Kindle Fire HD 10 inch",	1200,	1920,	223
-	"Apple iPhone 5/SE",		640,	1136,	326
-	"Apple iPhone 6/7/8",		750,	1334,	326
-	"Apple iPhone 6+/7+",		1080,	1920,	401
-	"Apple iPhone 8+",			1242,	2208,	401
+//	"Apple iPhone 5",			640,	1136,	326
+	"Apple iPhone 6/7/8/SE",	750,	1334,	326
 	"Apple iPhone Xr",			828,	1792,	326
+//	"Apple iPhone 6+/7+",		1080,	1920,	401
 	"Apple iPhone X/Xs",		1125,	2436,	458
+	"Apple iPhone 8+",			1242,	2208,	401
 	"Apple iPhone Xs Max",		1242,	2688,	458
-	"Apple iPad",				1536,	2048,	264
-	"Apple iPad Mini",			1536,	2048,	326
-	"Apple iPad Air",			1536,	2048,	264
-	"Apple iPad Pro 10.5 inch",	1668,	2224,	264
-	"Apple iPad Pro 11 inch",	1668,	2388,	264
-	"Apple iPad Pro 12.9 inch",	2048,	2732,	264
+//	"Apple iPad",				1536,	2048,	264
+//	"Apple iPad Mini",			1536,	2048,	326
+//	"Apple iPad Air",			1536,	2048,	264
+//	"Apple iPad Pro 10.5 inch",	1668,	2224,	264
+//	"Apple iPad Pro 11 inch",	1668,	2388,	264
+//	"Apple iPad Pro 12.9 inch",	2048,	2732,	264
+	"Kindle Fire 7 inch",		600,	1024,	189
+//	"Kindle Fire HD 8 inch",	800,	1280,	171
+//	"Kindle Fire HD 10 inch",	1200,	1920,	223
+	"Samsung Galaxy A21",		720,	1600,	270
+	"Samsung Galaxy A51",		1080,	2400,	405
+	"Samsung Galaxy S20",		1440,	3200,	563
 	>]
 
 const BROWN_GRAD:a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM,
@@ -34,14 +50,21 @@ const BROWN_GRAD:a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_B
    { stop_pos:100, stop_color:#4F362B },
     ] }
 
+const SCROLLBAR_GRAD : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM, 
+		grad_stops:[ { stop_pos:0, stop_color:CHOCOLATE },
+				     { stop_pos:48, stop_color:BEIGE },
+					 { stop_pos:52, stop_color:BEIGE },
+					 { stop_pos:100, stop_color:CHOCOLATE }] }
+
 const NDEV = tree_count(DEVICES)
 const LINEV = 20
 
 const
-	COLOR_DEAD = #655e58
+	C_DEAD = #655e58
+	C_TOOLBAR_BACK = #2e2330
 
-	PREVIEW_BACK ⇐ #2b212d
-	PREVIEW_FORE ⇐ #efe1f1
+	PREVIEW_BACK = #2b212d
+	PREVIEW_FORE = #efe1f1
 
 	TAB_LO_BACK = #7F6B6B
 	TAB_LO_BORD = #054056 
@@ -56,27 +79,42 @@ const
 	BUTT_LO_TEXT = TAB_LO_TEXT
 
 	//  colors used for orientation icons
-	COLOR_ORIENT_B_LO ⇐ #c3cfe5
-	COLOR_ORIENT_B_HI ⇐ #e53959
-	COLOR_ORIENT_ICON ⇐ GRAY7
+	C_ORIENT_B_LO = #c3cfe5
+	C_ORIENT_B_HI = #e53959
+	C_ORIENT_ICON = GRAY7
 
-record a_state
+	C_FOOTER_TEXT = PREVIEW_FORE
+	C_THUMB_BACK  = #17527F  // med blue
+	C_THUMB_BORD  = #27B39E  // aqua
+
+var intf nolog : record   //  we don't log changes in this record
 	ide_active : yesno  -- is the IDE visible?
-	dix  --  index in DEVICES of our selected hardware emulation
+	devx  --  index in DEVICES of our selected hardware emulation
 	//  parameters that affect the display of the preview window
 	portrait : yesno  --  device shown in landscape orientation
-	net_zoom  --  derived quantity in draw, is zoom factor like 0.32 for 32%
+	dev_zoom  --  derived quantity in draw, is zoom factor like 0.32 for 32%
 	run_id : num  -- timer ID
 
-var g : a_state nolog
+	is_frozen : yesno
+	major_last : num  // max major step we can jump to
+	is_sped : yesno
+	markA : num
+	frozen_thumb_pct  //  percent of history where thumb is
 
+//  transient variable
+var 
+	g_lo  //  lowest thumb coord
+	g_hi  //  highest thumb coord
+	g_thumb_box notrack : a_rect   //  bounding box of drawn thumb
+	g_drag_startx
+	g_drag_startpct
 =========================
 draw d_oneshot(
 	prompt : str
 	action : calc()
 	)
-	draw_rect(b.box, corner:b.box.height/4, fill:BUTT_LO_BACK, color:BUTT_LO_BORD, thick:3 pt)
-	draw_str(b.box, prompt, size:0.6, indent:1.5 pt, color:BUTT_LO_TEXT)
+	draw_rect(corner:b.box.height/4, fill:BUTT_LO_BACK, color:BUTT_LO_BORD, thick:3 pt)
+	draw_str(prompt, size:0.6, indent:1.5 pt, color:BUTT_LO_TEXT)
 track EV_TAP
 	action()
 
@@ -84,34 +122,42 @@ track EV_TAP
 calc main_init
 	runtime.monitor_active = Y //  inform runtime the monitored state
 
-	g.ide_active ⇐ Y  -- Y=start out with IDE visible
-	g.dix = 1
-	g.portrait = Y
+	intf.ide_active = Y  -- Y=start out with IDE visible
+	intf.devx = 1
+	intf.portrait = N
 
 ================================
-horz slice main_draw
-	draw_rect(b.box, fill:PREVIEW_BACK)
+vert slice main_draw
+	under
+		draw_rect(fill:PREVIEW_BACK)
 	
+	add 10 al main_draw2 
+	add 50 pt freeze_footer
+
+================================
+horz slice main_draw2
 	add 150 pt order:2 d_toolbar  //  show device list and controls
-	add 10 al preview_area3
+	add 10 al preview_area
 
 ================================
 vert slice d_toolbar
-	draw_rect(b.box, fill:#2e2330)
+	under
+		draw_rect(fill:C_TOOLBAR_BACK)
 
 	skip 20 pt
-	add (LINEV*NDEV) pt d_dev_grid
-	skip 10 pt
-	add 40 pt d_orient_butts
+	add (LINEV*NDEV) pt on:intf.is_frozen<>Y d_dev_grid
+	if SHOW_ORIENT
+		skip 10 pt
+		add 40 pt d_orient_butts
 	skip 20 pt
 	add 18 pt
-		draw_str(b.box, "{DEVICES[g.dix].dev_name}", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+		draw_str("{DEVICES[intf.devx].dev_name}", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
 	add 18 pt
-		draw_str(b.box, "{DEVICES[g.dix].dev_h} x {DEVICES[g.dix].dev_v}", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+		draw_str("{DEVICES[intf.devx].dev_h} x {DEVICES[intf.devx].dev_v}", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
 	add 18 pt
-		draw_str(b.box, "{DEVICES[g.dix].dev_ppi} dpi", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+		draw_str("{DEVICES[intf.devx].dev_ppi} dpi", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
 	add 18 pt
-		draw_str(b.box, "drawn at {to_str(g.net_zoom*100, digits:0)}%", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+		draw_str("drawn at {to_str(intf.dev_zoom*100, digits:0)}%", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
 	skip 20 pt
 	add 24 pt d_run_butts
 	skip 10 al
@@ -128,69 +174,69 @@ draw d_orient_port --  button to let user switch orientation below the preview w
 	var color : color
 
 	//  draw the button background
-	if g.portrait
-		color ⇐ COLOR_ORIENT_B_HI
+	if intf.portrait
+		color = C_ORIENT_B_HI
 	else
-		color ⇐ COLOR_ORIENT_B_LO
-	draw_rect(b.box, fill:color, corner:2 pt)
+		color = C_ORIENT_B_LO
+	draw_rect(fill:color, corner:2 pt)
 
 	//  draw the icon for the portrait orientation
-	var r:a_rect ⇐ solve_rect(basis:b.box, pin:5, height:b.box.height*0.8, width:b.box.height*0.38)
-	draw_rect(r, fill:GRAY7, corner:2 pt)
+	var r:a_rect = solve_rect(basis:b.box, pin:5, height:b.box.height*0.8, width:b.box.height*0.38)
+	draw_rect(box:r, fill:GRAY7, corner:2 pt)
 track EV_TAP
-	g.portrait ⇐ Y
+	intf.portrait = Y
 
 ================
 draw d_orient_land   --  button to let user switch orientation below the preview window
 	var color : color
 
 	//  draw the button background
-	if g.portrait
-		color ⇐ COLOR_ORIENT_B_LO
+	if intf.portrait
+		color = C_ORIENT_B_LO
 	else
-		color ⇐ COLOR_ORIENT_B_HI
-	draw_rect(b.box, fill:color, corner:2 pt)
+		color = C_ORIENT_B_HI
+	draw_rect(fill:color, corner:2 pt)
 
 	//  draw the icon for the portrait orientation
-	var r:a_rect ⇐ solve_rect(basis:b.box, pin:5, height:b.box.height*0.4, width:b.box.height*0.8)
-	draw_rect(r, fill:GRAY7, corner:2 pt)
+	var r:a_rect = solve_rect(basis:b.box, pin:5, height:b.box.height*0.4, width:b.box.height*0.8)
+	draw_rect(box:r, fill:GRAY7, corner:2 pt)
 track EV_TAP
-	g.portrait ⇐ N
+	intf.portrait = N
 
 ================================
 horz slice d_run_butts
 	skip 5 al
-	if g.run_id <> U
-		add 40 al d_oneshot("Stop", do_stop)
-	else
-		skip 40 al
-	if g.run_id <> U
+	add 40 al on:intf.run_id <> U d_oneshot("Stop", do_stop_cycling)
+	if intf.run_id <> U
 		skip 40 al // is running don't start another timer
 	else
-		add 40 al d_oneshot("Run", do_run)
+		add 40 al on:intf.is_frozen<>Y d_oneshot("Cycle", do_start_cycling)
 	skip 5 al
 
 ================================
-calc do_stop
+calc do_stop_cycling
 	//  kill our timer
-	loom_clear(id:g.run_id)
-	g.run_id = U
+	if intf.run_id <> U
+		loom_clear(id:intf.run_id)
+	intf.run_id = U
 
 ================================
-calc do_run
+calc do_start_cycling
 	const INTV = 0.5 sec
 	// start up a repeat process
-	g.dix = 1  // go back to first one
+	intf.devx = 1  // go back to first one
 	//  leave portrait/landscape where it was
-	g.run_id = loom_timer(do_next, interval:INTV, delay:INTV, reps:1000)
+	intf.run_id = loom_timer(do_next, interval:INTV, delay:INTV, reps:1000)
 	
 ================================
 calc do_next
-	//log "-- do next, dix={g.dix}"
-	inc g.dix
-	if g.dix > NDEV
-		g.dix = 1
-		toggle g.portrait
+	//log "-- do next, devx={intf.devx}"
+	inc intf.devx
+	if intf.devx > NDEV
+		intf.devx = 1
+		//  only if we show orientation do we toggle
+		if SHOW_ORIENT
+			toggle intf.portrait
 
 ================================
 grid d_dev_grid
@@ -200,46 +246,213 @@ grid d_dev_grid
 		loop across:DEVICES
 			add 10 al
 	cell
-		draw_rect(b.box, grad:BROWN_GRAD)
-		if b.cell_seq == g.dix
-			draw_str(b.box, "\u2705", just:LEFT, indent:3 pt size:0.5, color:CORAL)
-		draw_str(b.box, DEVICES[b.cell_seq].dev_name, just:LEFT, indent:20 pt, size:0.6, color:WHITE)
+		draw_rect(grad:BROWN_GRAD)
+		if b.cell_seq == intf.devx
+			draw_str("\u2705", just:LEFT, indent:3 pt size:0.5, color:CORAL)
+		draw_str(DEVICES[b.cell_seq].dev_name, just:LEFT, indent:20 pt, size:0.6, color:WHITE)
 track EV_TAP
-	g.dix = b.cell_seq
+	intf.devx = b.cell_seq
 
 ================================
-draw preview_area3  --  the area that holds the device preview inset slightly
-	//draw_rect(b.box, fill:)
+draw preview_area  --  the area that holds the device preview inset slightly
+	//draw_rect(fill:)
 	//  we are about to draw a device preview
 	//  since our window will be in general way smaller than the device window
 	//  calculate our best fit for the device preview
 	var aspect
 	var r : a_rect
-	var dh = DEVICES[g.dix].dev_h
-	var dv = DEVICES[g.dix].dev_v
+	var dh = DEVICES[intf.devx].dev_h
+	var dv = DEVICES[intf.devx].dev_v
 
-	if not g.portrait
+	if not intf.portrait
 		swap dh <=> dv
 
 	//  try to find a rectangle that has the same aspect ratio, with slight margin
 	//  yet fits inside our current box.
 	aspect = dh / dv
 	r <=== solve_rect(basis:b.box, pin:5, aspect:aspect, inset:6 pt, round:Y)
-	g.net_zoom ⇐ r.width / dh
+	intf.dev_zoom = r.width / dh
 
 	//  don't allow the screen to be magnified. clamp at 100% zoom
-	if g.net_zoom > 1
+	if intf.dev_zoom > 1
 		//log "don't magnify, r={r}"
 		r <=== solve_rect(basis:b.box, pin:5, width:dh, height:dv, round:Y)
-		g.net_zoom = 1
+		intf.dev_zoom = 1
 
-	//log "aspect={to_str(aspect, digits:2)}, basis={b.box}, zoom={g.net_zoom}\nr={r}"
+	//log "aspect={to_str(aspect, digits:2)}, basis={b.box}, zoom={intf.dev_zoom}\nr={r}"
 
 	//  reduce the dpi to match the zoom factor, so that 10 pt objects are reasonable
-	var net_dpi ⇐ runtime.screen_dpi * g.net_zoom
+	var net_dpi = DEVICES[intf.devx].dev_ppi * intf.dev_zoom
 	//draw_rect(r, pos:1, thick:1)  --  draw thin black border around the outside of the preview
 	layer area:r dpi:net_dpi monitored_draw  -- std library / call the monitored main draw function
 
-//  dummy slave program
-draw d_dummy_slave
-	draw_rect(b.box, fill:BROWN)
+//-----------------------------------
+//  ---  FREEZE CONTROLS
+//-----------------------------------
+
+====================
+vert slice freeze_footer  //  recommend at least 50 pts high
+	under
+		draw_rect(fill:C_TOOLBAR_BACK)
+
+	skip 4 al
+	add 20 al d_footer1
+	skip 2 al
+	add 20 al on:intf.is_frozen d_scrollbar
+	skip 4 al
+
+====================
+horz slice d_footer1
+	const BUTTH = 100
+	const GAP = 1
+
+	skip GAP al
+	if intf.is_frozen
+		//  we are in freeze mode
+		add BUTTH pt d_oneshot("Unfreeze", do_exit)
+		skip GAP al
+		add BUTTH pt d_oneshot("Save", do_save)
+		add 10  al d_cursor_info
+		//  we also allow a jump while frozen
+		add BUTTH pt on:intf.markA <> U d_oneshot("Jump A", do_jumpA)
+		skip GAP al
+		add BUTTH pt d_oneshot("Truncate", do_truncate)
+	else
+		add BUTTH pt d_oneshot("Freeze", do_freeze)
+		skip GAP al
+		add BUTTH pt d_oneshot("Mark A", do_markA)
+		skip GAP al
+		add BUTTH pt on:intf.markA <> U d_oneshot("Jump & Trunc", do_jump_truncA)
+	skip GAP al
+
+====================
+draw d_cursor_info
+	draw_str("{runtime.major_stepx} / {intf.major_last}   {intf.frozen_thumb_pct}%", color:C_FOOTER_TEXT, size:0.7)
+
+====================
+draw d_scrollbar
+	const THUMB_H = 30 pt
+	draw_rect(grad:SCROLLBAR_GRAD, opacity:0.5) 
+
+	//  calculate where the thumb should draw
+	//  we indent the thumb 2 points from the end
+	g_lo = 2 pt
+	g_hi = bb.width - THUMB_H - 2 pt
+	var pos = interpolate(intf.frozen_thumb_pct, 0, 100, g_lo, g_hi, clamp:Y)
+	g_thumb_box <=== solve_rect(basis:bb, pin:5, left:pos, width:THUMB_H, height:bb.height*0.8)
+	draw_rect(box:g_thumb_box, corner:3 pt, fill:C_THUMB_BACK, color:C_THUMB_BORD, thick:1.5 pt, pos:0)
+track
+	const GEAR_REDUCTION = 1  // if 3 it will move very slowly
+
+	case e.evkind
+	| EV_HOVER
+		//  we let the drag operation start anywhere in the arrow area
+		//  in future versions we could tighten this
+		cursor_set(CURS_FINGER)
+
+	| EV_DRAG_BEGIN
+		g_drag_startx = e.global_x
+		g_drag_startpct = intf.frozen_thumb_pct
+
+	| EV_DRAG_MOVE
+		//  calculate the new temperature
+		//  make the scale move not by mouse tracking but with a gear reduction
+		//  so it is very precise.
+		var delta_mouse = e.global_x - g_drag_startx
+
+		//  put a 3:1 gear ratio on the slider so it is more precise
+		//  calculate the percent of the total scrollbar we moved
+		var range = g_hi-g_lo
+		var delta = (delta_mouse/GEAR_REDUCTION)*100/range
+
+		var newpct = clamp(g_drag_startpct + delta, 0, 100)
+		//log "delta_mouse={delta_mouse}, range={range}, delta={delta}, newpct={to_str(newpct, digits:1)}" on:TRACING
+		do_jump(newpct)
+		return Y
+		
+	| EV_DRAG_END
+		cursor_set(CURS_ARROW)
+
+	else
+		//  wrong kind of event, don't absorb
+		return N
+
+	//  absorb the event
+	return Y
+
+====================
+// draw draw_oneshot (
+// 	label : str
+// 	action : calc(frozen)
+// 	)
+// 	draw_rect(fill:POWDER_BLUE, thick:1 pt, color:BROWN, corner:8 pt)
+// 	draw_str(label, size:0.7, indent:2 pt)
+// -----
+// track EV_TAP
+// 	action()
+
+====================
+calc do_jump (  -- execute the jump in history to the nearest step given percentage
+	newpct  -- new percentage
+	)
+	//  we don't allow jumping before the first step
+	intf.frozen_thumb_pct = newpct
+	var first = runtime.major_firstx
+	var targ = interpolate(intf.frozen_thumb_pct, 0, 100, first, intf.major_last, round:Y, clamp:Y)
+
+	if targ <> runtime.major_stepx
+		log "do_jump, pct={newpct}, lo={first}, high={intf.major_last}, targ={targ}"
+		debug_jump(targ)
+
+====================
+calc do_save  -- save the history in a file
+	log "do_save"
+	var filename:str = time_to_str("dump-[year]-[julian]-[hour][minute].bbx")
+	debug_write_blackbox("dump", "This is a dump", filename)
+
+====================
+calc do_markA
+	intf.markA = runtime.major_stepx
+	log "mark A at {intf.markA}"
+
+====================
+calc do_jumpA  -- plain jump to A with no truncation
+	log "jump A"
+	debug_jump(intf.markA)
+	//  recalc the % which is what drives the slider
+	intf.frozen_thumb_pct = 100*intf.markA/intf.major_last
+	// debug_clear_future
+
+====================
+calc do_jump_truncA
+	log "jump & trunc A"
+	debug_jump(intf.markA)
+	debug_clear_future
+	intf.frozen_thumb_pct = 100
+
+====================
+calc do_freeze  //  freeze time and let the user jump around
+	do_stop_cycling  //  any interface cycling, stop it
+	intf.is_frozen = Y
+	intf.is_sped = N
+	intf.frozen_thumb_pct = 100  //  start at end of time
+	intf.major_last = runtime.major_stepx
+	set_clock_scale(0)  // stop clock from moving
+
+	//  dump out the major steps
+	log ">> freeze, major_stepx={runtime.major_stepx}"
+// 	loop across:runtime.major_steps ptr:step index:ix
+// 		log "  major[{ix}].kind={step.evkind}, when={to_str(step.when, digits:2)}, rawx={step.hist_rawx}"
+
+====================
+calc do_exit  //  go forward to end of history, and continue where we left off
+	set_clock_scale(1)
+	debug_jump(99999999)
+	intf.is_frozen = N
+
+====================
+calc do_truncate  //  truncate history, start from this point
+	set_clock_scale(1)
+	intf.major_last = runtime.major_stepx  //  we can't go higher than this now
+	debug_clear_future
+	intf.is_frozen = N

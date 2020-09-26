@@ -1,4 +1,4 @@
-beads 1 program index  lang:LANG_ENG,LANG_JAP
+beads 1 program index  lang:LANG_ENG,LANG_JAP,LANG_AMH
 
 //  example of how to build a website in Beads
 //  written Sept 2020
@@ -29,7 +29,7 @@ assets local:"./art/examples/" remote:"http://beadslang.com/beads/projects/websi
 
 assets local:"./art/flags/" remote:"http://beadslang.com/beads/projects/website/art/"
 	file:"Japan.png" label:ICON_JAP preload
-	file:"UK.png" label:ICON_ENK preload
+	file:"ethiopia.png" label:ICON_AMH preload
 	file:"USA.png" label:ICON_ENG preload
 
 record a_example
@@ -51,8 +51,11 @@ record a_tab_group --  data for a set of mutually exclusive tabs
 	
 const
 	TRACE = N	//  general tracing
+	TRACE_DEV = N  // trace device width
+	TRACE_LOGG = N  // iPad debugger
 
-	HEADER_V = 46  -- total header area
+	ANIMATE = Y
+
 	TAB_HEIGHT ⇐ 23  --  height of window tabs
 	TAB_WIDTH  ⇐ 100 --  width of tabs
 	TAB_CORNER ⇐ 10  -- corner of tab
@@ -61,17 +64,17 @@ const
 	//  colors
 	DEAD = WHITE
 	C_TAB_BACK ⇐ #28224d // #20242d
-	C_TAB_FORE ⇐ #e2e4e8
+	C_TAB_FORE ⇐ #edeff3
 
 	END_MARKER = "❖     ❖     ❖     ❖     ❖"
 	CODE_PREFIX = "http://github.com/magicmouse/beads-examples/tree/master/"
 	RUN_PREFIX = "http://beadslang.com/apps/"
 
 	LANG_SUPPORTED = [LANG_ENG, 
-		LANG_ENK, 
+		LANG_AMH, 
 		LANG_JAP]
 	LANG_ICONS = { LANG_ENG:ICON_ENG, 
-		LANG_ENK:ICON_ENK, 
+		LANG_AMH:ICON_AMH, 
 		LANG_JAP:ICON_JAP }
 
 	EXAMPLES : array of a_example <=== [<
@@ -88,6 +91,8 @@ const
 
 	N_EXAMPLES = tree_count(EXAMPLES)
 
+	MIN_DEV_PTS = 160
+
 enum
 	//  tabs for main_tabs
 	TAB_HOME
@@ -99,63 +104,107 @@ enum
 var g : record
 	curr_lang  -- which language is website running in
 	main_tabs : a_tab_group
+	mobile : yesno
 
 var
 	//--- used for canvas animation
 	mycanvas : a_canvas  -- our canvas bitmap that we draw into
 	NP notrack = 0 -- current number of particles
 	particles notrack : array of a_particle
-	
+	DEVICE_PTS
+
 ==================================
 calc main_init
 	g.curr_lang = LANG_ENG
 	g.main_tabs <=== { selected:TAB_HOME, back:C_TAB_BACK, fore:C_TAB_FORE}
 
 	//  update the particles 30 times a second
-	loom_timer(do_particle_tick, rate:30, delay:0.2 sec, reps:2000)
+	if ANIMATE 
+		loom_timer(do_particle_tick, rate:30, delay:0.2 sec, reps:10000)
 
 ==================================
 vert slice main_draw
-	draw_rect(bb, fill:WHITE)
+	if g.mobile
+		//  draw in one column
+		const ROW1V = min(bb.height/8, 15 pt)
+		const ROW2V = min(bb.height/8, 15 pt)
+		add ROW1V px mob_head1
+		add ROW2V px d_tabs
+		add (round(1 pt)) px
+			draw_rect(fill:GRAY8)
+		add 10 al d_body  // scrolling content
+	else
+		const HEADER_V = min(bb.height/6, 46 pt)
+		add HEADER_V px d_header
+		add 10 al d_body
 
-	add HEADER_V pt d_header
-	add 10 al d_body
+	if TRACE_LOGG
+		//  add our debugging console
+		add 10 al $log
+
+==================================
+//  if we activate this special block name, the runtime log() function will draw into it
+vert scroll $log  //  magic name for debugging on iPad
+	nop
+
+-----------------------
+track EV_RESIZE	
+	DEVICE_PTS = dots_to_pt(bb.width)
+	//log "EV_RESIZE: width={bb.width}, pts={DEVICE_PTS}"
+
+	//  small phones are not going to be able to hold all the tab across nicely
+	//  the iphone XR in landscape is 812 x 375 pixels @ 192 dpi, 272 points across
+	//  in portrait, it is 375 x 619 @ 192 dpi, 141 points across
+	g.mobile = DEVICE_PTS < MIN_DEV_PTS
+
+==================================
+horz slice mob_head1
+	add 30 al d_home_icon
+	add 40 al d_lang_picker
 
 ==================================
 horz slice d_header
-	const ICON_H = HEADER_V pt * 2.54
-	add ICON_H px 
-		draw_image(bb, ICON_BEADS)
+	const ICON_H = min(bb.width/4, bb.height*2.54)
+	add ICON_H px d_home_icon
 	add 10 al d_tab_area
 
-	//  this creates a canvas layer, stores it in mycanvas
-	//layer area:bb canvas:mycanvas
+==================================
+draw d_home_icon
+	draw_image(ICON_BEADS)
+track EV_TAP
+	g.main_tabs.selected = TAB_HOME
 
 ==================================
 vert slice d_tab_area
 	add 10 al d_lang_picker
 	skip 2 pt
-	add TAB_HEIGHT pt d_tabs
+	add 14 al d_tabs
 	add (round(1 pt)) px
-		draw_rect(bb, fill:GRAY8)
+		draw_rect(fill:GRAY8)
 
+==================================
 horz slice d_lang_picker
+	if TRACE_DEV
+		add 80 pt
+			draw_str("{runtime.screen_horz} pt:{dots_to_pt(runtime.screen_horz)} {runtime.window_horz} pt:{dots_to_pt(runtime.window_horz)}", size:0.5)
 	skip 20 al
 	loop across:LANG_SUPPORTED val:langx count:ix
 		if ix > 1
 			skip 6 pt
 		add 50 pt d_lang(langx)
-	skip 18 pt
+	if not g.mobile
+		skip 18 pt
 
+==================================
 draw d_lang (
 	langx
 	) ------
 	var back : color = if g.curr_lang == langx then PALE_TURQUOISE else WHITE_SMOKE
-	draw_rect(bb, fill:back, corner:bb.height*0.25, thick:1, pos:0, color:GRAY3)
+	draw_rect(fill:back, corner:bb.height*0.25, thick:1, pos:0, color:GRAY3)
 	
 	//  draw the icon
 	var icon : image = LANG_ICONS[langx]
-	draw_image(bb, icon, indent:0.1 pt)
+	draw_image(icon, indent:0.1 pt)
 track EV_TAP
 	//  we are changing the interface language
 	g.curr_lang = langx
@@ -184,7 +233,7 @@ horz slice d_tabs
 
 ==================================
 draw d_body
-	//draw_rect(bb, fill:GRAY2)
+	//draw_rect(fill:GRAY2)
 
 	case g.main_tabs.selected
 	| TAB_HOME
@@ -213,29 +262,29 @@ const
 ==================================
  
 const p_future = """[html]
-Beads is a new language, released at the end of 2020, that looks 
+Beads is a new language, that aims 
 straight into the future, where the computer does more of the work of programming. 
-Beads uses strong typing protections to catch mistakes at compile time. Time travel faciliates testing and makes unreproducible
+Beads uses strong typing protections to catch mistakes at compile time. Time travel facilitates testing and makes unreproducible
 bugs a thing of the past."""
 
 const p_simple = """[html]
-Imagine using just one language for client, server, web apps, 
+This website was coded in Beads, without writing any CSS, HTML, or JS. Imagine using just one language for client, server, web apps, 
 desktop and mobile. No more 
-complex frameworks with thousands of API calls. One concise notation, designed
-for professionals to express your intentions with a minimum of fuss.."""
+complex frameworks with thousands of API calls 👍 . One concise notation, designed
+for professionals to express their intentions with a minimum of fuss."""
 
 const p_powerful = """[html]
 Starting with a graph database as the fundamental data structure 
 (think Neo4J), we add 
-a proportion based layout system, more powerful than SwiftUI. Target a 
-wide range of targets and application types. Full support for building 
-multilingual projects."""
+a proportion based layout system, more convenient than SwiftUI. Build for a 
+wide range of targets and application types. Full support for  
+internationalization."""
 
 const p_robust = """[html]
 Beads has super-strong type checking, but does it via implied typing 
 so you spend your time
 focusing on your project, not fussing with type declarations. With a closed, protected arithmetic that cannot
-crash, programs are more resilient in the face of bad inputs. The unique 
+crash, programs are resilient when given bad inputs. The unique 
 "Black Box" feature allows you to replay client sessions, so every reported error can be reproduced."""
 
 const p_elegant = """[html]
@@ -244,10 +293,9 @@ Regular Expression syntax has been completely redesigned to make them easier to 
 balance between conciseness and reading comprehension. No complex abstractions like monads or functors."""
 
 const p_whatnot = """[html]
-Beads is not intended for Machine Learning, Big Data, or Embedded Systems. 
-It does not connect well to other languages, as the time travel features require tight integration. 
-It is not suitable for heavy numerical computation. 
-It is currently only a 2D system, and the compiler is only available for Windows and Macintosh."""
+Beads can make websites, web apps, mobile apps, but Beads is not intended for machine learning, big data, or embedded systems. 
+It does not connect well to other languages, as the time travel feature requires tight integration. 
+It is currently only a 2D system. In the first version the compiler is only available for Windows and Macintosh, but you can build web apps for Linux."""
 
 horz slice d_home
 	const W = min(bb.width, 650 pt)
@@ -256,21 +304,23 @@ horz slice d_home
 	add W px d_home2
 	skip 10 al
 
-	particle_canvas_resize(bb)
-	layer area:bb canvas:mycanvas
+	if g.mobile <> Y
+		particle_canvas_resize(bb)
+		layer area:bb canvas:mycanvas
 
 vert scroll d_home2
-	draw_rect(bb, fill:WHITE)
+	under
+		draw_rect(box:b.boxtot, fill:WHITE, opacity:0.88)
 
-	const GAP = 4
+	const GAP = if g.mobile then 8 else 24
 
-	skip 12 pt
-	add TITLE_V pt d_title("🚀   " & "FUTURISTIC"[1005])
-	add auto d_text(p_future)
-	skip GAP pt
-
+	skip (GAP/2) pt
 	add TITLE_V pt d_title("🔨   " & "SIMPLE"[1006])
 	add auto d_text(p_simple)
+	skip GAP pt
+
+	add TITLE_V pt d_title("🚀   " & "FUTURISTIC"[1005])
+	add auto d_text(p_future)
 	skip GAP pt
 
 	add TITLE_V pt d_title("💪   " & "POWERFUL"[1007])
@@ -290,22 +340,35 @@ vert scroll d_home2
 	skip GAP pt
 
 	add 12 pt
-		draw_str(bb, END_MARKER, size:0.7, color:GRAY8)
+		//   by putting the marker at the top, we are devoting a little space afterwards
+		//   that makes the scrolling look a little nicer
+		draw_str(END_MARKER, size:8 pt, vert:0, color:GRAY8)
 
 horz slice d_title (
 	prompt : str
 	)
-	skip 20 pt
+	//under
+	//	draw_rect(fill:WHITE, opacity:0.10)
+
+	const VINDENT = if g.mobile then 6 else 20
+
+	skip VINDENT pt
 	add 10 al
-		draw_str(bb, prompt, just:LEFT, size:0.7, bold:Y, color:REBECCA_PURPLE)
+		draw_str(prompt, just:LEFT, size:0.7, bold:Y, color:REBECCA_PURPLE, sel:Y)
 	skip 10 pt
 
 draw d_text (
 	msg : str
 	) ------
-	var r <=== solve_rect(basis:bb, height:80 pt, width:bb.width-20 pt)
-	//draw_rect(r, thick:1, color:PINK, corner:8 pt)
-	draw_str(r, msg, size:12 pt, just:LEFT, indent:20 pt, wrap:Y, font:SERIF)
+	//draw_rect(fill:WHITE, opacity:0.40)
+
+	//  subtract the area needed for the scrollbar
+	const RI = if g.mobile then 4 else 20
+	var r <=== solve_rect(basis:bb, width:bb.width-(RI pt))
+	if g.mobile
+		draw_str(msg, box:r, size:8 pt, just:LEFT, vert:0, indent:3 pt, wrap:Y, font:SERIF, sel:Y)
+	else
+		draw_str(msg, box:r, size:12 pt, just:LEFT, vert:0, indent:20 pt, wrap:Y, font:SERIF, sel:Y)
 
 ==================================
 grid d_examples
@@ -322,14 +385,22 @@ grid d_examples
 		skip 20 pt
 
 	vert scroll
-		const NROW = round_up(N_EXAMPLES / NCOL)
-		var xv = (20+MIN_GAP) pt
-		skip xv px
-		loop reps:NROW
-			add EXAMPLE_V pt
-			skip MIN_GAP pt
-			skip 20 pt
-			(EXAMPLE_V + MIN_GAP + 20) pt +=> xv
+		if g.mobile
+			//  mobile form
+			const MEXV = min(bb.height/2, 70 pt)
+			loop reps:N_EXAMPLES
+				skip 10 pt
+				add MEXV px
+		else
+			//  desktop form
+			const NROW = round_up(N_EXAMPLES / NCOL)
+			var xv = (20+MIN_GAP) pt
+			skip xv px
+			loop reps:NROW
+				add EXAMPLE_V pt
+				skip MIN_GAP pt
+				skip 20 pt
+				(EXAMPLE_V + MIN_GAP + 20) pt +=> xv
 		
 	under
 		//  we can't overdraw the SVG box, so we must change the runtime to calc
@@ -337,9 +408,10 @@ grid d_examples
 		//  future: have the runtime consider the bbox to be the total bbox after scrolling calc
 		//  since this is a scrolling thing, draw past the bottom
 		//var r <=== solve_rect(basis:bb, pin:2, height:xv)
-		draw_rect(bb, tile:TILE_MANDALA)
+		draw_rect(box:b.boxtot, tile:TILE_MANDALA)
 
 	cell
+		//  in the case of multiple column layouts, we may go past the number of examples
 		if b.cell_seq <= N_EXAMPLES
 			d_example_cell(b.cell_seq)
 
@@ -347,31 +419,34 @@ grid d_examples
 vert slice d_example_cell (
 	cellx
 	) -----
-	add 20 pt
-		draw_str(bb, EXAMPLES[cellx].label, size:0.7)
+	const TITLEV = if g.mobile then 10 else 20
+	const FOOTV = if g.mobile then 10 else 22
+
+	add TITLEV pt
+		draw_str(EXAMPLES[cellx].label, size:0.7)
 	add 10 al d_ex_image(cellx)
 	skip 4 pt
-	add 22 pt d_ex_footer(cellx)
+	add FOOTV pt d_ex_footer(cellx)
 		
 ================================
 draw d_ex_image ditto
 	if EXAMPLES[cellx].icon == U
-		draw_rect(bb, fill:PINK, corner:10 pt)
+		draw_rect(fill:PINK, corner:10 pt)
 	else
-		draw_image(bb, EXAMPLES[cellx].icon)
+		draw_image(EXAMPLES[cellx].icon)
 
 ================================
 horz slice d_ex_footer ditto
 	skip 2 al
-	add 100 pt draw_oneshot("View code", html_redirect(gen_code_url(cellx), newtab:Y)) 
+	add 100 pt draw_oneshot("View code"[1011], html_redirect(gen_code_url(cellx), newtab:Y)) 
 	skip 10 al
 	skip 4 pt
 
 	if EXAMPLES[cellx].run_url<>U
 		if is_video(EXAMPLES[cellx].run_url)
-			add 100 pt draw_oneshot("Movie", html_redirect(gen_run_url(cellx), newtab:Y), back:KHAKI)
+			add 100 pt draw_oneshot("Movie"[1012], html_redirect(gen_run_url(cellx), newtab:Y), back:KHAKI)
 		else
-			add 100 pt draw_oneshot("Run", html_redirect(gen_run_url(cellx), newtab:Y))
+			add 100 pt draw_oneshot("Run"[1013], html_redirect(gen_run_url(cellx), newtab:Y))
 	else
 		skip 100 pt
 
@@ -400,16 +475,18 @@ calc gen_run_url (
 
 ================================
 vert slice d_contact
-	draw_rect(bb, tile:TILE_MANDALA)
+	under
+		draw_rect(tile:TILE_MANDALA)
 
 	skip 5 al
 	add 20 pt 
-		draw_str(bb, "Please visit our friendly Beads chat room, all skill levels welcome:", size:18 pt, color:GRAY7)
+		draw_str("Please visit our friendly Beads chat room:", size:18 pt, color:GRAY7)
 	skip 15 pt
 	add 28 pt d_jump_discord
-	skip 10 al
+	skip 5 al
+	skip 20 pt
 	add 20 pt 
-		draw_str(bb, "Send email inquiries to info@beadslang.com:", size:18 pt, color:GRAY7)
+		draw_str("Send email inquiries to info@beadslang.com:", size:18 pt, color:GRAY7)
 	skip 15 pt
 	add 28 pt d_jump_email
 	skip 20 al
@@ -417,35 +494,40 @@ vert slice d_contact
 ================================
 horz slice d_jump_discord
 	skip 5 al
-	add 150 pt draw_oneshot("visit Discord", html_redirect("https://discord.gg/pTAdsSW", newtab:Y))
+	const BUTTH = if g.mobile then bb.width*0.6 else min(bb.width/2.5, 150 pt)
+	add BUTTH px draw_oneshot("visit Discord", html_redirect("https://discord.gg/pTAdsSW", newtab:Y))
 	skip 5 al
 
 ================================
 horz slice d_jump_email
 	skip 5 al
-	add 150 pt draw_oneshot("E-mail", html_redirect("mailto:info@beadslang.com?subject=Beads%20language", newtab:Y))
+	const BUTTH = if g.mobile then bb.width*0.6 else min(bb.width/2.5, 150 pt)
+	add BUTTH px draw_oneshot("E-mail", html_redirect("mailto:info@beadslang.com?subject=Beads%20language", newtab:Y))
 	skip 5 al
 	
 ================================
 const 
 	//  size of the box in points for the icons
 	REFMAN_H = 180
-	REFMAN_V = 154
 
 vert slice d_docs
-	draw_rect(bb, tile:TILE_MANDALA2)
+	under
+		draw_rect(tile:TILE_MANDALA2)
+	const REFMAN_V = min(bb.height/6, 154 pt)
 
 	skip 5 al
 	add 24 pt
-		draw_rect(bb, fill:WHITE, opacity:0.2, corner:8 pt)
-		draw_str(bb, "Documentation for Beads language, Level 1", size:18 pt, color:GRAY8)
+		draw_rect(fill:WHITE, opacity:0.2, corner:8 pt)
+		draw_str("Documentation for Beads language", size:18 pt, color:GRAY8)
 	skip 5 al
 	skip 4 pt
-	add REFMAN_V pt d_refman_row
+	add REFMAN_V px d_refman_row
 	skip 8 al
-	add REFMAN_V pt d_refcard_row
+	skip 4 pt
+	add REFMAN_V px d_refcard_row
 	skip 8 al
-	add REFMAN_V pt d_video_row
+	skip 4 pt
+	add REFMAN_V px d_video_row
 	skip 5 al
 	skip 8 pt
 
@@ -453,7 +535,7 @@ vert slice d_docs
 horz slice d_video_row
 	skip 10 al
 	add REFMAN_H pt
-		draw_image(bb, ICON_YOUTUBE, corner:4 pt)
+		draw_image(ICON_YOUTUBE, corner:4 pt)
 	skip 2 al
 	add 140 pt d_doc_butts("https://www.youtube.com/channel/UCiBO5hr2IVsYK8wiLznImTQ/")
 	skip 10 al
@@ -462,63 +544,65 @@ horz slice d_video_row
 horz slice d_refman_row
 	skip 10 al
 	add REFMAN_H pt
-		draw_image(bb, ICON_REFMAN, corner:4 pt)
+		draw_image(ICON_REFMAN, corner:4 pt)
 	skip 2 al
-	add 140 pt d_doc_butts("http://beadslang.com/downloads/BeadsReferenceManual.pdf")
+	add 140 pt d_doc_butts("http://beadslang.com/downloads/refman.pdf")
 	skip 10 al
 	
 ================================
 horz slice d_refcard_row
 	skip 10 al
 	add REFMAN_H pt
-		draw_image(bb, ICON_REFCARD, corner:4 pt)
+		draw_image(ICON_REFCARD, corner:4 pt)
 	skip 2 al
-	add 140 pt d_doc_butts("http://beadslang.com/downloads/beads_reference_card_125.pdf")
+	add 140 pt d_doc_butts("http://beadslang.com/downloads/beads_reference_card.pdf")
 	skip 10 al
 
 ================================
 vert slice d_doc_butts (
 	url : str
 	)
+	const BUTTV = if g.mobile then 15 else 30
 	skip 10 al
-	add 30 pt draw_oneshot("View", html_redirect(url, newtab:Y))
+	add BUTTV pt draw_oneshot("View"[1014], html_redirect(url, newtab:Y))
 	skip 10 al
-	//add 30 pt draw_oneshot("Download", html_download(url))
+	//add 30 pt draw_oneshot("Download"[1003], html_download(url))
 	//skip 10 al
 	
 ================================
 vert slice d_download
-	draw_rect(bb, tile:TILE_MANDALA2)
+	under
+		draw_rect(tile:TILE_MANDALA2)
 
 	skip 5 al
 	add 32 pt
-		draw_str(bb, "Beads SDK Version 0.118\n90 MB download, cross-platform", size:18 pt, color:GRAY7)
+		draw_str("Beads SDK Version 0.132\n82 MB download, cross-platform", size:18 pt, color:GRAY7)
 	skip 5 al
 	add 80 pt d_osx_row
 	skip 8 al
 	add 80 pt d_win_row
 	skip 10 al
 	add 180 pt
-		draw_image(bb, DIAGRAM_OUTPUT)
-		//draw_rect(bb, color:PINK, thick:2)
+		draw_image(DIAGRAM_OUTPUT)
+		//draw_rect(color:PINK, thick:2)
 	skip 20 al
 	
 ================================
 horz slice d_osx_row
 	skip 10 al
 	add 200 pt
-		draw_image(bb, ICON_OSX, corner:4 pt)
+		draw_image(ICON_OSX, corner:4 pt)
 	skip 5 al
-	add 140 pt d_download_butt("Download", "http://www.beadslang.com/downloads/beads.zip")
+	add 140 pt d_download_butt("Download"[1003], "http://www.beadslang.com/downloads/beads.zip")
 	skip 10 al
 	
 ================================
 horz slice d_win_row
 	skip 10 al
 	add 200 pt
-		draw_image(bb, ICON_WIN, corner:4 pt)
+		draw_image(ICON_WIN, corner:4 pt)
 	skip 5 al
-	add 140 pt d_download_butt("Download", "http://www.beadslang.com/downloads/beads.zip")
+	add 140 pt d_download_butt("Download"[1003], "http://www.beadslang.com/downloads/beads.zip")
 	skip 10 al
 
 ================================
@@ -526,8 +610,10 @@ vert slice d_download_butt (
 	prompt : str
 	url : str
 	)
+	const BUTTV = if g.mobile then 14 else 28
+
 	skip 10 al
-	add 28 pt draw_oneshot(prompt, html_download(url))
+	add BUTTV pt draw_oneshot(prompt, html_download(url))
 	skip 10 al
 
 ====================
@@ -536,8 +622,9 @@ draw draw_oneshot (
 	action : calc(frozen)
 	back : color = POWDER_BLUE
 	)
-	draw_rect(bb, fill:back, thick:1.5 pt, color:DARK_ORCHID, corner:8 pt, pos:0)
-	draw_str(bb, label, size:0.7, indent:2 pt, color:BLACK)
+	const THICK = min(bb.height/15, 1.5 pt)
+	draw_rect(fill:back, thick:THICK, color:DARK_ORCHID, corner:bb.height/3.5, pos:0)
+	draw_str(label, size:0.65, indent:3 pt, color:BLACK)
 -----
 track EV_TAP
 	action()
@@ -549,12 +636,17 @@ draw d_tab_control(  --  tab handling component
 	newsel: num  --  new selection to set if the user taps on this tab
 	)
 	//  draw the tab as a rounded rectangle with the top left and right corners rounded
-	draw_rect(bb, fill:tab.back, corner_tl:TAB_CORNER pt, corner_tr:TAB_CORNER pt)
+	const CORNER = bb.height/3.8
+	draw_rect(fill:tab.back, corner_tl:CORNER, corner_tr:CORNER)
 	if tab.selected <> newsel
 		//  this tab is not currently selected, make it slightly dead
 		//opacity ⇐ 0.7
-		draw_rect(bb, fill:DEAD, opacity:0.4)
-	draw_str(bb, label, color:tab.fore, indent:2.5 pt, size:0.7) -- , opacity:opacity)
+		draw_rect(fill:DEAD, opacity:0.4)
+	if g.mobile
+		draw_str(label, color:tab.fore, indent:1 pt, size:0.50) -- , opacity:opacity)
+	else
+		draw_str(label, color:tab.fore, indent:2.5 pt, size:0.65) -- , opacity:opacity)
+
 ---------------------
 track EV_TAP
 	//  if user clicks on this tab, make it the current selection
@@ -599,7 +691,7 @@ calc particle_canvas_resize (
 calc do_particle_tick  -- this is called by our timer to update the canvas buffer
 =====================
 	//  if we have fewer particles than we wanted, add some
-	if g.main_tabs.selected <> TAB_HOME
+	if g.main_tabs.selected <> TAB_HOME or g.mobile
 		return
 
 	//log "moving particles, NP={NP}"
@@ -611,7 +703,7 @@ canvas render_particles
 =====================	
 	//  all the drawing in this section is done via the canvas
 	//  this will wipe out whatever was there before
-	draw_rect(bb, fill:#1C292D) // LIGHT_SLATE_GRAY)
+	draw_rect(fill:#1C292D) // LIGHT_SLATE_GRAY)
 
 	//  loop through all the particles
 	loop across:particles index:ix1 ptr:particle
@@ -690,4 +782,3 @@ calc interpolate_color ( --- interpolate between a range of colors
 	//  convert back to RGB color
 	var result = hsv(targ_hue, targ_sat, targ_val)
 	return result
-
