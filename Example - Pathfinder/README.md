@@ -6,6 +6,7 @@ You draw a wall with the mouse (right click to erase wall cells), and then you p
 
 ![snake example](http://beadslang.com/apps/pathfinder/pathfinder.gif)
 
+[Run the game](http://beadslang.com/apps/pathfinder/pathfinder.html)
 
 This version was done naive HTML drawing, you can speed it up considerably by switching to canvas drawing.
 
