@@ -1,0 +1,222 @@
+beads 1 program PathFinder
+//   Dijkstra's path finding algorithm
+//   the Beads version is 535 significant words, 150 lines
+//   the Python version is written by codeNULL on YouTube
+//   https://www.youtube.com/watch?v=3yUPeIayvfU&feature=youtu.be
+
+record a_cell
+	wall    : yesno  // is a wall cell ?
+	visited : yesno  // has been visited ?
+	inpath  : yesno  // is in the path?
+	prev	: a_xy   // the cell we came from
+
+const
+	CELLSIZE = 30
+	TRACE = N
+
+var
+	START : a_xy 
+	GOAL  : a_xy
+	grid  : array^2 of a_cell
+	queue : array of a_xy
+
+//  scalar values won't track unless we put them in a tree
+var g : record
+	NC   //  number of columns
+	NR   //  number of rows
+	result : str // result of game
+	timer_id 
+
+================
+horz slice main_draw
+	const LSIDE = round(200 pt)
+	add LSIDE px d_info
+	add 10 al d_grid
+-----
+track EV_RESIZE
+	g.NC = U  // force rebuild of the grid
+-----
+track EV_KEYBOARD
+	if e.keycode == KEYCODE_ESC
+		//  start the game over
+		log "==> reset game"
+		loom_clear(id:g.timer_id)
+		g.NC = U  // force rebuild of the grid
+		g.result = ""
+
+	elif g.result <> ""
+		//  if the game is finished, but not reset, we can't accept commands 
+		if e.keycode == KEYCODE_SPACE
+			do_step
+
+		elif e.keycode == KEYCODE_ENTER
+			//  if we are running auto, stop the timer
+			if g.timer_id == U
+				//  not yet running, so start a timer to run the steps until we finish
+				log "==> start auto"
+				if g.timer_id == U  // don't start it while it is already running
+					g.timer_id = loom_timer(do_step, rate:24, reps:INFINITY)
+			else
+				//  running, so stop auto mode
+				log "==> stop auto"
+				loom_clear(id:g.timer_id)
+				g.timer_id = U
+
+================
+draw d_info
+	draw_rect(fill:BEIGE)
+	var msg = g.result
+	draw_str("ESC to reset\nSPACE to single step\nENTER to go\n\n{msg}", size:14 pt, just:LEFT, indent:20 pt, wrap:Y, vert:0.2)
+
+================
+grid d_grid
+	horz slice
+		const GAP = 2
+		if g.NC == U
+			//  we haven't yet initialized our grid
+			//  we need to do this here, because we need to know the exact size
+			grid_init(bb.width, bb.height)  //  sets NC, NR
+		skip 10 al
+		loop reps:g.NC
+			add CELLSIZE px
+		skip 10 al
+
+	vert slice
+		skip 10 al
+		loop reps:g.NR
+			add CELLSIZE px
+		skip 10 al
+
+	under
+		draw_rect(fill:rgb255(0,20,20))
+		
+	cell
+		var box <=== solve_rect(basis:bb, pin:1, width:bb.width-2, height:bb.height-2)
+		//  draw the cell
+		if b.cell == START
+			draw_rect(box:box, fill:rgb255(0,255,200))
+
+		elif b.cell == GOAL
+			draw_rect(box:box, fill:rgb255(0,120,255))
+
+		elif grid[b.cell].wall
+			draw_rect(box:box, fill:BLACK)
+
+		elif is_in_queue(b.cell)
+			draw_rect(box:box, fill:rgb255(44,62,80))
+			var r <=== solve_rect(basis:box, pin:5, width:bb.width*0.6, height:bb.height*0.6)
+			draw_oval(box:r, fill:rgb255(39,174,96))
+
+		elif grid[b.cell].visited
+			draw_rect(box:box, fill:rgb255(39, 174, 96))
+
+		else
+			draw_rect(box:box, fill:rgb255(44,62,80)) // empty cell
+
+		if grid[b.cell].inpath
+			var r2 <=== solve_rect(basis:box, pin:5, width:bb.width*0.6, height:bb.height*0.6)
+			draw_oval(box:r2, fill:rgb255(192, 57, 43))
+
+--------
+track
+	if b.cell.x == U or b.cell.y == U
+		return Y  //  dead zone or outside is meaningless
+
+	case e.evkind
+	| EV_TAP, EV_DRAG_MOVE
+		grid[b.cell].wall = Y
+
+	| EV_ALT_TAP
+		grid[b.cell].wall = N
+
+	else
+		return N
+	return Y // absorb		
+		
+================
+calc grid_init (
+	toth 
+	totv
+	)
+	trunc grid
+	trunc queue
+	trunc g
+	g.result = U
+
+	//  set grid size
+	g.NC = min(40, round_down(toth / CELLSIZE))
+	g.NR = min(30, round_down(totv / CELLSIZE))
+
+	//  set the start and ending positions
+	START <=== { x:round(g.NC*0.7), y:round(g.NR*0.6) }
+	GOAL  <=== { x:round(g.NC*0.3), y:round(g.NR*0.3) }
+
+	log "==> grid_init {g.NC} x {g.NR}, start={START}, goal={GOAL}"
+
+	append START ===> queue
+	grid[START].visited = Y
+
+================
+calc do_step
+	log "{elapsed}: do_step" on:TRACE
+	var lo = tree_lo(queue)
+	if lo <> U
+		//  remove the next item in the queue
+		var next : a_xy <=== queue[lo]
+		trunc queue[lo]
+
+		//  probe the neighbors of the next cell up/down/left/right
+		probe(next, { x:next.x, y:next.y+1 })
+		probe(next, { x:next.x, y:next.y-1 })
+		probe(next, { x:next.x-1, y:next.y })
+		probe(next, { x:next.x+1, y:next.y })
+	else
+		//  we have no steps left and didn't win, so we must have been blocked
+		game_over("BLOCKED")
+
+================
+calc probe (
+	base : a_xy  //  cell we came from
+	p : a_xy     //  cell to try
+	)
+	log "probe, base={base}, p={p}" on:TRACE
+
+	//  if we probe the end cell, game is over immediately
+	if p == GOAL
+		//  we are done, build the winning path by going backwards from goal
+		grid[p].inpath = Y
+		var previous <=== base
+		loop 
+			log "  --> adding {previous} to winning path" on:TRACE
+			grid[previous].inpath = Y
+			if grid[previous].prev.x == U
+				//  this grid doesn't have a previous cell
+				exit
+			previous <=== grid[previous].prev
+		game_over("FINISHED!")
+
+	elif p.x >= 1 and p.x <= g.NC and p.y >= 1 and p.y <= g.NR and grid[p].visited <> Y and grid[p].wall <> Y and g.result == U
+		//  gotta be inside the grid bounds, not visited, not a wall, not finished
+		//  this cell can be visited
+		log "  --> adding {p} to queue" on:TRACE
+		Y => grid[p].visited
+		base ===> grid[p].prev
+		append p ===> queue
+
+================
+calc game_over (
+	msg : str
+	)
+	msg => g.result
+	loom_clear(id:g.timer_id)
+	g.timer_id = U
+
+================
+calc is_in_queue (
+	pos : a_xy
+	) : yesno
+	var cellp : ptr to a_xy
+	loop across:queue ptr:cellp
+		if pos.x == cellp.x and pos.y == cellp.y
+			return Y
+	return N
