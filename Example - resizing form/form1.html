@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8"/>
+<title>form1</title>
+<link rel="shortcut icon" href="favicon.ico" />
+<style>
+/*  this disables the annoying double click highlighting of DIV blocks  */
+div { outline-style:none;}
+</style>
+</head>
+<body style="margin:0; padding:0;">
+<script type="module">
+import * as std from '../../runtime/beads_std.js';
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, addr } from '../../runtime/beads_std.js';
+import * as str from '../../runtime/beads_str.js';
+import * as k   from '../../runtime/beads_k.js';
+export const CODE_HASH= 0x2a46f8ad;
+const _M = "form1";
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_module = "form1";
+std.aaaa.main_drawer = new std.a_function("form1", "main_draw", main_draw);
+//------- enums
+const ENTRY=9007190258454093; std.g_enum_ss[9007190258454093]="ENTRY";
+const PROVINCE=9007191835310071; std.g_enum_ss[9007191835310071]="PROVINCE";
+const R_a_ui=9007191367157426; std.g_enum_ss[9007191367157426]="a_ui";
+const ADDR1=9007193982736007; std.g_enum_ss[9007193982736007]="ADDR1";
+const CITY=9007193173180524; std.g_enum_ss[9007193173180524]="CITY";
+const F_form_ready=9007192518882162; std.g_enum_ss[9007192518882162]="form_ready";
+std.FIELDS[F_form_ready] = true;
+const F_mode=9007192507615747; std.g_enum_ss[9007192507615747]="mode";
+std.FIELDS[F_mode] = true;
+const ZIPCODE=9007193568374607; std.g_enum_ss[9007193568374607]="ZIPCODE";
+const SUBMITTED=9007191666206588; std.g_enum_ss[9007191666206588]="SUBMITTED";
+const F_response=9007193230616751; std.g_enum_ss[9007193230616751]="response";
+std.FIELDS[F_response] = true;
+const NAME=9007192740923672; std.g_enum_ss[9007192740923672]="NAME";
+const ADDR2=9007193999513626; std.g_enum_ss[9007193999513626]="ADDR2";
+//[reflAAA]
+std.merge_lit(_M,0,std.META,_M, std.F_mod_const, "CANADA_POSTAL", std.F_vv_typek, VAL, std.TYPE_PATTERN, POP, "FIELDLIST", std.F_vv_typek, VAL, std.TYPE_ARRAY, POP, "FIELDV"
+, std.F_vv_typek, VAL, std.TYPE_NUM, POP, "GAP", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "GAPSQ1", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "GAPSQ2", std.F_vv_typek, VAL, std.TYPE_NUM
+, POP, "GAPSQ3", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "LABELV", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "SCAFFOLDING", std.F_vv_typek, VAL, std.TYPE_YESNO, POP, "SERVER_URL"
+, std.F_vv_typek, VAL, std.TYPE_STR, POP, "TARGH", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "TARGV", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "TRACE_BBOX", std.F_vv_typek, VAL, 
+std.TYPE_YESNO, POP, "TRACE_DRAW", std.F_vv_typek, VAL, std.TYPE_YESNO, POP, "TRACE_VALIDATE", std.F_vv_typek, VAL, std.TYPE_YESNO, POP, POP, std.F_mod_enums, "ADDR1", VAL, 
+ADDR1, "ADDR2", VAL, ADDR2, "CITY", VAL, CITY, "ENTRY", VAL, ENTRY, "NAME", VAL, NAME, "PROVINCE", VAL, PROVINCE, "SUBMITTED", VAL, SUBMITTED, "ZIPCODE", VAL, ZIPCODE, POP
+, std.F_mod_funcs, "d_accepted", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_error", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_input", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms
+, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "fx", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "d_input_373", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms
+, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "fx", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "d_label", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms
+, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "fx", std.F_vv_typek, VAL, std.TYPE_NUM, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "just", std.F_vv_typek
+, VAL, std.TYPE_NUM, POP, POP, POP, "d_submit", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_timeout", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_waiting", std.F_vv_funck, VAL, 
+std.FK_DRAW, POP, "do_submit", std.F_vv_funck, VAL, std.FK_CALC, POP, "fix_ready", std.F_vv_funck, VAL, std.FK_CALC, POP, "form_title", std.F_vv_funck, VAL, std.FK_DRAW, POP
+, "gen_http_payload", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_typek, VAL, std.TYPE_STR, POP, "label_and_field", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk
+, VAL, std.PK_POS, std.F_vv_parmn, VAL, "fx", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "layout_med_narrow", std.F_vv_funck, VAL, std.FK_DRAW, POP, "layout_square"
+, std.F_vv_funck, VAL, std.FK_DRAW, POP, "layout_super_narrow", std.F_vv_funck, VAL, std.FK_DRAW, POP, "main_draw", std.F_vv_funck, VAL, std.FK_DRAW, POP, "main_init", std.F_vv_funck
+, VAL, std.FK_CALC, POP, "med_narrow2", std.F_vv_funck, VAL, std.FK_DRAW, POP, "sq_row1", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS
+, std.F_vv_parmn, VAL, "fieldw", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "sq_row2", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS
+, std.F_vv_parmn, VAL, "fieldw", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "sq_row3", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS
+, std.F_vv_parmn, VAL, "fieldw", std.F_vv_typek, VAL, std.TYPE_NUM, POP, POP, POP, "super_narrow2", std.F_vv_funck, VAL, std.FK_DRAW, POP, POP, std.F_mod_recs, "a_ui", std.F_vv_fields
+, "form_ready", std.F_vv_typek, VAL, std.TYPE_YESNO, POP, "mode", std.F_vv_typek, VAL, std.TYPE_NUM, POP, "response", std.F_vv_rec, VAL, "a_http_response", std.F_vv_typek, VAL, 
+std.TYPE_RECORD, POP, POP, POP, POP, std.F_mod_vars, "fields", std.F_vv_rec, VAL, "a_input_field", std.F_vv_typek, VAL, std.TYPE_RECORD, POP, "g", std.F_vv_rec, VAL, "a_ui"
+, std.F_vv_typek, VAL, std.TYPE_RECORD);
+//[reflZZZ]
+//-------  func const
+const layout_square_F = new std.a_function("form1", "layout_square", layout_square);
+const d_submit_F = new std.a_function("form1", "d_submit", d_submit, track_d_submit);
+const fix_ready_F = new std.a_function("form1", "fix_ready", fix_ready);
+const layout_super_narrow_F = new std.a_function("form1", "layout_super_narrow", layout_super_narrow);
+const layout_med_narrow_F = new std.a_function("form1", "layout_med_narrow", layout_med_narrow);
+const d_accepted_F = new std.a_function("form1", "d_accepted", d_accepted, track_d_accepted);
+const med_narrow2_F = new std.a_function("form1", "med_narrow2", med_narrow2);
+const d_waiting_F = new std.a_function("form1", "d_waiting", d_waiting);
+const super_narrow2_F = new std.a_function("form1", "super_narrow2", super_narrow2);
+const form_title_F = new std.a_function("form1", "form_title", form_title);
+const d_error_F = new std.a_function("form1", "d_error", d_error, track_d_error);
+const d_timeout_F = new std.a_function("form1", "d_timeout", d_timeout, track_d_timeout);
+const do_submit_F = new std.a_function("form1", "do_submit", do_submit);
+const d_input_373_F = new std.a_function("form1", "d_input_373", d_input_373);
+//-------  top nodes
+const TRACE_BBOX = N;
+const TRACE_DRAW = N;
+const TRACE_VALIDATE = N;
+const SCAFFOLDING = Y;
+const FIELDLIST = new std.a_tree("form1","FIELDLIST", std.NF_TOPLEVEL); std.merge_lit(_M, 38, FIELDLIST, 1, VAL, NAME, 2, VAL, ADDR1, 3, VAL, ADDR2, 4, VAL, CITY, 5, VAL, 
+  PROVINCE, 6, VAL, ZIPCODE);
+const TARGH = 50;
+const TARGV = 20;
+const GAP = 6;
+const LABELV = 16;
+const FIELDV = 20;
+const SERVER_URL = "https://postman-echo.com/post";
+const CANADA_POSTAL = /^[A-Z][0-9][A-Z](?: |-)?[0-9][A-Z][0-9]$/g;
+const GAPSQ1 = 20;
+const GAPSQ2 = 10;
+const GAPSQ3 = 40;
+let g = new std.a_tree("form1","g", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+let fields = new std.a_tree("form1","fields", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+
+//====================
+//   d_accepted
+//====================
+function d_accepted(b) {
+k.k_enter(b);
+  let r = new std.a_tree("form1","r"); std.merge_tree(_M, 133, std.solve_rect({ basis:addr(b.extra, std.F_box), pin:5, width:std.pt_to_dots(b, 400), height:std.pt_to_dots(b, 
+  150) }), std.addr(r));
+  std.draw_rect(b, std.addr(r), { fill:std.DARK_OLIVE_GREEN, thick:std.pt_to_dots(b, 2), corner:std.pt_to_dots(b, 20), color:std.LIGHT_GOLDENROD });
+  std.draw_str(b, std.addr(r), "Data accepted!", { size:std.pt_to_dots(b, 24), color:std.LIGHT_GOLDENROD });
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_accepted
+//====================
+function track_d_accepted(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 137, std.addr(g, F_mode), ENTRY);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_error
+//====================
+function d_error(b) {
+k.k_enter(b);
+  let r = new std.a_tree("form1","r"); std.merge_tree(_M, 149, std.solve_rect({ basis:addr(b.extra, std.F_box), pin:5, width:std.pt_to_dots(b, 400), height:std.pt_to_dots(b, 
+  150) }), std.addr(r));
+  std.draw_rect(b, std.addr(r), { fill:std.TOMATO, thick:std.pt_to_dots(b, 2), corner:std.pt_to_dots(b, 20), color:std.MISTY_ROSE });
+  std.draw_str(b, std.addr(r), std.cat("Server error, status=", str.to_str(getn(g, F_response, std.F_http_status), {show_u:Y, digits:0})), { size:std.pt_to_dots(b, 24), color
+  :std.MISTY_ROSE });
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_error
+//====================
+function track_d_error(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 153, std.addr(g, F_mode), ENTRY);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_input
+//====================
+function d_input(b, fx) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_add(b, U, 0, 10, std.al, new std.a_function(_M, "d_input_373", d_input_373, null, [fx]), 0);
+  if (std.eq2(fx, ZIPCODE)) {
+    k.div_spa(b, 0, 10, std.al);
+  }
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   d_label
+//====================
+function d_label(b, fx, just) {
+k.k_enter(b);
+  if (TRACE_BBOX === Y) {
+    std.draw_rect(b, addr(b.extra, std.F_box), { thick:1, color:std.PINK });
+  }
+  std.draw_str(b, addr(b.extra, std.F_box), gets(fields, fx, std.F_in_label), { just:just, indent:std.pt_to_dots(b, 2), size:0.65 });
+k.k_leave(b);
+}
+
+
+//====================
+//   d_submit
+//====================
+function d_submit(b) {
+k.k_enter(b);
+  let r = new std.a_tree("form1","r"); std.merge_tree(_M, 294, std.solve_rect({ basis:addr(b.extra, std.F_box), pin:5, width:std.pt_to_dots(b, 120) }), std.addr(r));
+  let opacity = getn(g, F_form_ready) === Y ? 1 : 0.3;
+  std.draw_rect(b, std.addr(r), { corner:std.div(b.bounds.height, 4), fill:std.PALE_TURQUOISE, thick:std.pt_to_dots(b, 2), color:std.STEEL_BLUE, opacity:opacity });
+  std.draw_str(b, std.addr(r), "SUBMIT", { size:0.7, color:std.STEEL_BLUE, opacity:opacity });
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_submit
+//====================
+function track_d_submit(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    if (getn(g, F_form_ready) === Y) {
+      do_submit();
+    }
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_timeout
+//====================
+function d_timeout(b) {
+k.k_enter(b);
+  let r = new std.a_tree("form1","r"); std.merge_tree(_M, 158, std.solve_rect({ basis:addr(b.extra, std.F_box), pin:5, width:std.pt_to_dots(b, 400), height:std.pt_to_dots(b, 
+  150) }), std.addr(r));
+  std.draw_rect(b, std.addr(r), { fill:std.ORANGE_RED, thick:std.pt_to_dots(b, 2), corner:std.pt_to_dots(b, 20), color:std.MISTY_ROSE });
+  std.draw_str(b, std.addr(r), "Server timeout", { size:std.pt_to_dots(b, 24), color:std.MISTY_ROSE });
+k.k_leave(b);
+}
+
+
+//====================
+//   track_d_timeout
+//====================
+function track_d_timeout(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 162, std.addr(g, F_mode), ENTRY);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_waiting
+//====================
+function d_waiting(b) {
+k.k_enter(b);
+  let r = new std.a_tree("form1","r"); std.merge_tree(_M, 142, std.solve_rect({ basis:addr(b.extra, std.F_box), pin:5, width:std.pt_to_dots(b, 400), height:std.pt_to_dots(b, 
+  150) }), std.addr(r));
+  std.draw_rect(b, std.addr(r), { fill:std.TOMATO, thick:std.pt_to_dots(b, 2), corner:std.pt_to_dots(b, 20), color:std.MISTY_ROSE });
+  std.draw_str(b, std.addr(r), "Waiting for server...", { size:std.pt_to_dots(b, 24), color:std.MISTY_ROSE });
+k.k_leave(b);
+}
+
+
+//====================
+//   form_title
+//====================
+function form_title(b) {
+k.k_enter(b);
+  std.draw_str(b, addr(b.extra, std.F_box), "Entry Form Example v1", { size:0.7, color:std.CRIMSON });
+k.k_leave(b);
+}
+
+
+//====================
+//   label_and_field
+//====================
+function label_and_field(b, fx) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_add(b, U, 0, 30, std.al, new std.a_function(_M, "d_label", d_label, null, [fx, std.RIGHT]), 0);
+  k.div_spa(b, 0, 4, std.pt);
+  k.div_add(b, U, 0, 80, std.al, new std.a_function(_M, "d_input", d_input, null, [fx]), 0);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   layout_med_narrow
+//====================
+function layout_med_narrow(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_add(b, U, 0, 120, std.al, med_narrow2_F, 0);
+  k.div_spa(b, 0, 10, std.al);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   layout_square
+//====================
+function layout_square(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, true);
+  const MAXW = std.pt_to_dots(b, 360);
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_add(b, U, 1, FIELDV, std.pt, form_title_F, 0);
+  let fieldw = std.min(MAXW, std.mul(b.bounds.width, 0.45));
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_add(b, U, 1, FIELDV, std.pt, new std.a_function(_M, "sq_row1", sq_row1, null, [fieldw]), 0);
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_add(b, U, 1, FIELDV, std.pt, new std.a_function(_M, "sq_row2", sq_row2, null, [fieldw]), 0);
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_add(b, U, 1, FIELDV, std.pt, new std.a_function(_M, "sq_row3", sq_row3, null, [fieldw]), 0);
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_spa(b, 1, std.mul(GAP, 2), std.pt);
+  k.div_add(b, U, 1, FIELDV, std.pt, d_submit_F, 0);
+  k.div_spa(b, 1, GAP, std.pt);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   layout_super_narrow
+//====================
+function layout_super_narrow(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, 10, std.al);
+  k.div_add(b, U, 0, 90, std.al, super_narrow2_F, 0);
+  k.div_spa(b, 0, 10, std.al);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+k.k_root2(b);
+k.k_enter(b);
+  std.draw_rect(b, addr(b.extra, std.F_box), { fill:std.ALICE_BLUE });
+  if (std.eq2(getn(g, F_mode), SUBMITTED)) {
+    var case77 = getn(g, F_response, std.F_http_phase);
+    if (case77 === std.HTTP_TIMEOUT) {
+      k.k_isolate(b, b.bounds, "d_timeout", d_timeout_F);
+    } else if (case77 === std.HTTP_DONE) {
+      if (std.eq2(std.round_down(std.div(getn(g, F_response, std.F_http_status), 100), {}), 2)) {
+        k.k_isolate(b, b.bounds, "d_accepted", d_accepted_F);
+      } else {
+        k.k_isolate(b, b.bounds, "d_error", d_error_F);
+      }
+    } else {
+      d_waiting(b);
+    }
+  } else {
+    const LIMIT1 = std.pt_to_dots(b, 384);
+    const LIMIT2 = std.pt_to_dots(b, 480);
+    if (std.lt2(b.bounds.width, LIMIT1)) {
+      layout_super_narrow(b);
+    } else if (std.lt2(b.bounds.width, LIMIT2)) {
+      layout_med_narrow(b);
+    } else {
+      layout_square(b);
+    }
+  }
+k.k_leave(b);
+}
+
+
+//====================
+//   med_narrow2
+//====================
+function med_narrow2(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, true);
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_add(b, U, 1, FIELDV, std.pt, form_title_F, 0);
+  var loop78 = new std.a_loop({ across:std.addr(FIELDLIST) });
+  while (loop78.next()) {
+  var fx = loop78.val;
+    k.div_spa(b, 1, GAP, std.pt);
+    k.div_add(b, U, 1, FIELDV, std.pt, new std.a_function(_M, "label_and_field", label_and_field, null, [fx]), 0);
+  }
+  k.div_spa(b, 1, std.mul(GAP, 2), std.pt);
+  k.div_add(b, U, 1, FIELDV, std.pt, d_submit_F, 0);
+  k.div_spa(b, 1, GAP, std.pt);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   sq_row1
+//====================
+function sq_row1(b, fieldw) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, GAPSQ1, std.al);
+  k.div_add(b, U, 0, fieldw, std.px, new std.a_function(_M, "label_and_field", label_and_field, null, [NAME]), 0);
+  k.div_spa(b, 0, GAPSQ2, std.al);
+  k.div_add(b, U, 0, fieldw, std.px, new std.a_function(_M, "label_and_field", label_and_field, null, [ADDR1]), 0);
+  k.div_spa(b, 0, GAPSQ3, std.al);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   sq_row2
+//====================
+function sq_row2(b, fieldw) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, GAPSQ1, std.al);
+  k.div_add(b, U, 0, fieldw, std.px, new std.a_function(_M, "label_and_field", label_and_field, null, [ADDR2]), 0);
+  k.div_spa(b, 0, GAPSQ2, std.al);
+  k.div_add(b, U, 0, fieldw, std.px, new std.a_function(_M, "label_and_field", label_and_field, null, [CITY]), 0);
+  k.div_spa(b, 0, GAPSQ3, std.al);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   sq_row3
+//====================
+function sq_row3(b, fieldw) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, false);
+  k.div_spa(b, 0, GAPSQ1, std.al);
+  k.div_add(b, U, 0, fieldw, std.px, new std.a_function(_M, "label_and_field", label_and_field, null, [PROVINCE]), 0);
+  k.div_spa(b, 0, GAPSQ2, std.al);
+  k.div_add(b, U, 0, fieldw, std.px, new std.a_function(_M, "label_and_field", label_and_field, null, [ZIPCODE]), 0);
+  k.div_spa(b, 0, GAPSQ3, std.al);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   super_narrow2
+//====================
+function super_narrow2(b) {
+k.k_enter(b);
+k.div_begin(b, null, false, false, true);
+  k.div_spa(b, 1, GAP, std.pt);
+  k.div_add(b, U, 1, FIELDV, std.pt, form_title_F, 0);
+  var loop79 = new std.a_loop({ across:std.addr(FIELDLIST) });
+  while (loop79.next()) {
+  var fx = loop79.val;
+    k.div_spa(b, 1, GAP, std.pt);
+    k.div_add(b, U, 1, LABELV, std.pt, new std.a_function(_M, "d_label", d_label, null, [fx, std.LEFT]), 0);
+    k.div_add(b, U, 1, FIELDV, std.pt, new std.a_function(_M, "d_input", d_input, null, [fx]), 0);
+  }
+  k.div_spa(b, 1, std.mul(GAP, 2), std.pt);
+  k.div_add(b, U, 1, FIELDV, std.pt, d_submit_F, 0);
+  k.div_spa(b, 1, GAP, std.pt);
+k.div_end(b);
+k.k_leave(b);
+}
+
+
+//====================
+//   do_submit
+//====================
+function do_submit() {
+  let mybuf = gen_http_payload();
+  std.path_setv(_M, 315, std.addr(g, F_mode), SUBMITTED);
+  std.http_request(_M, 321, SERVER_URL, { method:"POST", send:mybuf, timeout:5, response:std.addr(g, F_response) });
+}
+
+
+//====================
+//   fix_ready
+//====================
+function fix_ready() {
+  let ready = Y;
+  var loop80 = new std.a_loop({ across:std.addr(fields) });
+  while (loop80.next()) {
+  var field = loop80.path.clone();
+    if (std.validate_input(field) !== Y) {
+      ready = N;
+    }
+  }
+  std.path_setv(_M, 340, std.addr(g, F_form_ready), ready);
+}
+
+
+//====================
+//   gen_http_payload
+//====================
+function gen_http_payload() {
+  let ss = "";
+  var loop81 = new std.a_loop({ across:std.addr(fields) });
+  while (loop81.next()) {
+  var ix = loop81.count;
+  var fx = loop81.index;
+    if (std.gt2(ix, 1)) {
+      ss = std.cat(ss, "&");
+    }
+    ss = std.cat(ss, std.http_encodeURIComponent(str.to_str(fx, {}), {}), "=", std.http_encodeURIComponent(gets(fields, fx, std.F_in_value), { plus:Y }));
+  }
+  return ss;
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.copy_tree(_M, 72, std.tree_lit(_M, 72, std.F_in_label, VAL, "Name", std.F_in_maxlen, VAL, 30, std.F_in_required, VAL, Y, std.F_in_form_ready, VAL, fix_ready_F), std.addr(
+  fields, NAME));
+  std.copy_tree(_M, 73, std.tree_lit(_M, 73, std.F_in_label, VAL, "Address 1", std.F_in_maxlen, VAL, 30, std.F_in_required, VAL, Y, std.F_in_form_ready, VAL, fix_ready_F), std.addr(
+  fields, ADDR1));
+  std.copy_tree(_M, 74, std.tree_lit(_M, 74, std.F_in_label, VAL, "Address 2", std.F_in_maxlen, VAL, 30), std.addr(fields, ADDR2));
+  std.copy_tree(_M, 75, std.tree_lit(_M, 75, std.F_in_label, VAL, "City", std.F_in_maxlen, VAL, 30, std.F_in_required, VAL, Y, std.F_in_form_ready, VAL, fix_ready_F), std.addr(
+  fields, CITY));
+  std.copy_tree(_M, 76, std.tree_lit(_M, 76, std.F_in_label, VAL, "Province", std.F_in_maxlen, VAL, 20, std.F_in_required, VAL, Y, std.F_in_form_ready, VAL, fix_ready_F), std.addr(
+  fields, PROVINCE));
+  std.copy_tree(_M, 77, std.tree_lit(_M, 77, std.F_in_label, VAL, "Postal code", std.F_in_maxlen, VAL, 10, std.F_in_required, VAL, Y, std.F_in_pattern, VAL, CANADA_POSTAL, std.F_in_form_ready
+  , VAL, fix_ready_F), std.addr(fields, ZIPCODE));
+  std.path_setv(_M, 79, std.addr(g, F_mode), ENTRY);
+  if (SCAFFOLDING === Y) {
+    std.path_setv(_M, 82, std.addr(fields, NAME, std.F_in_value), "Jóhn Døe");
+    std.path_setv(_M, 83, std.addr(fields, ADDR1, std.F_in_value), "123 First St");
+    std.path_setv(_M, 84, std.addr(fields, ADDR2, std.F_in_value), "Apt 12");
+    std.path_setv(_M, 86, std.addr(fields, PROVINCE, std.F_in_value), "British Columbia");
+    std.path_setv(_M, 87, std.addr(fields, ZIPCODE, std.F_in_value), "A1C-2Z8");
+    fix_ready();
+  }
+}
+
+
+//====================
+//   d_input_373
+//====================
+function d_input_373(b, fx) {
+k.k_enter(b);
+  std.draw_input(b, addr(b.extra, std.F_box), std.addr(fields, fx), { just:std.LEFT, indent:std.pt_to_dots(b, 4), size:0.65, border_color:std.STEEL_BLUE });
+k.k_leave(b);
+}
+
+main_init();
+k.rebuild_all();
+
+</script>
+</body>
+</html>

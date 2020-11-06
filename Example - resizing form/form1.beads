@@ -1,0 +1,412 @@
+beads 1 program form1  //  example of a simple entry form
+
+//  this program shows an entry form that responds to the screen shape
+//  it has 3 different layouts:
+//    1) super narrow : show one thin column; so narrow that the field labels are on top'
+//    2) narrow - show in on column, but the labels can fit on the left of the field
+//    3) wide - show in two columns
+//
+//  the submit button is dimmed while the form is not valid
+//  this form assumes you are asking for a canadian address, and will insist on a valid postal code
+//  the postal code validation uses a regular expression defined at the beginning of the program.
+
+//  warning: modern browsers have an extra security check when trying to POST a form
+//  they basically require the server to first give permission to POST, via a protocol called CORS
+//  This extra security check requires the server first send a header telling they have permission to post
+//  to add this to a server, you add a line to the Apache configuration that allows cross-origin requests
+//  however the test sites we find on the internet do not support this, so you have to disable this
+//  protection in the browser while test. You can use this chrome extension to do this:
+//  https://chrome.google.com/webstore/detail/moesif-orign-cors-changer/digfbfaphojjndkpccljibejjbppifbc
+//  if you get this extension, and turn it on (via the ON/OFF switch in the upper right corner)
+//  then the data will be accepted by the server.
+
+const
+	//  tracing flags
+	TRACE_BBOX = N // if Y, then show bounding boxes
+	TRACE_DRAW = N 
+	TRACE_VALIDATE = N
+	SCAFFOLDING = Y  //  if Y, inject fake data into the form
+
+enum  // these enums match the internal field names we store in the db
+	NAME
+	ADDR1
+	ADDR2
+	CITY
+	PROVINCE
+	ZIPCODE
+
+const FIELDLIST = [NAME, ADDR1, ADDR2, CITY, PROVINCE, ZIPCODE]
+
+record a_ui
+	mode : (ENTRY, SUBMITTED)  //  we are either building the form or sending it
+	form_ready : yesno  //  is the form ready to submit?
+	response : a_http_response
+
+var g : a_ui
+
+var fields : array of a_input_field  // array of fields, indexed by enum
+
+const
+	TARGH = 50  //  maximum target width in picas we want the box to be
+	TARGV = 20  //  max target height in points we want the input box to be
+	GAP = 6  // in points
+	LABELV = 16  // in points
+	FIELDV = 20  // in points
+
+	//  this fellow is kind enough to keep an echo Perl script running
+	//  however only on Safari with cross origin disabled will it work
+	//  on Chrome for example you will get a 404 error, blocked by the browser
+	SERVER_URL = "https://postman-echo.com/post" // "http://jkorpela.fi/cgi-bin/echo.cgi"
+
+//  a regular expression pattern we use to validate canadian postal codes
+pattern CANADA_POSTAL starts ends  //  canadian postcal code like A13-3F2
+	set:'A-Z', digit, set:'A-Z' // first group of 3
+	optional or         // optional divider
+		' '
+		'-'
+	digit, set:'A-Z', digit    // last group of 3
+
+==================
+calc main_init
+==================
+	{ in_label:"Name", in_maxlen:30, in_required:Y, in_form_ready:fix_ready } ===> fields[NAME]
+	{ in_label:"Address 1", in_maxlen:30, in_required:Y, in_form_ready:fix_ready } ===> fields[ADDR1]
+	{ in_label:"Address 2", in_maxlen:30 } ===> fields[ADDR2]
+	{ in_label:"City", in_maxlen:30, in_required:Y, in_form_ready:fix_ready } ===> fields[CITY]
+	{ in_label:"Province", in_maxlen:20, in_required:Y, in_form_ready:fix_ready } ===> fields[PROVINCE]
+	{ in_label:"Postal code", in_maxlen:10, in_required:Y, in_pattern:CANADA_POSTAL, in_form_ready:fix_ready } ===> fields[ZIPCODE]
+
+	g.mode = ENTRY
+
+	if SCAFFOLDING
+		"Jóhn Døe" => fields[NAME].in_value  //  note accent marks to test encoding
+		"123 First St"  => fields[ADDR1].in_value
+		"Apt 12" => fields[ADDR2].in_value
+		//"Outer Moxyville" => fields[CITY].in_value
+		"British Columbia" => fields[PROVINCE].in_value
+		"A1C-2Z8" => fields[ZIPCODE].in_value
+
+		fix_ready  //  start out with our warning flags set
+
+==================
+draw main_draw
+==================
+	draw_rect(b.box, fill:ALICE_BLUE)
+
+	log "main_draw, mode={g.mode} response.http_phase={g.response.http_phase}" on:TRACE_DRAW
+	if g.mode == SUBMITTED
+		// response.http_phase could be  HTTP_START, HTTP_HEADERS, HTTP_BUSY, HTTP_TIMEOUT, HTTP_DONE 
+		case g.response.http_phase
+		| HTTP_TIMEOUT
+			d_timeout
+		| HTTP_DONE
+			//  request is over, might or might not have worked
+			if round_down(g.response.http_status / 100) == 2  // any 2xx message is good
+				d_accepted
+			else
+				d_error
+		else
+			//  still waiting
+			d_waiting
+
+	else
+		//  we have the following possible layouts:
+		//    super narrow:  NAME  - ADDR1  - ADDR2  - CITY - PROVINCE - ZIPCODE, all vertical 
+		//    medium narrow: each one vertical, but label inline with field
+		//    square:  NAME ADDR1 / ADDR2 CITY / PROVINCE ZIP
+		const LIMIT1 = 384 pt  // typical 16 pixels per pica
+		const LIMIT2 = 480 pt
+		log "boxwidth={b.box.width}, LIMIT1={LIMIT1}, LIMIT2={LIMIT2}" on:TRACE_DRAW
+		if b.box.width < LIMIT1
+			log "-> super_narrow"  on:TRACE_DRAW
+			layout_super_narrow  // 1 column, 12 rows
+		elif b.box.width < LIMIT2
+			log "-> med_narrow"  on:TRACE_DRAW
+			layout_med_narrow  //  2 column, 6 rows
+		else
+			log "-> square"  on:TRACE_DRAW
+			layout_square //  3 columns 2 rows
+
+==================
+draw d_accepted
+==================
+	var r : a_rect <=== solve_rect(basis:b.box, pin:5, width:400 pt, height:150 pt)
+	draw_rect(r, fill:DARK_OLIVE_GREEN, thick:2 pt, corner:20 pt, color:LIGHT_GOLDENROD)
+	draw_str(r, "Data accepted!", size:24 pt, color:LIGHT_GOLDENROD)
+track EV_TAP
+	g.mode = ENTRY
+
+==================
+draw d_waiting
+==================
+	var r : a_rect <=== solve_rect(basis:b.box, pin:5, width:400 pt, height:150 pt)
+	draw_rect(r, fill:TOMATO, thick:2 pt, corner:20 pt, color:MISTY_ROSE)
+	draw_str(r, "Waiting for server...", size:24 pt, color:MISTY_ROSE)
+	
+==================
+draw d_error
+==================
+	var r : a_rect <=== solve_rect(basis:b.box, pin:5, width:400 pt, height:150 pt)
+	draw_rect(r, fill:TOMATO, thick:2 pt, corner:20 pt, color:MISTY_ROSE)
+	draw_str(r, "Server error, status={g.response.http_status}", size:24 pt, color:MISTY_ROSE)
+track EV_TAP
+	g.mode = ENTRY
+	
+==================
+draw d_timeout
+==================
+	var r : a_rect <=== solve_rect(basis:b.box, pin:5, width:400 pt, height:150 pt)
+	draw_rect(r, fill:ORANGE_RED, thick:2 pt, corner:20 pt, color:MISTY_ROSE)
+	draw_str(r, "Server timeout", size:24 pt, color:MISTY_ROSE)
+track EV_TAP
+	g.mode = ENTRY
+	
+==================
+horz slice layout_super_narrow
+==================
+	//  reserve about 1/9th margin left and right
+	skip 10 al
+	add 90 al super_narrow2
+	skip 10 al
+
+==================
+vert scroll super_narrow2
+==================
+	skip GAP pt
+	add FIELDV pt form_title
+
+	// 1 column, 12 rows
+	loop across:FIELDLIST val:fx
+		skip GAP pt
+		add LABELV pt d_label(fx, LEFT)
+		add FIELDV pt d_input(fx)
+
+	//  submit button
+	skip (GAP*2) pt
+	add FIELDV pt d_submit
+	skip GAP pt
+
+==================
+horz slice layout_med_narrow
+==================
+	//  reserve a small margin left and right
+	skip 10 al
+	add 120 al med_narrow2
+	skip 10 al
+
+==================
+vert scroll med_narrow2
+==================
+	skip GAP pt
+	add FIELDV pt form_title
+
+	//  2 column, 6 rows
+	loop across:FIELDLIST val:fx
+		skip GAP pt
+		add FIELDV pt label_and_field(fx)
+
+	//  submit button
+	skip (GAP*2) pt
+	add FIELDV pt d_submit
+	skip GAP pt
+
+==================
+vert scroll layout_square
+==================
+	const MAXW = 360 pt
+	skip GAP pt
+	add FIELDV pt form_title
+
+	//  2 columns 3 rows
+	var fieldw = min(MAXW, b.box.width*0.45)
+	log "box={b.box.width}, 45%={b.box.width*0.45}, MAX={MAXW}" on:TRACE_DRAW
+
+	skip GAP pt
+	add FIELDV pt sq_row1(fieldw)
+	skip GAP pt
+	add FIELDV pt sq_row2(fieldw)
+	skip GAP pt
+	add FIELDV pt sq_row3(fieldw)	
+	skip GAP pt
+
+	//  submit button
+	skip (GAP*2) pt
+	add FIELDV pt d_submit
+	skip GAP pt
+
+const
+	//  beause the label is right justified, we give a bit more gap on the right
+	GAPSQ1 = 20
+	GAPSQ2 = 10
+	GAPSQ3 = 40
+
+==================
+horz slice sq_row1(  //  NAME ADDR1
+==================
+	fieldw
+	) ---------
+	skip GAPSQ1 al
+	add fieldw px label_and_field(NAME)
+	skip GAPSQ2 al
+	add fieldw px label_and_field(ADDR1)
+	skip GAPSQ3 al
+
+==================
+horz slice sq_row2(  //  ADDR2 CITY 
+==================
+	fieldw
+	) ---------
+	skip GAPSQ1 al
+	add fieldw px label_and_field(ADDR2)
+	skip GAPSQ2 al
+	add fieldw px label_and_field(CITY)
+	skip GAPSQ3 al
+
+==================
+horz slice sq_row3(  // PROVINCE ZIP 
+==================
+	fieldw
+	) ---------
+	skip GAPSQ1 al
+	add fieldw px label_and_field(PROVINCE)
+	skip GAPSQ2 al
+	add fieldw px label_and_field(ZIPCODE)
+	skip GAPSQ3 al
+
+==================
+horz slice label_and_field(  --  draw the label
+==================
+	fx  -- the field number we are drawing
+	) ---------
+	add 30 al d_label(fx, RIGHT)
+	skip 4 pt
+	add 80 al d_input(fx)
+
+==================
+draw form_title
+==================
+	draw_str(b.box, "Entry Form Example v1", size:0.7, color:CRIMSON)
+
+==================
+draw d_submit
+==================
+	//  calculate a reasonable button width
+	var r : a_rect <=== solve_rect(basis:b.box, pin:5, width:120 pt)
+
+	//  if the form isn't ready, dim the button
+	var opacity : num = if g.form_ready then 1 else 0.3
+
+	//  draw the button
+	draw_rect(r, corner:b.box.height/4, fill:PALE_TURQUOISE, thick:2 pt, color:STEEL_BLUE, opacity:opacity)
+	draw_str(r, "SUBMIT", size:0.7, color:STEEL_BLUE, opacity:opacity)
+---------
+track EV_TAP
+	//  ignore the click if the form isn't ready to submit yet
+	if g.form_ready
+		do_submit
+
+==================
+calc do_submit
+==================
+	//  convert the form to a buffer of data with the proper encoding
+	var mybuf = gen_http_payload()
+
+	//  we are no longer in entry mode, waiting for an answer
+	g.mode = SUBMITTED
+
+	//  post the form via HTTP to the server
+	//  this call will set the response.phase to HTTP_START, then update it
+	//  if the request fails immediately, the reponse.status will be set
+	//log "-- before HTTP request--"
+	http_request(SERVER_URL, method:"POST", send:mybuf, timeout:5, response:g.response)
+	//log "-- after HTTP request--"
+
+==================
+calc fix_ready  -- set the form enable flag by making sure all fields are valid
+==================
+	log "-- fix_ready, start" on:TRACE_VALIDATE
+
+	var ready : yesno = Y
+
+	//  we validate on loss of focus (blur event in JS) on each field
+	//  but not all fields may have been visited by the user, esp. if autocomplete was used
+	//  so we re-validate all the fields just to be sure
+	loop across:fields ptr:field
+		//  the system will call the custom field validator if necessary
+		if validate_input(field) <> Y
+			log " >> failed on field {field.in_label}" on:TRACE_VALIDATE
+			ready = N
+
+	g.form_ready = ready  //  store this in our state
+	log "-- end fix_ready, ready={ready}" on:TRACE_VALIDATE
+
+==================
+calc gen_http_payload(  --  create the payload which has the form var1=val1&var2=val2...
+==================
+	) : str  -- the payload as a string, encoded as 7-bit ascii string
+	//  used for POST to prepare the buffer
+	//  create a string that has any unicode split into surrogate pairs, and escape all punct
+	//  first create an array of name/value pairs in string form
+	var ss : str = ""
+	loop across:fields index:fx count:ix
+		if ix > 1
+			'&' &=> ss  // add ampersand between them
+		http_encodeURIComponent(to_str(fx)) & "=" & http_encodeURIComponent(fields[fx].in_value, plus:Y) &=> ss
+	return ss
+
+==================
+draw d_label(  --  draw the label
+==================
+	fx  -- the field number we are drawing
+	just -- justification
+	) ---------
+	if TRACE_BBOX
+		draw_rect(b.box, thick:1, color:PINK)
+	draw_str(b.box, fields[fx].in_label, just:just, indent:2 pt, size:0.65)
+	
+==================
+horz slice d_input(  --  draw the input field
+==================
+	fx  -- the field number we are drawing
+	) ---------
+	add 10 al
+		draw_input(b.box, fields[fx], just:LEFT, indent:4 pt, size:0.65, border_color:STEEL_BLUE)
+	if fx == ZIPCODE
+		skip 10 al  //  shorten the input field by stealing space
+
+/*.....	
+==================
+horz slice field_horz(  --  draw the label and the field together on the same line
+==================
+	fx  -- the field number we are drawing
+	) ---------
+	const MAXWIDTH = 360 pt  //  the max width we want to allow
+	const GAP = 4 pt
+	//  we don't want the fields to go above our max width
+	var avail = (b.box.width - GAP)/ 2
+	var width = min(MAXWIDTH, avail)
+	
+	skip 10 al  // divide extra space evenly
+	add width px
+		draw_rect(b.box, thick:1, color:PINK)
+		draw_str(b.box, fields[fx].label, just:RIGHT, size:0.6)
+	skip GAP px
+	add width px
+		draw_rect(b.box, thick:1, color:GREEN)
+		draw_str(b.box, fields[fx].in_value, just:LEFT, indent:4 pt, size:0.6)
+	skip 10 al 
+
+==================
+vert slice field_vert(  -- draw the label above the field, left aligned
+==================
+	fx  -- the field number we are drawing
+	) ---------
+	add TARGV pt 
+		draw_rect(b.box, thick:1, color:PINK)
+		draw_str(b.box, fields[fx].label, just:LEFT, indent:4 pt, size:0.6)
+	skip 1 pt
+	add TARGV pt
+		draw_rect(b.box, thick:1, color:GREEN)
+		draw_str(b.box, fields[fx].in_value, just:LEFT, indent:4 pt, size:*0.6)
+		
+....*/
