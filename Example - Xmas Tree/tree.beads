@@ -7,7 +7,7 @@ beads 1 program tree
 const 
 	//  define the tree as a multiline string. we don't want backslash to function as an escape seq
 	//  so we use the special syntax to suppress escape characters.
-	TREE = """[no_esc]
+	TREE = """
            Y
           YYY
           /_\
@@ -35,7 +35,10 @@ const
 	DARK_GRAD : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_RIGHT, 
 		//  gradients are a two dimensional array of [percent, color, opacity]
 		//  make a 4 band gradient at 0, 46, 54, and 100% of the way
-		grad_stops:[0, BLACK; 46, MIDNIGHT_BLUE; 54, MIDNIGHT_BLUE; 100, BLACK]}
+		grad_stops:[ { stop_pos:0, stop_color:BLACK },
+				     { stop_pos:46, stop_color:MIDNIGHT_BLUE },
+					 { stop_pos:54, stop_color:MIDNIGHT_BLUE },
+					 { stop_pos:100, stop_color:BLACK }] }
 
 record a_bulb
 	nticks  // how many ticks left in the current state
@@ -82,15 +85,15 @@ var CELL_H
 draw main_draw
 ===================
 	//  draw a dark background with a vertical gradient which looks nicer than a solid
-	draw_rect(b.box, grad:DARK_GRAD)
+	draw_rect(grad:DARK_GRAD)
 
 	//  we can assume that the vertical dimension is our limiting factor
 	//  figure out how big each cell of the tree can be to fit on the screen
-	CELL_V = round_down(b.box.height*0.85 / NV)
+	CELL_V = round_down(bb.height*0.85 / NV)
 	CELL_H = round(CELL_V*0.6)
 
 	//  now calculate the total space we need, and we will center it on the screen
-	var r : a_rect <=== solve_rect(basis:b.box, pin:5, width:CELL_H*NH, height:CELL_V*NV)
+	var r : a_rect <=== solve_rect(basis:bb, pin:5, width:CELL_H*NH, height:CELL_V*NV)
 	layer area:r main_draw2
 
 draw main_draw2
@@ -120,7 +123,7 @@ draw main_draw2
 		if cc > " "
 			//  calculate the bounding box of the current cell
 			var box <=== solve_rect(left:x*CELL_H, top:y*CELL_V, width:CELL_H, height:CELL_V)
-			draw_str(box, cc, size:CELL_V*size, shrink:N, color:color, font:"_typewriter")
+			draw_str(cc, box:box, size:CELL_V*size, shrink:N, color:color, font:"_typewriter")
 
 		//  update our XY coordinate
 		if cc == "\n"
