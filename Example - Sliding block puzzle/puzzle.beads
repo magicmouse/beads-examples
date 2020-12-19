@@ -1,4 +1,5 @@
-beads 1 program tiles
+beads 1 program puzzle title:"Sliding Block Puzzle"
+
 //  2020-12 / sliding block puzzle from Guaracy
 //  2020-12 / updated by CodingFiend to constrain movement
 

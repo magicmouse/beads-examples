@@ -14,6 +14,15 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 7. a simple and flexible module system 
 8. no make system needed for most projects
 
+### Example: Sliding block puzzle
+
+
+![screenshot](http://beadslang.com/projects/sliding_puzzle/puzzle.gif)
+
+The puzzle can be [run here](http://beadslang.com/projects/sliding_puzzle/puzzle.html)
+
+
+
 ### Example: Translation tool
 
 This is the handy graphical interactive localization utility for Beads. It allows you to visit Google translate to get your translation started, and lets you keep track of your translation progress, add new languages, etc.
