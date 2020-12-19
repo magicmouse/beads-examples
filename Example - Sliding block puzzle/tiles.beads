@@ -1,0 +1,163 @@
+beads 1 program tiles
+//  2020-12 / sliding block puzzle from Guaracy
+//  2020-12 / updated by CodingFiend to constrain movement
+
+//
+//  sound effect assets
+//
+assets local:"./art/"
+	file:"click.mp3" label:CLICK
+	file:"whoosh.mp3" label:WHOOSH
+
+const
+	TRACE = Y	//  show extra tracing
+
+	CELLSIZE = 50
+	GAP = 4
+	CORNER = 3
+	BORDER = 1
+	TOTSIZE = 4*CELLSIZE + 5*GAP
+	OPACITY = 0.5
+
+var
+	board : array of num	//  draw tiles as a one-1 array
+
+	//  data structure used during dragging
+	drag : record
+		active // dragging tile index  U means not dragging
+		deltax  // offset of dragged tile 
+		deltay  // offset of dragged tile
+		mouse_gstart : a_xy  // global coord of where mouse started the drag
+		gcorners : array of a_xy  // global coord of drawn cells, indexed by seq
+	
+-------------------------
+draw main_draw  --  main draw function
+	draw_rect(fill:SADDLE_BROWN)
+
+	//  draw the board in the middle of the screen, centered at a fixed size
+	var r <=== solve_rect(basis:bb, pin:5, width:TOTSIZE pt, height:TOTSIZE pt)
+	layer area:r d_board()
+	
+	//  during dragging we will draw a moving tile in this layer
+	//  having it be a huge area means we can move outside the board area without clipping
+	//  note that overlay layers must stay put, else the main_draw will be called repeatedly
+	//  we need stability so that the tracking inside d_board is good.
+	layer area:bb d_moving_tile
+
+-------------------------
+draw d_moving_tile  --  draw the moving tile in the overlay layer
+	if drag.active <> U
+		//  we are dragging a cell around
+
+		//  we gotta calc the global coord of where the cell should be
+		var r <=== solve_rect(left:drag.gcorners[drag.active].x+drag.deltax, top:drag.gcorners[drag.active].y+drag.deltay, width:CELLSIZE pt, height:CELLSIZE pt)
+		log "drawing overlay at {r}" on:TRACE
+
+		draw_rect(box:r, fill:RED, thick:BORDER pt, pos:0, corner:CORNER pt)
+		draw_str("{board[drag.active]}", box:r, size:0.55, color:WHITE, bold:Y)	
+
+-------------------------
+grid d_board order:LRTB  -- draw the tiles in a 4x4 grid
+	horz slice
+		skip GAP pt
+		loop reps:4
+			add CELLSIZE pt
+			skip GAP pt
+
+	vert slice
+		skip GAP pt
+		loop reps:4
+			add CELLSIZE pt
+			skip GAP pt
+
+	under
+		draw_rect(fill:KHAKI)
+
+	cell
+		//  remember the coords of the cells, stdlib doesn't have have a function for this yet
+		drag.gcorners[b.cell_seq] <=== local_to_global(x:bb.left, y:bb.top)
+
+		draw_rect(fill:GRAY2, thick:BORDER pt, opacity:OPACITY, pos:0, corner:CORNER pt)
+
+		//  skip drawing the tile number if it is the one being dragged, or if it is the empty cell (0)
+		if b.cell_seq <> drag.active and board[b.cell_seq] <> 0
+			//log "drawing cell interior seq={b.cell_seq}, active={drag.active}" on:TRACE
+			draw_str("{board[b.cell_seq]}", size:0.5, bold:Y) //,opacity:OPACITY)
+--------
+track
+	//  note: inside a DRAG events, the bb is that of the entire grid
+	case e.evkind
+	| EV_DRAG_BEGIN
+		//  user is starting a drag operation
+		//  we don't let you move the empty square, or a dead area between the cells
+		if board[b.cell_seq] > 0
+			//  we allow you to try and move any cell
+			//  but we could restrict it to cells adjacent to the empty cell
+			drag.active = b.cell_seq			
+			drag.deltax = 0
+			drag.deltay = 0
+			drag.mouse_gstart.x = e.global_x
+			drag.mouse_gstart.y = e.global_y
+			log "EV_DRAG_BEGIN"	on:TRACE
+			return Y
+
+	| EV_DRAG_MOVE
+		//  user is moving the mouse
+		if drag.active <> U
+			//  recalc the delta
+			drag.deltax = e.global_x - drag.mouse_gstart.x
+			drag.deltay = e.global_y - drag.mouse_gstart.y
+
+			//  since the sliding block can only move vertically or horz, zero out the smaller movement
+			if abs(drag.deltax) > abs(drag.deltay)
+				drag.deltay = 0
+			else
+				drag.deltax = 0
+
+			log "EV_DRAG_MOVE, cell={b.cell_seq}, dx={drag.deltax}, dy={drag.deltay}" on:TRACE
+			return Y
+
+	| EV_DRAG_END
+		//  user is releasing the mouse
+		if drag.active <> U
+			log "EV_DRAG_END, cell={b.cell_seq}" on:TRACE
+
+			//  we can only swap if we moved onto an adjacent cell
+			// and if that cell was empty
+			if is_numeric(b.cell_seq) and is_adjacent(b.cell_seq, drag.active) and board[b.cell_seq] == 0
+				//  successful move
+				sound_play(CLICK)
+				swap board[drag.active] <=> board[b.cell_seq]
+			else
+				//  bad move, warn user an snap back 
+				sound_play(WHOOSH)
+
+			drag.active = U
+			return Y
+
+	//  we didn't use the event
+	return N
+
+-------------------------
+calc is_adjacent ( -- see if two cells are adjacent
+	cell1
+	cell2
+	) : yesno  // return Y if the two cells are adjacent
+
+	//  conver the simple cell number into column and row
+	var col1 = rem(cell1, 4, one:Y)
+	var row1 = idiv(cell1, 4, one:Y)
+	var col2 = rem(cell2, 4, one:Y) 
+	var row2 = idiv(cell2, 4, one:Y)
+
+	var dx = abs(col1 - col2)
+	var dy = abs(row1 - row2)
+
+	log "is_adjacent, dx={dx}, dy={dy}" on:TRACE
+
+	//  the to be adjacent, the cell has to be up or down, but not both, and only 1 square away
+	return (dx == 0 and dy == 1) or (dx == 1 and dy == 0)
+
+-------------------------
+calc main_init  -- one time init function
+	board <=== [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 0]
