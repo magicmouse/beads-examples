@@ -11,7 +11,7 @@ assets local:"./art/"
 	file:"whoosh.mp3" label:WHOOSH
 
 const
-	TRACE = Y	//  show extra tracing
+	TRACE = N	//  show extra tracing
 
 	CELLSIZE = 50
 	GAP = 4
