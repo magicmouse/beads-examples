@@ -1,0 +1,370 @@
+beads 1 program hoody_client  //  stock ticker dashboard, client-side
+
+from hoody_server import TICKER_ID, SERVER_PORT, MAXHIST, a_state, a_stock, a_portfolio, a_day_price
+
+//  records for UI widgets
+record a_mutex  --  a mutually exclusive control
+	labels : array of str  --  array of labels to draw for each mutex choice
+	vals   : array of num  --  array of values that correspond to each label
+	selectx: num  --  which item is currently selected in the mutex list
+	selectval: num  --  the value that was selected
+	textv  : num  --  fraction of height to use for text size, default is 0.7
+
+const
+	SERVER_IP   = "ws://localhost"  // must begin with ws://
+
+	TRACE_DRAW = N
+
+var g : a_state  //  our global state that we subscribe to from the server
+
+var conn  : a_client_conn  // our connection to server
+
+var intf  : record  //  our user interface variables
+	ticks  -- how many ticks we waited
+	portm : a_mutex  --  portfolio mutux record
+
+const
+	SCAFFOLDING = N
+
+	//----  colors
+	C_DEAD = #241A1A
+	C_TOPBAR_BACK = GRAY8
+	C_TEXT = #FFEEEE
+
+	F1 = "_sans"
+
+===============================
+calc main_init	//  our one-time init 
+	intf.ticks = 0
+	intf.portm.selectx = 1  // start with our first portfolio
+
+===============================
+vert slice main_draw
+	under
+		draw_rect(fill:C_DEAD)
+		
+	add 20 pt d_topbar
+	skip 4 pt
+	add 24 pt pick_portfolio
+	skip 4 pt
+	add 10 al d_body
+
+===============================
+horz slice d_topbar
+	under
+		draw_rect(fill:C_TOPBAR_BACK)
+
+	add 80 pt d_prodver
+	skip 4 pt
+
+	case conn.client_status
+	| CSTATUS_CONNECTING
+		add 10 al
+			//  note that on Mac, 269B Atom Symbol draws as a color emoji
+			draw_str("\u269B  Trying to connect  \u269B", size:0.7, color:WHITE)
+		skip 80 pt
+
+	| CSTATUS_DISCONNECTING
+		add 10 al
+			//  note that on Mac, 269B Atom Symbol draws as a color emoji
+			draw_str("\u269B  Disconnecting  \u269B", size:0.7, color:WHITE)
+		skip 80 pt
+
+	| CSTATUS_CONNECTED
+		add 10 al
+			var ss : str = if g.updated == U then "--" else time_to_str("[iso time]", time:g.updated)
+			draw_str("🍒  Connected, updated {ss}", size:0.6, color:WHITE)
+			//  take this opportunity to reset the ticks, this will happen on each update from server
+			intf.ticks = 0
+		add 80 pt draw_oneshot("Disconnect", do_logout)
+
+	| CSTATUS_NO_ANSWER
+		add 10 al
+			//  26D4 is no entry, 269C is the fleur du lis symbol
+			draw_str("\u26D4  No answer  \u26D4", size:0.7, color:WHITE)
+		add 80 pt draw_oneshot("Login", do_login)
+
+	else
+		//  U state means idle state
+		add 10 al
+			//  26D4 is no entry, 269C is the fleur du lis symbol
+			draw_str("\u26D4  Idle  \u26D4", size:0.7, color:WHITE)
+		add 80 pt draw_oneshot("Connect", do_login)
+	skip 4 pt
+
+===============================
+draw d_prodver  -- display product and version
+	draw_str("RobinHoody v1", size:0.6, just:LEFT, indent:6 pt, color:C_TEXT)
+	
+===============================
+vert slice d_body //  draw the portfolio data
+	var pp : ptr to a_portfolio = adr g.ports[intf.portm.selectx]
+	loop across:pp.stocks ptr:stockp
+		skip 8 pt
+		add 100 pt d_stock(stockp)
+
+===============================
+horz slice d_stock ( //  draw the stock data
+	stockp : ptr to a_stock
+	)
+	skip 4 pt
+	add 90 pt d_stock_name(stockp)
+	add 10 al d_stock_graph(stockp)
+	skip 4 pt
+
+const
+	CORNER_STOCK = 8
+
+===============================
+vert slice d_stock_name ditto
+	under
+		draw_rect(fill:DARK_SLATE_BLUE, corner_tl:CORNER_STOCK pt, corner_bl:CORNER_STOCK pt)
+
+	skip 5 al
+	add 20 al
+		draw_str(stockp.symbol, size:0.7, bold:Y, color:LIGHT_CYAN)
+	skip 5 al
+	add 18 al
+		var lastx = tree_hi(stockp.hist)
+		draw_str("Curr  {to_str(stockp.hist[lastx].price, dig:1, zero_drop:N)}", size:0.7, color:MISTY_ROSE, font:F1)
+	skip 3 al
+	add 18 al
+		draw_str("Low  {to_str(stockp.low, dig:1, zero_drop:N)}", size:0.7, color:MISTY_ROSE font:F1)
+	skip 3 al
+	add 18 al
+		draw_str("High {to_str(stockp.high, dig:1 zero_drop:N)}", size:0.7, color:MISTY_ROSE font:F1)
+	skip 3 al
+	add 18 al
+		draw_str("Avg  {to_str(stockp.avg, dig:1 zero_drop:N)}", size:0.7, color:MISTY_ROSE font:F1)
+	skip 5 al
+
+===============================
+draw d_stock_graph ditto
+	const 
+		C_GRID = INDIAN_RED
+		C_BACK = LIGHT_CORAL
+		C_CHART = DARK_RED
+		C_HIGH  = MEDIUM_VIOLET_RED
+		C_LOW   = ROYAL_BLUE
+
+	draw_rect(fill:C_BACK, corner_tr:CORNER_STOCK pt, corner_br:CORNER_STOCK pt)
+
+	//  draw the grid lines
+	const NVERT = 10
+	const SPACING = bb.height / NVERT
+	const RMARGIN = 24 pt
+	const AVAILH = bb.width - RMARGIN
+	const NHORZ = round_down(AVAILH / SPACING)
+	const YTOP = bb.height*0.10
+	const YBOT = bb.height*0.90
+
+	var x
+	var y
+	var prevx
+	var prevy
+	var last_price
+	var prevhi
+	var prevlo
+	var r : a_rect
+	var ss : str
+
+	//  grid lines
+	loop from:1 to:NVERT-1 index:row
+		y = interpolate(row, 0, NVERT, 0, bb.height)
+		draw_line(x1:0, y1:y, x2:bb.width, y2:y, thick:1 pt, color:C_GRID)
+
+	loop from:1 to:NHORZ index:col
+		x = col*SPACING
+		draw_line(x1:x, y1:0, x2:x, y2:bb.height, thick:1 pt, color:C_GRID)
+	
+	var limity = round_up(stockp.high, multiple:50)
+	
+	//  tick marks
+	prevx = AVAILH - 6 pt
+	x = AVAILH + 4 pt
+	loop across:[YTOP, (YTOP+YBOT)/2, YBOT] val:y count:cx
+		draw_line(x1:prevx, x2:x, y1:y, y2:y, thick:2 pt, color:GRAY8)
+		r <=== solve_rect(left:x, width:20 pt, height:12 pt, cy:y)
+		case cx
+		| 1  //  100%
+			ss = to_str(limity, dig:1)
+		| 2  //  50%
+			ss = to_str(limity/2, dig:1)
+		| 3  //  0
+			ss = " 0"
+
+		draw_str(ss, box:r, size:9 pt, color:GRAY8, just:LEFT, indent:2 pt)
+
+	log "draw_stock {stockp.symbol} lo={to_str(stockp.low, dig:2)}, hi={to_str(stockp.high, dig:2)}" on:TRACE_DRAW
+	//  draw the prices. we start at the right edge and go backwards.
+	//  once we reach steady state, we will cover the whole width
+	loop across:stockp.hist reps:MAXHIST rev:Y ptr:histp count:hx
+		//  skip the first price, it is the boundary
+		//  calculate the coordinate of this price
+		x = interpolate(hx, 1, MAXHIST, AVAILH, 0)
+		
+		//  make it so the limit of the price is at 90% of the height (10th tick mark)
+		y = interpolate(histp.price, 0, limity, YBOT, YTOP)
+		//log "  price {to_str(histp.price, dig:2)} diff={to_str(abs(histp.price - stockp.high), dig:2)}"
+		//  if this is a high point, and we didn't just do that, mark it
+		if abs(histp.price - stockp.high) < 0.001 and prevhi <> Y
+			prevhi = Y
+			draw_dot(x, y - 15 pt, bb.width, bb.height, "H", C_HIGH)
+		else
+			prevhi = N
+
+		if abs(histp.price - stockp.low) < 0.001 and prevlo <> Y
+			prevlo = Y
+			draw_dot(x, y + 12 pt, bb.width, bb.height, "L", C_LOW)
+		else
+			prevlo = N
+
+		if hx > 1
+			draw_line(x1:x, y1:y, x2:prevx, y2:prevy, thick:2 pt, color:C_CHART)
+	
+		prevx = x
+		prevy = y
+	//..end loop
+
+===============================
+draw draw_dot (  //  draw a LO or HI marker dot to highlight a price maxima/minima
+	x
+	y
+	endx
+	endy
+	label : str
+	color : color
+	)
+	const DOT = 12 pt
+	const FUDGE = DOT*0.6
+
+	if x < DOT/2
+		x = FUDGE
+	if y < DOT/2
+		y = FUDGE
+	if x > endx - DOT/2
+		x = endx - FUDGE
+	if y > endy - DOT/2
+		y = endy - FUDGE
+
+	var r <=== solve_rect(cx:x, cy:y, width:DOT pt, height:DOT pt)
+	draw_oval(box:r, fill:color)
+	draw_str(label, box:r, size:0.5, color:WHITE)
+
+===============================
+horz slice pick_portfolio  // draw the portfolio selector control
+	//  prepare a mutex record then call our generic routine
+	if tree_count(g) > 0
+		skip 5 al
+		add 90 pt	//  label
+			draw_str("Portfolio:", just:RIGHT, indent:7 pt, color:WHITE, size:0.6)
+		var w = tree_count(g)*180
+		add w pt pick_port2  //  portfolio selector
+		skip 80 al
+
+================================
+draw pick_port2
+	//  rebuild the mutex record that we need for mutex_draw
+	loop across:g.ports ptr:pm index:ix
+		intf.portm.labels[ix] = pm.label
+		intf.portm.vals[ix] = ix
+		//  we leave the selected index alone
+
+	mutex_draw(intf.portm)	
+
+----------------------------
+--   action functions
+----------------------------
+
+====================
+calc do_logout
+	if SCAFFOLDING
+		conn.client_status = U  // else we get an error
+	else
+		subscribe_stop(conn)
+
+====================
+calc do_login
+	intf.ticks = 0
+
+	//  go get the portfolio data from the server
+	//  subscribe_start will set the status to CSTATUS_WAITING
+	//  for external URLs, use the format: ws://1.2.3.4 or wss: for secure con1s
+	subscribe_start(TICKER_ID, SERVER_IP, SERVER_PORT, U, g, conn, echo:Y) 
+
+================================
+--   >>> Mutually exclusive control
+================================
+
+const
+	MUTEX_BACK_LO ⇐ #416080
+	MUTEX_BACK_HI ⇐ #80192c
+	MUTEX_TEXT ⇐ #dfe2ed
+	MUTEX_BORD ⇐ #a28a7d
+	
+================================
+horz slice mutex_draw(
+	m : a_mutex  // record for the buttons
+	)
+	loop across:m.labels count: ix
+		if ix > 1
+			add 2.5 pt 
+				//  draw dividing line
+				draw_rect(fill:MUTEX_BORD)
+		add 10 al mutex_segment(m, ix)
+
+	over
+		//  stroke the outer edge of the combined control
+		draw_rect(color:MUTEX_BORD, thick:1.6 pt, corner:bb.height*0.3)
+
+================================
+draw mutex_segment(
+	m : a_mutex
+	ix : num
+	)
+	//log "mutex_segment, ix={ix}, selectx={m.selectx}"
+	var back : color ⇐ if ix == m.selectx then MUTEX_BACK_HI else MUTEX_BACK_LO
+	var rad1 ⇐ 0
+	var rad2 ⇐ 0
+	const MUTEX_RADIUS ⇐ bb.height*0.3
+
+	//  is this the leftmost cell?
+	if ix == 1
+		rad1 ⇐ MUTEX_RADIUS
+
+	//  is this the rightmost cell?
+	if ix == tree_count(m.labels)
+		rad2 ⇐ MUTEX_RADIUS
+
+	draw_rect(fill:back, corner_tl:rad1, corner_bl:rad1, corner_tr:rad2, corner_br:rad2)
+	var size ⇐ 0.65
+	if m.textv <> U
+		size ⇐ m.textv
+	draw_str(m.labels[ix], size:size, color:MUTEX_TEXT)
+track EV_TAP
+	//  set both the selection index and the value
+	m.selectx ⇐ ix
+	m.selectval ⇐ m.vals[ix]
+
+----------------------
+--   <<< Mutually exclusive control
+----------------------
+
+================================
+--   >>> oneshot button control
+================================
+====================
+draw draw_oneshot (  -- simple one shot button
+	label : str
+	action : calc(frozen)
+	back : color = POWDER_BLUE
+	)
+	const THICK = min(bb.height/15, 1.5 pt)
+	draw_rect(fill:back, thick:THICK, color:DARK_ORCHID, corner:bb.height/3.5, pos:0)
+	draw_str(label, size:0.65, indent:3 pt, color:BLACK)
+-----
+track EV_TAP
+	action()
+----------------------
+--   <<< oneshot button control
+----------------------

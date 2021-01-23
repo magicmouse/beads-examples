@@ -96,7 +96,7 @@ draw d_arrow (  --- controller arrow
 	var y = interpolate(val, lo, hi, b.box.height, 0, clamp:Y)
 	log "val={val}, lo={lo}, hi={hi}, height={b.box.height}, y={y}" on:TRACING
 	var r : a_rect <=== solve_rect(cy:y, left:0, width:b.box.width, height:b.box.height/12)
-	draw_str(r, to_str(val, digits:1) & " ▶", size:0.75, color:CRIMSON, just:RIGHT, indent: 1 pt)
+	draw_str(r, to_str(val, dig:1) & " ▶", size:0.75, color:CRIMSON, just:RIGHT, indent: 1 pt)
 track
 	case e.evkind
 	| EV_HOVER
@@ -120,7 +120,7 @@ track
 		//  starting temp in the units we are using, such that the entire range of movement
 		//  will yield a change equal to the difference between top and bot temp in that unit
 		var newval = clamp(to_unit(g_drag_temp, units) + delta, lo, hi)
-		log "delta_mouse={delta_mouse}, range={hi-lo}, height={b.box.height}, delta={delta}, newval={to_str(newval, digits:1)}" on:TRACING
+		log "delta_mouse={delta_mouse}, range={hi-lo}, height={b.box.height}, delta={delta}, newval={to_str(newval, dig:1)}" on:TRACING
 		g.hi_set = to_meas(newval, units)  // this will trigger refresh of arrows
 		return Y
 		

@@ -1,0 +1,152 @@
+beads 1 server hoody_server  //  stock ticker dashboard, server-side
+
+//  this server code is going to be compiled for Node.JS
+//  it will produce a hoody_server.mjs file
+//  in order to run, it will require that you have installed the 'ws' (web sockets) module first
+//  typically node modules install into a special folder, so you will need to move
+//  the .mjs file to that folder for it to find the 'ws' module it needs
+
+enum
+	//  we will need the ID on the server side to match this enum
+	TICKER_ID*  //  secret ID used to authenticate to server
+
+const
+	SERVER_PORT* = 4444
+	MAXHIST* = 50  // only show the last 50 prices
+
+	TRACE_AVG = N
+	TRACE_TICK = N
+
+record a_day_price*
+	when    //  epoch time when price was set
+	price 
+
+record a_stock*
+	symbol : str  // symbol like "AMD"
+	avg     // avg price over last N periods
+	high    // high price over last N periods
+	low     // low price over last N periods
+	range   //  used for generating random prices
+	start   //  used for random 
+	hist : array of a_day_price   // current price
+
+record a_portfolio*
+	label  : str   // label for this portfolio
+	stocks : array of a_stock
+
+record a_state*
+	updated   //  epoch time we got the update for
+	ports : array of a_portfolio  // our portfolio of stocks
+
+var g* : a_state  //  our global state that we subscribe to from the server
+
+===============================
+calc main_init	//  our one-time init 
+	fake_portfolio   //  create the starting fake portfolio
+
+	//  start letting clients subscribe to our portfolio
+	publish_start(TICKER_ID, SERVER_PORT, 1000, g)
+
+	//  keep updating our portfolio prices
+	loom_timer(tick_stock, interval:1 sec, reps:200)
+
+===============================
+calc fake_portfolio  //  create a fake portfolio for testing
+	//  generate a portfolio
+	g.ports[1] <=== { label:"Individual Account", updated:now }
+	fake_stock(g.ports[1], "AMD")
+	fake_stock(g.ports[1], "F")
+	fake_stock(g.ports[1], "BRK")
+
+	g.ports[2] <=== { label:"Retirement Account", updated:now }
+	fake_stock(g.ports[2], "NVID")
+	fake_stock(g.ports[2], "GM")
+	fake_stock(g.ports[2], "NIO")
+	g.updated = now
+
+===============================
+var noise_tick = 0
+calc tick_stock  //  update stock prices
+	0.05 +=>noise_tick
+	log "* tick_stock {to_str(noise_tick, dig:2)}" 
+
+	loop across:g.ports ptr:portp
+		loop across:portp.stocks ptr:stockp
+			//  append another price
+			var lastx = tree_hi(stockp.hist)
+			append { when: stockp.hist[lastx].when + 10, price:jiggle_price(stockp.range, stockp.start) } ===> stockp.hist
+
+			//  if we are past our limit, start truncating
+			var n = tree_count(stockp.hist)
+			loop while:n > MAXHIST
+				var firstx = tree_lo(stockp.hist)
+				log "  dropping {firstx}" on:TRACE_TICK
+				clear stockp.hist[firstx]
+				dec n
+
+			calc_stock_avg(stockp)
+			log "  append {stockp.symbol} at {lastx+1}" on:TRACE_TICK
+
+===============================
+calc jiggle_price (
+	range
+	start
+	) : num  -- new price
+	var newprice = perlin_noise(noise_tick + start)*range
+	//log "jiggle tick {to_str(noise_tick, dig:2)}, newprice={to_str(newprice, dig:2)}"
+	return newprice
+
+//	fudge +=> currprice
+// 	if currprice > 50
+// 		random_range(+1, -2) +=> currprice
+// 	else
+// 		random_range(+2, -1) +=> currprice
+//	return clamp(currprice, 2, 99)
+
+===============================
+calc fake_stock (  //  fake a stock so we can test our drawing module
+	pp : ptr to a_portfolio
+	symbol : str
+	)
+	var stock : a_stock
+	stock.symbol = symbol
+	stock.range = random_int(25, 95)
+	stock.start = random_int(-100, +100)
+
+	// generate some prices
+	var currprice = random_range(2, 50)
+	var currdate = now - SECONDS_PER_MONTH
+	loop from:1 to:40 index:ix
+		0.1 +=>noise_tick
+		stock.hist[ix].when = currdate
+		stock.hist[ix].price = currprice
+
+		//  get ready for next loop iteration
+		SECONDS_PER_MIN +=> currdate
+		currprice = jiggle_price(stock.range, stock.start)
+
+	calc_stock_avg(stock)	
+	append stock ===> pp.stocks  // add the stock to the portfolio
+
+===============================
+calc calc_stock_avg (  //  scan the stock history and calculate min, max, and avg
+	stock : ptr to a_stock
+	)
+	var n = 0
+	var sum = 0
+	var lo = INFINITY
+	var hi = -INFINITY
+
+	loop across:stock.hist ptr:hh
+		inc n
+		hh.price +=> sum
+		if hh.price < lo
+			lo = hh.price
+		if hh.price > hi
+			hi = hh.price
+
+	stock.low = lo
+	stock.high = hi
+	stock.avg = sum / n
+	log "stock {stock.symbol}, avg={stock.avg}" on:TRACE_AVG
+
