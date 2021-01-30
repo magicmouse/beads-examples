@@ -3,7 +3,7 @@
 
 Here is a screenshot of our project:
 
-![screenshot](http://beadslang.com/projects/realtime_stock/hoody_big.gif)
+![screenshot](http://beadslang.com/projects/realtime_stock/hoody_animated.gif)
 
 
 The client program can be [run here](http://beadslang.com/projects/realtime_stock/hoody_client.html)
