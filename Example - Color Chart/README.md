@@ -10,11 +10,8 @@ To run the program please visit:  [picker running on a server](http://beadslang.
 
 Regular mode:
 
-![example](http://beadslang.com/projects/color_picker/docs/screenshot.jpg)
+![example](http://beadslang.com/examples/colorchart/docs/screenshot.jpg)
 
-Compact mode:
-
-![example2](http://beadslang.com/projects/color_picker/docs/screenshot2.png)
 
 In this example, we will use the following standard library routines:
 
@@ -38,7 +35,7 @@ In this example, we will use the following standard library routines:
 #### The picker code: 
 
 ```
-beads level 1 program picker  //  color picker
+beads 1 program picker  //  color picker
 //  written by edj october 2019
 //  copyright waived
 //  lets you pick a HTML color, copies the name or hex value to the clipboard
@@ -52,6 +49,7 @@ const
 	TRACE_COLORS = N
 	TRACE_FUDGE = N
 	TRACE_SIZING = N
+	TRACE_PALETTE = N
 
 record a_slot
 	name  : str   //  color name
@@ -102,15 +100,46 @@ const hue_fudge = 150  // break the HSV wheel not at 0/359 which is in the middl
 const AREA_THRESHOLD = 140000  // below this screen area in points we switch to compact form
 const TARG_WIDTH = 100
 
+//  these functions as constants after the resize event is processed, which calculates basic geometry
 var NCOLS
 var NROWS
-var NCELLS 
+var NCELLS
+var BARV
+
 var slotlist : array of path  //  our sorted array of pointers
 
+const
+	C_DEAD = DARK_SLATE_GRAY
+	C_TEXT = SNOW
+
+	MODE_COLORS = 1
+	MODE_GRADS = 2
+
+record a_choice_set  //  mutually exclusive choice control
+	enabled  : yesno  //  if N then hide
+	is_open  : yesno  //  used by pulldown menu
+	selx_ptr : ptr to num  //  if present, use a pointer instead of a value
+	selx 	  // which item we selected 1=first
+	nrows	  // number of rows, U means 1
+	label_list : array of str
+	label_func : array of draw(a_rect)
+	val_list   : array of num
+	choice_func : calc () //  function to call after selection has changed
+
+record a_tabset  //  a set of tabs
+	selx 
+	label_list : array of str
+	action : calc()
+
 record a_state
-	selectedx  // which color slot is currently selected
-	format  : (FORMAT_BEADS, FORMAT_HEX)
+	htmlchip_selx  // which color slot is currently selected
+	ferrari_selx  //  which chip is selected in the ferrari palette
+	sel_color : color
+	prior_color : color
+
+	format  : (FORMAT_BEADS, FORMAT_HTML, FORMAT_HEX, FORMAT_RGB)
 	sizing  : (COMPACT_SIZE, FULL_SIZE)
+	mode_grid : a_choice_set
 
 var g : a_state  //  our tracked mutable state
 ```
@@ -119,7 +148,9 @@ The HSV color space is very intuitive, but it has a flaw in that the red range i
 
 We define variables that are set at resizing time to remember how many columns and rows there are in the grid.  The `slotlist` array is an array of pointers to our slots. In Beads we use the datatype `path` to mean a pointer to a record. 
 
-The state of the program is pretty simple. We might have a selected color, and the format of the screen will either show named colors (`FORMAT_BEADS`), or hex colors (`FORMAT_HEX`).  We are either in super compact form or full size form where we draw the names.
+The state of the program is pretty simple. We might have a selected color, and the format of the screen will either show named colors (`FORMAT_BEADS`), or hex colors (`FORMAT_HEX`).  We are either in super compact form or full size form where we draw the names. 
+
+The program has been designed to also edit gradients, which will be added in a later revision
 
 ```
 =================================
@@ -174,15 +205,123 @@ calc main_init
 		loop array:slotlist val:p index:ix
 			log "{ix}: {p.name}, keys=[{p.key1},{p.key2},{p.key3}], color={p.color}"
 
+	g.mode_grid.selx = MODE_COLORS
+	g.mode_grid.label_list <=== ["Colors", "Gradients"]
+
 	g.format = FORMAT_BEADS	
 	NCELLS = tree_count(slotlist)
+
 ```
 
 The first code chunk executed is called `main_init`. In this chunk we build our sorted color list. So this is where all the tricky logic happens; the rest of the program is about drawing the color chips. We loop across the array of input colors (`SET1`), calculate the HSV value of the color, and calculate which ramp it is in (`key1`).  After building the sort keys, we loop across the array in order order. The ability to iterate across an array in sort order saves a lot of extra housekeeping work compared to other languages. Since we wanted the gray ramp to appear at the end, we add that to the slotlist array after the sorted colors.
 
 ```
 =================================
-grid main_draw order:TBLR
+vert slice main_draw
+=================================
+	under
+		draw_rect(fill:C_DEAD)
+	add BARV px d_modebar
+	skip 6 pt
+	case g.mode_grid.selx 
+	| MODE_COLORS
+		add 16 al d_html_palette
+		skip 8 pt
+		//  since the ferrari palette is in 7 rows make it a nice multiple of 7 pixels
+		//var v = round(bb.height*10/24, multiple:7)
+		add 10 al d_ferrari_palette
+		skip 4 pt
+	| MODE_GRADS
+		add 10 al d_grad_designer
+
+```
+
+The main_draw block is simple subdividing the screen into two parts, one for the modebar, and the other for the color chart.
+
+There is a special event `EV_RESIZE` that is sent to the main_draw block after `main_init` but before `main_draw` executes that gives your program a chance to calculate item sizes. As the window is expanded or shunk, resize events will be sent to give us a chance to calculate the `NCOLS` and `NROWS` values, as well as whether we are in super compact mode or regular mode.
+
+```
+-------
+track EV_RESIZE  //  this sets global BARV, NCOLS, NROWS
+	//  when we resize (or before first draw) this event is sent
+	BARV = max(14 pt, min(20 pt, b.box.height/17))
+	var h_pts = dots_to_pt(b.box.width)
+	var v_pts = dots_to_pt(b.box.height-BARV)
+	var area = h_pts * v_pts
+	log "-- resize, h={h_pts}, v={v_pts}, area={area}, thresh={AREA_THRESHOLD}" on:TRACE_SIZING
+
+	if area >= AREA_THRESHOLD
+		log "-- full size mode" on:TRACE_SIZING
+		//  full size mode, show name
+		g.sizing = FULL_SIZE
+		NCOLS = round_down(h_pts/TARG_WIDTH)
+	else
+		log "-- compact mode" on:TRACE_SIZING
+		g.sizing = COMPACT_SIZE
+		//  calculate the approx. area per cell we are going to have
+		var cell_area = round_down(area / NCELLS)
+		
+		//  now calculate the size so we have a 3:1 aspect ratio
+		var cell_height = sqrt(cell_area/3)
+		var cell_width = cell_area/cell_height
+		NCOLS = round(h_pts/cell_width)
+		
+	NROWS = round_up(NCELLS/NCOLS)
+	log "-- end resize, NCELLS={NCELLS}, NCOLS={NCOLS}, NROWS={NROWS}, BARV={BARV}" on:TRACE_SIZING
+
+=================================
+draw d_grad_designer
+=================================
+	draw_rect(fill:OLIVE_DRAB)
+	draw_str("not yet", size:40 pt, color:C_TEXT)
+
+=================================
+horz slice d_modebar
+=================================
+	add 30 al 
+		draw_str(b.box, "Colorchart v.{runtime.app_version}", size:b.box.height*0.6, indent:6 pt)
+	add 55 al d_format_selector
+	add 80 al
+		draw_str(b.box, "Click on the color chip or name to copy to the clipboard", size:b.box.height*0.7, indent:14 pt)
+	add 40 al d_made_with
+	skip 8 pt
+
+=================================
+horz slice d_format_selector  //  show the format selector (mutually exclusive button)
+=================================
+	add 10 al d_choice(FORMAT_BEADS, "Beads name", "Beads")
+	add 10 al d_choice(FORMAT_HTML, "HTML name", "HTML")
+	add 10 al d_choice(FORMAT_HEX, "Hex name", "Hex")
+	add 10 al d_choice(FORMAT_RGB, "rgb call", "rgb()")
+
+=================================
+draw d_choice(  //  show a format choice button
+=================================
+	formx : num
+	long_label : str
+	short_label : str
+	) -------
+	var fill:color = if formx == g.format then TOMATO else OLD_LACE
+	draw_rect(b.box, fill:fill, thick:1 pt, color:BLACK)
+	var label:str = if b.box.width > 70 pt then long_label else short_label
+	draw_str(b.box, label, size:b.box.height*0.60, indent:3 pt)
+track EV_TAP
+	g.format = formx
+track EV_HOVER
+	cursor_set(CURS_FINGER)
+
+=================================
+draw d_made_with  //  show the "made with" button
+=================================
+	draw_str(b.box, "Made with Beads", size:b.box.height*0.65, just:RIGHT)
+track EV_TAP
+	//  go to the beads home page
+	html_redirect("http://beadslang.com", newtab:Y)
+track EV_HOVER
+	cursor_set(CURS_FINGER)
+
+=================================
+grid chart_draw order:TBLR
 =================================
 	horz slice
 		skip 10 al
@@ -201,7 +340,7 @@ grid main_draw order:TBLR
 		skip 5 al
 ```
 
-The `main_draw` function is the main drawing function that is called when the screen needs refreshing. In this case we are drawing a grid, which is first broken down into columns in the `horz slice` section, where we are using aliquots (proportional measurements) to create the columns.  Then we subdivide the screen into vertical slices in the `vert slice` section. 
+The `main_draw` function is the main drawing function that is called when the screen needs refreshing. In this case we are drawing two slices. One of them is the command/status bar, and the other is the color grid. We want the command bar to be of a reasonable size; we estimate it at 1/17th of the total height, but keep it inside a range of a reasonable height so we devote maximum space to the color grid. The color grid, which is first broken down into columns in the `horz slice` section, where we are using aliquots (proportional measurements) to create the columns.  Then we subdivide the screen into vertical slices in the `vert slice` section. 
 
 ```	cell
 		// inside: b.box, b.cell_seq, b.cell.x/y, b.cell_id.x/y
@@ -254,36 +393,6 @@ track EV_TAP
 
 The track block allows us to respond to mouse clicks. Beads assumes a future universe of touch screens, so the click is mapped to the EV_TAP event type. If the user clicks on dead space between cells, we beep and ignore the click. If the user clicks on cell #1, that is our mode switcher. Otherwise the clicks will select that color slot, and we copy the string to the clipboard.
 
-```
--------
-track EV_RESIZE
-	//  when we resize we call this function
-	var h_pts = dots_to_pt(b.box.width)
-	var v_pts = dots_to_pt(b.box.height)
-	var area = h_pts * v_pts
-	log "-- resize, h={h_pts}, v={v_pts}, area={area}, thresh={AREA_THRESHOLD}" on:TRACE_SIZING
-
-	if area >= AREA_THRESHOLD
-		log "-- full size mode" on:TRACE_SIZING
-		//  full size mode, show name
-		g.sizing = FULL_SIZE
-		NCOLS = round_down(h_pts/TARG_WIDTH)
-	else
-		log "-- compact mode" on:TRACE_SIZING
-		g.sizing = COMPACT_SIZE
-		//  calculate the approx. area per cell we are going to have
-		var cell_area = round_down(area / NCELLS)
-		
-		//  now calculate the size so we have a 3:1 aspect ratio
-		var cell_height = sqrt(cell_area/3)
-		var cell_width = cell_area/cell_height
-		NCOLS = round(h_pts/cell_width)
-		
-	NROWS = round_up(NCELLS/NCOLS)
-	log "-- resize, NCELLS={NCELLS}, NCOLS={NCOLS}, NROWS={NROWS}" on:TRACE_SIZING
-```
-
-There is a special event `EV_RESIZE` that is sent to the program after `main_init` but before `main_draw` that gives your program a chance to calculate item sizes. As the window is expanded or shunk, resize events will be sent to give us a chance to calculate the `NCOLS` and `NROWS` values, as well as whether we are in super compact mode or regular mode.
 
 ```
 =================================
