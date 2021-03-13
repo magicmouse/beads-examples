@@ -1,7 +1,7 @@
 
 ## Programming examples
 
-These are examples with specifications posted in our GitHub repository, and are included in the SDK which you can download at Beadslang.com. 
+These are examples with specifications posted in our GitHub repository, and are included in the SDK which you can download at Beadslang.org 
 
 Beads is not a minor rehash of Python or JS. It is a clean sheet design, carefully crafted to catch as many errors at compile time as possible so you spend less time debugging. These examples barely scratch the surface of the full range of Beads features, such as:
 
