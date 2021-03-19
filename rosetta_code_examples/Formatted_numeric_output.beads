@@ -1,0 +1,6 @@
+beads 1 program 'Formatted numeric output'
+
+calc main_init
+	//  write out the number to 9 digits, with zero padding
+	var num = 7.125
+	log to_str(num, min:9, zero_pad:Y)  // should emit 00007.125

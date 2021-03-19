@@ -1,0 +1,9 @@
+beads 1 program looper title:'Loop over multiple arrays simultaneously'
+
+calc main_init
+	const x : tree = ['a', 'b', 'c']
+	const y : tree = ['A', 'B', 'C']
+	const z : tree = [1, 2, 3]
+	const largest = max(tree_count(x), tree_count(y), tree_count(z))
+	loop reps:largest count:mycount
+		log to_str(x[mycount], u_cc:' ') & " / " & to_str(y[mycount], u_cc:' ') & " / " & to_str(z[mycount], u_cc:' ') //where u_cc defines undefined characters if arrays are different lengths

@@ -1,0 +1,7 @@
+beads 1 program 'Goodbye World'
+
+calc main_init
+	alert('Hello, World!')
+	
+draw main_draw
+	draw_str('Goodbye, World!', size:60 pt)
