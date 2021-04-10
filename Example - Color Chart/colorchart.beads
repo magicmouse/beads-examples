@@ -555,7 +555,7 @@ draw d_made_with  //  show the "made with" button
 	draw_str("Made with Beads", size:bb.height*0.65, just:RIGHT, color:C_TEXT)
 track EV_TAP
 	//  go to the beads home page
-	html_redirect("http://beadslang.com", newtab:Y)
+	browser_redirect("http://beadslang.com", newtab:Y)
 track EV_HOVER
 	cursor_set(CURS_FINGER)
 
@@ -769,6 +769,7 @@ horz slice d_ferrari_palette
 	chip_h = round_down(bb.width / CHIPS_PER_ROW)
 	var used = chip_h*CHIPS_PER_ROW
 	var leftover = bb.width - used
+
 	var sampleh = round(leftover*0.8)
 	var gap = (leftover - sampleh)*0.5
 

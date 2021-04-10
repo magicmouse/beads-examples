@@ -1,0 +1,82 @@
+beads 1 program 'Counter Client'
+
+// -----------
+// CLIENT SIDE
+// -----------
+//  this client assumes that you have run the server via Node.JS
+//  see the server code for instructions on how to run node.
+ 
+//  note: since you are importing constants from the server
+//  compile the client after compiling the server code, else symbol file won't exist
+from remote counter_server import COUNTER_ID, SERVER_PORT, a_counter, inc_counter, dec_counter
+ 
+const
+	TITLE = 'Counter'
+	HOST = "ws://localhost"
+
+var
+	conn : a_client_conn
+	counter : a_counter //  has fields .value, .color
+
+======================
+calc main_init
+	conn.client_status ⇐ CSTATUS_CONNECTING
+	subscribe_start(conn, HOST, SERVER_PORT, COUNTER_ID, U, counter, echo:Y)
+
+======================
+draw main_draw
+	case conn.client_status
+	| CSTATUS_CONNECTING
+		draw_rect(fill:MEDIUM_PURPLE)
+		draw_str("😴 Connecting to server...", size:50 pt, color:WHITE)
+	| CSTATUS_CONNECTED
+		//counter.value = 0
+		//counter.color = BISQUE
+		d_gui
+	else
+		draw_rect(fill:MEDIUM_PURPLE)
+		draw_str("😲 Server not responding", size:50 pt, color:WHITE)
+	
+======================
+vert slice d_gui
+	add 20 al
+		draw_rect(fill:#B7D5FE)
+		draw_str(TITLE,size:0.5)
+	add 60 al
+		draw_rect(fill:counter.color)
+		draw_str(counter.value,size:0.5)
+	add 20 al d_buttons
+
+======================
+horz slice d_buttons
+	add 50 al
+		my_button('➕',my_inc,#CC0000)
+	skip 2 al
+	add 50 al
+		my_button('➖',my_dec,#00AA00)
+
+======================
+draw my_button (
+	prompt : str
+	action : calc (frozen)
+	color : color
+	)
+	draw_rect(fill:GRAY2, pos:0) //, thick:2 pt)
+	draw_str(prompt, color:color, size:0.4, bold:Y)
+--------------
+track EV_TAP
+	action()
+	return Y
+
+======================
+//  at present the compiler won't allow us to do remote calls via slices
+//  so we had to create a wrapper functions that do the remote calls
+//	this will be improved in a future version
+
+calc my_inc
+	inc_counter via conn
+
+calc my_dec
+	dec_counter via conn
+
+

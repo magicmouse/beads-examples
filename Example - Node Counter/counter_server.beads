@@ -1,0 +1,49 @@
+beads 1 server 'Counter Server'
+
+// -----------
+// SERVER SIDE
+// -----------
+//  this is the client side of a client/server program which updates a counter on the server
+//  to run this program, first compile the server for Node.JS
+//  then run it under node:
+//  node --experimental-flags /my/path/to/counter_server.mjs
+// 
+
+enum
+	COUNTER_ID*
+	
+const
+	SERVER_PORT* = 4444
+	
+// -----------
+// SERVER SIDE
+// -----------
+record a_counter*
+	value : num
+	color : color
+	
+var counter : a_counter
+
+const
+	MIN = 0
+	MAX = 10
+
+	// colors
+	COLOR_OK   = LIGHT_GREEN
+	COLOR_LIMIT = RED
+		
+--------------------
+calc main_init
+	counter.value = 0
+	counter.color = COLOR_OK
+	publish_start(SERVER_PORT, COUNTER_ID, 1000, counter, inc_counter, dec_counter)
+
+--------------------
+calc inc_counter*
+	counter.value = min(counter.value+1, MAX)
+	counter.color = COLOR_LIMIT if counter.value == MAX else COLOR_OK
+
+--------------------
+calc dec_counter*
+	counter.value = max(counter.value-1, MIN)
+	counter.color = COLOR_LIMIT if counter.value == MIN else COLOR_OK
