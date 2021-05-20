@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Deluxe FizzBuzz</title>
+<link rel="shortcut icon" href="data:,">
+<style>
+/*  the above empty icon shuts the favicon stuff up.
+	put stmt above style if you want favicon: <link rel="shortcut icon" href="favicon.ico" />
+    this disables the annoying double click highlighting of DIV blocks  */
+div { outline-style:none;}
+div:hover { cursor:default; }
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 12pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover { background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0;">
+<script type="module">
+// beads ver 0.43 compiled Wed May 19 09:56:57 GMT-0700 2021
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr } from '../../runtime_043/beads_std.js';
+import * as std from '../../runtime_043/beads_std.js';
+import * as str from '../../runtime_043/beads_str.js';
+export const CODE_HASH = 0x2ad6ce46;
+const _M = std.MODULES.push("FizzBuzz")-1;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw, track_main_draw);
+//------- enums
+const R_record_10=9007191600137795; std.ENUMS[9007191600137795]="record_10";
+const F_selected=9007191098033561; std.ENUMS[9007191098033561]="selected";
+std.FIELDS[F_selected] = true;
+//-------  func const
+const main_draw_F = new std.a_function(_M, "main_draw", main_draw, track_main_draw);
+std.FUNCS[main_draw_F.hash]=main_draw_F;
+//-------  top nodes
+const KEY = "FizzBuzz";
+let my_state = new std.a_tree(_M,"my_state", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+std.div_begin(b, new std.a_function(_M, "main_draw_cell", main_draw_cell, null), false, false, false);
+  std.div_spa(b, 0, 10, std.pt);
+  var loop26 = new std.a_loop({ limit:10 });
+  while (loop26.next()) {
+    std.div_add(b, U, 0, 60, std.pt, null, 0);
+    std.div_spa(b, 0, 4, std.pt);
+  }
+  std.div_spa(b, 1, 10, std.pt);
+  var loop27 = new std.a_loop({ limit:10 });
+  while (loop27.next()) {
+    std.div_add(b, U, 1, 14, std.pt, null, 0);
+    std.div_spa(b, 1, 4, std.pt);
+  }
+  std.div_end(b);
+  //--under
+  std.draw_rect(b, { fill:std.LIGHT_STEEL_BLUE });
+  std.draw_grid(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   main_draw_cell
+//====================
+function main_draw_cell(b) {
+  std.k_enter(b);
+  let ss = null;
+  var case28 = std.mod(getn(b.extra, std.F_cell_seq), 15, {});
+  if (case28 === 0) {
+    ss = "FizzBuzz";
+    std.draw_rect(b, { fill:std.LIGHT_SKY_BLUE });
+  } else if (case28 === 3 || case28 === 6 || case28 === 9 || case28 === 12) {
+    ss = "Fizz";
+    std.draw_rect(b, { fill:std.LIGHT_GREEN });
+  } else if (case28 === 5 || case28 === 10) {
+    ss = "Buzz";
+    std.draw_rect(b, { fill:std.YELLOW });
+  } else {
+    ss = str.to_str(getn(b.extra, std.F_cell_seq), {});
+    std.draw_rect(b, { fill:std.ALICE_BLUE });
+  }
+  std.draw_str(b, ss, { size:0.7, color:std.BLACK });
+  if (std.eq2(getn(b.extra, std.F_cell_seq), getn(my_state, F_selected))) {
+    std.draw_rect(b, { thick:std.pt_to_dots(b, 3), pos:0.7, color:std.CRIMSON, corner:std.pt_to_dots(b, 2) });
+  }
+  std.k_leave(b);
+}
+
+//====================
+//   track_main_draw
+//====================
+export function track_main_draw(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 51, std.adr(my_state, F_selected), getn(b.extra, std.F_cell_seq));
+    std.cookie_write(KEY, my_state, { duration:std.meas(1, std.N_day, std.Y_Time) });
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  if (std.cookie_exists(KEY) === Y) {
+    std.copy_tree(_M, 14, std.cookie_read(KEY), std.adr(my_state));
+  }
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "FizzBuzz");
+main_init();
+std.rebuild_all();
+
+</script>
+</body>
+</html>

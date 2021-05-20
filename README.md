@@ -29,7 +29,6 @@ This is an example of a client + server program, showing how you can build both 
 The puzzle can be [run here](http://beadslang.com/projects/sliding_puzzle/puzzle.html)
 
 
-
 ### Example: Translation tool
 
 This is the handy graphical interactive localization utility for Beads. It allows you to visit Google translate to get your translation started, and lets you keep track of your translation progress, add new languages, etc.
@@ -154,6 +153,12 @@ The classic Apple calculator program, except without the bugs that Apple has! Co
 The classic snake game as popularized by Nokia cellphones. Probably the most fun per line of code ever made. Program complexity rating: 500 words.
 
 ![snake example](http://beadslang.com/examples/snake/snake_animated.gif)
+
+### Example: FizzBuzz, graphical style
+
+This is classic tiny program people write, where you take the numbers from 1 to 100, and draw either "Fizz", "Buzz" or the number, depending on the remainder when dividing by 3 and 5. This one is a bit fancier than normal, shows how you can store persistent data using cookies, and how auto refresh occurs.
+
+![screenshot](https://beadslang.com/projects/fizzbuzz/screenshot.gif)
 
 ### Example: Sort method contest
 

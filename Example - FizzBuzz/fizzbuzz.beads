@@ -1,0 +1,67 @@
+//  this shows a persistent value FizzBuzz grid
+//  whatever cell you pick is remembered for a month
+beads 1 program FizzBuzz  title:"Deluxe FizzBuzz"
+
+const
+	KEY = "FizzBuzz" // our key for the cookie we use to store persistent data
+
+var
+	//  this is our mutable state; just a single number at the moment
+	my_state : record
+		selected  //  which cell number is selected?
+
+calc main_init
+	//  this is the one-time initialization code
+	//  if we have a previous stored value, read it in
+	if cookie_exists(KEY)
+		cookie_read(KEY) ===> my_state
+
+grid main_draw
+	horz slice
+		// our main window will be divided into a grid with 10 columns
+		skip 10 pt
+		loop reps:10
+			add 60 pt
+			skip 4 pt
+			
+	vert slice
+		// our main window will have 10 rows
+		skip 10 pt
+		loop reps:10
+			add 14 pt
+			skip 4 pt
+	
+	under
+		//  fill the entire screen with a pleasant color
+		draw_rect(fill:LIGHT_STEEL_BLUE)
+	
+	cell
+		//  this routine will be called 100 times, and the implied block variable
+		//  b will hold values, like the sequence number b.cell_seq
+		var ss : str
+		case mod(b.cell_seq, 15)
+		| 0
+			ss = "FizzBuzz"
+			draw_rect(fill:LIGHT_SKY_BLUE)
+		| 3, 6, 9, 12
+			ss = "Fizz"
+			draw_rect(fill:LIGHT_GREEN)		
+		| 5, 10
+			ss = "Buzz"
+			draw_rect(fill:YELLOW)
+		else
+			ss = to_str(b.cell_seq)
+			draw_rect(fill:ALICE_BLUE)
+
+		//  we just set the string in the case statement above
+		draw_str(ss, size:0.7, color:BLACK)		
+
+		//  if this is the selected cell, highlight with a red frame
+		if b.cell_seq == my_state.selected
+			draw_rect(thick:3 pt, pos:0.7, color:CRIMSON, corner:2 pt)
+track EV_TAP
+	//  if we tap inside one of the cells, respond by updating our current selected cell
+	my_state.selected = b.cell_seq
+
+	//  remember this on the hard drive by updating the cookie
+	cookie_write(KEY, my_state, duration:1 day)
