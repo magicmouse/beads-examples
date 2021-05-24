@@ -1,0 +1,196 @@
+beads 1 program fishing
+//  this is a fishing game based on https://glitch.com/edit/#!/plain-frog?path=views%2Findex.html%3A1%3A0
+//  this demonstrates the State-Action-Model type of programming that one does in Beads
+
+enum
+	STATE_IDLE
+	STATE_DRAGGING
+	
+var g : record  -- our global mutable state model
+	// so we can resize freely, we consider the fish location to be proportion of the screen
+	fish_pos : array of a_xy  -- the fish_pos the user is trying to catch
+	fish_cc : array of str  -- fish emoji to draw
+	fish_caught : array of yesno  -- did we catch this fish yet?
+	n_to_catch  -- number of fish still to catch
+
+	state  -- our state like STATE_IDLE, etc.
+	corner1 : a_xy  -- first corner of the rectangle, in pixels
+	corner2 : a_xy  -- second corner of the rectangle, in pixels
+	net_rect : a_rect -- net rectangle being dragged out
+	prompt  : str  -- message to display to the user
+	pondsize : a_xy
+
+const
+	NFISHES = 10
+	FISH_ICONS = ["🐠", "🐡", "🦈", "🐟"]
+	DEBUG = N
+
+===================
+calc fresh_game
+	g.state = STATE_IDLE
+	g.n_to_catch = NFISHES
+	g.prompt = "Drag out a rectangle to catch fish. Must catch them one at a time"
+	
+	loop from:1 to:NFISHES index:ix
+		g.fish_cc[ix] = FISH_ICONS[random_int(1, 4)]
+		g.fish_caught[ix] = N
+
+		//  pick a random location in a virtual grid 100x100
+		//  we keep the fish away from the edge
+		//  don't allow a fish to be too close to another otherwise it would be
+		//  too hard, if not impossible, to only catch 1 at a time
+		loop
+			g.fish_pos[ix] <=== { x:random_range(5, 95), y:random_range(5, 95) }		
+			if (is_good_place(ix))
+				exit
+		//.. end trying new positions
+	
+===================
+calc is_good_place (
+	ix -- fish we are placing
+	) : yesno -- return Y if we are far enough away
+
+	//  see if we are too close to prior ones
+	loop from:1 to:ix-1 index:jx
+		if distance(g.fish_pos[ix], g.fish_pos[jx]) < 5
+			return N -- too close to another fish
+	return Y  -- this is a valid spot to put another fish
+			
+===================
+calc main_init
+	fresh_game
+
+===================
+horz slice main_draw
+	under
+		draw_rect(fill:DARK_SLATE_GRAY)
+
+	add 50 al d_leftside
+	add 50 al d_rightside
+	skip 5 al
+
+===================
+vert slice d_rightside
+	skip 10 al
+	add 100 al d_pond
+	skip 10 al	
+
+===================
+vert slice d_leftside
+	skip 10 al
+	add 20 al 
+		draw_str("Fishing Game", size:0.6, indent:12 pt, font:MONOSPACE, color:TURQUOISE)
+	skip 10 al
+	add 60 al
+		draw_str(g.prompt, wrap:Y, size:0.12, indent:10 pt, color:LEMON_CHIFFON)
+	skip 10 al
+
+===================
+draw d_pond
+	var r : a_rect
+
+	//  remember the pond bounds for our coordinate tracking
+	//  this will change on any resize
+	g.pondsize.x = bb.width
+	g.pondsize.y = bb.height
+
+	//  the pond background
+	draw_rect(fill:MEDIUM_SEA_GREEN, corner:10 pt)
+
+	//  draw all the caught fish_pos
+	var fish : ptr to a_xy
+	loop across:g.fish_pos ptr:pos index:ix
+		//  if we are debugging, show hint where the fish_pos are
+		var actual : a_xy = to_pond_coord(pos)
+
+		if g.fish_caught[ix]
+			//  draw a nice fish emoji
+			r <=== solve_rect(cx:actual.x, cy:actual.y, width:50 pt, height:50 pt)
+			draw_str(g.fish_cc[ix], size:0.7, box:r)
+
+		if DEBUG	
+			draw_circle(x:actual.x, y:actual.y, diam:5, fill:PINK)
+	//..end fish drawing 
+		
+	if g.state <> STATE_IDLE
+		//  draw the current rectangle we have defined
+		draw_rect(box:g.net_rect, fill:CORNFLOWER_BLUE corner:6 pt, opacity:0.8)
+track
+	case e.evkind
+	| EV_DRAG_BEGIN
+		log ">> DRAG_BEGIN, mouse=[{e.x},{e.y}]" on:DEBUG
+		//  e.x and e.y hold the current mouse position
+		g.corner1.x = e.x
+		g.corner1.y = e.y
+		g.corner2 <=== g.corner1  // start out empty
+		gen_net_rect
+		g.state = STATE_DRAGGING
+		g.prompt = "Casting net..."
+		return Y  // important to do this else it won't capture the mouse
+
+	| EV_DRAG_MOVE
+		log ">> DRAG_MOVE, mouse=[{e.x},{e.y}]" on:DEBUG
+		//  set the second corner
+		g.corner2.x = e.x
+		g.corner2.y = e.y
+		gen_net_rect
+		return Y
+
+	| EV_DRAG_END
+		log ">> DRAG_END" on:DEBUG
+		g.state = STATE_IDLE
+		post_fishing
+		return Y
+
+	else
+		return N
+
+===================
+calc post_fishing
+	var n = 0
+	var fishx
+
+	//  calculate how many uncaught fish_pos the selection covered
+	loop across:g.fish_pos ptr:pos index:ix
+		var fish_coord : a_xy <=== to_pond_coord(pos)
+		log "testing fish {ix} at {fish_coord} in pond {g.net_rect}" on:DEBUG
+		if rect_is_inside(g.net_rect, xy:fish_coord) and g.fish_caught[ix] <> Y
+			inc n
+			fishx = ix
+
+	case n
+	| 0
+		g.prompt = "Sorry, no fish found there..."
+
+	| 1
+		//  we found exactly one fish, mark it as catched
+		g.fish_caught[fishx] = Y
+		dec g.n_to_catch
+
+		if g.n_to_catch == 0
+			//  if we have found all the fish, alert them they won
+			g.prompt = "Congratulations"
+			browser_alert("You Won!")
+
+			//  start a new game
+			fresh_game
+		else
+			g.prompt = "Got one!\n{g.n_to_catch} left to catch"
+
+	else
+		//  too many
+		g.prompt = "Caught {n-1} too many"
+
+===================
+calc to_pond_coord (  -- map fish coordinates from 1..100 to pond coordinates
+	pos : a_xy
+	) : a_xy
+	return {x:interpolate(pos.x, 0, 100, 0, g.pondsize.x), y:interpolate(pos.y, 0, 100, 0, g.pondsize.y) }
+
+===================
+calc gen_net_rect  --  any time either corner changes, regen the net rectangle
+	g.net_rect <=== solve_rect(left:max(-5, min(g.corner1.x, g.corner2.x)),
+			top:max(-5, min(g.corner1.y, g.corner2.y)),
+			right:max(g.corner1.x, g.corner2.x),
+			bottom:max(g.corner1.y, g.corner2.y))
+
