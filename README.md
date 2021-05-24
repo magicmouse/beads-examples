@@ -82,6 +82,14 @@ In this example we show how you can use the HTML canvas layer to achieve smooth 
 ![constellation](http://beadslang.com/examples/animate3/animate3.gif)
 
 
+### Example: Fishing game
+
+This example shows the State-Action-Model pattern method of programming, which is the natural way to program in Beads. You have state variables which are used in a read-only manner by the drawing code, and only the event tracking code updates state.
+
+![screenshot](http://beadslang.com/projects/fishing/screenshot.gif)
+
+The game can be [run here](http://beadslang.com/projects/fishing/fishing.html)
+
 ### Example: Animate1 -- Animation program execution
 
 In this example we show a prototype of a way of illustrating program execution, as we call and return from functions:
