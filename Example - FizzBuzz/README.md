@@ -4,7 +4,7 @@
 
 ![fizz example](http://beadslang.com/projects/fizzbuzz/screenshot.gif)
 
-This simple program will draw 100 cells on the screen. The content of each cell is based on the classic FizzBuzz problem (more accurately the Fizz Buzz Jazz problem), which is if the cell number is divisible by 3, you put in "Fizz", if by 5, "Buzz", if by 7 "Fuzz", otherwise the cell number is drawn.
+This simple program will draw 120 cells on the screen. The content of each cell is based on the classic FizzBuzz problem (more accurately the Fizz Buzz Jazz problem), which is if the cell number is divisible by 3, you put in "Fizz", if by 5, "Buzz", if by 7 "Fuzz", otherwise the cell number is drawn.
 
 In this example the word list, and prime factors are table driven.
 
