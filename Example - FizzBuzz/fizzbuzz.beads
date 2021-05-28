@@ -1,9 +1,16 @@
-//  this shows a persistent value FizzBuzz grid
-//  whatever cell you pick is remembered for a month
-beads 1 program FizzBuzz  title:"Deluxe FizzBuzz"
+//  this shows a persistent value FizzBuzzJazz grid with 120 cells
+//  whatever cell you select by clicking is remembered for 30 days
+//  we added the grid so it is more of a demonstration
+
+beads 1 program FizzBuzz  title:"Deluxe FizzBuzzJazz"
 
 const
 	KEY = "FizzBuzz" // our key for the cookie we use to store persistent data
+
+	//  you can add more words, just be sure to add more prime factors and colors
+	WORDS = ["Fizz", "Buzz", "Jazz"]
+	PRIMES = [3, 5, 7]
+	COLORS = [LIGHT_SKY_BLUE, LIGHT_GREEN, YELLOW]
 
 var
 	//  this is our mutable state; just a single number at the moment
@@ -27,7 +34,7 @@ grid main_draw
 	vert slice
 		// our main window will have 10 rows
 		skip 10 pt
-		loop reps:10
+		loop reps:12
 			add 14 pt
 			skip 4 pt
 	
@@ -38,22 +45,18 @@ grid main_draw
 	cell
 		//  this routine will be called 100 times, and the implied block variable
 		//  b will hold values, like the sequence number b.cell_seq
-		var ss : str
-		case mod(b.cell_seq, 15)
-		| 0
-			ss = "FizzBuzz"
-			draw_rect(fill:LIGHT_SKY_BLUE)
-		| 3, 6, 9, 12
-			ss = "Fizz"
-			draw_rect(fill:LIGHT_GREEN)		
-		| 5, 10
-			ss = "Buzz"
-			draw_rect(fill:YELLOW)
-		else
-			ss = to_str(b.cell_seq)
-			draw_rect(fill:ALICE_BLUE)
+		var ss = ""
+		var color = ALICE_BLUE
 
-		//  we just set the string in the case statement above
+		loop across:WORDS index:wordx
+			if mod(b.cell_seq, PRIMES[wordx]) == 0
+				WORDS[wordx] &=> ss
+				color = COLORS[wordx]
+		if ss == ""
+			//  plain cell
+			ss = to_str(b.cell_seq)
+
+		draw_rect(fill:color)
 		draw_str(ss, size:0.7, color:BLACK)		
 
 		//  if this is the selected cell, highlight with a red frame
@@ -64,4 +67,4 @@ track EV_TAP
 	my_state.selected = b.cell_seq
 
 	//  remember this on the hard drive by updating the cookie
-	cookie_write(KEY, my_state, duration:1 day)
+	cookie_write(KEY, my_state, duration:30 day)
