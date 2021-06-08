@@ -101,7 +101,7 @@ draw d_scale2 (  --- each scale mark
 	value
 	units
 	)
-	var suffix : str = if units == enum degF then " °F" else " °C"
+	var suffix : str = " °F" if units == enum degF else " °C"
 	draw_str(b.box, "{value}{suffix}", size:0.75, color:LIGHT_BLUE, just:LEFT, indent:4 pt)
 ```
 The arrow side is where we draw the current temperature and the triangle. 

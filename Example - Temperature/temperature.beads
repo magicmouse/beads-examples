@@ -40,11 +40,12 @@ calc main_init
 
 ==========================
 vert slice main_draw
-	draw_rect(b.box, fill:DARK_SLATE_GRAY)
+	under
+		draw_rect(fill:DARK_SLATE_GRAY)
 
 	skip 10 al
 	add 20 al
-		draw_str(b.box, "Temperature Control", size:0.7, color:GHOST_WHITE)
+		draw_str("Temperature Control", size:0.7, color:GHOST_WHITE)
 	skip 20 al
 	add 100 al d_dual
 	skip 40 al
@@ -65,7 +66,7 @@ horz slice d_therm (  --- the thermometer control has arrows, bar, and scale
 	)
 	add 70 al d_arrow(lo, hi, units)
 	add 30 al
-		draw_rect(b.box, grad:GRAD1, corner:2 pt)
+		draw_rect(grad:GRAD1, corner:2 pt)
 	add 70 al d_scale(lo, hi, units)
 
 ==========================
@@ -83,8 +84,8 @@ draw d_scale2 (  --- each scale mark
 	value
 	units
 	)
-	var suffix : str = if units == enum degF then " °F" else " °C"
-	draw_str(b.box, "{value}{suffix}", size:0.75, color:LIGHT_BLUE, just:LEFT, indent:4 pt)
+	var suffix : str = " °F" if units == enum degF else " °C"
+	draw_str("{value}{suffix}", size:0.75, color:LIGHT_BLUE, just:LEFT, indent:4 pt)
 
 ==========================
 draw d_arrow (  --- controller arrow
@@ -96,7 +97,7 @@ draw d_arrow (  --- controller arrow
 	var y = interpolate(val, lo, hi, b.box.height, 0, clamp:Y)
 	log "val={val}, lo={lo}, hi={hi}, height={b.box.height}, y={y}" on:TRACING
 	var r : a_rect <=== solve_rect(cy:y, left:0, width:b.box.width, height:b.box.height/12)
-	draw_str(r, to_str(val, dig:1) & " ▶", size:0.75, color:CRIMSON, just:RIGHT, indent: 1 pt)
+	draw_str(to_str(val, dig:1) & " ▶", box:r, size:0.75, color:CRIMSON, just:RIGHT, indent: 1 pt)
 track
 	case e.evkind
 	| EV_HOVER
