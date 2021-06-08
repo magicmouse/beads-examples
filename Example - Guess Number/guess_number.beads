@@ -1,0 +1,94 @@
+beads 1 program guess_number
+//  the classic guess a number game
+
+enum
+	TOO_LOW
+	TOO_HIGH
+	YOU_WIN
+
+var g : record
+	secret
+	ntries
+	last_guess
+	last_result
+
+calc main_init
+	new_game
+
+calc new_game
+	g.secret = random_int(1, 10)
+	log " secret is {g.secret}"
+	g.ntries = 0
+	g.last_guess = U
+	g.last_result = U
+
+horz slice main_draw
+	under
+		draw_rect(fill:DARK_SLATE_GRAY)
+	skip 10 al
+	add 400 pt d_main2
+	skip 10 al
+
+vert slice d_main2
+	skip 10 al
+	add 40 pt
+		draw_str("Guess the number I picked...", size:0.6, color:HONEYDEW, opacity:0.5)
+	skip 10 pt
+	add 200 pt d_numbers
+	skip 10 pt
+	add 70 pt d_status
+	skip 20 al
+
+horz slice d_status
+	if g.last_result == YOU_WIN
+		var msg :str = "You won on the first guess, you have ESP!" if g.ntries == 1 else "You won in {g.ntries} guesses!"
+		draw_str(msg, size:0.6, bold:Y, color:HOT_PINK)
+	else
+		add 10 al d_msg(TOO_LOW, "Too low")
+		skip 5 al
+		add 10 al d_msg(TOO_HIGH, "Too high")
+
+draw d_msg (
+	ix
+	msg : str
+	)
+	if g.last_result == ix
+		//  highlight this message
+		draw_rect(corner:20 pt, fill:WHITE, opacity:0.2)
+		draw_str(msg, color:HOT_PINK, bold:Y, size:0.6, indent:4 pt)
+	else
+		draw_str(msg, color:HONEYDEW, size:0.6, opacity:0.05)
+
+grid d_numbers
+	horz slice
+		loop reps:5
+			skip 2 al
+			add 30 al
+		skip 2 al
+
+	vert slice
+		loop reps:2
+			skip 2 al
+			add 30 al
+		skip 2 al
+
+	cell
+		var fill:color = DEEP_SKY_BLUE if b.cell_seq == g.last_guess else STEEL_BLUE
+		draw_rect(fill:fill, corner:10 pt, thick:2 pt, color:LIGHT_SEA_GREEN)
+		draw_str(b.cell_seq, size:30 pt, color:HONEYDEW)
+------
+track EV_TAP
+	//  if the game is won, ignore clicks
+	if g.last_result == YOU_WIN
+		return Y
+
+	inc g.ntries
+	g.last_guess = b.cell_seq
+	if g.last_guess < g.secret
+		g.last_result = TOO_LOW
+	elif g.last_guess > g.secret
+		g.last_result = TOO_HIGH
+	else
+		g.last_result = YOU_WIN
+		//  set the time to do a new game after a short delay
+		loom_timer(new_game, delay:1.5 sec)
