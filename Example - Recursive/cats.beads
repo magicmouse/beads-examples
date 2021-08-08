@@ -46,7 +46,7 @@ draw main_draw
 	draw_rect(fill:#1C2D34)
 
 	//  if the screen is very large, subset it
-	var box <=== solve_rect(basis:bb, pin:5, width:min(380 pt, bb.width), height:min(600 pt, bb.height))
+	var box <=== solve_rect(basis:bb, pin:5, width:min(320 pt, bb.width), height:min(450 pt, bb.height))
 	layer area:box main_draw2
 
 ==================
@@ -97,6 +97,9 @@ horz slice render_node (
 	add TRIANGLE_H px on:tree_count(node.children) > 0 d_disclosure(node)
 	skip 2 pt
 	add 10 al d_name(node)
+	add TRIANGLE_H px on:tree_sibling_hi(node) <> U d_dn_butt(node)
+	skip 4 pt
+	add TRIANGLE_H px on:tree_sibling_lo(node) <> U d_up_butt(node)
 	skip 12 pt  // leave room for scrollbar
 
 	//  note that we cannot call back to render_list inside this draw block
@@ -106,6 +109,28 @@ track EV_TAP
 	//  select this row also
 	intf.curr_node = node
 
+==============
+draw d_up_butt (
+	node : ptr to a_node
+	)
+	draw_str("▲", size:0.7, indent:3 pt, just:LEFT, color:BLACK)
+------------
+track EV_TAP
+	//  generate a pointer to the earlier unit
+	var node2 : ptr to a_node = tree_sibling_lo(node)
+	swap node <===> node2
+	
+==============
+draw d_dn_butt (
+	node : ptr to a_node
+	)
+	draw_str("▼", size:0.7, indent:3 pt, just:LEFT, color:BLACK)
+------------
+track EV_TAP
+	//  generate a pointer to the later unit
+	var node2 : ptr to a_node = tree_sibling_hi(node)
+	swap node <===> node2
+	
 ==============
 draw d_disclosure (  -- draw the disclosure triangle
 	node : ptr to a_node
