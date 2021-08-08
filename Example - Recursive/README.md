@@ -11,4 +11,4 @@ Note that you have precise control over the indenting, line size, and every aspe
  [run here](http://beadslang.com/projects/recursive/cats.html). 
  
  
-![screenshot](http://beadslang.com/projects/cats/screenshot.gif)
+![screenshot](http://beadslang.com/projects/recursive/screenshot.gif)
