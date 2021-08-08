@@ -1,0 +1,127 @@
+beads 1 program cats 
+//  this is an example showing how to make a hierarchical list with disclosure triangles
+//  inspired by Scala/React sample at http://www.react4s.org/examples/tree-editor
+
+record a_node
+	name : str
+	show : yesno   // should we show the children nodes?
+	children : array of a_node
+
+var
+	animals : array of a_node  -- top level is the children of the cats
+	intf : record
+		curr_node : ptr to a_node
+
+	//  this is an untracked transient variable 
+	gyy   -- current Y coordinate we are at
+			
+==================
+calc main_init
+	//  this is the hardest part of the program, to write a deeply nested tree constant.
+	//  to help you do this more easily, Beads supports a nice set of unicode brace synonyms
+	//  the brackets [] denote an array, and braces {}, «» create a record (like JSON).
+	//  since Beads uses Python style significant indent, there is a delimiter @+ ... @- 
+	//  to mark the range of a multi-line statement. Very rarely used.
+	animals <=== [	@+
+		« name:"Pantherinae", show:Y, children: 
+			[{ name:"Panthera", show:Y, children: 
+				[{ name:"Tiger" }, { name:"Lion" }, { name:"Jaguar" }]
+			}]
+		»
+		« name:"Felinae", show:Y, children:
+			[{ name:"Lynx", show:Y, children:
+				[{ name:"Canadian Lynx" }, { name:"Eurasian Lynx" }, { name:"Iberian Lynx" }, { name:"Bobcat" }]
+			 }
+			 { name:"Puma", show:Y, children:
+				[{ name:"Cougar" }, { name:"Eyra" }]
+			 }
+			 { name:"Acinonyx", show:Y, children:
+				[{ name:"Cheetah" }]
+			 }]
+		»
+		] @-			
+
+==================
+draw main_draw
+	draw_rect(fill:#1C2D34)
+
+	//  if the screen is very large, subset it
+	var box <=== solve_rect(basis:bb, pin:5, width:min(380 pt, bb.width), height:min(600 pt, bb.height))
+	layer area:box main_draw2
+
+==================
+draw main_draw2
+	draw_rect(fill:#EDF2F3, corner:8 pt)
+
+	gyy = 4 pt  //  must set global var before recursive rendering
+	render_list(0, animals)
+
+=============
+draw render_list (  -- render an array of nodes
+	depth	-- horz indent level
+	list : array of a_node
+	)
+	const  // style constants
+		LINE_V = 14 pt		// line height
+		LEADING_V = 14 pt	// leading
+
+	loop across:list ptr:node
+		//  calculate the row box
+		var rowbox <=== solve_rect(basis:bb, pin:1, top:gyy, height:LINE_V)
+		//log "list gyy={gyy}, rowbox={rowbox}"
+		LEADING_V +=> gyy
+		layer area:rowbox render_node(depth, node)
+		if node.show
+			render_list(depth+1, node.children)
+
+==================
+horz slice render_node (
+	depth		   -- indent level
+	node : a_node  --  single node to draw
+	)
+	//log "render, depth={depth}, ptr={node}, name={node.name}"
+
+//  the node pointer will proceeed via recursive descent: 
+//		animals[1]
+//		animals[1].children[1]
+//		animals[1].children[1].children[1]
+//		animals[1].children[1].children[2]
+//		animals[2].children[1], etc.
+	const
+		LMARGIN = 8 pt		// left margin 
+		PER_LEVEL = 20 pt   // indent per level
+		INDENT = (LMARGIN + depth*PER_LEVEL)
+		TRIANGLE_H = 16 pt	// triangle hit area width
+
+	skip INDENT px
+	add TRIANGLE_H px on:tree_count(node.children) > 0 d_disclosure(node)
+	skip 2 pt
+	add 10 al d_name(node)
+	skip 12 pt  // leave room for scrollbar
+
+	//  note that we cannot call back to render_list inside this draw block
+	//  it has to finish else we will get nested blocks
+------------
+track EV_TAP
+	//  select this row also
+	intf.curr_node = node
+
+==============
+draw d_disclosure (  -- draw the disclosure triangle
+	node : ptr to a_node
+	)
+	var ss = "▼" if node.show else "▶"
+	draw_rect(fill:GRAY2, corner:2 pt)
+	draw_str(ss, size:0.7, color:BLACK)
+------------
+track EV_TAP
+	toggle node.show
+	return N // let parent also get the tap so we select the row
+
+==============
+draw d_name (  -- draw the name
+	node : ptr to a_node
+	)
+	if node == intf.curr_node
+		draw_rect(fill:#D0A8B7, corner:2 pt)
+	draw_str(node.name, size:0.7, indent:3 pt, just:LEFT, color:BLACK)
