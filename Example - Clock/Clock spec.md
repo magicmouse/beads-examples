@@ -14,6 +14,6 @@ This simple program will draw a clock on the screen. This is among the shortest 
 
 #### screenshot:
 
-![clock example](http://magicmouse.com/beads/examples/clock/clock_screenshot_anim.gif)
+![clock example](http://beadslang.com/examples/clock/clock_screenshot_anim.gif)
 
 ##### program complexity rating: 150 words
