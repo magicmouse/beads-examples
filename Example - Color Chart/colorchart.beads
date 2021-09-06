@@ -214,7 +214,7 @@ record a_state
 	sel_color : color
 	prior_color : color
 
-	format  : (FORMAT_BEADS, FORMAT_HTML, FORMAT_HEX, FORMAT_RGB)
+	format  : (FORMAT_BEADS, FORMAT_HTML, FORMAT_HEX, FORMAT_C, FORMAT_RGB)
 	sizing  : (COMPACT_SIZE, FULL_SIZE)
 	mode_grid : a_choice_set
 
@@ -531,6 +531,7 @@ horz slice d_color_fmt_sel  //  show the color format selector (mutually exclusi
 	add 10 al d_choice(FORMAT_BEADS, "Beads name", "Beads")
 	add 10 al d_choice(FORMAT_HTML, "HTML name", "HTML")
 	add 10 al d_choice(FORMAT_HEX, "Hex name", "Hex")
+	add 10 al d_choice(FORMAT_C, "C Hex", "C")
 	add 10 al d_choice(FORMAT_RGB, "rgb call", "rgb()")
 
 =================================
@@ -657,7 +658,7 @@ horz slice d_cell(  //  inside each cell we draw the color and the name
 			| FORMAT_BEADS, FORMAT_HTML
 				//  show the name
 				draw_str(ss, just:LEFT, indent:4 pt, size:bb.width/11, color:textc)
-			| FORMAT_HEX, FORMAT_RGB
+			| FORMAT_HEX, FORMAT_C, FORMAT_RGB
 				//  show the hex value in slightly larger type
 				draw_str(ss, just:LEFT, indent:4 pt, size:bb.width/8, font:"_typewriter", color:C_TEXT)
 
@@ -908,6 +909,8 @@ track EV_TAP
 	case g.format
 	| FORMAT_RGB
 		os_clipboard_copy(color_to_rgb(g.sel_color))
+	| FORMAT_C
+		os_clipboard_copy(subset(color_to_hex(g.sel_color), from:2))
 	else
 		os_clipboard_copy(color_to_hex(g.sel_color))
 
@@ -990,6 +993,8 @@ calc calc_slot_str ( -- calculate the string for the color slot
 		return beads_to_html(slot.name)
 	| FORMAT_HEX
 		return color_to_hex(slot.color)
+	| FORMAT_C
+		return subset(color_to_hex(slot.color), from:2)
 	| FORMAT_RGB
 		return color_to_rgb(slot.color)
 
