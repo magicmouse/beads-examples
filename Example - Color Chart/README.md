@@ -4,7 +4,7 @@ The Beads language is designed to replace Java and Javascript for making graphic
 
 This simple tool is designed to give a programmer a way to pick colors easily. It shows the HTML named colors, and by clicking on a color chip it will copy the color name to the clipboard so you can paste it into your code. You can switch the mode by clicking the little button in the upper left corner, and then it will show Hex colors and copy those. It will draw the color names if the window is large enough but you can shrink the window down to super small size and then it is just color chips.
 
-To run the program please visit:  [picker running on a server](http://beadslang.com/apps/color_picker/picker.html)
+To run the program please visit:  [picker running on a server](https://beadslang.com/examples/colorchart/colorchart.html)
 
 #### screenshot:
 

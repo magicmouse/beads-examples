@@ -471,7 +471,7 @@ vert slice main_draw
 -------
 track EV_RESIZE  //  this sets global BARV, NCOLS, NROWS
 	//  when we resize (or before first draw) this event is sent
-	BARV = max(14 pt, min(20 pt, bb.height/17))
+	BARV = clamp(bb.height/17, 14 pt, 20 pt)
 	var h_pts = dots_to_pt(bb.width)
 	var v_pts = dots_to_pt(bb.height-BARV)
 	var area = h_pts * v_pts
@@ -590,7 +590,7 @@ grid d_html_palette order:TBLR
 // 		draw_rect(box:r, fill:PINK, corner_tl:4 pt)
 // 		draw_str("\u2921", box:r, size: 10 pt)  //  NW-SE arrow
 -----------------------
-track EV_TAP
+track EV_TAP  // user is tapping in HTML palette
 	//  make a sound effect 
 	if b.cell_seq == U or b.cell_seq > NCELLS
 		//  bad selection, clicked on dead space, a gap or past end of list
@@ -600,11 +600,13 @@ track EV_TAP
 		//  color choice
 		sound_play(CLICK)
 		g.htmlchip_selx = b.cell_seq
-		g.ferrari_selx = U
 		g.prior_color = g.sel_color
 		g.sel_color = slotlist[g.htmlchip_selx].color
 		//log "tapped on color {slotlist[g.htmlchip_selx].name}"
 		os_clipboard_copy(calc_slot_str(slotlist[g.htmlchip_selx]))
+
+		//  now find closest ferrari color
+		g.ferrari_selx = find_closest_ferrari(g.sel_color)
 -------
 track EV_HOVER
 	//  if we are on a clickable thing, show the finger cursor
@@ -764,12 +766,56 @@ var
 	chip_h : num
 
 =================================
+calc find_closest_ferrari (
+	targ : color
+	) : num  // return index of closest color
+
+	var best_ix = 0
+	var best_score = INFINITY
+	var score
+	var c : color
+
+	loop across:FERRARI val:c index:ix
+		score = color_difference(targ, c)
+		if score < best_score
+			best_score = score
+			best_ix = ix
+	return best_ix
+
+=================================
+calc color_difference2 (
+	c1 : color
+	c2 : color
+	) : num
+	var hsv1 : a_hsv <=== color_to_hsv(c1)
+	var hsv2 : a_hsv <=== color_to_hsv(c2)
+	//  this will weight hue much more closely than sat and value
+	var dh = hsv1.hue - hsv2.hue
+	var ds = hsv1.saturation - hsv2.saturation
+	var dv = hsv1.value - hsv2.value
+	return sqrt(dh*dh + ds*ds + dv*dv)
+
+calc color_difference (
+	c1 : color
+	c2 : color
+	) : num
+	var r1 = r255(c1)
+	var g1 = g255(c1)
+	var b1 = b255(c1)
+	var r2 = r255(c2)
+	var g2 = g255(c2)
+	var b2 = b255(c2)
+	var dr = r1-r2
+	var dg = g1-g2
+	var db = b1-b2
+	return sqrt(dr*dr + dg*dg + db*db)
+
+=================================
 horz slice d_ferrari_palette
 	//  calculate so that the chips are even in width
 	chip_h = round_down(bb.width / CHIPS_PER_ROW)
 	var used = chip_h*CHIPS_PER_ROW
 	var leftover = bb.width - used
-
 	var sampleh = round(leftover*0.8)
 	var gap = (leftover - sampleh)*0.5
 
@@ -964,6 +1010,6 @@ calc beads_to_html ( -- convert a color name like LIGHT_PINK to LightPink
 	var word  : str
 	split_words(to_lower(beadsname), words, delim:"_")
 	loop across:words val:word
-		to_upper(subset(word, from:1, len:1)) & subset(word, from:2) &=> result
+		to_upper(word[1]) & subset(word, from:2) &=> result
 	//log "name from {beadsname} to {result}"
 	return result
