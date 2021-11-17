@@ -21,6 +21,12 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 
 This is an example of a client + server program, showing how you can build both the client and the server in Beads. To develop this app, you start by first coding it as a standalone program, with fake data, and once you have the drawing part working well, you split off the data generation part into the server module. In this example you connect to the server (running the emitted JS code under Node.JS), and it will transmit to the client the prices. [run here](http://beadslang.com/projects/realtime_stock/hoody_client.html). Note that the server has to be running for the client to be able to connect. We don't run the server 24/7, mention it on the Discord group to fire it up.
 
+### Example: Conway's game of life
+
+![screenshot](http://beadslang.com/projects/game_of_life/screenshot.gif)
+
+This shows how short and simple programs can be when written in Beads. It is impossible to write a shorter version that performs the same function (this version auto-adjusts to the screen size).
+
 ### Example: Recursive structures
 
 

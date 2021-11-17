@@ -1,0 +1,94 @@
+beads 1 program life title:"Conway's game of life"
+//  adapted from Nikos Plugachev Piccolo code
+//  written in Beads by CodingFiend Nov 2021
+
+const
+	NCOL = 30
+	NROW = 20
+
+var 
+	board : array^2 of yesno  // indexed by [frame (0-1), col (1-NCOL), row (1-NROW)]
+	prev  : array^2 of yesno  // previous board
+
+=============================
+calc main_init //  one time initialization of our board
+	//  this pattern stabilizes after about 40 frames
+	board[3, 1] = Y
+	board[3, 2] = Y
+	board[3, 3] = Y
+	board[2, 3] = Y
+	board[1, 2] = Y
+
+	board[23, 1] = Y
+	board[21, 2] = Y
+	board[20, 3] = Y
+	board[20, 4] = Y
+	board[20, 5] = Y
+	board[21, 5] = Y
+	board[22, 5] = Y
+	board[23, 5] = Y
+	board[24, 5] = Y
+	board[25, 4] = Y
+	board[25, 2] = Y
+
+	//  start a timer to recalc at 4 frames a second
+	loom_timer(calc_next_frame, rate:4, delay:1 sec, reps:100)
+
+=============================
+calc calc_next_frame
+	board ===> prev  //  copy the current board to prev
+
+	//  given the previous frame, calc the new frame
+	loop from:1 to:NCOL index:col
+		loop from:1 to:NROW index:row
+			var n = count_neighbors(col, row)
+			//log "calc cell [{col}, {row}], n={n}"
+			if prev[col, row] 
+				//  this cell was on, to stay on, must have 2 or 3
+				board[col, row] = (n == 2) or (n == 3)
+			else
+				// only spawn if exactly 3 neighbors
+				board[col, row] = (n == 3)
+
+=============================
+calc count_neighbors (  // count the 8 neighbor cells
+	col
+	row
+	) : num  // return number of neighbors that are ON
+	var n = 0
+	loop from:-1 to:+1 index:dx
+		loop from:-1 to:+1 index:dy
+			if dx <> 0 or dy <> 0  //  loop executes 9 times, skip center cell
+				if prev[col+dx, row+dy]
+					inc n
+	return n
+
+=============================
+draw main_draw
+	draw_rect(fill:#224140, corner:4 pt) 	//  fill the page with a dark color
+
+	//  draw our board inside the total area with a small margin
+	//  make the inner area follow the aspect ratio of cell counts
+	var inner <=== solve_rect(basis:bb, pin:5, inset:20 pt, aspect:NCOL/NROW)
+	layer area:inner draw_board
+
+=============================
+grid draw_board  //  draw the playing board
+	horz slice
+		skip 1 al
+		loop reps:NCOL
+			add 12 al
+			skip 1 al
+
+	vert slice
+		skip 1 al
+		loop reps:NROW
+			add 12 al
+			skip 1 al
+
+	under
+		draw_rect(fill:LIGHT_BLUE, corner:2 pt)
+
+	cell
+		if board[b.cell.x, b.cell.y]
+			draw_rect(fill:DODGER_BLUE, corner:bb.height*0.2)
