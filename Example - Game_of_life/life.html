@@ -29,44 +29,44 @@ div:hover { cursor:default; }
 </head>
 <body style="margin:0; padding:0;position:fixed;">
 <script type="module">
-// beads ver 0.47 compiled Wed Nov 17 17:47:19 GMT-0800 2021
-import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_047/beads_std.js';
-import * as std from '../../runtime_047/beads_std.js';
-import * as str from '../../runtime_047/beads_str.js';
-export const CODE_HASH = 0x807028a9;
+// beads ver 0.48 compiled Wed Nov 17 19:24:35 GMT-0800 2021
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_048/beads_std.js';
+import * as std from '../../runtime_048/beads_std.js';
+import * as str from '../../runtime_048/beads_str.js';
+export const CODE_HASH = 0x2f93b5ad;
 const _M = std.MODULES.push("life")-1;
 std.rtl_init();
 std.aaaa.main_init = main_init;
 std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
 //------- enums
-const R_record_18=9007191734358747; std.ENUMS[9007191734358747]="record_18";
 const F_timer=9007190505262177; std.ENUMS[9007190505262177]="timer";
 std.FIELDS[F_timer] = true;
+const R_record_17=9007191684025890; std.ENUMS[9007191684025890]="record_17";
 //-------  func const for life
-const draw_footer_F = new std.a_function(_M, "draw_footer", draw_footer);
-std.FUNCS[draw_footer_F.hash]=draw_footer_F;
 const d_butt_F = new std.a_function(_M, "d_butt", d_butt, track_d_butt);
 std.FUNCS[d_butt_F.hash]=d_butt_F;
-const calc_next_frame_F = new std.a_function(_M, "calc_next_frame", calc_next_frame);
-std.FUNCS[calc_next_frame_F.hash]=calc_next_frame_F;
 const do_scramble_F = new std.a_function(_M, "do_scramble", do_scramble);
 std.FUNCS[do_scramble_F.hash]=do_scramble_F;
-const draw_board_F = new std.a_function(_M, "draw_board", draw_board, track_draw_board);
-std.FUNCS[draw_board_F.hash]=draw_board_F;
-const do_start_F = new std.a_function(_M, "do_start", do_start);
-std.FUNCS[do_start_F.hash]=do_start_F;
-const do_clear_F = new std.a_function(_M, "do_clear", do_clear);
-std.FUNCS[do_clear_F.hash]=do_clear_F;
 const do_stop_F = new std.a_function(_M, "do_stop", do_stop);
 std.FUNCS[do_stop_F.hash]=do_stop_F;
+const calc_next_frame_F = new std.a_function(_M, "calc_next_frame", calc_next_frame);
+std.FUNCS[calc_next_frame_F.hash]=calc_next_frame_F;
+const do_clear_F = new std.a_function(_M, "do_clear", do_clear);
+std.FUNCS[do_clear_F.hash]=do_clear_F;
+const draw_footer_F = new std.a_function(_M, "draw_footer", draw_footer);
+std.FUNCS[draw_footer_F.hash]=draw_footer_F;
+const do_start_F = new std.a_function(_M, "do_start", do_start);
+std.FUNCS[do_start_F.hash]=do_start_F;
+const draw_board_F = new std.a_function(_M, "draw_board", draw_board, track_draw_board);
+std.FUNCS[draw_board_F.hash]=draw_board_F;
 //-------  top nodes
-const NCOL = 30;
-const NROW = 25;
 const C_BUTT_BACK = std.DARK_SLATE_BLUE;
 const C_BUTT_TEXT = std.AZURE;
 const C_BUTT_BORD = std.ROYAL_BLUE;
 let board = new std.a_tree(_M,"board", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
 let prev = new std.a_tree(_M,"prev", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+let ncol = U;
+let nrow = U;
 let g = new std.a_tree(_M,"g", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
 
 //====================
@@ -105,17 +105,17 @@ var back = C_BUTT_BACK; if ((_o != null) && _o.hasOwnProperty("back")) back = _o
 function draw_board(b) {
 std.k_enter(b);
 std.div_begin(b, new std.a_function(_M, "draw_board_cell", draw_board_cell, null), false, false, false);
-  var loop168 = new std.a_loop({ limit:NCOL });
-  while (loop168.next()) {
+  var loop58 = new std.a_loop({ limit:ncol });
+  while (loop58.next()) {
     std.div_add(b, U, 0, 12, std.al, null, 0);
   }
-  var loop169 = new std.a_loop({ limit:NROW });
-  while (loop169.next()) {
+  var loop59 = new std.a_loop({ limit:nrow });
+  while (loop59.next()) {
     std.div_add(b, U, 1, 12, std.al, null, 0);
   }
   std.div_end(b);
   //--under
-  std.draw_rect(b, { fill:std.LIGHT_BLUE, corner:std.pt_to_dots(b, 2) });
+  std.draw_rect(b, { fill:0x2D5655, corner:std.pt_to_dots(b, 2) });
   std.draw_grid(b);
 std.k_leave(b);
 }
@@ -128,7 +128,7 @@ function draw_board_cell(b) {
   std.k_enter(b);
   if (getn(board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y)) === Y) {
     let box = new std.a_tree(_M,"box", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), inset:std.div(b.bounds.height, 12) }));
-    std.draw_rect(b, { box:std.adr(box), fill:std.DODGER_BLUE, corner:std.mul(b.bounds.height, 0.2) });
+    std.draw_rect(b, { box:std.adr(box), fill:0xCCF3F3, corner:std.mul(b.bounds.height, 0.2) });
   }
   std.k_leave(b);
 }
@@ -141,7 +141,7 @@ function track_draw_board(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.toggle(_M, 102, std.adr(board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y)));
+    std.toggle(_M, 103, std.adr(board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y)));
   return Y;
   }
   return N;
@@ -179,13 +179,18 @@ std.k_leave(b);
 //====================
 export function main_draw(b) {
 std.k_enter(b);
-  std.draw_rect(b, { fill:0x224140, corner:std.pt_to_dots(b, 4) });
-  let inner = new std.a_tree(_M,"inner", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:5, inset:std.pt_to_dots(b, 20), aspect:std.div(NCOL, NROW) }));
-  var b35=std.k_layer(b, draw_board_F, { area:inner });
-  draw_board(b35);
-  let footer = new std.a_tree(_M,"footer", 0, std.solve_rect({ basis:std.adr(inner), pin:8, dy:std.pt_to_dots(b, 50), height:std.pt_to_dots(b, 30) }));
-  var b36=std.k_layer(b, draw_footer_F, { area:footer });
-  draw_footer(b36);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 1, 150, std.al, draw_board_F, 0);
+  std.div_spa(b, 1, 2, std.pt);
+  std.div_add(b, U, 1, 24, std.pt, draw_footer_F, 0);
+  std.div_spa(b, 1, 2, std.pt);
+  std.div_end(b);
+  //--under
+  const DOTSIZE = std.pt_to_dots(b, 10);
+  ncol = std.round_down(std.div(b.bounds.width, DOTSIZE), {});
+  nrow = std.round_down(std.div(std.sub(b.bounds.height, std.pt_to_dots(b, 32)), DOTSIZE), {});
+  std.draw_rect(b, { fill:0x224140 });
+  std.draw_slices(b);
 std.k_leave(b);
 }
 
@@ -194,18 +199,18 @@ std.k_leave(b);
 //   calc_next_frame
 //====================
 function calc_next_frame() {
-  std.copy_tree(_M, 43, std.adr(board), std.adr(prev));
-  var loop170 = new std.a_loop({ from:1, to_:NCOL });
-  while (loop170.next()) {
-  var col = loop170.index;
-    var loop171 = new std.a_loop({ from:1, to_:NROW });
-    while (loop171.next()) {
-    var row = loop171.index;
+  std.copy_tree(_M, 42, std.adr(board), std.adr(prev));
+  var loop60 = new std.a_loop({ from:1, to_:ncol });
+  while (loop60.next()) {
+  var col = loop60.index;
+    var loop61 = new std.a_loop({ from:1, to_:nrow });
+    while (loop61.next()) {
+    var row = loop61.index;
       let n = count_neighbors(col, row);
       if (getn(prev, col, row) === Y) {
-        std.path_setv(_M, 52, std.adr(board, col, row), std.or4(std.eq4(n, 2), std.eq4(n, 3)));
+        std.path_setv(_M, 51, std.adr(board, col, row), std.or4(std.eq4(n, 2), std.eq4(n, 3)));
       } else {
-        std.path_setv(_M, 55, std.adr(board, col, row), std.eq4(n, 3));
+        std.path_setv(_M, 54, std.adr(board, col, row), std.eq4(n, 3));
       }
     }
   }
@@ -217,12 +222,12 @@ function calc_next_frame() {
 //====================
 function count_neighbors(col, row) {
   let n = 0;
-  var loop172 = new std.a_loop({ from:-1, to_:1 });
-  while (loop172.next()) {
-  var dx = loop172.index;
-    var loop173 = new std.a_loop({ from:-1, to_:1 });
-    while (loop173.next()) {
-    var dy = loop173.index;
+  var loop62 = new std.a_loop({ from:-1, to_:1 });
+  while (loop62.next()) {
+  var dx = loop62.index;
+    var loop63 = new std.a_loop({ from:-1, to_:1 });
+    while (loop63.next()) {
+    var dy = loop63.index;
       if ((std.ne2(dx, 0) || std.ne2(dy, 0))) {
         if (getn(prev, std.add(col, dx), std.add(row, dy)) === Y) {
           n = std.add(n, 1);
@@ -238,7 +243,7 @@ function count_neighbors(col, row) {
 //   do_clear
 //====================
 function do_clear() {
-  std.trunc_tree(_M, 138, std.adr(board));
+  std.trunc_tree(_M, 139, std.adr(board));
 }
 
 
@@ -246,15 +251,15 @@ function do_clear() {
 //   do_scramble
 //====================
 function do_scramble() {
-  std.trunc_tree(_M, 142, std.adr(board));
-  var loop174 = new std.a_loop({ from:1, to_:NCOL });
-  while (loop174.next()) {
-  var col = loop174.index;
-    var loop175 = new std.a_loop({ from:1, to_:NROW });
-    while (loop175.next()) {
-    var row = loop175.index;
+  std.trunc_tree(_M, 143, std.adr(board));
+  var loop64 = new std.a_loop({ from:1, to_:ncol });
+  while (loop64.next()) {
+  var col = loop64.index;
+    var loop65 = new std.a_loop({ from:1, to_:nrow });
+    while (loop65.next()) {
+    var row = loop65.index;
       if (std.le2(std.random_range(1, 100), 25)) {
-        std.path_setv(_M, 146, std.adr(board, col, row), Y);
+        std.path_setv(_M, 147, std.adr(board, col, row), Y);
       }
     }
   }
@@ -265,7 +270,7 @@ function do_scramble() {
 //   do_start
 //====================
 function do_start() {
-  std.path_setv(_M, 151, std.adr(g, F_timer), std.loom_timer(calc_next_frame_F, { rate:4, reps:1000 }));
+  std.path_setv(_M, 152, std.adr(g, F_timer), std.loom_timer(calc_next_frame_F, { rate:4, reps:1000 }));
 }
 
 
@@ -274,7 +279,7 @@ function do_start() {
 //====================
 function do_stop() {
   std.loom_clear({ id:getn(g, F_timer) });
-  std.path_setv(_M, 156, std.adr(g, F_timer), U);
+  std.path_setv(_M, 157, std.adr(g, F_timer), U);
 }
 
 
@@ -282,22 +287,22 @@ function do_stop() {
 //   main_init
 //====================
 export function main_init() {
-  std.path_setv(_M, 23, std.adr(board, 3, 1), Y);
-  std.path_setv(_M, 24, std.adr(board, 3, 2), Y);
-  std.path_setv(_M, 25, std.adr(board, 3, 3), Y);
-  std.path_setv(_M, 26, std.adr(board, 2, 3), Y);
-  std.path_setv(_M, 27, std.adr(board, 1, 2), Y);
-  std.path_setv(_M, 29, std.adr(board, 23, 1), Y);
-  std.path_setv(_M, 30, std.adr(board, 21, 2), Y);
-  std.path_setv(_M, 31, std.adr(board, 20, 3), Y);
-  std.path_setv(_M, 32, std.adr(board, 20, 4), Y);
-  std.path_setv(_M, 33, std.adr(board, 20, 5), Y);
-  std.path_setv(_M, 34, std.adr(board, 21, 5), Y);
-  std.path_setv(_M, 35, std.adr(board, 22, 5), Y);
-  std.path_setv(_M, 36, std.adr(board, 23, 5), Y);
-  std.path_setv(_M, 37, std.adr(board, 24, 5), Y);
-  std.path_setv(_M, 38, std.adr(board, 25, 4), Y);
-  std.path_setv(_M, 39, std.adr(board, 25, 2), Y);
+  std.path_setv(_M, 22, std.adr(board, 3, 1), Y);
+  std.path_setv(_M, 23, std.adr(board, 3, 2), Y);
+  std.path_setv(_M, 24, std.adr(board, 3, 3), Y);
+  std.path_setv(_M, 25, std.adr(board, 2, 3), Y);
+  std.path_setv(_M, 26, std.adr(board, 1, 2), Y);
+  std.path_setv(_M, 28, std.adr(board, 23, 1), Y);
+  std.path_setv(_M, 29, std.adr(board, 21, 2), Y);
+  std.path_setv(_M, 30, std.adr(board, 20, 3), Y);
+  std.path_setv(_M, 31, std.adr(board, 20, 4), Y);
+  std.path_setv(_M, 32, std.adr(board, 20, 5), Y);
+  std.path_setv(_M, 33, std.adr(board, 21, 5), Y);
+  std.path_setv(_M, 34, std.adr(board, 22, 5), Y);
+  std.path_setv(_M, 35, std.adr(board, 23, 5), Y);
+  std.path_setv(_M, 36, std.adr(board, 24, 5), Y);
+  std.path_setv(_M, 37, std.adr(board, 25, 4), Y);
+  std.path_setv(_M, 38, std.adr(board, 25, 2), Y);
 }
 
 std.setv(_M, 0, std.runtime, std.F_app_name, "life");
