@@ -4,11 +4,18 @@ beads 1 program life title:"Conway's game of life"
 
 const
 	NCOL = 30
-	NROW = 20
+	NROW = 25
+
+	C_BUTT_BACK = DARK_SLATE_BLUE
+	C_BUTT_TEXT = AZURE
+	C_BUTT_BORD = ROYAL_BLUE
 
 var 
 	board : array^2 of yesno  // indexed by [frame (0-1), col (1-NCOL), row (1-NROW)]
 	prev  : array^2 of yesno  // previous board
+
+	g : record	// tracked global state record
+		timer : num  //  id of timer when we are running 
 
 =============================
 calc main_init //  one time initialization of our board
@@ -30,9 +37,6 @@ calc main_init //  one time initialization of our board
 	board[24, 5] = Y
 	board[25, 4] = Y
 	board[25, 2] = Y
-
-	//  start a timer to recalc at 4 frames a second
-	loom_timer(calc_next_frame, rate:4, delay:1 sec, reps:100)
 
 =============================
 calc calc_next_frame
@@ -72,23 +76,81 @@ draw main_draw
 	var inner <=== solve_rect(basis:bb, pin:5, inset:20 pt, aspect:NCOL/NROW)
 	layer area:inner draw_board
 
+	var footer <=== solve_rect(basis:inner, pin:8, dy:50 pt, height:30 pt)
+	layer area:footer draw_footer
+	
 =============================
 grid draw_board  //  draw the playing board
 	horz slice
-		skip 1 al
 		loop reps:NCOL
 			add 12 al
-			skip 1 al
 
 	vert slice
-		skip 1 al
 		loop reps:NROW
 			add 12 al
-			skip 1 al
 
 	under
 		draw_rect(fill:LIGHT_BLUE, corner:2 pt)
 
 	cell
-		if board[b.cell.x, b.cell.y]
-			draw_rect(fill:DODGER_BLUE, corner:bb.height*0.2)
+		if board[b.cell]
+			//  inset the cell slightly so that we can see the boundary
+			var box <=== solve_rect(basis:bb, inset:bb.height/12)
+			draw_rect(box:box, fill:DODGER_BLUE, corner:bb.height*0.2)
+-----------
+track EV_TAP
+	toggle board[b.cell]
+
+==================
+horz slice draw_footer  //  draw the controller buttons
+	skip 10 al
+	skip 10 pt
+	if g.timer == U
+		add 80 pt d_butt("Start", do_start)
+	else
+		add 80 pt d_butt("Stop", do_stop)
+	skip 10 al
+	skip 10 pt
+	add 80 pt on:g.timer == U d_butt("Clear", do_clear) 
+	skip 10 al
+	skip 10 pt
+	add 80 pt on:g.timer == U d_butt("Random", do_scramble) 
+	skip 10 al
+	skip 10 pt
+
+==================
+draw d_butt (  //  simple one-shot button
+	prompt : str  // label for button
+	action : calc(frozen)  // action when clicked
+	size = 0.6
+	back = C_BUTT_BACK
+	)
+	//  don't go wider than a certain amount
+	var r <=== solve_rect(basis:bb, pin:5, width:min(bb.width, bb.height*8))
+	draw_rect(box:r, fill:back, pos:0, thick:1 pt, color:C_BUTT_BORD, corner:4 pt)
+	draw_str(prompt, size:size, indent:2 pt, color:C_BUTT_TEXT)
+-----------
+track EV_TAP
+	action()
+
+==================
+calc do_clear
+	trunc board
+
+==================
+calc do_scramble
+	trunc board
+	loop from:1 to:NCOL index:col
+		loop from:1 to:NROW index:row
+			if random_range(1, 100) <= 25  //  adjust probability here
+				board[col, row] = Y
+
+==================
+calc do_start
+	//  start a timer to recalc at 4 frames a second
+	g.timer = loom_timer(calc_next_frame, rate:4, reps:1000)
+
+==================
+calc do_stop
+	loom_clear(id:g.timer)
+	g.timer = U
