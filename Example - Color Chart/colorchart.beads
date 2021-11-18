@@ -1,5 +1,7 @@
-beads 1 program color_chart ver:[2 0]
+beads 1 program color_chart ver:[3 0] title:"Color Picker"
 //  © edj October 2019 - March 2021
+//  modified nov. 2021 for speedup by not refreshing names constantly
+
 //  lets you pick a HTML color, copies the name or hex value to the clipboard
 //  complexity rating: 4000 words
 
@@ -20,6 +22,7 @@ record a_slot
 	key1  // color category  1:color band  98:low sat, 99:gray ramp
 	key2  // value band
 	key3  //  hue
+	hilite : yesno
 
 var SET1 : array of a_slot <=== [ {name:"ALICE_BLUE", color:ALICE_BLUE}, 
 	{name:"ANTIQUE_WHITE", color:ANTIQUE_WHITE},
@@ -600,9 +603,16 @@ track EV_TAP  // user is tapping in HTML palette
 	else
 		//  color choice
 		sound_play(CLICK)
+		
+		//  move the value of the slot hilite flag to the new one
+		if g.htmlchip_selx <> U
+			slotlist[g.htmlchip_selx].hilite = N
 		g.htmlchip_selx = b.cell_seq
+		slotlist[g.htmlchip_selx].hilite = Y
+
 		g.prior_color = g.sel_color
 		g.sel_color = slotlist[g.htmlchip_selx].color
+
 		//log "tapped on color {slotlist[g.htmlchip_selx].name}"
 		os_clipboard_copy(calc_slot_str(slotlist[g.htmlchip_selx]))
 
@@ -635,32 +645,44 @@ horz slice d_cell(  //  inside each cell we draw the color and the name
 	myslot : a_slot
 	slotx
 	)
-	add 50 al
-		draw_rect(fill:myslot.color, corner:3 pt)
-		//if myslot.frame
-		if slotx == g.htmlchip_selx
-			draw_rect(color:FIREBRICK, thick:4 pt, corner:3 pt)
-		else
-			draw_rect(color:BLACK, thick:1 pt, corner:3 pt)
+	add 50 al d_chip_color(myslot, slotx)
 	if g.sizing == FULL_SIZE
 		//  add the name or hex value
-		add 140 al
-			var textc = C_TEXT
-			if slotx == g.htmlchip_selx
-				//  this is the currently selected HTML color
-				var radius = bb.height/6
-				draw_rect(fill:MEDIUM_VIOLET_RED /*C_CHOICE_HI_BACK*/, corner_tr:radius, corner_br:radius)
-				//textc = C_CHOICE_TEXT
+		add 140 al d_color_name(myslot, slotx)
 
-			//  if this is a hex format, we can make it 1/8th the width, else 1/12th
-			var ss : str = calc_slot_str(myslot)
-			case g.format
-			| FORMAT_BEADS, FORMAT_HTML
-				//  show the name
-				draw_str(ss, just:LEFT, indent:4 pt, size:bb.width/11, color:textc)
-			| FORMAT_HEX, FORMAT_C, FORMAT_RGB
-				//  show the hex value in slightly larger type
-				draw_str(ss, just:LEFT, indent:4 pt, size:bb.width/8, font:"_typewriter", color:C_TEXT)
+=================================
+draw d_color_name ditto
+	//  in order to keep all the name blocks from being redrawn on change
+	//  in current selection, we avoid referencing g.htmlchip_selx
+// 	if slotx < 10
+// 		log "d_color_name {slotx}"
+	var textc = C_TEXT
+	if myslot.hilite
+		//  this is the currently selected HTML color
+		var radius = bb.height/6
+		draw_rect(fill:MEDIUM_VIOLET_RED /*C_CHOICE_HI_BACK*/, corner_tr:radius, corner_br:radius)
+		//textc = C_CHOICE_TEXT
+
+	//  if this is a hex format, we can make it 1/8th the width, else 1/12th
+	var ss : str = calc_slot_str(myslot)
+	case g.format
+	| FORMAT_BEADS, FORMAT_HTML
+		//  show the color name
+		draw_str(ss, just:LEFT, indent:4 pt, size:bb.width/11, color:textc)
+	| FORMAT_HEX, FORMAT_C, FORMAT_RGB
+		//  show the hex value in slightly larger type
+		draw_str(ss, just:LEFT, indent:4 pt, size:bb.width/8, font:"_typewriter", color:C_TEXT)
+
+=================================
+draw d_chip_color ditto
+// 	if slotx < 10
+// 		log "d_chip_color {slotx}"
+	draw_rect(fill:myslot.color, corner:3 pt)
+	//if myslot.frame
+	if myslot.hilite
+		draw_rect(color:FIREBRICK, thick:4 pt, corner:3 pt)
+	else
+		draw_rect(color:BLACK, thick:1 pt, corner:3 pt)
 
 -------------------------
 //   Ferrari palette
@@ -898,19 +920,26 @@ draw ferr_ramp_chip(  //  ferrari palette - chip in ramp
 		ferr_hilite_chip(bb)
 --------------
 track EV_TAP
-	//  user is selecting a color chip
-	g.ferrari_selx = colorx
-	g.htmlchip_selx = U
 	sound_play(CLICK)
 	log "ferrari tap, colorx={colorx}" on:TRACE_PALETTE
+
+	//  user is selecting a color chip
+	g.ferrari_selx = colorx
+
+	//  unselect the prior html chip if we had one
+	if g.htmlchip_selx <> U
+		slotlist[g.htmlchip_selx].hilite = N
+		g.htmlchip_selx = U
+
 	//color_ctl_setv(g.palette_targ_ptr^^, FERRARI[colorx])
 	g.prior_color = g.sel_color
 	g.sel_color = FERRARI[colorx]
+
 	case g.format
 	| FORMAT_RGB
 		os_clipboard_copy(color_to_rgb(g.sel_color))
 	| FORMAT_C
-		os_clipboard_copy(subset(color_to_hex(g.sel_color), from:2))
+		os_clipboard_copy("0x" & subset(color_to_hex(g.sel_color), from:2))
 	else
 		os_clipboard_copy(color_to_hex(g.sel_color))
 
@@ -994,7 +1023,7 @@ calc calc_slot_str ( -- calculate the string for the color slot
 	| FORMAT_HEX
 		return color_to_hex(slot.color)
 	| FORMAT_C
-		return subset(color_to_hex(slot.color), from:2)
+		return "0x" & subset(color_to_hex(slot.color), from:2)
 	| FORMAT_RGB
 		return color_to_rgb(slot.color)
 
