@@ -5,6 +5,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="color-scheme" content="light dark">
 <title>Conway's game of life</title>
 <link rel="shortcut icon" href="data:,">
 <style>
@@ -29,40 +30,45 @@ div:hover { cursor:default; }
 </head>
 <body style="margin:0; padding:0;position:fixed;">
 <script type="module">
-// beads ver 0.48 compiled Wed Nov 17 19:24:35 GMT-0800 2021
-import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_048/beads_std.js';
-import * as std from '../../runtime_048/beads_std.js';
-import * as str from '../../runtime_048/beads_str.js';
-export const CODE_HASH = 0x2f93b5ad;
+// beads ver 0.49 compiled Sat Nov 27 14:27:55 GMT-0800 2021
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_049/beads_std.js';
+import * as std from '../../runtime_049/beads_std.js';
+import * as str from '../../runtime_049/beads_str.js';
+export const CODE_HASH = 0x40cb4f00;
 const _M = std.MODULES.push("life")-1;
 std.rtl_init();
 std.aaaa.main_init = main_init;
 std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
 //------- enums
+const R_record_19=9007191717581128; std.ENUMS[9007191717581128]="record_19";
 const F_timer=9007190505262177; std.ENUMS[9007190505262177]="timer";
 std.FIELDS[F_timer] = true;
-const R_record_17=9007191684025890; std.ENUMS[9007191684025890]="record_17";
+const F_step=9007190441390546; std.ENUMS[9007190441390546]="step";
+std.FIELDS[F_step] = true;
 //-------  func const for life
-const d_butt_F = new std.a_function(_M, "d_butt", d_butt, track_d_butt);
-std.FUNCS[d_butt_F.hash]=d_butt_F;
-const do_scramble_F = new std.a_function(_M, "do_scramble", do_scramble);
-std.FUNCS[do_scramble_F.hash]=do_scramble_F;
-const do_stop_F = new std.a_function(_M, "do_stop", do_stop);
-std.FUNCS[do_stop_F.hash]=do_stop_F;
-const calc_next_frame_F = new std.a_function(_M, "calc_next_frame", calc_next_frame);
-std.FUNCS[calc_next_frame_F.hash]=calc_next_frame_F;
 const do_clear_F = new std.a_function(_M, "do_clear", do_clear);
 std.FUNCS[do_clear_F.hash]=do_clear_F;
-const draw_footer_F = new std.a_function(_M, "draw_footer", draw_footer);
-std.FUNCS[draw_footer_F.hash]=draw_footer_F;
+const do_stop_F = new std.a_function(_M, "do_stop", do_stop);
+std.FUNCS[do_stop_F.hash]=do_stop_F;
 const do_start_F = new std.a_function(_M, "do_start", do_start);
 std.FUNCS[do_start_F.hash]=do_start_F;
+const calc_next_frame_F = new std.a_function(_M, "calc_next_frame", calc_next_frame);
+std.FUNCS[calc_next_frame_F.hash]=calc_next_frame_F;
+const do_scramble_F = new std.a_function(_M, "do_scramble", do_scramble);
+std.FUNCS[do_scramble_F.hash]=do_scramble_F;
 const draw_board_F = new std.a_function(_M, "draw_board", draw_board, track_draw_board);
 std.FUNCS[draw_board_F.hash]=draw_board_F;
+const draw_footer_114_F = new std.a_function(_M, "draw_footer_114", draw_footer_114);
+std.FUNCS[draw_footer_114_F.hash]=draw_footer_114_F;
+const draw_footer_F = new std.a_function(_M, "draw_footer", draw_footer);
+std.FUNCS[draw_footer_F.hash]=draw_footer_F;
+const d_butt_F = new std.a_function(_M, "d_butt", d_butt, track_d_butt);
+std.FUNCS[d_butt_F.hash]=d_butt_F;
 //-------  top nodes
 const C_BUTT_BACK = std.DARK_SLATE_BLUE;
 const C_BUTT_TEXT = std.AZURE;
 const C_BUTT_BORD = std.ROYAL_BLUE;
+const SCRAMBLE_DENSITY = 30;
 let board = new std.a_tree(_M,"board", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
 let prev = new std.a_tree(_M,"prev", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
 let ncol = U;
@@ -105,12 +111,12 @@ var back = C_BUTT_BACK; if ((_o != null) && _o.hasOwnProperty("back")) back = _o
 function draw_board(b) {
 std.k_enter(b);
 std.div_begin(b, new std.a_function(_M, "draw_board_cell", draw_board_cell, null), false, false, false);
-  var loop58 = new std.a_loop({ limit:ncol });
-  while (loop58.next()) {
+  var loop34 = new std.a_loop({ limit:ncol });
+  while (loop34.next()) {
     std.div_add(b, U, 0, 12, std.al, null, 0);
   }
-  var loop59 = new std.a_loop({ limit:nrow });
-  while (loop59.next()) {
+  var loop35 = new std.a_loop({ limit:nrow });
+  while (loop35.next()) {
     std.div_add(b, U, 1, 12, std.al, null, 0);
   }
   std.div_end(b);
@@ -141,7 +147,7 @@ function track_draw_board(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.toggle(_M, 103, std.adr(board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y)));
+    std.toggle(_M, 107, std.adr(board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y)));
   return Y;
   }
   return N;
@@ -154,20 +160,23 @@ function draw_footer(b) {
 std.k_enter(b);
 std.div_begin(b, null, false, false, false);
   std.div_spa(b, 0, 10, std.al);
-  std.div_spa(b, 0, 10, std.pt);
+  std.div_spa(b, 0, 8, std.pt);
+  std.div_add(b, U, 0, 50, std.pt, draw_footer_114_F, 0, std.ne4(getn(g, F_timer), U));
+  std.div_spa(b, 0, 10, std.al);
+  std.div_spa(b, 0, 8, std.pt);
   if (getn(g, F_timer) === U) {
     std.div_add(b, U, 0, 80, std.pt, std.freeze(d_butt_F, ["Start", do_start_F, {}]), 0);
   } else {
     std.div_add(b, U, 0, 80, std.pt, std.freeze(d_butt_F, ["Stop", do_stop_F, {}]), 0);
   }
   std.div_spa(b, 0, 10, std.al);
-  std.div_spa(b, 0, 10, std.pt);
-  std.div_add(b, U, 0, 80, std.pt, std.freeze(d_butt_F, ["Clear", do_clear_F, {}]), 0, std.eq4(getn(g, F_timer), U));
-  std.div_spa(b, 0, 10, std.al);
-  std.div_spa(b, 0, 10, std.pt);
+  std.div_spa(b, 0, 8, std.pt);
   std.div_add(b, U, 0, 80, std.pt, std.freeze(d_butt_F, ["Random", do_scramble_F, {}]), 0, std.eq4(getn(g, F_timer), U));
   std.div_spa(b, 0, 10, std.al);
-  std.div_spa(b, 0, 10, std.pt);
+  std.div_spa(b, 0, 8, std.pt);
+  std.div_add(b, U, 0, 80, std.pt, std.freeze(d_butt_F, ["Clear", do_clear_F, {}]), 0, std.eq4(getn(g, F_timer), U));
+  std.div_spa(b, 0, 10, std.al);
+  std.div_spa(b, 0, 8, std.pt);
   std.div_end(b);
   std.draw_slices(b);
 std.k_leave(b);
@@ -187,8 +196,8 @@ std.div_begin(b, null, false, false, false);
   std.div_end(b);
   //--under
   const DOTSIZE = std.pt_to_dots(b, 10);
-  ncol = std.round_down(std.div(b.bounds.width, DOTSIZE), {});
-  nrow = std.round_down(std.div(std.sub(b.bounds.height, std.pt_to_dots(b, 32)), DOTSIZE), {});
+  ncol = std.min(80, std.round_down(std.div(b.bounds.width, DOTSIZE), {}));
+  nrow = std.min(80, std.round_down(std.div(std.sub(b.bounds.height, std.pt_to_dots(b, 32)), DOTSIZE), {}));
   std.draw_rect(b, { fill:0x224140 });
   std.draw_slices(b);
 std.k_leave(b);
@@ -199,18 +208,19 @@ std.k_leave(b);
 //   calc_next_frame
 //====================
 function calc_next_frame() {
-  std.copy_tree(_M, 42, std.adr(board), std.adr(prev));
-  var loop60 = new std.a_loop({ from:1, to_:ncol });
-  while (loop60.next()) {
-  var col = loop60.index;
-    var loop61 = new std.a_loop({ from:1, to_:nrow });
-    while (loop61.next()) {
-    var row = loop61.index;
+  std.tree_add(_M, 45, 1, std.adr(g, F_step));
+  std.copy_tree(_M, 46, std.adr(board), std.adr(prev));
+  var loop36 = new std.a_loop({ from:1, to_:ncol });
+  while (loop36.next()) {
+  var col = loop36.index;
+    var loop37 = new std.a_loop({ from:1, to_:nrow });
+    while (loop37.next()) {
+    var row = loop37.index;
       let n = count_neighbors(col, row);
       if (getn(prev, col, row) === Y) {
-        std.path_setv(_M, 51, std.adr(board, col, row), std.or4(std.eq4(n, 2), std.eq4(n, 3)));
+        std.path_setv(_M, 55, std.adr(board, col, row), std.or4(std.eq4(n, 2), std.eq4(n, 3)));
       } else {
-        std.path_setv(_M, 54, std.adr(board, col, row), std.eq4(n, 3));
+        std.path_setv(_M, 58, std.adr(board, col, row), std.eq4(n, 3));
       }
     }
   }
@@ -222,12 +232,12 @@ function calc_next_frame() {
 //====================
 function count_neighbors(col, row) {
   let n = 0;
-  var loop62 = new std.a_loop({ from:-1, to_:1 });
-  while (loop62.next()) {
-  var dx = loop62.index;
-    var loop63 = new std.a_loop({ from:-1, to_:1 });
-    while (loop63.next()) {
-    var dy = loop63.index;
+  var loop38 = new std.a_loop({ from:-1, to_:1 });
+  while (loop38.next()) {
+  var dx = loop38.index;
+    var loop39 = new std.a_loop({ from:-1, to_:1 });
+    while (loop39.next()) {
+    var dy = loop39.index;
       if ((std.ne2(dx, 0) || std.ne2(dy, 0))) {
         if (getn(prev, std.add(col, dx), std.add(row, dy)) === Y) {
           n = std.add(n, 1);
@@ -243,7 +253,7 @@ function count_neighbors(col, row) {
 //   do_clear
 //====================
 function do_clear() {
-  std.trunc_tree(_M, 139, std.adr(board));
+  std.trunc_tree(_M, 147, std.adr(board));
 }
 
 
@@ -251,15 +261,15 @@ function do_clear() {
 //   do_scramble
 //====================
 function do_scramble() {
-  std.trunc_tree(_M, 143, std.adr(board));
-  var loop64 = new std.a_loop({ from:1, to_:ncol });
-  while (loop64.next()) {
-  var col = loop64.index;
-    var loop65 = new std.a_loop({ from:1, to_:nrow });
-    while (loop65.next()) {
-    var row = loop65.index;
-      if (std.le2(std.random_range(1, 100), 25)) {
-        std.path_setv(_M, 147, std.adr(board, col, row), Y);
+  std.trunc_tree(_M, 151, std.adr(board));
+  var loop40 = new std.a_loop({ from:1, to_:ncol });
+  while (loop40.next()) {
+  var col = loop40.index;
+    var loop41 = new std.a_loop({ from:1, to_:nrow });
+    while (loop41.next()) {
+    var row = loop41.index;
+      if (std.le2(std.random_range(1, 100), SCRAMBLE_DENSITY)) {
+        std.path_setv(_M, 155, std.adr(board, col, row), Y);
       }
     }
   }
@@ -270,7 +280,8 @@ function do_scramble() {
 //   do_start
 //====================
 function do_start() {
-  std.path_setv(_M, 152, std.adr(g, F_timer), std.loom_timer(calc_next_frame_F, { rate:4, reps:1000 }));
+  std.path_setv(_M, 160, std.adr(g, F_timer), std.loom_timer(calc_next_frame_F, { rate:4, reps:1000 }));
+  std.path_setv(_M, 161, std.adr(g, F_step), 1);
 }
 
 
@@ -279,7 +290,7 @@ function do_start() {
 //====================
 function do_stop() {
   std.loom_clear({ id:getn(g, F_timer) });
-  std.path_setv(_M, 157, std.adr(g, F_timer), U);
+  std.path_setv(_M, 166, std.adr(g, F_timer), U);
 }
 
 
@@ -287,22 +298,32 @@ function do_stop() {
 //   main_init
 //====================
 export function main_init() {
-  std.path_setv(_M, 22, std.adr(board, 3, 1), Y);
-  std.path_setv(_M, 23, std.adr(board, 3, 2), Y);
-  std.path_setv(_M, 24, std.adr(board, 3, 3), Y);
-  std.path_setv(_M, 25, std.adr(board, 2, 3), Y);
-  std.path_setv(_M, 26, std.adr(board, 1, 2), Y);
-  std.path_setv(_M, 28, std.adr(board, 23, 1), Y);
-  std.path_setv(_M, 29, std.adr(board, 21, 2), Y);
-  std.path_setv(_M, 30, std.adr(board, 20, 3), Y);
-  std.path_setv(_M, 31, std.adr(board, 20, 4), Y);
-  std.path_setv(_M, 32, std.adr(board, 20, 5), Y);
-  std.path_setv(_M, 33, std.adr(board, 21, 5), Y);
-  std.path_setv(_M, 34, std.adr(board, 22, 5), Y);
-  std.path_setv(_M, 35, std.adr(board, 23, 5), Y);
-  std.path_setv(_M, 36, std.adr(board, 24, 5), Y);
-  std.path_setv(_M, 37, std.adr(board, 25, 4), Y);
-  std.path_setv(_M, 38, std.adr(board, 25, 2), Y);
+  std.path_setv(_M, 25, std.adr(board, 3, 1), Y);
+  std.path_setv(_M, 26, std.adr(board, 3, 2), Y);
+  std.path_setv(_M, 27, std.adr(board, 3, 3), Y);
+  std.path_setv(_M, 28, std.adr(board, 2, 3), Y);
+  std.path_setv(_M, 29, std.adr(board, 1, 2), Y);
+  std.path_setv(_M, 31, std.adr(board, 23, 1), Y);
+  std.path_setv(_M, 32, std.adr(board, 21, 2), Y);
+  std.path_setv(_M, 33, std.adr(board, 20, 3), Y);
+  std.path_setv(_M, 34, std.adr(board, 20, 4), Y);
+  std.path_setv(_M, 35, std.adr(board, 20, 5), Y);
+  std.path_setv(_M, 36, std.adr(board, 21, 5), Y);
+  std.path_setv(_M, 37, std.adr(board, 22, 5), Y);
+  std.path_setv(_M, 38, std.adr(board, 23, 5), Y);
+  std.path_setv(_M, 39, std.adr(board, 24, 5), Y);
+  std.path_setv(_M, 40, std.adr(board, 25, 4), Y);
+  std.path_setv(_M, 41, std.adr(board, 25, 2), Y);
+}
+
+
+//====================
+//   draw_footer_114
+//====================
+function draw_footer_114(b) {
+std.k_enter(b);
+  std.draw_str(b, str.to_str(getn(g, F_step), {dig:2}), { size:0.6, color:C_BUTT_TEXT });
+std.k_leave(b);
 }
 
 std.setv(_M, 0, std.runtime, std.F_app_name, "life");

@@ -8,6 +8,6 @@ The `START`/`STOP` button starts/stops the simulation. While it is stopped, you 
 
  [run here](http://beadslang.com/projects/game_of_life/life.html). 
  
- The code shows how you can skip testing for array limits, as it is perfectly valid to reference values outside of an array's bounds, you just get the value of U, which is not "truthy".
+ The code shows how you can skip testing for array limits, as it is perfectly valid to reference values outside of an array's bounds, you just get the value of U, which is considered false in an IF statement.
  
 ![screenshot](http://beadslang.com/projects/game_of_life/screenshot.gif)

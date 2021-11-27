@@ -3,19 +3,21 @@ beads 1 program life title:"Conway's game of life"
 //  written in Beads by CodingFiend Nov 2021
 
 const
-	NCOL = 30
-	NROW = 25
-
 	C_BUTT_BACK = DARK_SLATE_BLUE
 	C_BUTT_TEXT = AZURE
 	C_BUTT_BORD = ROYAL_BLUE
 
+	SCRAMBLE_DENSITY = 30  //  set the probability for scrambled cell
+
 var 
-	board : array^2 of yesno  // indexed by [frame (0-1), col (1-NCOL), row (1-NROW)]
+	board : array^2 of yesno  // indexed by [frame (0-1), col (1-ncol), row (1-nrow)]
 	prev  : array^2 of yesno  // previous board
+	ncol
+	nrow
 
 	g : record	// tracked global state record
 		timer : num  //  id of timer when we are running 
+		step  : num  //  current step of the game
 
 =============================
 calc main_init //  one time initialization of our board
@@ -40,11 +42,12 @@ calc main_init //  one time initialization of our board
 
 =============================
 calc calc_next_frame
+	inc g.step
 	board ===> prev  //  copy the current board to prev
 
 	//  given the previous frame, calc the new frame
-	loop from:1 to:NCOL index:col
-		loop from:1 to:NROW index:row
+	loop from:1 to:ncol index:col
+		loop from:1 to:nrow index:row
 			var n = count_neighbors(col, row)
 			//log "calc cell [{col}, {row}], n={n}"
 			if prev[col, row] 
@@ -68,35 +71,37 @@ calc count_neighbors (  // count the 8 neighbor cells
 	return n
 
 =============================
-draw main_draw
-	draw_rect(fill:#224140, corner:4 pt) 	//  fill the page with a dark color
+vert slice main_draw
+	under
+		//  calculate the number of columns
+		const DOTSIZE = 10 pt
+		ncol = min(80, round_down(bb.width/DOTSIZE))
+		nrow = min(80, round_down((bb.height- 32 pt)/DOTSIZE))
+		draw_rect(fill:#224140) 	//  fill the page with a dark color
 
-	//  draw our board inside the total area with a small margin
-	//  make the inner area follow the aspect ratio of cell counts
-	var inner <=== solve_rect(basis:bb, pin:5, inset:20 pt, aspect:NCOL/NROW)
-	layer area:inner draw_board
+	add 150 al draw_board
+	skip 2 pt
+	add 24 pt draw_footer
+	skip 2 pt
 
-	var footer <=== solve_rect(basis:inner, pin:8, dy:50 pt, height:30 pt)
-	layer area:footer draw_footer
-	
 =============================
 grid draw_board  //  draw the playing board
 	horz slice
-		loop reps:NCOL
+		loop reps:ncol
 			add 12 al
 
 	vert slice
-		loop reps:NROW
+		loop reps:nrow
 			add 12 al
 
 	under
-		draw_rect(fill:LIGHT_BLUE, corner:2 pt)
+		draw_rect(fill:#2d5655, corner:2 pt)
 
 	cell
 		if board[b.cell]
 			//  inset the cell slightly so that we can see the boundary
 			var box <=== solve_rect(basis:bb, inset:bb.height/12)
-			draw_rect(box:box, fill:DODGER_BLUE, corner:bb.height*0.2)
+			draw_rect(box:box, fill:#ccf3f3, corner:bb.height*0.2)
 -----------
 track EV_TAP
 	toggle board[b.cell]
@@ -104,19 +109,23 @@ track EV_TAP
 ==================
 horz slice draw_footer  //  draw the controller buttons
 	skip 10 al
-	skip 10 pt
+	skip 8 pt
+	add 50 pt on:g.timer <> U
+		draw_str("{g.step}", size:0.6, color:C_BUTT_TEXT)
+	skip 10 al
+	skip 8 pt
 	if g.timer == U
 		add 80 pt d_butt("Start", do_start)
 	else
 		add 80 pt d_butt("Stop", do_stop)
 	skip 10 al
-	skip 10 pt
-	add 80 pt on:g.timer == U d_butt("Clear", do_clear) 
-	skip 10 al
-	skip 10 pt
+	skip 8 pt
 	add 80 pt on:g.timer == U d_butt("Random", do_scramble) 
 	skip 10 al
-	skip 10 pt
+	skip 8 pt
+	add 80 pt on:g.timer == U d_butt("Clear", do_clear) 
+	skip 10 al
+	skip 8 pt
 
 ==================
 draw d_butt (  //  simple one-shot button
@@ -140,15 +149,16 @@ calc do_clear
 ==================
 calc do_scramble
 	trunc board
-	loop from:1 to:NCOL index:col
-		loop from:1 to:NROW index:row
-			if random_range(1, 100) <= 25  //  adjust probability here
+	loop from:1 to:ncol index:col
+		loop from:1 to:nrow index:row
+			if random_range(1, 100) <= SCRAMBLE_DENSITY 
 				board[col, row] = Y
 
 ==================
 calc do_start
 	//  start a timer to recalc at 4 frames a second
 	g.timer = loom_timer(calc_next_frame, rate:4, reps:1000)
+	g.step = 1
 
 ==================
 calc do_stop
