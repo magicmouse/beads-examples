@@ -1,0 +1,1135 @@
+beads 1 program day02 title:"AOC Day 2"
+//  Advent of Code 2021 / Day 2 solution
+//  written by CodingFiend
+
+assets local:"./art/"
+	file:"angle_dial.png" label:ANGLE_DIAL preload 
+	file:"bezel.png" label:BEZEL preload
+	file:"needle.png" label:NEEDLE preload
+	file:"sub.png" label:SUB preload
+
+const
+	C_BACK = #3B301E
+	C_BLUE = #A9FFFF
+	C_DEAD = #261F13
+
+	NEEDLE_OX = 14  // origin point in needle bitmap
+	NEEDLE_OY = 14
+
+	SUB_OX = 65  //  origin point in sub bitmap
+	SUB_OY = 25
+
+var 
+	//mycanvas : a_canvas
+	lines : array^2 of str
+	timer_id
+
+	sub : record
+		frame	// frame number of the animation
+		pos		// horz position of sub
+		depth	// depth of sub
+		aim		// ratio of vert movement to horz (can be + or -)
+
+===================
+calc main_init
+	reset_animation
+
+	//  read in the input data, break it into lines	
+	split_lines_words(input, lines, delim:" ")
+
+	//  start a timer that animates
+	timer_id = loom_timer(do_tick, reps:INFINITY, rate:24, delay:1 sec)	
+
+===================
+vert slice main_draw
+	add 10 al d_sea_sky
+	add 200 px d_instruments
+
+===================
+vert slice d_sea_sky
+	add 10 al  //  sky part
+		draw_rect(fill:DODGER_BLUE)
+
+	add 70 al  //  the sea part
+		draw_rect(fill:MEDIUM_BLUE)
+		layer area:bb d_sub
+
+===================
+draw d_sub
+	const MAX_DEPTH = 900000
+	const MAX_POS = 2000
+	//  sub is 79 pixels high
+	//  aim is how much it moves deeper for each position step fwd
+	var theta : Angle = arc_tan2(sub.aim, 1)
+	var x = interpolate(sub.pos, 0, MAX_POS, 80, bb.width-80)
+	var y = (bb.height*sub.depth/MAX_DEPTH)
+	draw_image(SUB, x:x, y:y, originx:SUB_OX, originy:SUB_OY, angle:theta)
+
+===================
+horz slice d_instruments 
+	under
+		draw_rect(fill:C_DEAD)
+	add 200 px d_angle_dial
+	add 10 al
+		draw_str("Frame {sub.frame}\nPosition {sub.pos}\nTot {sub.depth*sub.pos}", size:22 pt, color:LINEN)
+	add 200 px d_depth_dial
+
+===================
+draw d_angle_dial
+	draw_image(ANGLE_DIAL)
+	draw_str("Aim", x:100, y:45, size:18 pt, color:LINEN, opacity:0.3)
+	draw_str("{sub.aim}", x:100, y:130, size:18 pt, color:LINEN)
+	//  60 marks around the dial means 6 degrees per mark, positive aim is clockwise
+	draw_image(NEEDLE, x:100, y:98, originx:NEEDLE_OX, originy:NEEDLE_OY, angle:(sub.aim*6) deg)
+ 
+===================
+draw d_depth_dial
+	draw_image(BEZEL)
+	draw_str("Depth", x:bb.width/2, y:30, size:18 pt, color:LINEN, opacity:0.3)
+	draw_str("{to_str(sub.depth, thou:Y)} ft", size:24 pt, color:LINEN)
+  
+===================
+calc reset_animation
+	sub.frame = 1
+	sub.pos = 0
+	sub.depth = 0
+	sub.aim = 0
+
+===================
+calc do_tick
+	if lines[sub.frame, 1] == U
+		//  we are past the end of the array start over
+		//reset_animation
+		loom_clear(id:timer_id)  // stop the animation
+		return
+
+	//  process the input
+	var delta = to_num(lines[sub.frame, 2])
+	case subset(lines[sub.frame, 1], from:1, len:1)
+	| "f"  // forward
+		delta +=> sub.pos
+		delta*sub.aim +=> sub.depth
+	| "d"  //  down
+		delta +=> sub.aim
+	| "u"  // up
+		delta -=> sub.aim
+
+	//log " frame {sub.frame}, pos={sub.pos}, aim={sub.aim}, depth={sub.depth}"
+	
+	inc sub.frame
+
+	//  render the sub
+	//render_frame in mycanvas
+	
+//----- input
+/*...  sample data
+const input = """forward 5
+down 5
+forward 8
+up 3
+down 8
+forward 2
+"""
+....*/
+
+const input = """forward 1
+forward 2
+down 5
+down 5
+down 4
+down 9
+up 6
+up 7
+down 2
+forward 9
+up 4
+forward 7
+forward 9
+up 3
+down 1
+forward 5
+down 3
+forward 3
+forward 3
+forward 3
+down 2
+down 5
+forward 7
+down 7
+up 7
+down 9
+down 1
+down 4
+down 9
+down 2
+forward 2
+forward 4
+up 7
+up 1
+forward 3
+forward 8
+forward 9
+forward 6
+forward 9
+forward 1
+forward 5
+down 9
+up 7
+down 9
+forward 2
+forward 9
+forward 1
+forward 5
+up 8
+down 5
+forward 4
+up 6
+up 9
+forward 2
+up 8
+down 1
+up 5
+forward 3
+down 1
+forward 6
+up 6
+forward 9
+forward 1
+forward 3
+down 4
+down 9
+down 8
+up 9
+down 9
+down 2
+down 4
+forward 2
+down 4
+down 2
+down 8
+up 3
+up 9
+forward 3
+down 5
+down 1
+up 6
+up 6
+down 4
+up 3
+forward 1
+down 2
+down 7
+forward 1
+down 4
+forward 5
+down 5
+forward 3
+forward 8
+down 4
+forward 3
+forward 2
+down 4
+forward 6
+forward 6
+down 9
+down 3
+up 7
+up 6
+down 8
+down 4
+down 4
+down 8
+down 4
+forward 5
+up 7
+down 8
+down 4
+down 5
+down 3
+forward 1
+up 1
+forward 9
+forward 4
+down 9
+forward 5
+up 4
+down 3
+up 7
+up 2
+down 5
+down 2
+forward 8
+up 1
+down 8
+forward 2
+forward 8
+down 9
+forward 3
+forward 7
+forward 1
+down 2
+down 8
+forward 1
+forward 9
+forward 9
+up 3
+up 7
+forward 9
+down 4
+up 6
+forward 2
+down 2
+down 4
+down 4
+down 6
+down 5
+forward 2
+down 8
+down 1
+up 6
+up 1
+up 4
+down 5
+forward 5
+forward 4
+forward 1
+forward 9
+up 9
+down 9
+down 5
+down 7
+up 6
+up 2
+forward 5
+down 5
+down 3
+down 8
+down 6
+forward 4
+down 9
+up 3
+forward 2
+forward 9
+forward 6
+forward 5
+down 5
+down 1
+down 2
+forward 9
+down 2
+down 2
+down 3
+forward 3
+forward 9
+forward 1
+down 3
+down 8
+forward 7
+down 9
+forward 4
+up 3
+up 7
+up 4
+down 5
+forward 9
+forward 2
+forward 2
+down 3
+up 5
+down 5
+down 4
+forward 2
+forward 7
+up 2
+down 8
+up 2
+up 2
+forward 2
+down 2
+forward 3
+down 3
+up 8
+forward 7
+up 5
+forward 4
+down 6
+down 8
+forward 4
+forward 3
+up 9
+up 2
+down 2
+down 5
+down 8
+down 1
+forward 9
+down 6
+forward 1
+down 9
+down 4
+up 6
+up 3
+forward 1
+down 8
+up 3
+down 6
+down 7
+down 2
+forward 5
+down 6
+forward 8
+up 7
+down 5
+down 3
+forward 4
+forward 5
+forward 3
+forward 4
+forward 6
+forward 2
+forward 1
+down 3
+down 5
+down 3
+down 5
+forward 4
+down 7
+forward 8
+forward 5
+up 7
+up 3
+forward 9
+up 1
+forward 9
+up 8
+down 3
+forward 1
+forward 6
+forward 9
+down 1
+up 9
+forward 5
+down 6
+forward 8
+down 7
+down 3
+up 4
+down 6
+forward 5
+forward 6
+forward 5
+up 2
+down 5
+up 7
+up 4
+up 5
+forward 3
+down 9
+up 4
+forward 9
+forward 8
+forward 6
+down 5
+down 4
+down 2
+up 5
+up 7
+up 2
+forward 9
+forward 9
+down 9
+down 4
+up 2
+forward 3
+up 3
+up 2
+down 9
+forward 8
+forward 6
+down 6
+forward 3
+down 1
+forward 4
+forward 9
+forward 5
+down 2
+down 7
+up 6
+down 3
+forward 7
+down 3
+up 3
+up 8
+forward 3
+up 7
+forward 5
+down 7
+forward 7
+forward 3
+down 6
+down 3
+forward 5
+forward 9
+up 8
+down 7
+down 3
+down 7
+down 4
+down 1
+down 7
+up 6
+forward 8
+up 7
+down 9
+forward 6
+down 4
+forward 6
+up 9
+forward 4
+down 5
+up 3
+forward 5
+forward 6
+down 8
+up 9
+forward 4
+up 5
+forward 4
+forward 2
+forward 8
+down 7
+forward 1
+down 8
+forward 8
+forward 4
+down 4
+forward 5
+down 2
+down 5
+forward 9
+down 7
+forward 1
+down 1
+forward 9
+forward 3
+forward 9
+forward 8
+down 5
+down 6
+forward 8
+up 9
+forward 7
+down 1
+forward 9
+up 7
+forward 2
+forward 6
+forward 1
+down 8
+down 6
+down 7
+down 6
+up 5
+down 5
+forward 9
+down 6
+down 9
+forward 9
+down 7
+up 7
+forward 1
+down 5
+down 8
+up 5
+down 6
+up 5
+up 7
+forward 3
+forward 2
+down 5
+down 6
+forward 3
+down 4
+down 5
+up 4
+forward 5
+down 4
+down 5
+forward 4
+down 1
+forward 1
+down 1
+forward 4
+forward 2
+down 3
+forward 1
+down 1
+forward 2
+forward 2
+forward 6
+up 5
+forward 5
+down 9
+down 1
+forward 7
+up 9
+down 2
+down 1
+forward 3
+up 5
+down 8
+forward 2
+forward 1
+down 7
+forward 5
+up 6
+forward 2
+up 5
+forward 8
+up 6
+down 6
+down 3
+forward 1
+forward 7
+down 7
+down 1
+up 7
+forward 2
+up 5
+forward 4
+forward 9
+forward 4
+forward 2
+forward 4
+down 3
+down 7
+forward 1
+up 9
+up 2
+forward 1
+down 5
+up 9
+forward 6
+down 7
+down 2
+down 7
+down 2
+down 1
+down 7
+down 6
+up 1
+up 4
+down 9
+up 3
+forward 1
+down 2
+forward 4
+up 4
+up 9
+down 4
+forward 6
+down 1
+down 1
+down 8
+up 5
+forward 1
+up 6
+down 5
+forward 4
+up 8
+down 4
+forward 4
+forward 3
+down 7
+down 1
+forward 3
+forward 1
+up 6
+down 1
+down 8
+forward 6
+down 4
+down 6
+forward 5
+forward 3
+forward 5
+down 4
+forward 7
+down 6
+down 6
+down 9
+up 9
+forward 5
+up 9
+up 4
+up 6
+down 4
+forward 3
+up 2
+down 7
+down 8
+forward 7
+down 4
+down 3
+down 5
+down 1
+forward 5
+up 4
+down 3
+down 3
+down 6
+forward 9
+down 1
+forward 4
+down 9
+forward 1
+forward 4
+down 1
+up 5
+down 6
+forward 5
+up 5
+forward 5
+down 8
+down 1
+down 8
+up 1
+down 1
+forward 8
+forward 3
+up 2
+forward 9
+forward 1
+forward 3
+down 2
+down 7
+down 2
+up 4
+up 3
+down 2
+forward 2
+forward 9
+forward 8
+down 8
+forward 3
+up 9
+up 6
+down 9
+down 1
+up 3
+up 2
+forward 2
+down 6
+up 2
+up 1
+down 9
+down 3
+down 6
+up 7
+up 5
+forward 8
+down 1
+forward 7
+down 6
+down 1
+up 9
+forward 9
+forward 8
+down 3
+down 9
+down 5
+forward 7
+up 1
+up 4
+up 4
+down 7
+down 1
+up 2
+down 2
+forward 8
+forward 7
+up 8
+down 1
+down 8
+up 7
+forward 1
+down 9
+forward 7
+forward 1
+down 4
+down 8
+down 1
+forward 5
+forward 8
+forward 5
+down 8
+down 7
+up 5
+forward 8
+down 5
+up 9
+down 5
+down 9
+forward 2
+forward 6
+forward 2
+up 1
+forward 4
+forward 9
+forward 7
+down 7
+down 3
+forward 9
+forward 6
+up 5
+forward 5
+forward 7
+down 9
+forward 6
+down 7
+forward 5
+forward 5
+forward 4
+forward 1
+forward 1
+up 7
+forward 3
+up 3
+forward 6
+up 3
+down 9
+forward 9
+up 6
+up 3
+forward 2
+down 2
+forward 9
+down 7
+up 7
+forward 6
+forward 2
+down 2
+down 4
+forward 1
+forward 4
+down 4
+up 9
+down 4
+down 4
+down 3
+forward 6
+forward 3
+down 3
+forward 5
+forward 7
+up 4
+forward 1
+forward 5
+forward 2
+forward 5
+forward 5
+forward 2
+up 8
+down 7
+up 7
+down 7
+forward 1
+forward 5
+forward 3
+forward 7
+forward 5
+forward 6
+up 7
+forward 3
+down 7
+down 2
+up 9
+forward 6
+down 7
+forward 9
+up 8
+down 1
+up 8
+up 2
+down 7
+down 6
+down 5
+up 7
+forward 6
+down 5
+forward 7
+down 6
+down 2
+up 3
+up 7
+up 5
+forward 9
+forward 2
+down 1
+down 5
+up 9
+forward 8
+down 7
+forward 1
+up 6
+down 1
+down 3
+forward 3
+forward 6
+down 4
+forward 8
+up 2
+down 8
+up 4
+up 9
+forward 8
+down 9
+forward 3
+forward 7
+down 5
+forward 4
+up 3
+up 1
+forward 7
+down 6
+up 4
+down 3
+forward 8
+down 9
+forward 2
+down 8
+forward 9
+up 7
+forward 2
+up 1
+down 7
+down 1
+forward 4
+forward 5
+down 4
+down 9
+forward 2
+down 9
+down 5
+up 2
+down 6
+forward 8
+up 6
+down 3
+down 5
+down 1
+up 7
+down 5
+forward 8
+up 4
+down 7
+down 4
+down 4
+down 2
+down 3
+down 1
+down 7
+forward 4
+down 4
+down 7
+down 7
+down 9
+up 1
+up 7
+forward 4
+up 7
+forward 6
+forward 8
+forward 2
+forward 8
+up 8
+down 3
+forward 7
+down 9
+forward 9
+forward 6
+up 3
+down 4
+down 3
+forward 6
+forward 2
+forward 3
+down 8
+forward 1
+forward 5
+up 3
+down 8
+forward 7
+forward 4
+down 3
+forward 2
+down 9
+down 9
+forward 9
+down 7
+forward 6
+forward 4
+down 5
+forward 9
+forward 3
+down 1
+down 1
+down 7
+forward 8
+down 3
+forward 7
+forward 8
+up 3
+forward 8
+forward 8
+up 6
+forward 2
+down 3
+down 4
+forward 9
+up 8
+down 9
+forward 5
+down 3
+up 7
+forward 5
+down 2
+forward 2
+forward 1
+down 6
+down 1
+up 4
+forward 4
+down 7
+up 3
+down 3
+forward 4
+forward 2
+forward 1
+forward 9
+forward 7
+forward 9
+down 1
+forward 6
+down 5
+up 7
+down 9
+down 2
+up 4
+down 2
+down 2
+down 1
+down 2
+down 5
+down 4
+down 6
+forward 4
+forward 9
+forward 6
+forward 7
+up 9
+up 2
+forward 7
+forward 9
+up 5
+forward 2
+up 5
+up 9
+forward 9
+down 8
+forward 6
+down 8
+forward 4
+down 1
+down 4
+forward 4
+down 3
+forward 4
+forward 3
+forward 9
+down 5
+forward 3
+forward 2
+forward 9
+forward 8
+down 2
+forward 5
+up 2
+forward 1
+down 3
+forward 9
+forward 8
+down 9
+forward 5
+forward 1
+down 1
+down 9
+down 6
+forward 8
+forward 1
+down 5
+up 5
+forward 8
+up 4
+down 6
+forward 1
+up 2
+down 3
+down 1
+down 8
+down 2
+up 6
+down 5
+down 2
+down 3
+forward 2
+up 7
+down 9
+up 1
+up 1
+forward 7
+forward 4
+down 7
+up 7
+down 7
+forward 5
+up 2
+down 7
+forward 9
+down 7
+up 4
+forward 2
+forward 1
+up 6
+down 8
+up 6
+down 2
+down 4
+up 8
+up 8
+up 5
+down 6
+up 6
+down 5
+up 1
+down 1
+forward 6
+up 7
+forward 8
+up 9
+down 8
+up 7
+forward 9
+up 4
+down 5
+forward 3
+forward 6
+forward 4
+forward 4
+down 7
+forward 9
+down 6
+down 2
+forward 9
+forward 3
+"""
