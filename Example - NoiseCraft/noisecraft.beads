@@ -1,0 +1,1242 @@
+beads 1 program noisecraft title:"Noisecraft Clone"
+//  this is an example of how to make a node and wire program using Beads
+//  for an actual working synth see the original at https://noisecraft.app/
+//  this is just a partial implementation of the UI
+//  it proposes various improvements to the actual pure JS program
+
+assets local:"./art/" 
+	file:"click_fast_soft.mp3" label:CLICK
+	file:"doink.mp3" label:CANCEL
+
+// record a_xy_pair
+// 	p1 : a_xy
+// 	p2 : a_xy
+// 
+record a_wh
+	width 
+	height
+
+record a_port_loc
+	node : ptr to a_node
+	portx
+
+record a_port
+	dir  : (IN, OUT)  // direction of this ports
+	name : str  // label for this kind of connection
+	dy   : num  // Y offset from top of node
+	wire_color : color  // output port sets the color
+
+record a_wire  // a wire goes from an output port to an input loc
+	in_loc : a_port_loc
+	out_portx  //  which port in the output node has the wire
+
+record a_node
+	kind : num  // NK_...
+	name : str  // default name is the kind of node
+	box   : a_rect
+
+	//  for each node kind, there is an array of output ports in OUT_PORTS
+	//  the index of this output matches the desc. in the OUT_PORTS
+	wires : array of a_wire
+
+	//  for a clock node
+	minval
+	maxval
+	val		// actual value that is inside minval..maxval
+	default
+	normval // value expressed as 0..1 as fraction of minval..maxval
+
+	devid  : str
+	ctrlid : str
+
+	sel_portx : num  //  index of port that is selected as the first port
+	hover_portx : num //  index of port that is being hovered over
+
+	out_busyx : num  //  if not U, then this output port is busy
+	in_busyx  : num  //  if not U, then this input port is busy
+
+	selected : yesno
+
+============
+var 
+	nodes: array of a_node
+
+	intf : record
+		wiring_state : (IDLE, STARTED)  //  waiting to pick a port, or did pick a start port
+		modal_stack : array of draw()   //  array of functions to draw a modal window
+		new_seq   // monotonic sequence
+		new_x
+		new_y
+		menubar_vis : yesno
+		playing : yesno
+		newnode_active : yesno
+		newnode_kind
+		newnode_gpos : a_xy  //  corner of new node in global coord
+		newnode_lpos : a_xy  //  corner in local coord
+		newnode_size : a_wh
+		nselected  //  how many nodes selected
+
+	//  complex constants easier to set up in main_init
+	PORTINFO : array^2 of a_port  //  port info indexed by [nodekind, portx]
+
+	//  non-tracked transient variables
+	g_drag_lasty
+	g_drag_lastn  //  starting normalized value
+	g_move_startx
+	g_move_starty
+	g_move_cornerx  //  original starting box corner
+	g_move_cornery
+	
+	g_first_loc nolog : a_port_loc  //  first port we selected
+	g_hover_loc nolog : a_port_loc  //  curr port that is hilited
+	g_mouse nolog      : a_xy
+
+============
+const
+	C_PORT_IDLE = #ffa902  //  amber
+	C_PORT_SEL  = #a5ffa1  //  green
+	C_PORT_HOVER = BLACK
+	C_PORT_TEXT = PALE_GOLDENROD // #989898  //  dim gray
+
+	C_DEAD = #232323
+	C_NODE_BACK = #444444
+	C_NODE_HDR  = #3b3b3b  //  slightly darker than _BACK
+	C_NODE_BORD = #666666
+	C_NODE_BORDSEL = C_PORT_SEL  //  when node is selected
+	C_NODE_TEXT = #ececec
+
+	C_KNOB_BACK = #555555
+	C_KNOB_LINE = WHITE
+	C_KNOB_VAL  = #b5b5b5
+
+	C_MENUBAR_BACK = #333333
+	C_MENUBAR_APPNAME = #ff0000
+	C_MENUBAR_LOGIN = #ffaa02
+	C_MENUBAR_TEXT = WHITE
+
+	C_TOOLBAR_BACK = #171F2B
+	C_NODEBUTT_BACK = #2B4F43
+
+	C_TOOLBUTT_BACK = #34465F
+	C_TOOLBUTT_BORD = #55739C
+	C_TOOLBUTT_TEXT = #EDF0F3
+
+	C_PLAYBUTT_BACK = #01A630
+	C_PLAYBUTT_BORD = #005819
+	C_PLAYBUTT_TEXT = #D6FFE1
+
+	C_PICK_DEAD = #666666
+	C_PICK_BORD = #aaaaaa
+	C_PICK_TEXT = WHITE
+	C_PICK_CELL = #3F703D
+
+	C_MOVING_WIRE = GOLD
+
+	//  tracing flags
+	T_HOVER = N
+	T_SELECT = N
+	T_ACTION = Y
+	T_KNOB = N
+	T_HEADER = N
+	T_RENDER = N
+
+	NK_ADD = 1
+	NK_ADSR = 2
+	NK_AUDIOOUT = 3
+	NK_CLOCK = 4
+	NK_CLOCKDIV = 5
+	NK_CONST = 6
+	NK_DELAY = 7
+	NK_DISTORT = 8
+	NK_DIV = 9
+	NK_FILTER = 10
+	NK_HOLD = 11
+	NK_KNOB = 12
+	NK_MIDIIN = 13
+	NK_MOD = 14
+	NK_MONOSEQ = 15
+	NK_MUL = 16
+	NK_NOISE = 17
+	NK_NOTES = 18
+	NK_PULSE = 19
+	NK_SAW = 20
+	NK_SCOPE = 21
+	NK_SINE = 22
+	NK_SLIDE = 23
+	NK_SUB = 24
+	NK_TRI = 25
+
+	MENU_LABELS = ["NoiseCraft", "New", "Open", "Save", "Share", "Browse", "Help", "GitHub", "[Log In]"]
+	KIND_SS = ["Add", "ADSR", "AudioOut", "Clock", "ClockDiv", "Const", "Delay", "Distort",
+					"Divide", "Filter", "Hold", "Knob", "MidiIn", "Mod", "MonoSeq", 
+					"Multiply", "Noise", "Notes", "Pulse", "Sawtooth", "Scope", "Sine", 
+					"Slide", "Subtract", "Triangle"]
+	N_KIND_SS = tree_count(KIND_SS)
+
+	F2 = MONOSPACE
+	F1 = "Atkinson Hyperlegible," & SANS_SERIF
+
+	KNOB_ROT_LO = 100
+	KNOB_ROT_HI = 440
+
+	//  measurements
+	DOTSIZE = 8
+	BORD_THICK = 2
+	MENUBAR_V = 24  // pt
+	TOOLBAR_H = 65  // pt
+	TOOLITEM_V = 20 // pt
+	PORT_LABEL_H = 55
+	PORT_LABEL_V = 19
+	PORT_INDENT = 8
+	NODE_CORNER = 3 
+	NODE_HEADER_V = 20
+	BUTT_CORNER = 6
+
+	WIRE_THICK = 2
+	BIG_WIRE_THICK = 3 // when dragging wire make it bigger
+
+	HIT_SLOP_X = 30  // +/- for port hit
+	HIT_SLOP_Y = 9
+
+===================
+calc main_init
+	intf.wiring_state = IDLE
+	intf.new_seq = 10
+	intf.new_x = 100
+	intf.new_y = 200
+	intf.menubar_vis = Y
+
+	const Y1 = 28
+	const Y2 = 47
+
+	new_clock("Master", 30, 50)
+	new_clock("Clock2", 120, 100)
+	new_clock("Clock3", 30, 150)
+	new_monoseq("MonoSeq Alpha", 240, 80)
+	new_monoseq("MonoSeq Alpha", 300, 200)
+
+	//  a left coord of 1 means right edge, 0 means left edge
+	{ dir:OUT, name:"", dy:Y1, wire_color:#ff5004 } ===> PORTINFO[NK_CLOCK, 1]
+
+	{ dir:IN, name:"clock", dy:Y1 } ===> PORTINFO[NK_MONOSEQ, 1]
+	{ dir:IN, name:"gateT", dy:Y2 } ===> PORTINFO[NK_MONOSEQ, 2]
+	{ dir:OUT, name:"freq", dy:Y1, wire_color:#028a8b } ===> PORTINFO[NK_MONOSEQ, 3]
+	{ dir:OUT, name:"gate", dy:Y2, wire_color:#00fa00 } ===> PORTINFO[NK_MONOSEQ, 4]
+
+===================
+horz slice main_draw
+	add TOOLBAR_H pt d_toolbar
+	add 10 al d_main_right
+
+===================
+vert slice d_main_right
+	if intf.menubar_vis
+		add MENUBAR_V pt d_menubar
+	add 10 al main_body
+
+===================
+vert slice d_toolbar
+	under
+		draw_rect(fill:C_TOOLBAR_BACK)
+	
+	const ITEM_V = 22 
+	const GAP_V = 10 
+	const TWEAK = (MENUBAR_V - TOOLITEM_V) pt / 2
+
+	skip TWEAK px
+	add TOOLITEM_V pt d_menubar_toggle
+	skip TWEAK px
+	skip GAP_V pt
+	add TOOLITEM_V pt draw_tool_butt("⤺ Undo", do_notyet)
+	add TOOLITEM_V pt draw_tool_butt("⤻ Redo", do_notyet)
+	skip GAP_V pt
+	add TOOLITEM_V pt on:intf.nselected > 0  draw_tool_butt("Duplicate", do_notyet)
+	add TOOLITEM_V pt on:intf.nselected > 0  draw_tool_butt("✕ Delete", do_notyet)
+	skip GAP_V pt
+	loop across:KIND_SS index:ix
+		add TOOLITEM_V pt d_tool_nodekind(ix)
+	skip GAP_V pt
+	add (TOOLITEM_V+5) pt draw_play_butt
+
+===================
+draw d_tool_nodekind (   
+	kindx
+	)
+	draw_rect(fill:C_NODEBUTT_BACK, corner:2 pt, thick:2 color:C_TOOLBUTT_BORD)
+	//log "drawing kind {kindx}, ss={KIND_SS[kindx]}"
+	draw_str(KIND_SS[kindx], color:C_TOOLBUTT_TEXT, just:LEFT, indent:8 pt, size:0.6, font:F1)
+------
+track  //  tracking of wireframe to insert new element
+	case e.evkind
+	| EV_ENTER
+		cursor_set(CURS_FINGER)
+
+	| EV_LEAVE
+		cursor_set(CURS_ARROW)
+
+	| EV_DRAG_BEGIN  //  starting to create a new node
+		cursor_set(CURS_GRABBING)
+		intf.newnode_active = Y
+		intf.newnode_kind = kindx
+		intf.newnode_gpos.x = e.global_x
+		intf.newnode_gpos.y = e.global_y
+		merge calc_node_wh(kindx) ===> intf.newnode_size
+		node_deselect_all
+
+	| EV_DRAG_MOVE
+		//  update the cursor overlay
+		intf.newnode_gpos.x = e.global_x
+		intf.newnode_gpos.y = e.global_y
+
+	| EV_DRAG_END
+		cursor_set(CURS_ARROW)
+		intf.newnode_active = N
+		//  map the node finger pos to the node corner
+		var corner : a_xy
+		finger_to_corner(intf.newnode_lpos, intf.newnode_size, corner)
+		create_node(intf.newnode_kind, corner, intf.newnode_size)
+
+	| EV_KEYBOARD
+		if e.keycode == KEYCODE_ESC
+			//  cancel without creating a node
+			intf.newnode_active = N
+			return Y
+		elif e.keycode == KEYCODE_SPACE
+			//  goggle play
+			toggle intf.playing
+		return N			
+	else
+		//  wrong kind of event, don't absorb
+		return N
+
+	//  absorb the event
+	return Y
+
+===================
+draw draw_tool_butt (
+	label : str
+	action : calc()
+	)
+	draw_rect(fill:C_TOOLBUTT_BACK, corner:BUTT_CORNER pt, thick:2 color:C_TOOLBUTT_BORD)
+	draw_str(label, color:C_TOOLBUTT_TEXT, just:LEFT, indent:8 pt, rindent:2 pt, size:0.6, font:F1)
+------
+track EV_TAP
+	action()
+
+===================
+draw draw_play_butt
+	if intf.playing
+		draw_rect(fill:GOLD, corner:BUTT_CORNER pt, thick:1.2 pt, color:ORANGE, pos:0)
+		draw_str("Stop", color:GRAY9, indent:2 pt, size:0.6, font:F1)
+	else
+		draw_rect(fill:C_PLAYBUTT_BACK, corner:BUTT_CORNER pt, thick:1.2 pt, color:C_PLAYBUTT_BORD, pos:0)
+		draw_str("➤ Play", color:C_PLAYBUTT_TEXT,  indent:2 pt, size:0.6, font:F1)  // bold:Y,
+------
+track EV_TAP
+	toggle intf.playing
+
+===================
+draw d_menubar_toggle
+	draw_rect(fill:C_TOOLBUTT_BACK, corner:BUTT_CORNER pt, thick:1.5 pt, color:C_TOOLBUTT_BORD, pos:0)
+	var ss : str = " ⬸ Hide" if intf.menubar_vis else "Menu ➠"
+	draw_str(ss, size:0.6, just:LEFT, indent:8 pt, rindent:2 pt, color:C_TOOLBUTT_TEXT, font:F1)
+------
+track EV_TAP
+	toggle intf.menubar_vis
+
+===================
+horz slice d_menubar
+	under
+		draw_rect(fill:C_MENUBAR_BACK)
+	
+	loop across:MENU_LABELS index:cx
+		if cx == 9
+			skip 10 al
+		else
+			skip 10 pt
+		add auto d_menubar_item(cx)
+		skip 10 pt
+
+===================
+draw d_menubar_item (
+	ix
+	)
+	var c : color = C_MENUBAR_TEXT
+	if ix == 1
+		c = C_MENUBAR_APPNAME
+	elif ix == 10
+		c = C_MENUBAR_LOGIN
+	draw_str(MENU_LABELS[ix], just:LEFT, size:0.6, color:c, bold:ix == 1, font:F1)
+------
+track EV_TAP
+	log "tap in menubar, ix={ix}"
+
+===================
+draw main_body  //  main edit area
+	draw_rect(fill:C_DEAD)
+
+	//  wires are drawn at the bottom layer
+	layer area:bb render_all_wires
+
+	//  nodes are above all wires except during dragging
+	layer area:bb render_all_nodes
+		
+	//  wiring overlay
+	layer area:bb d_animate_layer
+
+	//   our modal windows
+	layer area:bb d_modal_stack
+
+===================
+draw d_modal_stack
+	//  loop across all the modal window overlays
+	loop across:intf.modal_stack index:ix
+		//layer area:bb intf.modal_stack[ix]
+		//layer area:bb modal_nodekind  // was using modal for nodekind now dragging
+		nop
+
+===================
+draw render_all_nodes
+	var node : ptr to a_node
+
+	//  main drawing loop for nodes
+	//  in the future we can allow user to sort the nodes by Z-order
+	loop across:nodes ptr:node
+		case node.kind
+		| NK_CLOCK, NK_KNOB
+			layer area:node.box render_knob(node)
+		| NK_MONOSEQ
+			layer area:node.box render_monoseq(node)
+		else
+			layer area:node.box d_not_yet
+
+===================
+draw d_animate_layer  // in layer 3
+	//  while dragging out a wire, we will be updating our mouse loc
+	if intf.wiring_state == STARTED
+		var p1 : a_xy
+		var p2 : a_xy
+		calc_loc_xy(g_first_loc, p1)
+
+		//  the output port must go first, so we gotta check the polarity
+		if PORTINFO[g_first_loc.node.kind, g_first_loc.portx].dir == IN
+			//  starting point was an input port
+			draw_wire(g_mouse, p1, BIG_WIRE_THICK, C_MOVING_WIRE)
+		else
+			//  starting point was an output port
+			draw_wire(p1, g_mouse, BIG_WIRE_THICK, C_MOVING_WIRE)
+
+	elif intf.newnode_active
+		//  render of animated box for new node via drag and drop
+		//  while the user is tracking the mouse, draw the animated box
+		//  note that this layer has a different coord system than the toolbar
+		//  so we convert to local inside this routine
+		//  and then during creation phase we have that info.
+		global_to_local(xy:intf.newnode_gpos) ===> intf.newnode_lpos
+		var corner : a_xy
+		finger_to_corner(intf.newnode_lpos, intf.newnode_size, corner)
+		//log "animate gpos={intf.newnode_gpos}, local={intf.newnode_lpos}, corner={corner}"
+		var r : a_rect <=== solve_rect(corner1:corner, width:intf.newnode_size.width, height:intf.newnode_size.height)
+		draw_rect(box:r, thick:3, color:PINK, corner:NODE_CORNER pt)
+
+----- qqq
+track EV_TAP
+	//  if we have tapped while mouse inside a port, select that port
+	if g_hover_loc.node <> U
+		//  we are inside a port
+		log "selecting port at {g_hover_loc.node.name}:{g_hover_loc.portx}"
+		case intf.wiring_state
+		| IDLE
+			//  any port can be selected as the first one
+			log "  -- set first point"
+			sound_play(CLICK)
+			delta_first_loc(g_hover_loc)
+
+			//  if this is an input port, get rid of the prior wire if there is one
+			disconnect_wire_to(g_hover_loc)
+
+			intf.wiring_state = STARTED
+
+		| STARTED
+			//  our hover logic won't report a node of the wrong direction
+			//  but it will report ourself again
+			if g_hover_loc.node == g_first_loc.node and g_hover_loc.portx == g_first_loc.portx
+				//  a 2nd click on the starting point, go back to idle
+				log "  -- clicked on starting point again, so cancel"
+				sound_play(CANCEL)
+			else
+				//  a click on a valid port, so make the connection
+				sound_play(CLICK)
+				do_connect(g_first_loc, g_hover_loc)
+			cancel_wiring
+		return Y
+		
+	elif intf.wiring_state == STARTED
+		//  user clicked on empty space while line drawing
+		//  consider that a request to cancel the connection
+		log "  -- clicked on dead space, so cancel"
+		sound_play(CANCEL)
+		cancel_wiring
+		return Y
+	return N
+-----
+track EV_HOVER
+
+	g_mouse.x = e.x
+	g_mouse.y = e.y
+
+	//  see which port we are near
+	var new_loc : a_port_loc  //  temp variable for detecting change in hilite
+	find_portloc(e.x, e.y, new_loc)
+			 
+	//log "hover {e.x},{e.y}, node={g_new_loc.node}:{g_new_loc.portx}"
+	delta_hover(new_loc)
+-----
+track EV_KEYBOARD
+	if e.keycode == KEYCODE_ESC and intf.wiring_state == STARTED
+		sound_play(CANCEL)
+		cancel_wiring
+		return Y
+// 	if e.keycode == KEYCODE_INS
+// 		//  shortcut for add node
+// 		append modal_nodekind => intf.modal_stack
+// 		return Y
+	if e.keycode == KEYCODE_DEL
+		//  delete all selected nodes
+		node_del_selected
+		return Y
+	return N // let someone else have the key
+
+===================
+draw render_all_wires
+	var node : ptr to a_node
+	var wire : ptr to a_wire
+
+	log "render_all_wires" on:T_RENDER
+	loop across:nodes ptr:node
+		//  loop across all the outputs of this node
+		loop across:node.wires ptr:wire
+			render_wire(node, wire)
+
+===================
+draw render_wire (
+	outnode : ptr to a_node
+	wire : ptr to a_wire
+	)
+	var p1 : a_xy  // output port point
+	var p2 : a_xy  // input port point
+
+	log "  render_wire from {outnode.name}:{wire.out_portx} to {loc_ss(wire.in_loc)}" on:T_RENDER
+	var outloc : a_port_loc = { node:outnode, portx:wire.out_portx }
+	calc_loc_xy(outloc, p1)
+	calc_loc_xy(wire.in_loc, p2)
+	log "    p1={p1}, p2={p2}" on:T_RENDER
+
+	//  draw the curve; color is based on output port
+ 
+	var color : color = PORTINFO[outnode.kind, wire.out_portx].wire_color
+
+	draw_wire(p1, p2, WIRE_THICK, color)
+
+===================
+draw draw_wire (
+	p1 : a_xy  //  must be output port side (on left)
+	p2 : a_xy  //  must be input port side (on right)
+	thick
+	color : color
+	)
+	log "draw_wire, p1={p1}, p2={p2}" on:T_RENDER
+	//draw_line(p1:p1, p2:p2, thick:thick, color:color)
+
+	var c1 : a_xy
+	var c2 : a_xy
+
+	//  calculate the mid point between the two points
+	var halfdist = round_down(distance(p1, p2)/2)
+	calc_endpoint(p1, 0 deg, halfdist, c1)
+	calc_endpoint(p2, 180 deg, halfdist, c2)
+
+	//  if you want to see the control ponts
+	//draw_circle(xy:c1, radius:3, fill:PINK)
+	//draw_circle(xy:c2, radius:3, fill:WHITE)
+
+	//  we now have 2 controls points and the end points
+	//  draw using cubic bezier
+	var data : array^2 of num = [[STEP_MOVE, p1.x, p1.y],
+		[STEP_BEZIER2, c1.x, c1.y, c2.x, c2.y, p2.x, p2.y] ]
+	draw_polycurve(data, color:color, thick:thick)
+
+===================
+draw d_not_yet
+	draw_rect(fill:PINK, corner:2 pt)
+
+// ===================
+// draw covering_dead_space  //  used by modal windows to dim surroundings, trap events
+// 	//  dim the surrounding screen
+// 	draw_rect(fill:BLACK, opacity:0.70)
+// -----
+// track EV_HOVER
+// 	//  eat these events so nothing underneath gets it
+// 	return Y
+// -----
+// track EV_KEYBOARD
+// 	if e.keycode == KEYCODE_ESC
+// 		//  cancel this modal window
+// 		sound_play(CANCEL)
+// 		pop_modal_dialog
+// 	return Y //  absorb all other keys so nothing underneath gets it
+// ------
+// track EV_TAP
+// 	//  tapping on dead space outside the modal window cancels the dialog
+// 	sound_play(CANCEL)
+// 	pop_modal_dialog
+// 	return Y
+// 
+// ===================
+// draw modal_nodekind  //  outer area for modal picker
+// 	covering_dead_space
+// 
+// 	//  calculate the box for the node picker
+// 	var width = min(bb.width*0.75, 280 pt)
+// 	var box : a_rect <=== solve_rect(basis:bb, pin:2, dy:bb.height*0.15, width:width, height:width*0.8)
+// 	layer area:box d_nodekind_picker
+// 
+// ===================
+// vert slice d_nodekind_picker
+// 	under
+// 		draw_rect(fill:C_PICK_DEAD, thick:2, color:C_PICK_BORD, corner:4 pt)
+// 	
+// 	skip 2 al
+// 	add 20 al
+// 		draw_str("Create Node", size:0.6, color:C_PICK_TEXT, font:F1)
+// 	skip 2 al
+// 	add 200 al d_nodekind_grid
+// ------
+// track EV_TAP
+// 	//  ignore taps inside the modal rectangle
+// 	log "ignoring dead click in box"
+// 	return Y
+// 
+// ===================
+// grid d_nodekind_grid  //  nodekind modal picker
+// 	horz slice
+// 		skip 45 al
+// 		loop reps:3
+// 			add 105 al
+// 			skip 8 al
+// 		skip 37 al
+// 
+// 	vert slice
+// 		loop reps:9
+// 			add 17 al
+// 			skip 8 al
+// 
+// 	cell
+// 		if b.cell_seq <= N_KIND_SS
+// 			draw_rect(fill:C_PICK_CELL, corner:3 pt, color:C_PICK_BORD, thick:2)
+// 			draw_str(KIND_SS[b.cell_seq], size:0.65, color:WHITE, font:F1)
+// -------
+// track EV_TAP
+// 	//  if the seq is U our out of range it means they clicked in nothing
+// 	if b.cell_seq <= N_KIND_SS
+// 		log "create node kind {KIND_SS[b.cell_seq]}"
+// 		//  create a new node of the requested kind
+// 		sound_play(CLICK)
+// 
+// 		//  generate a new random position
+// 		inc intf.new_seq
+// 
+// 		30 +=> intf.new_x
+// 		if intf.new_x > 500
+// 			intf.new_x = 100
+// 
+// 		10 +=> intf.new_y
+// 		if intf.new_y > 800
+// 			intf.new_y = 20 
+// 
+// 		node_deselect_all
+// 		var ix = new_clock("Clock {intf.new_seq}", intf.new_x, intf.new_y)
+// 		node_toggle_select(nodes[ix])
+// 
+// 	else
+// 		//  out of range, or U
+// 		sound_play(CANCEL)
+// 
+// 	//  exit
+// 	pop_modal_dialog
+
+===================
+draw d_node_frame (
+	node : ptr to a_node
+	)
+	//  draw the top part of the bar which is the draggable part
+	//  fill the total background color
+	draw_rect(fill:C_NODE_BACK, corner:NODE_CORNER pt)
+	
+	var hbox <=== solve_rect(basis:bb, pin:2, height:NODE_HEADER_V pt)
+	draw_rect(box:hbox, fill:C_NODE_HDR, corner_tl:NODE_CORNER pt, corner_tr:NODE_CORNER pt)
+
+	//  now put on the outer frame
+	var c:color = C_NODE_BORDSEL if node.selected else C_NODE_BORD
+	draw_rect(color:c, thick:BORD_THICK, corner:NODE_CORNER pt)
+		
+===================
+vert slice render_monoseq (
+	node : ptr to a_node
+	)
+	under
+		log "render_monoseq {node.name}" on:T_RENDER
+		d_node_frame(node)
+		d_node_ports(node)
+
+	add NODE_HEADER_V pt d_node_header(node)
+	add 90 al d_monoseq_body(node)
+--------
+track EV_TAP  //  AAA must get events after ports
+	do_node_tap(e, node)
+
+===================
+draw d_monoseq_body ditto
+	draw_str("not yet impl", size:10 pt, color:GRAY)
+
+===================
+draw d_node_ports ditto
+	var port : ptr to a_port
+	loop across:PORTINFO[node.kind] ptr:port index:prx
+		var dotbox <=== calc_port_box(node, port)
+
+		//  if this is the hilite port show a circle behind it
+		if prx == node.hover_portx
+			//  this is the selected port
+			var halo <=== solve_rect(basis:dotbox, inset:-4)
+			draw_rect(box:halo, fill:C_PORT_HOVER, opacity:0.8, corner:2 pt, thick:2, color:C_PORT_IDLE)
+
+		//  calculate the color of the node square
+		var labelbox : a_rect
+		var y = port.dy
+
+		//  draw the label
+		if port.dir == IN
+			//  INPUT port on left side
+			labelbox <=== solve_rect(left:0, cy:y, width:PORT_LABEL_H, height:PORT_LABEL_V)
+			draw_str(port.name, box:labelbox, just:LEFT, indent:PORT_INDENT pt, size:0.7, color:C_PORT_TEXT, font:F2)
+
+		else
+			//  OUTPUT port on right side
+			labelbox <=== solve_rect(right:bb.width, cy:y, width:PORT_LABEL_H, height:PORT_LABEL_V)
+			draw_str(port.name, box:labelbox, just:RIGHT, indent:PORT_INDENT pt, size:0.7, color:C_PORT_TEXT, font:F2)
+
+		var dotcolor : color = C_PORT_SEL if prx == node.sel_portx else C_PORT_IDLE
+		draw_rect(box:dotbox, fill:dotcolor)
+
+===================
+vert slice render_knob ditto
+	under
+		log "render_knob {node.name}" on:T_RENDER
+		d_node_frame(node)
+		d_node_ports(node)
+
+	add NODE_HEADER_V pt d_node_header(node)
+	add 90 al d_knob_body(node)
+---------
+track EV_TAP
+	//  toggle node selection
+	do_node_tap(e, node)
+
+===================
+vert slice d_node_header ditto  //  generic tracker for top of any node
+	add 48 al
+		draw_str(node.name, size:0.6, color:C_NODE_TEXT, indent:1 pt, shrink_min:8 pt, font:F1)
+	skip 2 al
+--------
+track
+	//  upper area just moves the knob
+	log "tracking node_header evkind={e.evkind}" on:T_HEADER
+	case e.evkind
+	| EV_ENTER
+		cursor_set(CURS_MOVE)
+
+	| EV_LEAVE
+		cursor_set(CURS_ARROW)
+
+	| EV_DRAG_BEGIN  // starting to drag a node header
+		cursor_set(CURS_GRABBING)
+		g_move_startx = e.global_x
+		g_move_starty = e.global_y
+		g_move_cornerx = node.box.left
+		g_move_cornery = node.box.top
+
+		//  if this node is not yet selected, select it
+		//  otherwise we will move all the selected nodes
+		if node.selected <> Y
+			node_deselect_all(exclude:node)
+			node_toggle_select(node)
+
+	| EV_DRAG_MOVE
+		//  move the knob by this amount
+		var dx = e.global_x - g_move_startx
+		var dy = e.global_y - g_move_starty
+		node.box.left = max(g_move_cornerx+dx, 10)		
+		node.box.top  = max(g_move_cornery+dy, 10)
+
+	| EV_DRAG_END
+		cursor_set(CURS_ARROW)
+
+	else
+		//  wrong kind of event, don't absorb
+		return N
+
+	//  absorb the event
+	return Y
+
+===================
+vert slice d_knob_body ditto
+	add 50 al d_knob_dial(node)
+	skip 2 al
+	add 30 al d_knob_val(node)
+	skip 8 al
+--------
+track
+	//  lower area of knob will adjust the value
+	const DELTA_FULLSCALE = 100  // pixels to move fullscale
+	log "tracking knob_body evkind={e.evkind}" on:T_KNOB
+	case e.evkind
+	| EV_DRAG_BEGIN  // starting to adjust the knob
+		cursor_set(CURS_FINGER) 
+		g_drag_lasty = e.global_y
+		g_drag_lastn = node.normval
+
+	| EV_DRAG_MOVE
+		//  calculate how much we moved vertically, 100 pixels means 100% change
+		var delta_mouse = g_drag_lasty - e.global_y
+
+		if e.is_shift
+			//  put a 5:1 gear ratio on the slider so it is more precise
+			5 /=> delta_mouse
+			log "  SHIFT slowdown" on:T_KNOB
+
+		var deltav = delta_mouse/DELTA_FULLSCALE
+		node.normval = clamp(g_drag_lastn+deltav, 0, 1)
+		norm_to_val(node)
+		log "delta_mouse={delta_mouse}, dv={deltav}, newval={to_str(node.normval, dig:3)}"  on:T_KNOB
+
+		//  update our pos
+		g_drag_lasty = e.global_y
+		g_drag_lastn = node.normval
+				
+	| EV_DRAG_END
+		cursor_set(CURS_ARROW)
+	else
+		//  wrong kind of event, don't absorb
+		return N
+
+	//  absorb the event
+	return Y
+
+===================
+draw d_knob_val ditto
+	var maxval = max(abs(node.minval), abs(node.maxval))
+	var log10 = round_down(lg(maxval, base:10))
+	var ndig = max(0, 2 - max(0, log10))
+	var ss = to_str(node.val, dig:ndig)
+
+	if node.minval < 0 and node.val >= 0
+		ss = '+' & ss
+
+	draw_str(ss, size:0.7, color:C_KNOB_VAL, font:F2)
+
+===================
+draw d_knob_dial ditto
+	var cx = bb.width/2
+	var cy = bb.height/2
+	var radius = bb.height/2.2
+	draw_circle(x:cx, y:cy, radius:radius, fill:C_KNOB_BACK)
+
+	//  interpolate the angle based on the value range
+	var rot = interpolate(node.normval, 0, 1, KNOB_ROT_LO, KNOB_ROT_HI)
+	draw_line(x1:cx, y1:cy, angle:rot deg, len:radius, thick:2, color:C_KNOB_LINE)
+--------
+track EV_TAP
+	if e.is_ctrl
+		// ctrl click on knob, reset
+		log "reset knob"
+		node.val = node.default
+		val_to_norm(node)
+		return Y
+	//  since knob area is huge, don't absorb the taps that might be for the ports
+	return N
+
+===================
+calc norm_to_val ditto
+	//  convert the normalized version to interval val
+	node.val = interpolate(node.normval, 0, 1, node.minval, node.maxval)
+
+===================
+calc val_to_norm ditto
+	//  convert the full range value to normalized
+	node.normval = interpolate(node.val, node.minval, node.maxval, 0, 1)
+
+===================
+calc calc_port_box (
+	node : ptr to a_node
+	port : ptr to a_port
+	) : rect  //  rectangle relative to node box
+	var y = port.dy
+
+	if port.dir == IN
+		//  INPUT PORT
+		return solve_rect(cx:0, cy:y, width:DOTSIZE, height:DOTSIZE)
+	else
+		//  OUTPUT PORT
+		return solve_rect(cx:node.box.width, cy:y, width:DOTSIZE, height:DOTSIZE)
+
+===================
+calc calc_loc_xy (  // calc page coord of a port
+	loc   : a_port_loc
+	coord : out a_xy
+	)
+	log "calc_loc_xy, loc={loc_ss(loc)}"
+	var port : ptr to a_port = adr PORTINFO[loc.node.kind, loc.portx]
+	coord.y = loc.node.box.top + port.dy
+
+	if port.dir == IN
+		//  INPUT PORT
+		coord.x = loc.node.box.left
+	else
+		//  OUTPUT PORT
+		coord.x = loc.node.box.left + loc.node.box.width
+
+===================
+calc find_portloc (  -- find which port the mouse is nearest to
+	mousex  -- mouse coord relative to the workspace
+	mousey
+	result : out a_port_loc  -- only returns one if within slop factor
+	)
+	var node : ptr to a_node
+	var port : ptr to a_port
+	var best_distance = INFINITY
+	var best_node : ptr to a_node
+	var best_portx
+	var cx
+	var dx
+	var dy
+	var distance
+	
+	loop across:nodes ptr:node index:nx
+		//  we have to add in the offset of the box relative to the workarea origin
+		var mousex2 = mousex - node.box.left
+		var mousey2 = mousey - node.box.top
+		//log "find node={nx}, raw=[{mousex},{mousey}], mouse2=[{mousex2},{mousey2}]"
+
+		//  given this kind of node, loop across the ports
+		loop across:PORTINFO[node.kind] ptr:port index:prx
+			if port.dir == IN
+				cx = 0
+			else
+				cx = node.box.width
+			dx = abs(mousex2 - cx)
+			if dx <= HIT_SLOP_X
+				// is within X range, check Y
+				dy = abs(mousey2 - port.dy)
+				if dy <= HIT_SLOP_Y
+					//  inside hit box				
+					distance = dx*dx + dy*dy
+					if distance < best_distance
+						log "  hit at node {nx}, port {prx}" on:T_HOVER
+						best_distance = distance
+						best_node = node
+						best_portx = prx
+
+	//  store the result
+	result.node = best_node
+	result.portx = best_portx
+
+===================
+//  if the port is different, unhilite the old one
+calc delta_hover (  -- mouse hover has changed
+	new_loc : a_port_loc
+	)
+
+	//  we can't just update a global state, because we don't want a change in the hover
+	//  to trigger drawing of everything; just the node that is changing its location
+	if new_loc.node <> g_hover_loc.node or new_loc.portx <> g_hover_loc.portx
+		//  change in which item is being hovered over
+		//  deselect the old one
+		if g_hover_loc.node <> U
+			log "  deselecting {loc_ss(g_hover_loc)}" on:T_HOVER
+			g_hover_loc.node.hover_portx = U
+
+		//  select the new one 
+		if new_loc.node <> U
+			//  before we set this port for hilite, check to see if it
+			//  different polarity than the old port
+			if intf.wiring_state == STARTED and PORTINFO[new_loc.node.kind, new_loc.portx].dir == PORTINFO[g_first_loc.node.kind, g_first_loc.portx].dir
+				//  suppress the hilite of this new item
+				log "  suppressing hilite of {loc_ss(new_loc)}" on:T_HOVER
+				return
+
+			//  move the hilite port into the node record, which triggers refresh
+			new_loc.node.hover_portx = new_loc.portx
+			log "  selecting {loc_ss(new_loc)}" on:T_HOVER
+
+		g_hover_loc <=== new_loc
+
+===================
+//  user is changing the value of the starting port for a connection
+//  this will update g_first_loc, and set the hilite flag in the node
+calc delta_first_loc (  -- first selected port has changed
+	new_loc : ptr to a_port_loc
+	)
+
+	//  first unhilite the old node if there was one
+	if g_first_loc.node <> U
+		//  we had a prevously selected node
+		log "  delta_first_loc deselect {loc_ss(g_first_loc)}" on:T_HOVER
+		g_first_loc.node.sel_portx = U
+
+	if new_loc == U
+		//  first selected node is being canceled
+		log "  delta_first_loc cancelled" on:T_HOVER
+		g_first_loc.node = U
+	else
+		log "  delta_first_loc to {loc_ss(new_loc)}" on:T_HOVER
+		//  now hilite the new node
+		new_loc.node.sel_portx = new_loc.portx
+
+		//  remember the first location
+		//  compiler not smart enough to allow new_loc^ ===> g_first_loc
+		new_loc.node  => g_first_loc.node
+		new_loc.portx => g_first_loc.portx
+
+===================
+calc do_connect (
+	outl : ptr to a_port_loc
+	inl  : ptr to a_port_loc
+	)
+	
+	log ">> connecting {loc_ss(outl)} to {loc_ss(inl)}"
+
+	if PORTINFO[inl.node.kind, inl.portx].dir == PORTINFO[outl.node.kind, outl.portx].dir
+		log "ERROR: trying to connect same dir ports!"
+		return
+
+	//  if the ports are in the wrong order swap them
+	if PORTINFO[inl.node.kind, inl.portx].dir == OUT
+		log "  swapping because input port was output"
+		swap inl <=> outl
+
+	//  first disconnect any prior wire that was in existence going to the input
+	disconnect_wire_to(inl)
+
+	//  add our wire to the outputs array of the out node
+	append { in_loc:{ node:inl.node, portx:inl.portx }, out_portx:outl.portx } ===> outl.node.wires
+ 
+===================
+calc disconnect_wire_to (  //  disconnect previous input to this loc
+	targ : ptr to a_port_loc
+	)
+	var node : ptr to a_node
+	var wire : ptr to a_wire
+
+	//  since wires are not bidirectional
+	log "disconnect_wire_to {loc_ss(targ)}"
+	loop across:nodes ptr:node
+		//  loop across all the outputs of this node
+		loop across:node.wires ptr:wire
+			if wire.in_loc.node == targ.node and wire.in_loc.portx == targ.portx
+				//  delete the nodes' wire to the targ
+				clear wire
+				log " -- deleting wire"
+				return
+	log "  -- no prior input"
+
+===================
+calc loc_ss (  // convert a_port_loc to a string
+	loc : a_port_loc
+	) : str
+	if loc.node == U
+		return "U"
+	
+	return "{loc.node.name}:{loc.portx}"
+
+===================
+calc cancel_wiring
+	delta_first_loc(U)
+	intf.wiring_state = IDLE
+
+===================
+calc pop_modal_dialog  //  pop the modal window stack
+	var ix = tree_hi(intf.modal_stack)
+	intf.modal_stack[ix] = U
+
+===================
+calc do_node_tap (
+	e : a_event
+	node : ptr to a_node
+	)
+	//  if there we are turning off this node, just affect this node
+	//  unless SHIFT key is held, deselect others
+	if node.selected <> Y and e.is_shift <> Y
+		//  exclude the current one because we are about to toggle it
+		node_deselect_all(exclude:node)
+ 
+	node_toggle_select(node)
+
+===================
+calc node_toggle_select (
+	node : ptr to a_node
+	)
+	log "node_toggle_select {node.name}" on:T_SELECT
+	toggle node.selected
+	if node.selected
+		inc intf.nselected
+	else
+		dec intf.nselected
+
+===================
+calc node_del ditto
+	log "node_del {node.name}" on:T_ACTION
+	//  remove all the wires that touch this node
+
+	//  now we can remove the node
+	// NOT YET
+
+===================
+calc node_deselect_all (
+	exclude : ptr to a_node = U
+	)	
+	log "node_deselect_all, exclude={exclude.name}" on:T_SELECT
+
+	var node : ptr to a_node
+	loop across:nodes ptr:node
+		if node <> exclude
+			node.selected = U
+	intf.nselected = 0
+
+===================
+calc node_del_selected  //  delete all the selected nodes
+	log "node_del_selected" on:T_ACTION
+
+	//  loop through all the selected nodes
+	var node : ptr to a_node
+	loop across:nodes ptr:node
+		if node.selected
+			node_del(node)
+	intf.nselected = 0
+
+===================
+//  generate a point and a control point
+calc calc_endpoint (
+	origin : a_xy
+	angle  : Angle
+	len    : num
+	result : out a_xy
+	)
+	result.x = origin.x + len*cos(angle)
+	result.y = origin.y + len*sin(angle)
+
+===================
+calc new_clock (
+	label : str
+	x
+	y
+	) : num //  returns the index of the node
+	var rec : a_node
+	
+	if label == U
+		label = "Clock"
+	rec.kind = NK_CLOCK
+	rec.name = label
+	rec.box <=== { left:x, top:y }
+	//merge calc_node_wh(NK_CLOCK) ===> rec.box
+	var wh : a_wh <=== calc_node_wh(NK_CLOCK)
+	//merge wh ===> rec.box  // zz
+	wh.width => rec.box.width
+	wh.height => rec.box.height
+
+	rec.minval = 60
+	rec.maxval = 240
+	rec.default = 120
+	rec.val = rec.default
+	val_to_norm(rec)
+
+	append rec ===> nodes index:ix
+	return ix
+
+===================
+calc new_knob (
+	label : str
+	x
+	y
+	)
+	var rec : a_node
+	
+	if label == U
+		label = "Knob"
+	rec.kind = NK_KNOB
+	rec.name = label
+	rec.box <=== { left:x, top:y }
+	merge calc_node_wh(NK_KNOB) ===> rec.box
+
+	rec.minval = 0
+	rec.maxval = 100
+	rec.default = 50
+	rec.val = rec.default
+	val_to_norm(rec)
+
+	append rec ===> nodes
+
+===================
+calc new_monoseq (
+	label : str
+	x
+	y
+	)
+	var rec : a_node
+	
+	if label == U
+		label = "MonoSeq"
+
+	rec.kind = NK_MONOSEQ
+	rec.name = label
+	rec.box <=== { left:x, top:y }
+	merge calc_node_wh(NK_MONOSEQ) ===> rec.box
+
+	append rec ===> nodes
+
+===================
+calc calc_node_wh (
+	kind
+	) : a_wh  // set the .width and .height fields
+	case kind
+	| NK_MONOSEQ
+		return { width:466, height:225 }
+	else
+		return { width:67, height:80 }
+
+===================
+calc do_notyet
+	log "NOT YET IMP"
+
+===================
+calc finger_to_corner (  //  given the mouse finger position, calculate node corner
+	finger_pos : a_xy
+	node_size : a_wh
+	corner : out a_xy
+	)
+	corner.x = finger_pos.x - node_size.width/2
+	corner.y = finger_pos.y - node_size.height/3
+
+===================
+calc create_node (  // add a new node
+	kind 
+	corner : a_xy  // upper left corner
+	size : a_wh
+	)
+	log "create-node {kind}"
+	inc intf.new_seq
+	var name : str = "{KIND_SS[kind]}{intf.new_seq}"
+
+	var ix = new_clock(name, corner.x, corner.y)
+	node_toggle_select(nodes[ix])
+
