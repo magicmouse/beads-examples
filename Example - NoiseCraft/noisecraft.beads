@@ -8,6 +8,14 @@ assets local:"./art/"
 	file:"click_fast_soft.mp3" label:CLICK
 	file:"doink.mp3" label:CANCEL
 
+	//  icons for waveforms
+	file:"noise_48.png" label:ICON_NOISE
+	file:"square_48.png" label:ICON_PULSE
+	file:"saw_48.png" label:ICON_SAW
+	file:"tri_48.png" label:ICON_TRI
+	file:"sine_48.png" label:ICON_SINE
+	file:"notes_48.png" label:ICON_NOTES
+
 // record a_xy_pair
 // 	p1 : a_xy
 // 	p2 : a_xy
@@ -80,12 +88,12 @@ var
 	PORTINFO : array^2 of a_port  //  port info indexed by [nodekind, portx]
 
 	//  non-tracked transient variables
-	g_drag_lasty
-	g_drag_lastn  //  starting normalized value
-	g_move_startx
-	g_move_starty
-	g_move_cornerx  //  original starting box corner
-	g_move_cornery
+	g_drag_lasty nolog
+	g_drag_lastn nolog  //  starting normalized value
+	g_move_startx nolog
+	g_move_starty nolog
+	g_move_cornerx nolog  //  original starting box corner
+	g_move_cornery nolog
 	
 	g_first_loc nolog : a_port_loc  //  first port we selected
 	g_hover_loc nolog : a_port_loc  //  curr port that is hilited
@@ -140,38 +148,48 @@ const
 	T_HEADER = N
 	T_RENDER = N
 
-	NK_ADD = 1
-	NK_ADSR = 2
-	NK_AUDIOOUT = 3
-	NK_CLOCK = 4
-	NK_CLOCKDIV = 5
-	NK_CONST = 6
-	NK_DELAY = 7
-	NK_DISTORT = 8
-	NK_DIV = 9
-	NK_FILTER = 10
-	NK_HOLD = 11
-	NK_KNOB = 12
-	NK_MIDIIN = 13
-	NK_MOD = 14
-	NK_MONOSEQ = 15
-	NK_MUL = 16
-	NK_NOISE = 17
-	NK_NOTES = 18
-	NK_PULSE = 19
-	NK_SAW = 20
-	NK_SCOPE = 21
-	NK_SINE = 22
-	NK_SLIDE = 23
-	NK_SUB = 24
-	NK_TRI = 25
+	NK_ADSR = 1
+	NK_AUDIOOUT = 2
+	NK_CLOCK = 3
+	NK_CLOCKDIV = 4
+	NK_CONST = 5
+	NK_DELAY = 6
+	NK_DISTORT = 78
+	NK_FILTER = 8
+	NK_HOLD = 9
+	NK_KNOB = 10
+	NK_MIDIIN = 11
+	NK_MOD = 12
+	NK_MONOSEQ = 13
+	NK_SCOPE = 14
+	NK_SLIDE = 15
+
+	NK_ADD = 16
+	NK_SUB = 17
+	NK_MUL = 18
+	NK_DIV = 19
+	NK_MIN = 20
+	NK_MAX = 21
+
+	NK_NOISE = 22
+	NK_NOTES = 23
+	NK_PULSE = 24
+	NK_SAW = 25
+	NK_TRI = 26
+	NK_SINE = 27
+
+	ARITH_ICONS = ["+", "−", "×", "/", "min", "max"]  //  note - is U2122 x is multiply
+	WAVEFORM_ICONS = [ICON_NOISE, ICON_NOTES, ICON_PULSE, ICON_SAW, ICON_TRI, ICON_SINE]
 
 	MENU_LABELS = ["NoiseCraft", "New", "Open", "Save", "Share", "Browse", "Help", "GitHub", "[Log In]"]
-	KIND_SS = ["Add", "ADSR", "AudioOut", "Clock", "ClockDiv", "Const", "Delay", "Distort",
-					"Divide", "Filter", "Hold", "Knob", "MidiIn", "Mod", "MonoSeq", 
-					"Multiply", "Noise", "Notes", "Pulse", "Sawtooth", "Scope", "Sine", 
-					"Slide", "Subtract", "Triangle"]
-	N_KIND_SS = tree_count(KIND_SS)
+	KIND_SS = ["ADSR", "AudioOut", "Clock", "ClockDiv", "Const", "Delay", "Distort",
+					"Filter", "Hold", "Knob", "MidiIn", "Mod", "MonoSeq", 
+					"Scope", "Slide", 
+					 "Add", "Subtract", "Multiply", "Divide", "Min", "Max",
+					"Noise",  "Notes", "Pulse", "Sawtooth", "Triangle", "Sine"]
+	ALIGN_SS = ["Left", "Center", "Right", "Top", "Middle", "Bottom", "Spread H", "Spread V"]
+
+	//N_KIND_SS = tree_count(KIND_SS)
 
 	F2 = MONOSPACE
 	F1 = "Atkinson Hyperlegible," & SANS_SERIF
@@ -183,12 +201,12 @@ const
 	DOTSIZE = 8
 	BORD_THICK = 2
 	MENUBAR_V = 24  // pt
-	TOOLBAR_H = 65  // pt
+	TOOLBAR_H = 60  // pt
 	TOOLITEM_V = 20 // pt
 	PORT_LABEL_H = 55
 	PORT_LABEL_V = 19
 	PORT_INDENT = 8
-	NODE_CORNER = 3 
+	NODE_CORNER = 2 
 	NODE_HEADER_V = 20
 	BUTT_CORNER = 6
 
@@ -207,13 +225,16 @@ calc main_init
 	intf.menubar_vis = Y
 
 	const Y1 = 28
-	const Y2 = 47
+	const Y2 = Y1+19
+	const Y3 = Y2+19
+	const Y4 = Y3+19
 
 	new_clock("Master", 30, 50)
 	new_clock("Clock2", 120, 100)
 	new_clock("Clock3", 30, 150)
 	new_monoseq("MonoSeq Alpha", 240, 80)
 	new_monoseq("MonoSeq Alpha", 300, 200)
+	new_adsr("ADSR Alpha", 400, 500)
 
 	//  a left coord of 1 means right edge, 0 means left edge
 	{ dir:OUT, name:"", dy:Y1, wire_color:#ff5004 } ===> PORTINFO[NK_CLOCK, 1]
@@ -223,10 +244,23 @@ calc main_init
 	{ dir:OUT, name:"freq", dy:Y1, wire_color:#028a8b } ===> PORTINFO[NK_MONOSEQ, 3]
 	{ dir:OUT, name:"gate", dy:Y2, wire_color:#00fa00 } ===> PORTINFO[NK_MONOSEQ, 4]
 
+	{ dir:IN, name:"att", dy:Y1 } ===> PORTINFO[NK_ADSR, 1]
+	{ dir:IN, name:"del", dy:Y2 } ===> PORTINFO[NK_ADSR, 2]
+	{ dir:IN, name:"sus", dy:Y3 } ===> PORTINFO[NK_ADSR, 3]
+	{ dir:IN, name:"rel", dy:Y4 } ===> PORTINFO[NK_ADSR, 4]
+	{ dir:OUT, name:"", dy:Y1, wire_color:#028a8b } ===> PORTINFO[NK_ADSR, 5]
+
 ===================
 horz slice main_draw
 	add TOOLBAR_H pt d_toolbar
 	add 10 al d_main_right
+-----
+track EV_KEYBOARD
+	if e.keycode == KEYCODE_SPACE
+		//  toggle play
+		toggle intf.playing
+		return Y
+	return N
 
 ===================
 vert slice d_main_right
@@ -253,10 +287,158 @@ vert slice d_toolbar
 	add TOOLITEM_V pt on:intf.nselected > 0  draw_tool_butt("Duplicate", do_notyet)
 	add TOOLITEM_V pt on:intf.nselected > 0  draw_tool_butt("✕ Delete", do_notyet)
 	skip GAP_V pt
-	loop across:KIND_SS index:ix
-		add TOOLITEM_V pt d_tool_nodekind(ix)
+	if intf.nselected >= 2
+		//  show alignment
+		skip (TOOLITEM_V*3) pt
+		add TOOLITEM_V pt
+			draw_str("-- Align --", size:0.5, color:BEIGE)
+		loop across:ALIGN_SS index:ix
+			add TOOLITEM_V pt d_tool_align(ix)
+		skip (TOOLITEM_V*3) pt
+		skip GAP_V pt
+		skip (TOOLITEM_V*2) pt
+		skip GAP_V pt
+		skip (TOOLITEM_V*3) pt
+	else
+		loop from:1 to:NK_SLIDE index:ix
+			add TOOLITEM_V pt d_tool_nodekind(ix)
+		skip GAP_V pt
+		add (TOOLITEM_V*2) pt d_tool_arith
+		skip GAP_V pt
+		add (TOOLITEM_V*3) pt d_tool_waveforms
 	skip GAP_V pt
 	add (TOOLITEM_V+5) pt draw_play_butt
+
+
+===================
+grid d_tool_arith  //  draw the 4 arithmetic icons
+	horz slice
+		add 10 al
+		skip 3 pt
+		add 10 al
+	vert slice
+		add 10 al
+		add 10 al
+		add 10 al
+	cell
+		draw_rect(fill:C_NODEBUTT_BACK, corner:2 pt, thick:2 color:C_TOOLBUTT_BORD)
+		draw_str(ARITH_ICONS[b.cell_seq], size:0.7, bold:Y, color:C_TOOLBUTT_TEXT)
+------
+track
+	var kindx = b.cell_seq-1 + NK_ADD
+	case e.evkind
+	| EV_ENTER
+		cursor_set(CURS_FINGER)
+
+	| EV_LEAVE
+		cursor_set(CURS_ARROW)
+
+	| EV_DRAG_BEGIN  //  starting to create a new node
+		cursor_set(CURS_GRABBING)
+		intf.newnode_active = Y
+		intf.newnode_kind = kindx
+		intf.newnode_gpos.x = e.global_x
+		intf.newnode_gpos.y = e.global_y
+		merge calc_node_wh(kindx) ===> intf.newnode_size
+		node_deselect_all
+
+	| EV_DRAG_MOVE
+		//  update the cursor overlay
+		intf.newnode_gpos.x = e.global_x
+		intf.newnode_gpos.y = e.global_y
+
+	| EV_DRAG_END
+		cursor_set(CURS_ARROW)
+		intf.newnode_active = N
+		//  map the node finger pos to the node corner
+		var corner : a_xy
+		finger_to_corner(intf.newnode_lpos, intf.newnode_size, corner)
+		create_node(intf.newnode_kind, corner, intf.newnode_size)
+
+	| EV_KEYBOARD
+		if e.keycode == KEYCODE_ESC
+			//  cancel without creating a node
+			intf.newnode_active = N
+			return Y
+		return N			
+	else
+		//  wrong kind of event, don't absorb
+		return N
+
+	//  absorb the event
+	return Y
+
+===================
+grid d_tool_waveforms  //  draw the 6 waveform icons
+	horz slice
+		add 10 al
+		skip 3 pt
+		add 10 al
+	vert slice
+		add 10 al
+		skip 3 pt
+		add 10 al
+		skip 3 pt
+		add 10 al
+	cell
+		//var r <=== solve_rect(basis:bb, inset:2 pt)
+		draw_rect(fill:C_NODEBUTT_BACK, corner:2 pt, thick:2 color:C_TOOLBUTT_BORD)
+		draw_image(WAVEFORM_ICONS[b.cell_seq], box:bb, aspect:N)
+------
+track
+	var kindx = b.cell_seq-1 + NK_NOISE
+	case e.evkind
+	| EV_ENTER
+		cursor_set(CURS_FINGER)
+
+	| EV_LEAVE
+		cursor_set(CURS_ARROW)
+
+	| EV_DRAG_BEGIN  //  starting to create a new node
+		cursor_set(CURS_GRABBING)
+		intf.newnode_active = Y
+		intf.newnode_kind = kindx
+		intf.newnode_gpos.x = e.global_x
+		intf.newnode_gpos.y = e.global_y
+		merge calc_node_wh(kindx) ===> intf.newnode_size
+		node_deselect_all
+
+	| EV_DRAG_MOVE
+		//  update the cursor overlay
+		intf.newnode_gpos.x = e.global_x
+		intf.newnode_gpos.y = e.global_y
+
+	| EV_DRAG_END
+		cursor_set(CURS_ARROW)
+		intf.newnode_active = N
+		//  map the node finger pos to the node corner
+		var corner : a_xy
+		finger_to_corner(intf.newnode_lpos, intf.newnode_size, corner)
+		create_node(intf.newnode_kind, corner, intf.newnode_size)
+
+	| EV_KEYBOARD
+		if e.keycode == KEYCODE_ESC
+			//  cancel without creating a node
+			intf.newnode_active = N
+			return Y
+		return N			
+	else
+		//  wrong kind of event, don't absorb
+		return N
+
+	//  absorb the event
+	return Y
+
+===================
+draw d_tool_align (   
+	kindx
+	)
+	draw_rect(fill:C_NODEBUTT_BACK, corner:2 pt, thick:2 color:C_TOOLBUTT_BORD)
+	//log "drawing kind {kindx}, ss={KIND_SS[kindx]}"
+	draw_str(ALIGN_SS[kindx], color:C_TOOLBUTT_TEXT, just:LEFT, indent:8 pt, size:0.6, font:F1)
+-----
+track EV_TAP
+	log "do alignment"
 
 ===================
 draw d_tool_nodekind (   
@@ -301,9 +483,6 @@ track  //  tracking of wireframe to insert new element
 			//  cancel without creating a node
 			intf.newnode_active = N
 			return Y
-		elif e.keycode == KEYCODE_SPACE
-			//  goggle play
-			toggle intf.playing
 		return N			
 	else
 		//  wrong kind of event, don't absorb
@@ -405,6 +584,8 @@ draw render_all_nodes
 		case node.kind
 		| NK_CLOCK, NK_KNOB
 			layer area:node.box render_knob(node)
+		| NK_ADSR
+			layer area:node.box render_adsr(node)
 		| NK_MONOSEQ
 			layer area:node.box render_monoseq(node)
 		else
@@ -685,7 +866,7 @@ vert slice render_monoseq (
 	node : ptr to a_node
 	)
 	under
-		log "render_monoseq {node.name}" on:T_RENDER
+		//log "render_monoseq {node.name}" on:T_RENDER
 		d_node_frame(node)
 		d_node_ports(node)
 
@@ -694,6 +875,26 @@ vert slice render_monoseq (
 --------
 track EV_TAP  //  AAA must get events after ports
 	do_node_tap(e, node)
+
+===================
+vert slice render_adsr ditto
+	under
+		log "render_adsr {node.name}" on:T_RENDER
+		d_node_frame(node)
+		d_node_ports(node)
+
+	add NODE_HEADER_V pt d_node_header(node)
+	add 12 pt d_adsr_hdr
+	add 90 al d_adsr_body(node)
+
+===================
+horz slice d_adsr_body ditto
+	//  split into 4 knobs
+	skip 30 pt  // reserve space for port labels
+	add 10 al d_knob_body(node)
+	add 10 al d_knob_body(node)
+	add 10 al d_knob_body(node)
+	add 10 al d_knob_body(node)
 
 ===================
 draw d_monoseq_body ditto
@@ -865,6 +1066,18 @@ track EV_TAP
 		return Y
 	//  since knob area is huge, don't absorb the taps that might be for the ports
 	return N
+
+===================
+horz slice d_adsr_hdr
+	skip 30 pt  // reserve space for port labels  must match render_adsr
+	add 10 al
+		draw_str("Attack", size:0.7, color:C_KNOB_VAL)
+	add 10 al
+		draw_str("Delay", size:0.7, color:C_KNOB_VAL)
+	add 10 al
+		draw_str("Sustain", size:0.7, color:C_KNOB_VAL)
+	add 10 al
+		draw_str("Release", size:0.7, color:C_KNOB_VAL)
 
 ===================
 calc norm_to_val ditto
@@ -1168,7 +1381,7 @@ calc new_knob (
 	label : str
 	x
 	y
-	)
+	) : num
 	var rec : a_node
 	
 	if label == U
@@ -1184,14 +1397,42 @@ calc new_knob (
 	rec.val = rec.default
 	val_to_norm(rec)
 
-	append rec ===> nodes
+	append rec ===> nodes index:ix
+	return ix
+
+===================
+calc new_adsr (
+	label : str
+	x
+	y
+	) : num
+	var rec : a_node
+	
+	if label == U
+		label = "ADSR"
+
+	rec.kind = NK_ADSR
+	rec.name = label
+
+	//  we need 4 of these to be stored in the node
+	rec.minval = 0
+	rec.maxval = 100
+	rec.default = 50
+	rec.val = rec.default
+	val_to_norm(rec)
+
+	rec.box <=== { left:x, top:y }
+	merge calc_node_wh(NK_ADSR) ===> rec.box
+
+	append rec ===> nodes index:ix
+	return ix
 
 ===================
 calc new_monoseq (
 	label : str
 	x
 	y
-	)
+	) : num
 	var rec : a_node
 	
 	if label == U
@@ -1202,7 +1443,8 @@ calc new_monoseq (
 	rec.box <=== { left:x, top:y }
 	merge calc_node_wh(NK_MONOSEQ) ===> rec.box
 
-	append rec ===> nodes
+	append rec ===> nodes index:ix
+	return ix
 
 ===================
 calc calc_node_wh (
@@ -1211,6 +1453,8 @@ calc calc_node_wh (
 	case kind
 	| NK_MONOSEQ
 		return { width:466, height:225 }
+	| NK_ADSR
+		return { width:64*4, height:96 }
 	else
 		return { width:67, height:80 }
 
@@ -1235,8 +1479,15 @@ calc create_node (  // add a new node
 	)
 	log "create-node {kind}"
 	inc intf.new_seq
-	var name : str = "{KIND_SS[kind]}{intf.new_seq}"
+	var name : str = "{KIND_SS[kind]} {intf.new_seq}"
+	var ix
 
-	var ix = new_clock(name, corner.x, corner.y)
+	case kind
+	| NK_ADSR
+		ix = new_adsr(name, corner.x, corner.y)
+	| NK_MONOSEQ
+		ix = new_monoseq(name, corner.x, corner.y)
+	else
+		ix = new_clock(name, corner.x, corner.y)
 	node_toggle_select(nodes[ix])
 

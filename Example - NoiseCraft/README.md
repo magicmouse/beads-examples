@@ -12,7 +12,7 @@ This is an excellent reference project for drawing multi-planar UI's, and showin
 
 The Beads program is about 4000 words.
 
-![screenshot](http://beadslang.com/projects/noisecraft/screenshot.gif)
+![screenshot](http://beadslang.com/projects/noisecraft/screenshot.png)
 
 The following improvements were made:
 
