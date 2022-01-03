@@ -83,6 +83,7 @@ var
 		newnode_lpos : a_xy  //  corner in local coord
 		newnode_size : a_wh
 		nselected  //  how many nodes selected
+		node_corner
 
 	//  complex constants easier to set up in main_init
 	PORTINFO : array^2 of a_port  //  port info indexed by [nodekind, portx]
@@ -206,7 +207,7 @@ const
 	PORT_LABEL_H = 55
 	PORT_LABEL_V = 19
 	PORT_INDENT = 8
-	NODE_CORNER = 2 
+	//NODE_CORNER = 2 
 	NODE_HEADER_V = 20
 	BUTT_CORNER = 6
 
@@ -223,6 +224,7 @@ calc main_init
 	intf.new_x = 100
 	intf.new_y = 200
 	intf.menubar_vis = Y
+	intf.node_corner = 0.2
 
 	const Y1 = 28
 	const Y2 = Y1+19
@@ -308,7 +310,29 @@ vert slice d_toolbar
 		add (TOOLITEM_V*3) pt d_tool_waveforms
 	skip GAP_V pt
 	add (TOOLITEM_V+5) pt draw_play_butt
+	skip GAP_V pt
+	add TOOLITEM_V pt d_corner_butts
+	add 12 pt 
+		draw_str(to_str(intf.node_corner, dig:1), size:0.7, color:WHITE)
 
+===================
+horz slice d_corner_butts
+	add 10 al d_delta_butt("-")
+	skip 2 pt
+	add 10 al d_delta_butt("+")
+
+===================
+draw d_delta_butt (
+	label : str
+	)
+	draw_rect(fill:C_TOOLBUTT_BACK, corner:BUTT_CORNER pt, thick:2 pos:0, color:C_TOOLBUTT_BORD)
+	draw_str(label, color:C_TOOLBUTT_TEXT, indent:2 pt, size:0.8, font:F1)
+------
+track EV_TAP
+	var increment = 0.2
+	if label <> "+"
+		increment = -increment
+	intf.node_corner = clamp(intf.node_corner+increment, 0, 5)
 
 ===================
 grid d_tool_arith  //  draw the 4 arithmetic icons
@@ -618,7 +642,7 @@ draw d_animate_layer  // in layer 3
 		finger_to_corner(intf.newnode_lpos, intf.newnode_size, corner)
 		//log "animate gpos={intf.newnode_gpos}, local={intf.newnode_lpos}, corner={corner}"
 		var r : a_rect <=== solve_rect(corner1:corner, width:intf.newnode_size.width, height:intf.newnode_size.height)
-		draw_rect(box:r, thick:3, color:PINK, corner:NODE_CORNER pt)
+		draw_rect(box:r, thick:3, color:PINK, corner:intf.node_corner pt)
 
 ----- qqq
 track EV_TAP
@@ -852,14 +876,14 @@ draw d_node_frame (
 	)
 	//  draw the top part of the bar which is the draggable part
 	//  fill the total background color
-	draw_rect(fill:C_NODE_BACK, corner:NODE_CORNER pt)
+	draw_rect(fill:C_NODE_BACK, corner:intf.node_corner pt)
 	
 	var hbox <=== solve_rect(basis:bb, pin:2, height:NODE_HEADER_V pt)
-	draw_rect(box:hbox, fill:C_NODE_HDR, corner_tl:NODE_CORNER pt, corner_tr:NODE_CORNER pt)
+	draw_rect(box:hbox, fill:C_NODE_HDR, corner_tl:intf.node_corner pt, corner_tr:intf.node_corner pt)
 
 	//  now put on the outer frame
 	var c:color = C_NODE_BORDSEL if node.selected else C_NODE_BORD
-	draw_rect(color:c, thick:BORD_THICK, corner:NODE_CORNER pt)
+	draw_rect(color:c, thick:BORD_THICK, corner:intf.node_corner pt)
 		
 ===================
 vert slice render_monoseq (
