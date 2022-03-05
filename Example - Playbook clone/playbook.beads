@@ -1,0 +1,911 @@
+beads 1 program playbook
+
+import devpicker  
+
+var SAMPLE_PICS : array of image
+
+assets local:"art/" 
+	file:"profile_pic.jpg" label:USERPIC preload
+	file:"icon_all.png"  label:ICON_ALL preload
+	file:"icon_people.png"  label:ICON_PEOPLE preload
+	file:"icon_user.png"  label:ICON_USER preload
+
+	folder:"images" into:SAMPLE_PICS index:seq preload //  load a whole folder of images
+
+assets local:"sounds/" 
+	file:"thud.mp3" label:THUD
+
+record a_color_set
+	c_dead  : color
+	c_text  : color
+	c_inputback : color
+	c_fainttext : color
+	c_divider: color
+	c_butt_back: color
+	c_butt_back_hi : color
+	c_butt_bord: color
+	c_butt_text: color
+	c_userpic_bord : color
+	c_sidebar_back: color
+	c_rule : color
+	c_dim_back  : color  // color to dim the background
+	c_icon_outer : color // outside color of an icon
+	c_alert_back : color // alert box
+	c_alert_bord : color // alert box border
+
+const 
+	TRACE_GUTTER = N
+
+	LIGHT_COLORS : a_color_set <=== { ,
+		c_dead: #f8f8f7,
+		c_text: BLACK,
+		c_inputback:#D5D6D6,
+		c_fainttext : #AFAFAF,
+		c_divider: GRAY2,
+		c_butt_back: BROWN,
+		c_butt_back_hi: #521800,
+		c_butt_bord: MAROON,
+		c_butt_text: #FFF4F4,
+		c_userpic_bord : GOLDENROD,
+		c_sidebar_back: WHITE,
+		c_rule: GRAY3,
+		c_dim_back : GRAY6,
+		c_icon_outer : #CFDEE3,
+		c_alert_back : #A9B9CF,
+		c_alert_bord : #6483AB,
+		}
+
+	DARK_COLORS : a_color_set <=== { ,
+		c_dead: #262626,
+		c_text: #EDF2F3,
+		c_inputback:#1C2D34,
+		c_fainttext : #6483AB,
+		c_divider: #3D6370,
+		c_butt_back: BROWN,
+		c_butt_back_hi: #521800,
+		c_butt_bord: MAROON,
+		c_butt_text: #FFF4F4,
+		c_userpic_bord : DARK_SLATE_GRAY,
+		c_sidebar_back: #322e34,
+		c_rule: GRAY7,
+		c_dim_back : GRAY4,
+		c_icon_outer : #233840,
+		c_alert_back : #3D5371,
+		c_alert_bord : #4E7F90,
+		}
+
+	ZOOM_RATIOS : array of num <=== [0, 1, 2, 3, 4]
+
+	BUTT_CORNER = 7
+	MAX_BUTT_H = 100
+
+	F1  = "Noto Sans"
+	PIC_WINDOW = "_d_currimage_outer"
+	PREFS_KEY = "playbook prefs"
+
+var
+	intf : record
+		phase : (PHASE_HOME, PHASE_BOARD)
+		r_side_vis : yesno
+		show_devpicker : yesno
+		show_prefs   : yesno
+		curr_boardx : num  //  which board is currently being viewed
+		zoomx : num
+		img_focus : a_xy
+		
+	prefs : record
+		version : num	//  version of preferences
+		sounds      : yesno
+		dark_mode   : yesno
+		track_views : yesno
+		track_downs : yesno
+		navbar_h    : num  // width of navbar
+
+	cs : a_color_set  //  our current color table
+	
+------------------------ TRANSIENT -------------	
+var t_fitbox notrack : a_rect
+var t_scaledbox notrack : a_rect
+var t_img_size : a_xy
+
+var t_drag_starty notrack nolog : num  --  used during tracking of gutters
+var t_drag_startx notrack nolog : num
+var t_drag_startpos notrack nolog : num --  original gutter position
+
+var t_screen_h
+var t_screen_v
+
+=============================
+calc main_init
+
+	//  PLAYBOOK init
+	intf.phase = PHASE_HOME // PHASE_BOARD
+	intf.r_side_vis = Y
+	intf.curr_boardx = 3
+	reset_zoom
+	intf.show_devpicker = N
+
+	//  if we have a previous store prefs record, read it in
+	if cookie_exists(PREFS_KEY)
+		cookie_read(PREFS_KEY) ===> prefs
+	
+	//  if the version doesn't match we gotta zap the prefs 
+	//  to a version we can tolerate
+	if prefs.version <> 1
+		prefs_reset
+
+	update_cs
+
+=============================
+calc update_cs
+	if prefs.dark_mode
+		merge DARK_COLORS ===> cs
+	else
+		merge LIGHT_COLORS ===> cs
+
+==== XXX START OF PLAYBOOKXXXX
+	
+=============================
+draw main_draw
+	main_draw2
+
+	if intf.show_prefs
+		layer area:bb d_prefs_panel
+
+=============================
+horz slice main_draw2
+	if intf.show_devpicker
+		//  force even pixels on the preview area
+		var w = round(140 pt)
+		add w px order:10 devpicker::d_dev_picker   // WARNING: MUST BE drawn after preview which sets transient
+		add 10 al devpicker::d_preview_area(d_playbook)
+	else
+		add 10 al d_playbook  // skip the dev picker
+
+	t_screen_h ⇐ bb.width
+	t_screen_v ⇐ bb.height
+
+-------
+track EV_KEYBOARD
+	if e.keycode == KEYCODE_INS
+		toggle intf.show_devpicker
+		return Y
+	return N
+
+=============================
+draw d_playbook
+	background fill:cs.c_dead
+
+	//  if this a mobile device and we are in portrait, give up
+	var horz_inches = bb.width / b.dpi
+	var vert_inches = bb.height / b.dpi
+	if horz_inches < vert_inches and horz_inches < 4
+		draw_str("Please rotate\nto landscape!", wrap:Y, size:24 pt, color:WHITE)
+		return
+
+	case intf.phase
+	| PHASE_HOME
+		d_phase_home
+	| PHASE_BOARD
+		d_phase_board
+
+=============================
+vert slice d_phase_home
+	var gap = interpolate(dots_to_pt(bb.height), 300, 1000, 3, 20, clamp:Y)
+	var hgt = interpolate(dots_to_pt(bb.height), 300, 1000, 24, 36, clamp:Y)
+	//log "gap={gap} avail={dots_to_pt(bb.height)}"
+	skip gap pt
+	add hgt pt d_home_header
+	skip gap pt
+	add 3 pt d_divider
+	add 10 al d_home_body
+
+=============================
+horz slice d_phase_board  //  show the current board in detail
+	background fill:cs.c_sidebar_back
+
+	//  right sidebar can be vis or not vis
+	skip 4 pt 
+	if intf.r_side_vis
+		skip 6 pt
+		var avail = dots_to_pt(bb.width)
+		var sidebar = interpolate(avail, 400, 1000, 130, 200, clamp:Y)
+		//log "sidebar avail={avail}, net={sidebar}"
+		add sidebar pt d_fat_sidebar 
+	else
+		add 24 pt d_minimal_sidebar
+		skip 4 pt 
+ 
+	//  body is always visible
+	add 10 al _d_currimage_outer
+
+=============================
+draw d_sidebar_toggle
+	var box <=== solve_rect(basis:bb, pin:5, width:min(bb.width, MAX_BUTT_H pt))
+	draw_rect(box:box, fill:cs.c_butt_back, thick:1.5 pt, pos:0, color:cs.c_butt_bord, 
+		corner:BUTT_CORNER pt) // corner_tl:BUTT_CORNER pt, corner_bl:BUTT_CORNER pt)
+
+	if intf.r_side_vis
+		//  big form
+		draw_str("⬅ Minimize", box:box, size:0.6, color:cs.c_butt_text)  // "⬅  Cart" 
+	else
+		//  small form
+		draw_str("➠", box:box, size:0.8, color:cs.c_butt_text)  // "⬅  Cart" 
+------
+track EV_TAP
+	toggle intf.r_side_vis
+
+=============================
+draw d_home_butt
+	var box <=== solve_rect(basis:bb, pin:5, width:min(bb.width, MAX_BUTT_H pt))
+	draw_rect(box:box, fill:cs.c_butt_back, thick:1.5 pt, pos:0, color:cs.c_butt_bord, 
+		corner:BUTT_CORNER pt) // corner_tr:BUTT_CORNER pt, corner_br:BUTT_CORNER pt)
+	if intf.r_side_vis
+		//  big form
+		draw_str("🏠  Home", box:box, size:0.6, color:cs.c_butt_text)  // "⬅  Cart" 
+	else
+		//  small form
+		draw_str("🏠", box:box, size:0.8, color:cs.c_butt_text)  // "⬅  Cart" 
+------
+track EV_TAP
+	intf.phase = PHASE_HOME
+
+=============================
+draw d_prefs_panel
+	//  dim the screen
+	draw_rect(fill:cs.c_dim_back, opacity:0.80)
+
+	//  draw a smaller box for the actual panel
+	var box <=== solve_rect(basis:bb, pin:5, width:min(bb.width*0.90, 400 pt), height:min(bb.height*0.90, 500 pt))
+	layer area:box d_prefs_body
+-------
+track EV_TAP
+	//  if we click on dead space dismiss the prefs panel
+	intf.show_prefs = N
+
+=============================
+vert slice d_prefs_body
+	under
+		draw_rect(fill:cs.c_alert_back, corner:10 pt, thick:2 pt, color:cs.c_alert_bord)
+
+	skip 14 pt
+	add 24 pt d_checkbox("Dark mode", adr prefs.dark_mode, action:do_palette_change)
+	skip 10 pt
+	add 24 pt d_checkbox("Sound effects", adr prefs.sounds)
+	skip 10 pt
+	add 24 pt d_checkbox("Track views", adr prefs.track_views)
+	skip 10 pt
+	add 24 pt d_checkbox("Track downloads", adr prefs.track_downs)
+	
+	over
+		var ok_box <=== solve_rect(basis:bb, pin:8, dy:-12 pt, height:24 pt, width:100 pt)
+		layer area:ok_box d_simple_butt("OK", do_close_prefs)
+-------
+track EV_KEYBOARD
+	if e.keycode == KEYCODE_ESC
+		intf.show_prefs = N
+		return Y
+	return N
+-------
+track EV_TAP
+	//  a click on the dead space inside is ignored
+	play(THUD)
+
+=============================
+horz slice d_checkbox (
+	label  : str
+	valptr : ptr to yesno
+	action : calc() = U  //  optional post value change action func
+	)
+	skip 12 pt
+	add 24 pt
+		if valptr^^ == Y
+			draw_str("✅", size:0.85)
+		else
+			//var r <=== solve_rect(basis:box, inset:1 pt)
+			draw_rect(thick:1.5 pt, pos:0, color:#02D940)
+	skip 4 pt
+	add 10 al draw_str(label, just:LEFT, size:0.6, color:cs.c_text)
+---------
+track EV_TAP
+	toggle valptr^^
+	if action <> U
+		action()
+
+=============================
+draw d_simple_butt (  //  left justified, with optional icon
+	prompt : str
+	action : calc()
+	)
+	draw_rect(fill:cs.c_butt_back, corner:BUTT_CORNER pt, thick:1.5, color:cs.c_butt_bord)
+	draw_str(prompt, color:cs.c_butt_text, indent:3 pt, size:0.6)
+--------
+track EV_TAP
+	action()
+
+=============================
+calc do_close_prefs
+	intf.show_prefs = N
+	
+=============================
+vert slice d_minimal_sidebar
+	skip 2 pt
+	add 24 pt d_home_butt
+	skip 20 pt
+	add 24 pt draw_oneshot("S")
+	skip 6 pt
+	add 24 pt draw_oneshot("A")
+	skip 6 pt
+	add 24 pt draw_oneshot("C")
+	skip 6 pt
+	add 24 pt draw_oneshot("R")
+	skip 20 pt
+	skip 10 al
+	add 120 pt d_vert_zoom
+	skip 20 pt
+	add 24 pt d_sidebar_toggle
+	skip 2 pt
+
+=============================
+horz slice d_horz_zoom
+	loop reps:5 count:ix
+		add 10 al d_zoom_butt(ix)
+	skip 10 pt
+
+=============================
+vert slice d_vert_zoom
+	loop reps:5 count:ix
+		add 10 al d_zoom_butt(ix)
+
+=============================
+draw d_zoom_butt (
+	level
+	)
+	var fill:color = cs.c_butt_back_hi if level == intf.zoomx else cs.c_butt_back
+	draw_rect(fill:fill, thick:1 pt, pos:0, color:cs.c_butt_bord, corner:4 pt)
+	var ss:str = "Fit" if level == 1 else "{ZOOM_RATIOS[level]}x"
+	draw_str(ss, size:0.6, indent:2 pt, color:cs.c_butt_text, bold:Y, vert:0.55)
+------
+track EV_TAP
+	intf.zoomx = level
+
+=============================
+vert slice d_fat_sidebar  //  extra stuff when sidebar is in use
+	//background fill:cs.c_sidebar_back
+
+	//  if this bar is minimized, we only show a few buttons
+	
+	skip 2 pt
+	add 20 pt d_home_butt
+	skip 6 pt
+	add 22 pt d_filename 
+	skip 6 pt
+	add 22 pt d_upload_info
+	skip 8 pt
+	add 36 pt d_note
+	skip 10 pt
+	add 12 pt d_views
+
+	skip 10 pt
+	add 2 pt d_horz_rule
+	skip 10 pt
+	add 18 pt d_send_down
+	skip 10 pt
+	add 18 pt d_crop_del
+	skip 10 pt
+	add 18 pt d_approval
+	skip 10 pt
+	add 2 pt d_horz_rule
+	skip 10 pt
+	skip 10 al
+
+	add 20 pt d_horz_zoom
+	skip 20 pt
+	add 18 pt d_sidebar_toggle
+	skip 2 pt
+
+=============================
+horz slice d_note
+	add 10 al
+		draw_str("This is a note\nAbout this file\nIt has 3 lines", size:12 pt, font:F1, wrap:Y, just:LEFT, color:cs.c_text)
+	skip 3 pt
+	add 20 pt d_edit_icon
+	skip 2 pt
+
+=============================
+horz slice d_filename
+	add 10 al
+		draw_str("My_long_file_Filename.jpg", size:13 pt, font:F1, bold:Y, just:LEFT, color:cs.c_text)
+	skip 3 pt
+	add 20 pt d_edit_icon
+	skip 2 pt
+
+=============================
+horz slice d_upload_info
+	add 10 al d_upload_info2
+	skip 3 pt
+	add 20 pt d_edit_icon
+	skip 2 pt
+
+=============================
+vert slice d_edit_icon
+	skip 10 al
+	add 20 pt draw_oneshot("✎")
+	skip 10 al
+
+=============================
+vert slice d_upload_info2
+	add 10 al
+		draw_str("by Ekbart van der Klunk", size:12 pt, font:F1, just:LEFT, color:cs.c_text)
+	add 10 al
+		draw_str("85 kb   on Feb 18, 2022", size:12 pt, font:F1, just:LEFT, color:cs.c_text)
+
+=============================
+horz slice d_views
+	add 85 pt
+		draw_str("Views: 0", size:12 pt, font:F1, just:LEFT, color:cs.c_text)
+	skip 20 pt
+	add 85 pt
+		draw_str("Downloads: 0", size:12 pt, font:F1, just:LEFT, color:cs.c_text)
+
+=============================
+horz slice d_send_down
+	add 85 pt draw_oneshot("✉  Send...")
+	skip 20 pt
+	add 85 pt draw_oneshot("⇓  Download...")
+	skip 2 pt
+
+=============================
+horz slice d_crop_del
+	add 85 pt draw_oneshot("❂  Crop")
+	skip 20 pt
+	add 85 pt draw_oneshot("✖  Delete")
+	skip 2 pt
+
+=============================
+horz slice d_approval
+	add 85 pt draw_oneshot("3 Comments...")
+	skip 20 pt
+	add 85 pt draw_oneshot("✗ Unapprove")
+	skip 2 pt
+
+=============================
+draw draw_oneshot (  //  left justified, with optional icon
+	prompt : str
+	)
+	var just
+	var indent
+	if bb.width > 50 pt
+		just = LEFT
+		indent = 10 pt
+	else
+		just = CENTER
+		indent = 0
+
+	draw_rect(fill:cs.c_butt_back, corner:BUTT_CORNER pt, thick:1.5, color:cs.c_butt_bord)
+	draw_str(prompt, color:cs.c_butt_text, just:just, indent:indent, size:0.6)
+
+=============================
+draw d_horz_rule
+	var box <=== solve_rect(basis:bb, width:bb.width*0.80)
+	draw_rect(fill:cs.c_rule, box:box)
+
+=============================
+draw d_divider
+	background fill:cs.c_divider
+
+=============================
+draw _d_currimage_outer scroll:both
+	background fill:cs.c_dead
+
+	var img = SAMPLE_PICS[intf.curr_boardx]
+
+	//  calculate the amount we would use under the fit mode, with enough margin
+	//  for smaller res devices, we changed the pad from 20 pt to fraction of the smaller of h/v
+	var PAD1 = min(bb.width, bb.height)*0.04
+	var PAD2 = PAD1 + SCROLLBAR_WIDTH
+
+	if intf.zoomx == 1
+		//  fit to the screen size
+		//draw_rect(box:box, fill:#331C1C, corner:10 pt)
+		t_fitbox <=== solve_rect(basis:bb, inset_n:PAD1, inset_s:PAD2, inset_w:PAD1, inset_e:PAD2)
+		draw_image(img, box:t_fitbox, corner:6 pt)
+	else
+		t_img_size <=== image_size(img)
+
+		//  1x - 2x - 3x - 4x
+		//  calc the scale box, with some padding on the top and left in terms of where we draw
+		var ratio = ZOOM_RATIOS[intf.zoomx]
+		var pic_h = t_img_size.x*ratio 
+		var pic_v = t_img_size.y*ratio
+		var picpad_h = pic_h + PAD1*2
+		var picpad_v = pic_v + PAD1*2
+		var usable_h = bb.width-SCROLLBAR_WIDTH
+		var usable_v = bb.height-SCROLLBAR_WIDTH
+		var screenctr_x = usable_h/2
+		var screenctr_y = usable_v/2
+		var ctr_x
+		var ctr_y
+
+		if picpad_h <= usable_h
+			//  we have sufficient space to show padded, without adding
+			ctr_x = screenctr_x
+		else
+			//  picture is so wide we gotta move it to the right
+			ctr_x = PAD1 + pic_h/2
+
+		if picpad_v <= usable_v
+			//  we have sufficient space to show padded, without adding
+			ctr_y = screenctr_y
+		else
+			//  picture is so wide we gotta move it to the right
+			ctr_y = PAD1 + pic_v/2
+ 
+		t_scaledbox <=== solve_rect(cx:ctr_x, cy:ctr_y, width:pic_h, height:pic_v)
+		//log "pic={pic_h}x{pic_v}, usable={usable_h},{usable_v}, scaled={t_scaledbox}"
+		//  draw invisible dots on the 4 sides so that scrolling past edge works
+		//const MARGIN = 30 pt
+		//var outer <=== solve_rect(basis:t_scaledbox, inset:-MARGIN)
+		//draw_rect(box:outer, fill:#383132, corner:20 pt)  // #383132
+
+		draw_image(img, box:t_scaledbox, corner:6 pt)
+
+		// to get the scrolling nice add a small box to the right
+		//  note: adding a SVG that has the bounds set, will not cause scroll to be augmented
+		//  only adding a DIV will do that unfortunately.
+		//  perhaps in the future we can get a SVG to have the correct bounding box
+		var fudge <=== solve_rect(basis:t_scaledbox, pin:9, dx:PAD1, dy:PAD1, width:1, height:1)
+		//draw_rect(fill:PINK, box:fudge)
+		layer area:fudge d_fudge
+
+		//  this is the coordinate of the total content area of the scrolling window
+		var pic_corner : a_xy <=== solve_point(basis:fudge, pin:9)
+--------
+track EV_KEYBOARD
+	const
+		BIG = 7/8 
+		SMALL = 1/8
+	var delta_x = 0
+	var delta_y = 0
+	var fract = BIG if e.is_shift else SMALL
+
+	if e.keycode == KEYCODE_PAGE_DOWN or e.unicode == "+"
+		//  bigger
+		if intf.zoomx < tree_count(ZOOM_RATIOS)
+			inc intf.zoomx
+		else
+			play(THUD)
+		
+	elif e.keycode == KEYCODE_PAGE_UP or e.unicode == "-"
+		//  smaller
+		if intf.zoomx > 1
+			dec intf.zoomx
+		else
+			play(THUD)
+
+	else
+		case e.keycode
+		| KEYCODE_LEFT
+			delta_x = bb.width * fract
+	
+		| KEYCODE_RIGHT
+			delta_x = -bb.width * fract
+
+		| KEYCODE_UP
+			delta_y = bb.height * fract
+
+		| KEYCODE_DOWN
+			delta_y = -bb.height * fract
+
+		| KEYCODE_HOME
+			//  jump to fit zoom
+			intf.zoomx = 1
+			return Y
+
+		else
+			return N
+
+	//  if we get here, it was L/R/U/D, apply the movement
+	var limits : a_xy <=== scroll_get_limits(PIC_WINDOW)
+	var scrpos : a_xy <=== scroll_get_pos(PIC_WINDOW)
+	//log "apply movement {delta_x},{delta_y}, limits {limits}, pos {scrpos}"
+
+	//  detect boundary hit
+	if delta_x > 0
+		//  moving to right
+		if scrpos.x >= limits.x
+			play(THUD) // can't move
+	elif delta_x < 0
+		//  moving to left
+		if scrpos.x <= 0
+			play(THUD) // can't move
+
+	if delta_y > 0
+		//  moving to right
+		if scrpos.y >= limits.y
+			play(THUD) // can't move
+	elif delta_y < 0
+		//  moving to left
+		if scrpos.y <= 0
+			play(THUD) // can't move
+	
+	//  at present we can only move in one direction at a time
+	scroll_by(PIC_WINDOW, delta_x, delta_y)
+
+		//layer area:outer d_scroll_limits
+// 		var tiny <=== solve_rect(left:t_scaledbox.left-MARGIN, top:t_scaledbox.top, width:10, height:1)
+// 		draw_rect(box:tiny, fill:PINK)
+// 		tiny <=== solve_rect(left:t_scaledbox.left, top:t_scaledbox.top-MARGIN, width:10, height:1)
+// 		draw_rect(box:tiny, fill:PINK)
+// 		tiny <=== solve_rect(left:t_scaledbox.left+t_scaledbox.width+MARGIN, top:t_scaledbox.top, width:10, height:1)
+// 		draw_rect(box:tiny, fill:PINK)
+// 		tiny <=== solve_rect(left:t_scaledbox.left, top:t_scaledbox.top+t_scaledbox.height+MARGIN, width:10, height:1)
+// 		draw_rect(box:tiny, fill:PINK)
+
+//  we used to overlay in the board area the escape button on the left
+// 	var lbox <=== solve_rect(basis:bb, pin:1, width:36 pt, height:28 pt, dx:2 pt)
+// 	layer area:lbox d_home_butt
+// 
+// 	//  we overlay in the board area the toggle at the upper right corner
+// 	var tbox <=== solve_rect(basis:bb, pin:3, width:36 pt, height:28 pt)
+// 	layer area:tbox d_sidebar_toggle
+
+draw d_fudge
+	nop
+
+=============================
+draw d_scroll_limits   //  creates an empty DIV so that we get the scrolling limits we want
+	draw_rect(fill:PINK, opacity:0.1, corner:20 pt)
+	
+=============================
+horz slice d_home_header
+	skip 16 pt
+	add 150 pt d_home_username
+	skip 40 pt
+	add 10 al d_home_search
+	skip 20 pt
+	add 85 pt d_home_newact
+	skip 20 pt
+	add 30 pt d_home_notif
+	skip 20 pt
+	add 28 pt d_user_pic
+	skip 20 pt
+	add 40 pt d_prefs_butt
+	skip 20 pt
+
+=============================
+draw d_prefs_butt
+	var size = min(bb.width, bb.height)
+	//var box <=== solve_rect(basis:bb, pin:5, width:size, height:size)
+	//draw_rect(box:box, fill:cs.c_icon_outer, corner:2 pt)
+	draw_str("⚙️", size:0.8)
+------
+track EV_TAP
+	intf.show_prefs = Y
+
+=============================
+draw d_home_username
+	//  actually a switch user pulldown menu
+	draw_str("Ekbart van der Klunk", size:13 pt, just:LEFT, color:cs.c_text, font:F1, weight:700)
+
+=============================
+draw d_home_search
+	var box <=== solve_rect(basis:bb, pin:5, height:bb.height*0.8)
+	draw_rect(box:box, fill:cs.c_inputback, corner:5 pt)
+	draw_str("Search by title, tags, content...", box:box, just:LEFT, indent:6 pt, size:0.4, color:cs.c_fainttext)
+
+=============================
+draw d_home_newact
+	var box <=== solve_rect(basis:bb, pin:5, height:bb.height*0.6)
+	draw_rect(box:box, fill:cs.c_inputback, corner:12 pt)
+	draw_str("• New activity", size:0.6, indent:2 pt, color:cs.c_fainttext)
+
+=============================
+draw d_home_notif
+	draw_str("🔔", size:13 pt, color:cs.c_text)
+
+=============================
+draw d_user_pic
+	var diam = bb.height
+	var box <=== solve_rect(basis:bb, pin:5, height:diam, width:diam)
+	//draw_oval(box:box, fill:GRAY3)
+	draw_image(USERPIC, box:box, corner:diam*0.5)
+	var box2 <=== solve_rect(basis:box, inset:-3 pt)
+	draw_oval(box:box2, thick:1.2 pt, pos:0, color:cs.c_userpic_bord)
+	
+=============================
+draw d_colormode
+	var box <=== solve_rect(basis:bb, pin:5, height:bb.height*0.6)
+	var label : str = "Light" if prefs.dark_mode else "Dark"
+	draw_rect(box:box, fill:cs.c_butt_back, corner:5 pt, thick:1.5 pt, color:cs.c_butt_bord)
+	draw_str(label, box:box, indent:2 pt, color:cs.c_butt_text, size:0.6)
+-------
+track EV_TAP
+	toggle prefs.dark_mode
+	do_palette_change
+
+=============================
+calc do_palette_change
+	update_cs
+	prefs_write
+
+=============================
+horz slice d_home_body
+	if prefs.navbar_h == U
+		prefs.navbar_h = interpolate(dots_to_pt(bb.width), 488, 1000, 150, 200, clamp:Y) pt
+		log "setting navbar to default of {prefs.navbar_h}"
+	//log "d_home, win={dots_to_pt(bb.width)}, sidebar={h}"
+	add prefs.navbar_h px d_home_outline
+	add 10 al d_home_board_grid
+
+=============================
+horz slice d_home_outline
+	background fill:cs.c_sidebar_back
+
+	skip 11 pt
+	add 10 al d_home_outline2
+
+	over
+		//  draggable divider mover
+		//  drawn on top of the scroll bar the width adjusting icon
+		var r <=== solve_rect(basis:bb, pin:6, width:17 pt, height:24 pt, dx:2 pt)
+		layer area:r $d_divider_thumb
+
+=============================
+vert scroll d_home_outline2
+	//log "outline draw, dark={prefs.dark_mode}"
+	skip 10 pt
+	add 14 pt draw_icon_butt(ICON_ALL, "All media")
+	skip 6 pt
+	add 14 pt draw_icon_butt(ICON_PEOPLE, "People")
+	skip 6 pt
+	add 14 pt draw_icon_butt(ICON_USER, "Ekbart van der klunk")
+	skip 20 pt
+	add 100 pt
+		draw_str("Boards\nMy super board\n  A sub board", 
+		size:12 pt, vert:0, color:cs.c_text, just:LEFT, font:F1, wrap:Y)
+
+var t_sounded : yesno
+
+=============================
+draw $d_divider_thumb clip //  note: since we are tracking a drag, keep this name constant
+	draw_rect(fill:GRAY7, corner:2 pt)
+	var h1 = (bb.left+bb.width/2) - 2 pt
+	var h2 = (bb.left+bb.width/2) + 2 pt
+	var v1 = bb.top + 2 pt
+	var v2 = bb.top + bb.height - 2 pt
+	draw_line(x1:h1, y1:v1, x2:h1, y2:v2, color:GRAY3, thick:1.5 pt)
+	draw_line(x1:h2, y1:v1, x2:h2, y2:v2, color:GRAY3, thick:1.5 pt)
+-------
+track
+	case e.evkind
+	|  EV_DRAG_BEGIN
+		//  change cursor to the hand
+		cursor_set(CURS_RESIZE_COL)
+		t_drag_startx = e.global_x
+		t_drag_startpos = prefs.navbar_h
+		t_sounded = N
+		log "gutter begin, startx={e.global_x}, starth={prefs.navbar_h}" on:TRACE_GUTTER
+
+	| EV_DRAG_MOVE
+		//  move this divider left/right only
+		var newpos = t_drag_startpos + e.global_x - t_drag_startx 
+		var lower_limit = max(80 pt, round(0.10 * t_screen_h))
+		var upper_limit = min(400 pt, round(0.60 * t_screen_h))
+		if newpos > upper_limit
+			if t_sounded == N
+				play(THUD)
+				t_sounded = Y
+			newpos = upper_limit
+			log " -- clamp high" on:TRACE_GUTTER
+		elif newpos < lower_limit
+			if t_sounded == N
+				play(THUD)
+				t_sounded = Y
+			newpos = lower_limit
+			log " -- clamp low" on:TRACE_GUTTER
+		else
+			t_sounded = N  //  once we go back to inside the limits, allow sound again
+		var pct = newpos / t_screen_h
+		log "gutter move, newpos={newpos}, lower={lower_limit}, upper={upper_limit}, pct={to_str(pct, dig:3)}" on:TRACE_GUTTER
+
+		//  we could store as a percentage in the prefs, but for now just store pixel width 
+		prefs.navbar_h = newpos
+
+	| EV_DRAG_END
+		cursor_set(CURS_ARROW)
+		//  update our preferences file after dragging a gutter
+		log ">>DRAG_END, updating preferences file" on:TRACE_GUTTER
+		prefs_write
+	else
+		return N
+	return Y  //  must return Y on drag begin else it won't capture
+
+=============================
+horz slice draw_icon_butt (
+	icon  : image
+	label : str
+	)
+	add 14 pt 
+		draw_image(icon)
+	add 10 al
+		draw_str(label, just:LEFT, size:12 pt, indent:8 pt, font:F1, color:cs.c_text)
+	//  since scrollbar intrudes, reserve some space
+	skip (SCROLLBAR_WIDTH + 2 pt) px
+-------
+track EV_TAP
+	log "selected {label}"
+
+-------------------
+//  transient values
+var NCELLS = tree_count(SAMPLE_PICS)
+const TARG_H = 220
+const TARG_V = 160
+const TARG_GAP = 14
+const PER_H = TARG_H + TARG_GAP
+const PER_V = TARG_V + TARG_GAP
+
+=============================
+grid d_home_board_grid
+	horz slice
+		//  count how many cells we can fit
+		var t_ncol = max(2, round_down((bb.width - SCROLLBAR_WIDTH - TARG_GAP pt)/PER_H))
+		var t_nrow = round_up(NCELLS / t_ncol)
+
+		skip 10 al  // usually only a tiny amount lefover
+		loop reps:t_ncol
+			skip TARG_GAP pt
+			add TARG_H pt
+		skip TARG_GAP pt
+		skip SCROLLBAR_WIDTH px //  reserve scrollbar area
+		skip 10 al
+
+	vert scroll
+		loop reps:t_nrow
+			skip TARG_GAP pt
+			add TARG_V pt
+		skip TARG_GAP pt
+
+	cell
+		if b.cell_seq <= NCELLS
+			//draw_rect(fill:cs.c_sidebar_back, corner:10 pt, opacity:0.2)
+			draw_image(SAMPLE_PICS[b.cell_seq], corner:6 pt)
+			//draw_str(to_str(b.cell_seq), size:30 pt, color:cs.c_text)
+------
+track EV_TAP
+	if b.cell_seq <= NCELLS
+		intf.phase = PHASE_BOARD
+		intf.curr_boardx = b.cell_seq
+		reset_zoom  //  reset zoom on each image selection to FIT
+
+=============================
+calc reset_zoom
+	intf.zoomx = 1
+	intf.img_focus.x = 0.5
+	intf.img_focus.y = 0.5
+
+==================
+calc prefs_write
+	//log "save preferences"
+	cookie_write(PREFS_KEY, prefs, duration:10 avg_year)
+
+==================
+calc play (
+	s : sound
+	)
+	if prefs.sounds
+		sound_play(s)
+
+==================
+calc prefs_reset
+	//log "reset preferences"
+	//  we don't write the prefs after zapping them
+	//  maybe the user will run a newer version
+	//  so we don't write them until we change them
+	trunc prefs
+	prefs.version = 1
+	prefs.sounds  = Y
+	prefs.dark_mode = Y
+	prefs.track_views = Y
+	prefs.track_downs = Y
+	//  leave navbar_h U, let it assume default

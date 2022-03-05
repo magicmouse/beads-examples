@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>playbook</title>
+<link rel="shortcut icon" href="data:,">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap">
+<style>
+/*  CUSTOM STUB FOR PLAYBOOK  */
+div { outline-style:none;}
+div:hover { cursor:default; }
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 12pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: #3C7070; 
+    border-radius: 5pt; }
+::-webkit-scrollbar-thumb:hover { background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0;position:fixed;">
+<script type="module">
+// beads ver 0.51 compiled Fri Mar 4 21:59:23 GMT-0800 2022
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_051/beads_std.js';
+import * as std from '../../runtime_051/beads_std.js';
+import * as str from '../../runtime_051/beads_str.js';
+import * as devpicker from './devpicker.js';
+export const CODE_HASH = 0xe6868dc9;
+const _M = std.MODULES.push("playbook")-1;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
+//------- enums
+const F_c_butt_bord=9007192186640221; std.ENUMS[9007192186640221]="c_butt_bord";
+std.FIELDS[F_c_butt_bord] = true;
+const F_c_rule=9007193974349924; std.ENUMS[9007193974349924]="c_rule";
+std.FIELDS[F_c_rule] = true;
+const F_c_text=9007190518974697; std.ENUMS[9007190518974697]="c_text";
+std.FIELDS[F_c_text] = true;
+const F_c_alert_back=9007192668851274; std.ENUMS[9007192668851274]="c_alert_back";
+std.FIELDS[F_c_alert_back] = true;
+const F_c_sidebar_back=9007192691319228; std.ENUMS[9007192691319228]="c_sidebar_back";
+std.FIELDS[F_c_sidebar_back] = true;
+const F_c_butt_back=9007192589339211; std.ENUMS[9007192589339211]="c_butt_back";
+std.FIELDS[F_c_butt_back] = true;
+const F_curr_boardx=9007193877708817; std.ENUMS[9007193877708817]="curr_boardx";
+std.FIELDS[F_curr_boardx] = true;
+const R_a_color_set=9007192001424856; std.ENUMS[9007192001424856]="a_color_set";
+const F_track_downs=9007190570671861; std.ENUMS[9007190570671861]="track_downs";
+std.FIELDS[F_track_downs] = true;
+const F_navbar_h=9007190229304261; std.ENUMS[9007190229304261]="navbar_h";
+std.FIELDS[F_navbar_h] = true;
+const F_phase=9007191668180263; std.ENUMS[9007191668180263]="phase";
+std.FIELDS[F_phase] = true;
+const F_c_butt_back_hi=9007193748470543; std.ENUMS[9007193748470543]="c_butt_back_hi";
+std.FIELDS[F_c_butt_back_hi] = true;
+const F_c_butt_text=9007193546321415; std.ENUMS[9007193546321415]="c_butt_text";
+std.FIELDS[F_c_butt_text] = true;
+const F_r_side_vis=9007190987442257; std.ENUMS[9007190987442257]="r_side_vis";
+std.FIELDS[F_r_side_vis] = true;
+const F_version=9007192473701756; std.ENUMS[9007192473701756]="version";
+std.FIELDS[F_version] = true;
+const F_c_dead=9007190590549352; std.ENUMS[9007190590549352]="c_dead";
+std.FIELDS[F_c_dead] = true;
+const F_track_views=9007194277950526; std.ENUMS[9007194277950526]="track_views";
+std.FIELDS[F_track_views] = true;
+const F_show_prefs=9007191487757068; std.ENUMS[9007191487757068]="show_prefs";
+std.FIELDS[F_show_prefs] = true;
+const F_zoomx=9007192338676745; std.ENUMS[9007192338676745]="zoomx";
+std.FIELDS[F_zoomx] = true;
+const F_c_fainttext=9007193250843647; std.ENUMS[9007193250843647]="c_fainttext";
+std.FIELDS[F_c_fainttext] = true;
+const F_c_userpic_bord=9007191778835361; std.ENUMS[9007191778835361]="c_userpic_bord";
+std.FIELDS[F_c_userpic_bord] = true;
+const R_record_88=9007194048139978; std.ENUMS[9007194048139978]="record_88";
+const F_show_devpicker=9007193031037355; std.ENUMS[9007193031037355]="show_devpicker";
+std.FIELDS[F_show_devpicker] = true;
+const F_c_alert_bord=9007192112750632; std.ENUMS[9007192112750632]="c_alert_bord";
+std.FIELDS[F_c_alert_bord] = true;
+const PHASE_HOME=9007191309613792; std.ENUMS[9007191309613792]="PHASE_HOME";
+const F_c_inputback=9007193441115925; std.ENUMS[9007193441115925]="c_inputback";
+std.FIELDS[F_c_inputback] = true;
+const R_record_97=9007191951187866; std.ENUMS[9007191951187866]="record_97";
+const PHASE_BOARD=9007192462394249; std.ENUMS[9007192462394249]="PHASE_BOARD";
+const F_c_divider=9007193772489831; std.ENUMS[9007193772489831]="c_divider";
+std.FIELDS[F_c_divider] = true;
+const F_img_focus=9007192135746648; std.ENUMS[9007192135746648]="img_focus";
+std.FIELDS[F_img_focus] = true;
+const F_c_icon_outer=9007193830663811; std.ENUMS[9007193830663811]="c_icon_outer";
+std.FIELDS[F_c_icon_outer] = true;
+const F_sounds=9007192635542244; std.ENUMS[9007192635542244]="sounds";
+std.FIELDS[F_sounds] = true;
+const F_c_dim_back=9007192670521326; std.ENUMS[9007192670521326]="c_dim_back";
+std.FIELDS[F_c_dim_back] = true;
+const F_dark_mode=9007190133234150; std.ENUMS[9007190133234150]="dark_mode";
+std.FIELDS[F_dark_mode] = true;
+//-------  func const for std
+const draw_str_F = new std.a_function(1, "draw_str", std.draw_str);
+//-------  func const for playbook
+const d_phase_board_F = new std.a_function(_M, "d_phase_board", d_phase_board);
+std.FUNCS[d_phase_board_F.hash]=d_phase_board_F;
+const update_cs_F = new std.a_function(_M, "update_cs", update_cs);
+std.FUNCS[update_cs_F.hash]=update_cs_F;
+const d_fudge_F = new std.a_function(_M, "d_fudge", d_fudge);
+std.FUNCS[d_fudge_F.hash]=d_fudge_F;
+const d_prefs_panel_F = new std.a_function(_M, "d_prefs_panel", d_prefs_panel, track_d_prefs_panel);
+std.FUNCS[d_prefs_panel_F.hash]=d_prefs_panel_F;
+const d_views_446_F = new std.a_function(_M, "d_views_446", d_views_446);
+std.FUNCS[d_views_446_F.hash]=d_views_446_F;
+const d_upload_info_F = new std.a_function(_M, "d_upload_info", d_upload_info);
+std.FUNCS[d_upload_info_F.hash]=d_upload_info_F;
+const d_vert_zoom_F = new std.a_function(_M, "d_vert_zoom", d_vert_zoom);
+std.FUNCS[d_vert_zoom_F.hash]=d_vert_zoom_F;
+const d_home_butt_F = new std.a_function(_M, "d_home_butt", d_home_butt, track_d_home_butt);
+std.FUNCS[d_home_butt_F.hash]=d_home_butt_F;
+const d_horz_zoom_F = new std.a_function(_M, "d_horz_zoom", d_horz_zoom);
+std.FUNCS[d_horz_zoom_F.hash]=d_horz_zoom_F;
+const draw_icon_butt_F = new std.a_function(_M, "draw_icon_butt", draw_icon_butt, track_draw_icon_butt);
+std.FUNCS[draw_icon_butt_F.hash]=draw_icon_butt_F;
+const d_filename_418_F = new std.a_function(_M, "d_filename_418", d_filename_418);
+std.FUNCS[d_filename_418_F.hash]=d_filename_418_F;
+const d_divider_F = new std.a_function(_M, "d_divider", d_divider);
+std.FUNCS[d_divider_F.hash]=d_divider_F;
+const d_checkbox_F = new std.a_function(_M, "d_checkbox", d_checkbox, track_d_checkbox);
+std.FUNCS[d_checkbox_F.hash]=d_checkbox_F;
+const d_views_449_F = new std.a_function(_M, "d_views_449", d_views_449);
+std.FUNCS[d_views_449_F.hash]=d_views_449_F;
+const d_send_down_F = new std.a_function(_M, "d_send_down", d_send_down);
+std.FUNCS[d_send_down_F.hash]=d_send_down_F;
+const d_filename_F = new std.a_function(_M, "d_filename", d_filename);
+std.FUNCS[d_filename_F.hash]=d_filename_F;
+const d_fat_sidebar_F = new std.a_function(_M, "d_fat_sidebar", d_fat_sidebar);
+std.FUNCS[d_fat_sidebar_F.hash]=d_fat_sidebar_F;
+const d_home_username_F = new std.a_function(_M, "d_home_username", d_home_username);
+std.FUNCS[d_home_username_F.hash]=d_home_username_F;
+const d_home_body_F = new std.a_function(_M, "d_home_body", d_home_body);
+std.FUNCS[d_home_body_F.hash]=d_home_body_F;
+const draw_icon_butt_830_F = new std.a_function(_M, "draw_icon_butt_830", draw_icon_butt_830);
+std.FUNCS[draw_icon_butt_830_F.hash]=draw_icon_butt_830_F;
+const d_minimal_sidebar_F = new std.a_function(_M, "d_minimal_sidebar", d_minimal_sidebar);
+std.FUNCS[d_minimal_sidebar_F.hash]=d_minimal_sidebar_F;
+const d_simple_butt_F = new std.a_function(_M, "d_simple_butt", d_simple_butt, track_d_simple_butt);
+std.FUNCS[d_simple_butt_F.hash]=d_simple_butt_F;
+const d_note_410_F = new std.a_function(_M, "d_note_410", d_note_410);
+std.FUNCS[d_note_410_F.hash]=d_note_410_F;
+const main_draw2_F = new std.a_function(_M, "main_draw2", main_draw2, track_main_draw2);
+std.FUNCS[main_draw2_F.hash]=main_draw2_F;
+const draw_icon_butt_832_F = new std.a_function(_M, "draw_icon_butt_832", draw_icon_butt_832);
+std.FUNCS[draw_icon_butt_832_F.hash]=draw_icon_butt_832_F;
+const d_home_outline_F = new std.a_function(_M, "d_home_outline", d_home_outline);
+std.FUNCS[d_home_outline_F.hash]=d_home_outline_F;
+const d_home_board_grid_F = new std.a_function(_M, "d_home_board_grid", d_home_board_grid, track_d_home_board_grid);
+std.FUNCS[d_home_board_grid_F.hash]=d_home_board_grid_F;
+const d_user_pic_F = new std.a_function(_M, "d_user_pic", d_user_pic);
+std.FUNCS[d_user_pic_F.hash]=d_user_pic_F;
+const d_horz_rule_F = new std.a_function(_M, "d_horz_rule", d_horz_rule);
+std.FUNCS[d_horz_rule_F.hash]=d_horz_rule_F;
+const d_sidebar_toggle_F = new std.a_function(_M, "d_sidebar_toggle", d_sidebar_toggle, track_d_sidebar_toggle);
+std.FUNCS[d_sidebar_toggle_F.hash]=d_sidebar_toggle_F;
+const d_home_outline2_F = new std.a_function(_M, "d_home_outline2", d_home_outline2);
+std.FUNCS[d_home_outline2_F.hash]=d_home_outline2_F;
+const d_colormode_F = new std.a_function(_M, "d_colormode", d_colormode, track_d_colormode);
+std.FUNCS[d_colormode_F.hash]=d_colormode_F;
+const reset_zoom_F = new std.a_function(_M, "reset_zoom", reset_zoom);
+std.FUNCS[reset_zoom_F.hash]=reset_zoom_F;
+const d_playbook_F = new std.a_function(_M, "d_playbook", d_playbook);
+std.FUNCS[d_playbook_F.hash]=d_playbook_F;
+const d_prefs_butt_F = new std.a_function(_M, "d_prefs_butt", d_prefs_butt, track_d_prefs_butt);
+std.FUNCS[d_prefs_butt_F.hash]=d_prefs_butt_F;
+const prefs_reset_F = new std.a_function(_M, "prefs_reset", prefs_reset);
+std.FUNCS[prefs_reset_F.hash]=prefs_reset_F;
+const d_phase_home_F = new std.a_function(_M, "d_phase_home", d_phase_home);
+std.FUNCS[d_phase_home_F.hash]=d_phase_home_F;
+const draw_oneshot_F = new std.a_function(_M, "draw_oneshot", draw_oneshot);
+std.FUNCS[draw_oneshot_F.hash]=draw_oneshot_F;
+const $d_divider_thumb_F = new std.a_function(_M, "$d_divider_thumb", $d_divider_thumb, track_$d_divider_thumb);
+std.FUNCS[$d_divider_thumb_F.hash]=$d_divider_thumb_F;
+const d_crop_del_F = new std.a_function(_M, "d_crop_del", d_crop_del);
+std.FUNCS[d_crop_del_F.hash]=d_crop_del_F;
+const d_home_search_F = new std.a_function(_M, "d_home_search", d_home_search);
+std.FUNCS[d_home_search_F.hash]=d_home_search_F;
+const d_upload_info2_439_F = new std.a_function(_M, "d_upload_info2_439", d_upload_info2_439);
+std.FUNCS[d_upload_info2_439_F.hash]=d_upload_info2_439_F;
+const d_upload_info2_F = new std.a_function(_M, "d_upload_info2", d_upload_info2);
+std.FUNCS[d_upload_info2_F.hash]=d_upload_info2_F;
+const d_home_newact_F = new std.a_function(_M, "d_home_newact", d_home_newact);
+std.FUNCS[d_home_newact_F.hash]=d_home_newact_F;
+const d_approval_F = new std.a_function(_M, "d_approval", d_approval);
+std.FUNCS[d_approval_F.hash]=d_approval_F;
+const _d_currimage_outer_F = new std.a_function(_M, "_d_currimage_outer", _d_currimage_outer, track__d_currimage_outer);
+std.FUNCS[_d_currimage_outer_F.hash]=_d_currimage_outer_F;
+const d_note_F = new std.a_function(_M, "d_note", d_note);
+std.FUNCS[d_note_F.hash]=d_note_F;
+const d_checkbox_302_F = new std.a_function(_M, "d_checkbox_302", d_checkbox_302);
+std.FUNCS[d_checkbox_302_F.hash]=d_checkbox_302_F;
+const do_close_prefs_F = new std.a_function(_M, "do_close_prefs", do_close_prefs);
+std.FUNCS[do_close_prefs_F.hash]=do_close_prefs_F;
+const d_prefs_body_F = new std.a_function(_M, "d_prefs_body", d_prefs_body, track_d_prefs_body);
+std.FUNCS[d_prefs_body_F.hash]=d_prefs_body_F;
+const d_upload_info2_441_F = new std.a_function(_M, "d_upload_info2_441", d_upload_info2_441);
+std.FUNCS[d_upload_info2_441_F.hash]=d_upload_info2_441_F;
+const do_palette_change_F = new std.a_function(_M, "do_palette_change", do_palette_change);
+std.FUNCS[do_palette_change_F.hash]=do_palette_change_F;
+const d_home_notif_F = new std.a_function(_M, "d_home_notif", d_home_notif);
+std.FUNCS[d_home_notif_F.hash]=d_home_notif_F;
+const d_home_outline2_765_F = new std.a_function(_M, "d_home_outline2_765", d_home_outline2_765);
+std.FUNCS[d_home_outline2_765_F.hash]=d_home_outline2_765_F;
+const d_views_F = new std.a_function(_M, "d_views", d_views);
+std.FUNCS[d_views_F.hash]=d_views_F;
+const d_zoom_butt_F = new std.a_function(_M, "d_zoom_butt", d_zoom_butt, track_d_zoom_butt);
+std.FUNCS[d_zoom_butt_F.hash]=d_zoom_butt_F;
+const d_home_header_F = new std.a_function(_M, "d_home_header", d_home_header);
+std.FUNCS[d_home_header_F.hash]=d_home_header_F;
+const d_edit_icon_F = new std.a_function(_M, "d_edit_icon", d_edit_icon);
+std.FUNCS[d_edit_icon_F.hash]=d_edit_icon_F;
+const prefs_write_F = new std.a_function(_M, "prefs_write", prefs_write);
+std.FUNCS[prefs_write_F.hash]=prefs_write_F;
+//-------  top nodes
+const USERPIC = new std.a_image("art/profile_pic.jpg","USERPIC",true,0,0);
+const ICON_ALL = new std.a_image("art/icon_all.png","ICON_ALL",true,0,0);
+const ICON_PEOPLE = new std.a_image("art/icon_people.png","ICON_PEOPLE",true,0,0);
+const ICON_USER = new std.a_image("art/icon_user.png","ICON_USER",true,0,0);
+
+const THUD = new std.a_sound("sounds/thud.mp3");
+
+const TRACE_GUTTER = N;
+const LIGHT_COLORS = new std.a_tree(_M,"LIGHT_COLORS", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 39, F_c_dead, VAL, 0xF8F8F7, F_c_text, VAL, std.BLACK, F_c_inputback
+, VAL, 0xD5D6D6, F_c_fainttext, VAL, 0xAFAFAF, F_c_divider, VAL, std.GRAY2, F_c_butt_back, VAL, std.BROWN, F_c_butt_back_hi, VAL, 0x521800, F_c_butt_bord, VAL, std.MAROON, 
+F_c_butt_text, VAL, 0xFFF4F4, F_c_userpic_bord, VAL, std.GOLDENROD, F_c_sidebar_back, VAL, std.WHITE, F_c_rule, VAL, std.GRAY3, F_c_dim_back, VAL, std.GRAY6, F_c_icon_outer
+, VAL, 0xCFDEE3, F_c_alert_back, VAL, 0xA9B9CF, F_c_alert_bord, VAL, 0x6483AB));
+const DARK_COLORS = new std.a_tree(_M,"DARK_COLORS", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 58, F_c_dead, VAL, 0x262626, F_c_text, VAL, 0xEDF2F3, F_c_inputback, VAL
+, 0x1C2D34, F_c_fainttext, VAL, 0x6483AB, F_c_divider, VAL, 0x3D6370, F_c_butt_back, VAL, std.BROWN, F_c_butt_back_hi, VAL, 0x521800, F_c_butt_bord, VAL, std.MAROON, F_c_butt_text
+, VAL, 0xFFF4F4, F_c_userpic_bord, VAL, std.DARK_SLATE_GRAY, F_c_sidebar_back, VAL, 0x322E34, F_c_rule, VAL, std.GRAY7, F_c_dim_back, VAL, std.GRAY4, F_c_icon_outer, VAL, 
+0x233840, F_c_alert_back, VAL, 0x3D5371, F_c_alert_bord, VAL, 0x4E7F90));
+const ZOOM_RATIOS = new std.a_tree(_M,"ZOOM_RATIOS", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 77, 1, VAL, 0, 2, VAL, 1, 3, VAL, 2, 4, VAL, 3, 5, VAL, 4));
+const BUTT_CORNER = 7;
+const MAX_BUTT_H = 100;
+const F1 = "Noto Sans";
+const PIC_WINDOW = "_d_currimage_outer";
+const PREFS_KEY = "playbook prefs";
+const TARG_H = 220;
+const TARG_V = 160;
+const TARG_GAP = 14;
+const PER_H = std.add(TARG_H, TARG_GAP);
+const PER_V = std.add(TARG_V, TARG_GAP);
+let SAMPLE_PICS = new std.a_tree(_M,"SAMPLE_PICS", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+setv(_M, 13, SAMPLE_PICS, 1, new std.a_image("art/images/facing102.jpg","facing102",true));
+setv(_M, 13, SAMPLE_PICS, 2, new std.a_image("art/images/facing103.jpg","facing103",true));
+setv(_M, 13, SAMPLE_PICS, 3, new std.a_image("art/images/facing151.jpg","facing151",true));
+setv(_M, 13, SAMPLE_PICS, 4, new std.a_image("art/images/facing55.jpg","facing55",true));
+setv(_M, 13, SAMPLE_PICS, 5, new std.a_image("art/images/facing86.jpg","facing86",true));
+setv(_M, 13, SAMPLE_PICS, 6, new std.a_image("art/images/facing87.jpg","facing87",true));
+
+
+let intf = new std.a_tree(_M,"intf", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+let prefs = new std.a_tree(_M,"prefs", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+let cs = new std.a_tree(_M,"cs", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+let t_fitbox = new std.a_tree(_M,"t_fitbox", std.NF_TOPLEVEL|std.NF_LOGGED);
+let t_scaledbox = new std.a_tree(_M,"t_scaledbox", std.NF_TOPLEVEL|std.NF_LOGGED);
+let t_img_size = new std.a_tree(_M,"t_img_size", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+let t_drag_starty = U;
+let t_drag_startx = U;
+let t_drag_startpos = U;
+let t_screen_h = U;
+let t_screen_v = U;
+let t_sounded = U;
+let NCELLS = std.tree_count(std.adr(SAMPLE_PICS));
+
+//====================
+//   $d_divider_thumb
+//====================
+function $d_divider_thumb(b) {
+std.k_enter(b, 0x2810);
+  std.draw_rect(b, { fill:std.GRAY7, corner:std.pt_to_dots(b, 2) });
+  let h1 = std.sub(std.add(b.bounds.left, std.div(b.bounds.width, 2)), std.pt_to_dots(b, 2));
+  let h2 = std.add(std.add(b.bounds.left, std.div(b.bounds.width, 2)), std.pt_to_dots(b, 2));
+  let v1 = std.add(b.bounds.top, std.pt_to_dots(b, 2));
+  let v2 = std.sub(std.add(b.bounds.top, b.bounds.height), std.pt_to_dots(b, 2));
+  std.draw_line(b, { x1:h1, y1:v1, x2:h1, y2:v2, color:std.GRAY3, thick:std.pt_to_dots(b, 1.5) });
+  std.draw_line(b, { x1:h2, y1:v1, x2:h2, y2:v2, color:std.GRAY3, thick:std.pt_to_dots(b, 1.5) });
+std.k_leave(b);
+}
+
+
+//====================
+//   track_$d_divider_thumb
+//====================
+function track_$d_divider_thumb(b, e) {
+  var case9 = getn(e, std.F_evkind);
+  if (case9 === std.EV_DRAG_BEGIN) {
+    std.cursor_set(std.CURS_RESIZE_COL);
+    t_drag_startx = getn(e, std.F_global_x);
+    t_drag_startpos = getn(prefs, F_navbar_h);
+    t_sounded = N;
+  } else if (case9 === std.EV_DRAG_MOVE) {
+    let newpos = std.sub(std.add(t_drag_startpos, getn(e, std.F_global_x)), t_drag_startx);
+    let lower_limit = std.max(std.pt_to_dots(b, 80), std.round(std.mul(0.1, t_screen_h), {}));
+    let upper_limit = std.min(std.pt_to_dots(b, 400), std.round(std.mul(0.6, t_screen_h), {}));
+    if (std.gt2(newpos, upper_limit)) {
+      if (t_sounded === N) {
+        play(THUD);
+        t_sounded = Y;
+      }
+      newpos = upper_limit;
+    } else if (std.lt2(newpos, lower_limit)) {
+      if (t_sounded === N) {
+        play(THUD);
+        t_sounded = Y;
+      }
+      newpos = lower_limit;
+    } else {
+      t_sounded = N;
+    }
+    let pct = std.div(newpos, t_screen_h);
+    std.path_setv(_M, 813, std.adr(prefs, F_navbar_h), newpos);
+  } else if (case9 === std.EV_DRAG_END) {
+    std.cursor_set(std.CURS_ARROW);
+    prefs_write();
+  } else {
+    return N;
+  }
+  return Y;
+  return N;
+}
+
+//====================
+//   _d_currimage_outer
+//====================
+function _d_currimage_outer(b) {
+std.k_enter(b, 0x182010);
+  std.k_back(b, {fill:getn(cs, F_c_dead)});
+  let img = std.get_image(SAMPLE_PICS, getn(intf, F_curr_boardx));
+  let PAD1 = std.mul(std.min(b.bounds.width, b.bounds.height), 0.04);
+  let PAD2 = std.add(PAD1, std.SCROLLBAR_WIDTH);
+  if (std.eq2(getn(intf, F_zoomx), 1)) {
+    std.copy_tree(_M, 511, std.solve_rect({ basis:std.adr(b.extra, std.F_box), inset_n:PAD1, inset_s:PAD2, inset_w:PAD1, inset_e:PAD2 }), std.adr(t_fitbox));
+    std.draw_image(b, img, { box:std.adr(t_fitbox), corner:std.pt_to_dots(b, 6) });
+  } else {
+    std.copy_tree(_M, 514, std.image_size(img), std.adr(t_img_size));
+    let ratio = getn(ZOOM_RATIOS, getn(intf, F_zoomx));
+    let pic_h = std.mul(getn(t_img_size, std.F_x), ratio);
+    let pic_v = std.mul(getn(t_img_size, std.F_y), ratio);
+    let picpad_h = std.add(pic_h, std.mul(PAD1, 2));
+    let picpad_v = std.add(pic_v, std.mul(PAD1, 2));
+    let usable_h = std.sub(b.bounds.width, std.SCROLLBAR_WIDTH);
+    let usable_v = std.sub(b.bounds.height, std.SCROLLBAR_WIDTH);
+    let screenctr_x = std.div(usable_h, 2);
+    let screenctr_y = std.div(usable_v, 2);
+    let ctr_x = U;
+    let ctr_y = U;
+    if (std.le2(picpad_h, usable_h)) {
+      ctr_x = screenctr_x;
+    } else {
+      ctr_x = std.add(PAD1, std.div(pic_h, 2));
+    }
+    if (std.le2(picpad_v, usable_v)) {
+      ctr_y = screenctr_y;
+    } else {
+      ctr_y = std.add(PAD1, std.div(pic_v, 2));
+    }
+    std.copy_tree(_M, 544, std.solve_rect({ cx:ctr_x, cy:ctr_y, width:pic_h, height:pic_v }), std.adr(t_scaledbox));
+    std.draw_image(b, img, { box:std.adr(t_scaledbox), corner:std.pt_to_dots(b, 6) });
+    let fudge = new std.a_tree(_M,"fudge", 0, std.solve_rect({ basis:std.adr(t_scaledbox), pin:9, dx:PAD1, dy:PAD1, width:1, height:1 }));
+    var b7=std.k_layer(b, d_fudge_F, { area:fudge });
+    d_fudge(b7);
+    let pic_corner = new std.a_tree(_M,"pic_corner", 0, std.solve_point({ basis:std.adr(fudge), pin:9 }));
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   track__d_currimage_outer
+//====================
+function track__d_currimage_outer(b, e) {
+  //---------------
+  //   on EV_KEYBOARD
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_KEYBOARD) {
+    const BIG = std.div(7, 8);
+    const SMALL = std.div(1, 8);
+    let delta_x = 0;
+    let delta_y = 0;
+    let fract = getn(e, std.F_is_shift) === Y ? BIG : SMALL;
+    if ((std.eq2(getn(e, std.F_keycode), std.KEYCODE_PAGE_DOWN) || std.eq2(gets(e, std.F_unicode), "+"))) {
+      if (std.lt2(getn(intf, F_zoomx), std.tree_count(std.adr(ZOOM_RATIOS)))) {
+        std.tree_add(_M, 575, 1, std.adr(intf, F_zoomx));
+      } else {
+        play(THUD);
+      }
+    } else if ((std.eq2(getn(e, std.F_keycode), std.KEYCODE_PAGE_UP) || std.eq2(gets(e, std.F_unicode), "-"))) {
+      if (std.gt2(getn(intf, F_zoomx), 1)) {
+        std.tree_sub(_M, 582, 1, std.adr(intf, F_zoomx));
+      } else {
+        play(THUD);
+      }
+    } else {
+      var case10 = getn(e, std.F_keycode);
+      if (case10 === std.KEYCODE_LEFT) {
+        delta_x = std.mul(b.bounds.width, fract);
+      } else if (case10 === std.KEYCODE_RIGHT) {
+        delta_x = std.mul(std.negate(b.bounds.width), fract);
+      } else if (case10 === std.KEYCODE_UP) {
+        delta_y = std.mul(b.bounds.height, fract);
+      } else if (case10 === std.KEYCODE_DOWN) {
+        delta_y = std.mul(std.negate(b.bounds.height), fract);
+      } else if (case10 === std.KEYCODE_HOME) {
+        std.path_setv(_M, 602, std.adr(intf, F_zoomx), 1);
+        return Y;
+      } else {
+        return N;
+      }
+    }
+    let limits = new std.a_tree(_M,"limits", 0, std.scroll_get_limits(PIC_WINDOW));
+    let scrpos = new std.a_tree(_M,"scrpos", 0, std.scroll_get_pos(PIC_WINDOW));
+    if (std.gt2(delta_x, 0)) {
+      if (std.ge2(getn(scrpos, std.F_x), getn(limits, std.F_x))) {
+        play(THUD);
+      }
+    } else if (std.lt2(delta_x, 0)) {
+      if (std.le2(getn(scrpos, std.F_x), 0)) {
+        play(THUD);
+      }
+    }
+    if (std.gt2(delta_y, 0)) {
+      if (std.ge2(getn(scrpos, std.F_y), getn(limits, std.F_y))) {
+        play(THUD);
+      }
+    } else if (std.lt2(delta_y, 0)) {
+      if (std.le2(getn(scrpos, std.F_y), 0)) {
+        play(THUD);
+      }
+    }
+    std.scroll_by(PIC_WINDOW, delta_x, delta_y);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_approval
+//====================
+function d_approval(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 85, std.pt, std.freeze(draw_oneshot_F, ["3 Comments..."]), 0);
+  std.div_spa(b, 0, 20, std.pt);
+  std.div_add(b, U, 0, 85, std.pt, std.freeze(draw_oneshot_F, ["✗ Unapprove"]), 0);
+  std.div_spa(b, 0, 2, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_checkbox
+//====================
+function d_checkbox(b, label, valptr, _o=null) {
+var action = null; if ((_o != null) && _o.hasOwnProperty("action")) action = _o.action;
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 0, 12, std.pt);
+  std.div_add(b, U, 0, 24, std.pt, std.freeze(d_checkbox_302_F, [label, valptr, action, {}]), 0);
+  std.div_spa(b, 0, 4, std.pt);
+  std.div_add(b, U, 0, 10, std.al, std.freeze(draw_str_F, [label, { just:std.LEFT, size:0.6, color:getn(cs, F_c_text) }]), 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   track_d_checkbox
+//====================
+function track_d_checkbox(b, e, label, valptr, _o=null) {
+var action = null; if ((_o != null) && _o.hasOwnProperty("action")) action = _o.action;
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.toggle(_M, 311, std.adr(valptr));
+    if (action !== null) {
+      action.code();
+    }
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_colormode
+//====================
+function d_colormode(b) {
+std.k_enter(b);
+  let box = new std.a_tree(_M,"box", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:5, height:std.mul(b.bounds.height, 0.6) }));
+  let label = getn(prefs, F_dark_mode) === Y ? "Light" : "Dark";
+  std.draw_rect(b, { box:std.adr(box), fill:getn(cs, F_c_butt_back), corner:std.pt_to_dots(b, 5), thick:std.pt_to_dots(b, 1.5), color:getn(cs, F_c_butt_bord) });
+  std.draw_str(b, label, { box:std.adr(box), indent:std.pt_to_dots(b, 2), color:getn(cs, F_c_butt_text), size:0.6 });
+std.k_leave(b);
+}
+
+
+//====================
+//   track_d_colormode
+//====================
+function track_d_colormode(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.toggle(_M, 724, std.adr(prefs, F_dark_mode));
+    do_palette_change();
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_crop_del
+//====================
+function d_crop_del(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 85, std.pt, std.freeze(draw_oneshot_F, ["❂  Crop"]), 0);
+  std.div_spa(b, 0, 20, std.pt);
+  std.div_add(b, U, 0, 85, std.pt, std.freeze(draw_oneshot_F, ["✖  Delete"]), 0);
+  std.div_spa(b, 0, 2, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_divider
+//====================
+function d_divider(b) {
+std.k_enter(b);
+  std.k_back(b, {fill:getn(cs, F_c_divider)});
+std.k_leave(b);
+}
+
+
+//====================
+//   d_edit_icon
+//====================
+function d_edit_icon(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 1, 10, std.al);
+  std.div_add(b, U, 1, 20, std.pt, std.freeze(draw_oneshot_F, ["✎"]), 0);
+  std.div_spa(b, 1, 10, std.al);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_fat_sidebar
+//====================
+function d_fat_sidebar(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 1, 2, std.pt);
+  std.div_add(b, U, 1, 20, std.pt, d_home_butt_F, 0);
+  std.div_spa(b, 1, 6, std.pt);
+  std.div_add(b, U, 1, 22, std.pt, d_filename_F, 0);
+  std.div_spa(b, 1, 6, std.pt);
+  std.div_add(b, U, 1, 22, std.pt, d_upload_info_F, 0);
+  std.div_spa(b, 1, 8, std.pt);
+  std.div_add(b, U, 1, 36, std.pt, d_note_F, 0);
+  std.div_spa(b, 1, 10, std.pt);
+  std.div_add(b, U, 1, 12, std.pt, d_views_F, 0);
+  std.div_spa(b, 1, 10, std.pt);
+  std.div_add(b, U, 1, 2, std.pt, d_horz_rule_F, 0);
+  std.div_spa(b, 1, 10, std.pt);
+  std.div_add(b, U, 1, 18, std.pt, d_send_down_F, 0);
+  std.div_spa(b, 1, 10, std.pt);
+  std.div_add(b, U, 1, 18, std.pt, d_crop_del_F, 0);
+  std.div_spa(b, 1, 10, std.pt);
+  std.div_add(b, U, 1, 18, std.pt, d_approval_F, 0);
+  std.div_spa(b, 1, 10, std.pt);
+  std.div_add(b, U, 1, 2, std.pt, d_horz_rule_F, 0);
+  std.div_spa(b, 1, 10, std.pt);
+  std.div_spa(b, 1, 10, std.al);
+  std.div_add(b, U, 1, 20, std.pt, d_horz_zoom_F, 0);
+  std.div_spa(b, 1, 20, std.pt);
+  std.div_add(b, U, 1, 18, std.pt, d_sidebar_toggle_F, 0);
+  std.div_spa(b, 1, 2, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_filename
+//====================
+function d_filename(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 10, std.al, d_filename_418_F, 0);
+  std.div_spa(b, 0, 3, std.pt);
+  std.div_add(b, U, 0, 20, std.pt, d_edit_icon_F, 0);
+  std.div_spa(b, 0, 2, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_fudge
+//====================
+function d_fudge(b) {
+std.k_enter(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_home_board_grid
+//====================
+function d_home_board_grid(b) {
+std.k_enter(b);
+std.div_begin(b, new std.a_function(_M, "d_home_board_grid_cell", d_home_board_grid_cell, null), false, false, true);
+  let t_ncol = std.max(2, std.round_down(std.div(std.sub(std.sub(b.bounds.width, std.SCROLLBAR_WIDTH), std.pt_to_dots(b, TARG_GAP)), PER_H), {}));
+  let t_nrow = std.round_up(std.div(NCELLS, t_ncol), {});
+  std.div_spa(b, 0, 10, std.al);
+  var loop11 = new std.a_loop({ limit:t_ncol });
+  while (loop11.next()) {
+    std.div_spa(b, 0, TARG_GAP, std.pt);
+    std.div_add(b, U, 0, TARG_H, std.pt, null, 0);
+  }
+  std.div_spa(b, 0, TARG_GAP, std.pt);
+  std.div_spa(b, 0, std.SCROLLBAR_WIDTH, std.px);
+  std.div_spa(b, 0, 10, std.al);
+  var loop12 = new std.a_loop({ limit:t_nrow });
+  while (loop12.next()) {
+    std.div_spa(b, 1, TARG_GAP, std.pt);
+    std.div_add(b, U, 1, TARG_V, std.pt, null, 0);
+  }
+  std.div_spa(b, 1, TARG_GAP, std.pt);
+  std.div_end(b);
+  std.draw_grid(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_home_board_grid_cell
+//====================
+function d_home_board_grid_cell(b) {
+  std.k_enter(b);
+  if (std.le2(getn(b.extra, std.F_cell_seq), NCELLS)) {
+    std.draw_image(b, std.get_image(SAMPLE_PICS, getn(b.extra, std.F_cell_seq)), { corner:std.pt_to_dots(b, 6) });
+  }
+  std.k_leave(b);
+}
+
+//====================
+//   track_d_home_board_grid
+//====================
+function track_d_home_board_grid(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    if (std.le2(getn(b.extra, std.F_cell_seq), NCELLS)) {
+      std.path_setv(_M, 877, std.adr(intf, F_phase), PHASE_BOARD);
+      std.path_setv(_M, 878, std.adr(intf, F_curr_boardx), getn(b.extra, std.F_cell_seq));
+      reset_zoom();
+    }
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_home_body
+//====================
+function d_home_body(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  if (getn(prefs, F_navbar_h) === U) {
+    std.path_setv(_M, 735, std.adr(prefs, F_navbar_h), std.pt_to_dots(b, std.interpolate(std.dots_to_pt(b, b.bounds.width), 488, 1000, 150, 200, { clamp:Y })));
+    log(lgp(std.cat("setting navbar to default of ", str.to_str(getn(prefs, F_navbar_h), {dig:2}))));
+  }
+  std.div_add(b, U, 0, getn(prefs, F_navbar_h), std.px, d_home_outline_F, 0);
+  std.div_add(b, U, 0, 10, std.al, d_home_board_grid_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_home_butt
+//====================
+function d_home_butt(b) {
+std.k_enter(b);
+  let box = new std.a_tree(_M,"box", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:5, width:std.min(b.bounds.width, std.pt_to_dots(b, MAX_BUTT_H)) }));
+  std.draw_rect(b, { box:std.adr(box), fill:getn(cs, F_c_butt_back), thick:std.pt_to_dots(b, 1.5), pos:0, color:getn(cs, F_c_butt_bord), corner:std.pt_to_dots(b, BUTT_CORNER
+  ) });
+  if (getn(intf, F_r_side_vis) === Y) {
+    std.draw_str(b, "🏠  Home", { box:std.adr(box), size:0.6, color:getn(cs, F_c_butt_text) });
+  } else {
+    std.draw_str(b, "🏠", { box:std.adr(box), size:0.8, color:getn(cs, F_c_butt_text) });
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   track_d_home_butt
+//====================
+function track_d_home_butt(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 251, std.adr(intf, F_phase), PHASE_HOME);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_home_header
+//====================
+function d_home_header(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 0, 16, std.pt);
+  std.div_add(b, U, 0, 150, std.pt, d_home_username_F, 0);
+  std.div_spa(b, 0, 40, std.pt);
+  std.div_add(b, U, 0, 10, std.al, d_home_search_F, 0);
+  std.div_spa(b, 0, 20, std.pt);
+  std.div_add(b, U, 0, 85, std.pt, d_home_newact_F, 0);
+  std.div_spa(b, 0, 20, std.pt);
+  std.div_add(b, U, 0, 30, std.pt, d_home_notif_F, 0);
+  std.div_spa(b, 0, 20, std.pt);
+  std.div_add(b, U, 0, 28, std.pt, d_user_pic_F, 0);
+  std.div_spa(b, 0, 20, std.pt);
+  std.div_add(b, U, 0, 40, std.pt, d_prefs_butt_F, 0);
+  std.div_spa(b, 0, 20, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_home_newact
+//====================
+function d_home_newact(b) {
+std.k_enter(b);
+  let box = new std.a_tree(_M,"box", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:5, height:std.mul(b.bounds.height, 0.6) }));
+  std.draw_rect(b, { box:std.adr(box), fill:getn(cs, F_c_inputback), corner:std.pt_to_dots(b, 12) });
+  std.draw_str(b, "• New activity", { size:0.6, indent:std.pt_to_dots(b, 2), color:getn(cs, F_c_fainttext) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_home_notif
+//====================
+function d_home_notif(b) {
+std.k_enter(b);
+  std.draw_str(b, "🔔", { size:std.pt_to_dots(b, 13), color:getn(cs, F_c_text) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_home_outline
+//====================
+function d_home_outline(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.k_back(b, {fill:getn(cs, F_c_sidebar_back)});
+  std.div_spa(b, 0, 11, std.pt);
+  std.div_add(b, U, 0, 10, std.al, d_home_outline2_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+  //--over
+  let r = new std.a_tree(_M,"r", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:6, width:std.pt_to_dots(b, 17), height:std.pt_to_dots(b, 24), dx:std.pt_to_dots(b
+  , 2) }));
+  var b8=std.k_layer(b, $d_divider_thumb_F, { area:r });
+  $d_divider_thumb(b8);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_home_outline2
+//====================
+function d_home_outline2(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, true);
+  std.div_spa(b, 1, 10, std.pt);
+  std.div_add(b, U, 1, 14, std.pt, std.freeze(draw_icon_butt_F, [ICON_ALL, "All media"]), 0);
+  std.div_spa(b, 1, 6, std.pt);
+  std.div_add(b, U, 1, 14, std.pt, std.freeze(draw_icon_butt_F, [ICON_PEOPLE, "People"]), 0);
+  std.div_spa(b, 1, 6, std.pt);
+  std.div_add(b, U, 1, 14, std.pt, std.freeze(draw_icon_butt_F, [ICON_USER, "Ekbart van der klunk"]), 0);
+  std.div_spa(b, 1, 20, std.pt);
+  std.div_add(b, U, 1, 100, std.pt, d_home_outline2_765_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_home_search
+//====================
+function d_home_search(b) {
+std.k_enter(b);
+  let box = new std.a_tree(_M,"box", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:5, height:std.mul(b.bounds.height, 0.8) }));
+  std.draw_rect(b, { box:std.adr(box), fill:getn(cs, F_c_inputback), corner:std.pt_to_dots(b, 5) });
+  std.draw_str(b, "Search by title, tags, content...", { box:std.adr(box), just:std.LEFT, indent:std.pt_to_dots(b, 6), size:0.4, color:getn(cs, F_c_fainttext) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_home_username
+//====================
+function d_home_username(b) {
+std.k_enter(b);
+  std.draw_str(b, "Ekbart van der Klunk", { size:std.pt_to_dots(b, 13), just:std.LEFT, color:getn(cs, F_c_text), font:F1, weight:700 });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_horz_rule
+//====================
+function d_horz_rule(b) {
+std.k_enter(b);
+  let box = new std.a_tree(_M,"box", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), width:std.mul(b.bounds.width, 0.8) }));
+  std.draw_rect(b, { fill:getn(cs, F_c_rule), box:std.adr(box) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_horz_zoom
+//====================
+function d_horz_zoom(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  var loop13 = new std.a_loop({ limit:5 });
+  while (loop13.next()) {
+  var ix = loop13.count;
+    std.div_add(b, U, 0, 10, std.al, std.freeze(d_zoom_butt_F, [ix]), 0);
+  }
+  std.div_spa(b, 0, 10, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_minimal_sidebar
+//====================
+function d_minimal_sidebar(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 1, 2, std.pt);
+  std.div_add(b, U, 1, 24, std.pt, d_home_butt_F, 0);
+  std.div_spa(b, 1, 20, std.pt);
+  std.div_add(b, U, 1, 24, std.pt, std.freeze(draw_oneshot_F, ["S"]), 0);
+  std.div_spa(b, 1, 6, std.pt);
+  std.div_add(b, U, 1, 24, std.pt, std.freeze(draw_oneshot_F, ["A"]), 0);
+  std.div_spa(b, 1, 6, std.pt);
+  std.div_add(b, U, 1, 24, std.pt, std.freeze(draw_oneshot_F, ["C"]), 0);
+  std.div_spa(b, 1, 6, std.pt);
+  std.div_add(b, U, 1, 24, std.pt, std.freeze(draw_oneshot_F, ["R"]), 0);
+  std.div_spa(b, 1, 20, std.pt);
+  std.div_spa(b, 1, 10, std.al);
+  std.div_add(b, U, 1, 120, std.pt, d_vert_zoom_F, 0);
+  std.div_spa(b, 1, 20, std.pt);
+  std.div_add(b, U, 1, 24, std.pt, d_sidebar_toggle_F, 0);
+  std.div_spa(b, 1, 2, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_note
+//====================
+function d_note(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 10, std.al, d_note_410_F, 0);
+  std.div_spa(b, 0, 3, std.pt);
+  std.div_add(b, U, 0, 20, std.pt, d_edit_icon_F, 0);
+  std.div_spa(b, 0, 2, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_phase_board
+//====================
+function d_phase_board(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.k_back(b, {fill:getn(cs, F_c_sidebar_back)});
+  std.div_spa(b, 0, 4, std.pt);
+  if (getn(intf, F_r_side_vis) === Y) {
+    std.div_spa(b, 0, 6, std.pt);
+    let avail = std.dots_to_pt(b, b.bounds.width);
+    let sidebar = std.interpolate(avail, 400, 1000, 130, 200, { clamp:Y });
+    std.div_add(b, U, 0, sidebar, std.pt, d_fat_sidebar_F, 0);
+  } else {
+    std.div_add(b, U, 0, 24, std.pt, d_minimal_sidebar_F, 0);
+    std.div_spa(b, 0, 4, std.pt);
+  }
+  std.div_add(b, U, 0, 10, std.al, _d_currimage_outer_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_phase_home
+//====================
+function d_phase_home(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  let gap = std.interpolate(std.dots_to_pt(b, b.bounds.height), 300, 1000, 3, 20, { clamp:Y });
+  let hgt = std.interpolate(std.dots_to_pt(b, b.bounds.height), 300, 1000, 24, 36, { clamp:Y });
+  std.div_spa(b, 1, gap, std.pt);
+  std.div_add(b, U, 1, hgt, std.pt, d_home_header_F, 0);
+  std.div_spa(b, 1, gap, std.pt);
+  std.div_add(b, U, 1, 3, std.pt, d_divider_F, 0);
+  std.div_add(b, U, 1, 10, std.al, d_home_body_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_playbook
+//====================
+function d_playbook(b) {
+std.k_enter(b);
+  std.k_back(b, {fill:getn(cs, F_c_dead)});
+  let horz_inches = std.div(b.bounds.width, b.dpi);
+  let vert_inches = std.div(b.bounds.height, b.dpi);
+  if ((std.lt2(horz_inches, vert_inches) && std.lt2(horz_inches, 4))) {
+    std.draw_str(b, "Please rotate\nto landscape!", { wrap:Y, size:std.pt_to_dots(b, 24), color:std.WHITE });
+    std.k_leave(b);
+    return;
+  }
+  var case14 = getn(intf, F_phase);
+  if (case14 === PHASE_HOME) {
+    d_phase_home(b);
+  } else if (case14 === PHASE_BOARD) {
+    d_phase_board(b);
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   d_prefs_body
+//====================
+function d_prefs_body(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 1, 14, std.pt);
+  std.div_add(b, U, 1, 24, std.pt, std.freeze(d_checkbox_F, ["Dark mode", std.adr(prefs, F_dark_mode), { action:do_palette_change_F }]), 0);
+  std.div_spa(b, 1, 10, std.pt);
+  std.div_add(b, U, 1, 24, std.pt, std.freeze(d_checkbox_F, ["Sound effects", std.adr(prefs, F_sounds), {}]), 0);
+  std.div_spa(b, 1, 10, std.pt);
+  std.div_add(b, U, 1, 24, std.pt, std.freeze(d_checkbox_F, ["Track views", std.adr(prefs, F_track_views), {}]), 0);
+  std.div_spa(b, 1, 10, std.pt);
+  std.div_add(b, U, 1, 24, std.pt, std.freeze(d_checkbox_F, ["Track downloads", std.adr(prefs, F_track_downs), {}]), 0);
+  std.div_end(b);
+  //--under
+  std.draw_rect(b, { fill:getn(cs, F_c_alert_back), corner:std.pt_to_dots(b, 10), thick:std.pt_to_dots(b, 2), color:getn(cs, F_c_alert_bord) });
+  std.draw_slices(b);
+  //--over
+  let ok_box = new std.a_tree(_M,"ok_box", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:8, dy:std.pt_to_dots(b, -12), height:std.pt_to_dots(b, 24), width:std.pt_to_dots(
+  b, 100) }));
+  var b9=std.k_layer(b, std.freeze(d_simple_butt_F, ["OK", do_close_prefs_F]), { area:ok_box });
+  d_simple_butt(b9, "OK", do_close_prefs_F);
+std.k_leave(b);
+}
+
+
+//====================
+//   track_d_prefs_body
+//====================
+function track_d_prefs_body(b, e) {
+  //---------------
+  //   on EV_KEYBOARD
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_KEYBOARD) {
+    if (std.eq2(getn(e, std.F_keycode), std.KEYCODE_ESC)) {
+      std.path_setv(_M, 286, std.adr(intf, F_show_prefs), N);
+      return Y;
+    }
+    return N;
+  return Y;
+  } else 
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    play(THUD);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_prefs_butt
+//====================
+function d_prefs_butt(b) {
+std.k_enter(b);
+  let size = std.min(b.bounds.width, b.bounds.height);
+  std.draw_str(b, "⚙\ufe0f", { size:0.8 });
+std.k_leave(b);
+}
+
+
+//====================
+//   track_d_prefs_butt
+//====================
+function track_d_prefs_butt(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 684, std.adr(intf, F_show_prefs), Y);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_prefs_panel
+//====================
+function d_prefs_panel(b) {
+std.k_enter(b);
+  std.draw_rect(b, { fill:getn(cs, F_c_dim_back), opacity:0.8 });
+  let box = new std.a_tree(_M,"box", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:5, width:std.min(std.mul(b.bounds.width, 0.9), std.pt_to_dots(b, 400)), height
+  :std.min(std.mul(b.bounds.height, 0.9), std.pt_to_dots(b, 500)) }));
+  var b10=std.k_layer(b, d_prefs_body_F, { area:box });
+  d_prefs_body(b10);
+std.k_leave(b);
+}
+
+
+//====================
+//   track_d_prefs_panel
+//====================
+function track_d_prefs_panel(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 264, std.adr(intf, F_show_prefs), N);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_scroll_limits
+//====================
+function d_scroll_limits(b) {
+std.k_enter(b);
+  std.draw_rect(b, { fill:std.PINK, opacity:0.1, corner:std.pt_to_dots(b, 20) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_send_down
+//====================
+function d_send_down(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 85, std.pt, std.freeze(draw_oneshot_F, ["✉  Send..."]), 0);
+  std.div_spa(b, 0, 20, std.pt);
+  std.div_add(b, U, 0, 85, std.pt, std.freeze(draw_oneshot_F, ["⇓  Download..."]), 0);
+  std.div_spa(b, 0, 2, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_sidebar_toggle
+//====================
+function d_sidebar_toggle(b) {
+std.k_enter(b);
+  let box = new std.a_tree(_M,"box", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:5, width:std.min(b.bounds.width, std.pt_to_dots(b, MAX_BUTT_H)) }));
+  std.draw_rect(b, { box:std.adr(box), fill:getn(cs, F_c_butt_back), thick:std.pt_to_dots(b, 1.5), pos:0, color:getn(cs, F_c_butt_bord), corner:std.pt_to_dots(b, BUTT_CORNER
+  ) });
+  if (getn(intf, F_r_side_vis) === Y) {
+    std.draw_str(b, "⬅ Minimize", { box:std.adr(box), size:0.6, color:getn(cs, F_c_butt_text) });
+  } else {
+    std.draw_str(b, "➠", { box:std.adr(box), size:0.8, color:getn(cs, F_c_butt_text) });
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   track_d_sidebar_toggle
+//====================
+function track_d_sidebar_toggle(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.toggle(_M, 236, std.adr(intf, F_r_side_vis));
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_simple_butt
+//====================
+function d_simple_butt(b, prompt, action) {
+std.k_enter(b);
+  std.draw_rect(b, { fill:getn(cs, F_c_butt_back), corner:std.pt_to_dots(b, BUTT_CORNER), thick:1.5, color:getn(cs, F_c_butt_bord) });
+  std.draw_str(b, prompt, { color:getn(cs, F_c_butt_text), indent:std.pt_to_dots(b, 3), size:0.6 });
+std.k_leave(b);
+}
+
+
+//====================
+//   track_d_simple_butt
+//====================
+function track_d_simple_butt(b, e, prompt, action) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    action.code();
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_upload_info
+//====================
+function d_upload_info(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 10, std.al, d_upload_info2_F, 0);
+  std.div_spa(b, 0, 3, std.pt);
+  std.div_add(b, U, 0, 20, std.pt, d_edit_icon_F, 0);
+  std.div_spa(b, 0, 2, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_upload_info2
+//====================
+function d_upload_info2(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 1, 10, std.al, d_upload_info2_439_F, 0);
+  std.div_add(b, U, 1, 10, std.al, d_upload_info2_441_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_user_pic
+//====================
+function d_user_pic(b) {
+std.k_enter(b);
+  let diam = b.bounds.height;
+  let box = new std.a_tree(_M,"box", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:5, height:diam, width:diam }));
+  std.draw_image(b, USERPIC, { box:std.adr(box), corner:std.mul(diam, 0.5) });
+  let box2 = new std.a_tree(_M,"box2", 0, std.solve_rect({ basis:std.adr(box), inset:std.pt_to_dots(b, -3) }));
+  std.draw_oval(b, { box:std.adr(box2), thick:std.pt_to_dots(b, 1.2), pos:0, color:getn(cs, F_c_userpic_bord) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_vert_zoom
+//====================
+function d_vert_zoom(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  var loop15 = new std.a_loop({ limit:5 });
+  while (loop15.next()) {
+  var ix = loop15.count;
+    std.div_add(b, U, 1, 10, std.al, std.freeze(d_zoom_butt_F, [ix]), 0);
+  }
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_views
+//====================
+function d_views(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 85, std.pt, d_views_446_F, 0);
+  std.div_spa(b, 0, 20, std.pt);
+  std.div_add(b, U, 0, 85, std.pt, d_views_449_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_zoom_butt
+//====================
+function d_zoom_butt(b, level) {
+std.k_enter(b);
+  let fill = std.eq2(level, getn(intf, F_zoomx)) ? getn(cs, F_c_butt_back_hi) : getn(cs, F_c_butt_back);
+  std.draw_rect(b, { fill:fill, thick:std.pt_to_dots(b, 1), pos:0, color:getn(cs, F_c_butt_bord), corner:std.pt_to_dots(b, 4) });
+  let ss = std.eq2(level, 1) ? "Fit" : std.cat("", str.to_str(getn(ZOOM_RATIOS, level), {dig:2}), "x");
+  std.draw_str(b, ss, { size:0.6, indent:std.pt_to_dots(b, 2), color:getn(cs, F_c_butt_text), bold:Y, vert:0.55 });
+std.k_leave(b);
+}
+
+
+//====================
+//   track_d_zoom_butt
+//====================
+function track_d_zoom_butt(b, e, level) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 370, std.adr(intf, F_zoomx), level);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   draw_icon_butt
+//====================
+function draw_icon_butt(b, icon, label) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 14, std.pt, std.freeze(draw_icon_butt_830_F, [icon, label]), 0);
+  std.div_add(b, U, 0, 10, std.al, std.freeze(draw_icon_butt_832_F, [icon, label]), 0);
+  std.div_spa(b, 0, std.add(std.SCROLLBAR_WIDTH, std.pt_to_dots(b, 2)), std.px);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   track_draw_icon_butt
+//====================
+function track_draw_icon_butt(b, e, icon, label) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    log(lgp(std.cat("selected ", label)));
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   draw_oneshot
+//====================
+function draw_oneshot(b, prompt) {
+std.k_enter(b);
+  let just = U;
+  let indent = U;
+  if (std.gt2(b.bounds.width, std.pt_to_dots(b, 50))) {
+    just = std.LEFT;
+    indent = std.pt_to_dots(b, 10);
+  } else {
+    just = std.CENTER;
+    indent = 0;
+  }
+  std.draw_rect(b, { fill:getn(cs, F_c_butt_back), corner:std.pt_to_dots(b, BUTT_CORNER), thick:1.5, color:getn(cs, F_c_butt_bord) });
+  std.draw_str(b, prompt, { color:getn(cs, F_c_butt_text), just:just, indent:indent, size:0.6 });
+std.k_leave(b);
+}
+
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+  std.k_isolate(b, b.bounds, "main_draw2", main_draw2_F);
+  if (getn(intf, F_show_prefs) === Y) {
+    var b11=std.k_layer(b, d_prefs_panel_F, { area:std.adr(b.extra, std.F_box) });
+    d_prefs_panel(b11);
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   main_draw2
+//====================
+export function main_draw2(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  if (getn(intf, F_show_devpicker) === Y) {
+    let w = std.round(std.pt_to_dots(b, 140), {});
+    std.div_add(b, U, 0, w, std.px, devpicker.d_dev_picker_F, 10);
+    std.div_add(b, U, 0, 10, std.al, std.freeze(devpicker.d_preview_area_F, [d_playbook_F]), 0);
+  } else {
+    std.div_add(b, U, 0, 10, std.al, d_playbook_F, 0);
+  }
+  t_screen_h = b.bounds.width;
+  t_screen_v = b.bounds.height;
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   track_main_draw2
+//====================
+export function track_main_draw2(b, e) {
+  //---------------
+  //   on EV_KEYBOARD
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_KEYBOARD) {
+    if (std.eq2(getn(e, std.F_keycode), std.KEYCODE_INS)) {
+      std.toggle(_M, 171, std.adr(intf, F_show_devpicker));
+      return Y;
+    }
+    return N;
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   do_close_prefs
+//====================
+function do_close_prefs() {
+  std.path_setv(_M, 328, std.adr(intf, F_show_prefs), N);
+}
+
+
+//====================
+//   do_palette_change
+//====================
+function do_palette_change() {
+  update_cs();
+  prefs_write();
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.path_setv(_M, 122, std.adr(intf, F_phase), PHASE_HOME);
+  std.path_setv(_M, 123, std.adr(intf, F_r_side_vis), Y);
+  std.path_setv(_M, 124, std.adr(intf, F_curr_boardx), 3);
+  reset_zoom();
+  std.path_setv(_M, 126, std.adr(intf, F_show_devpicker), N);
+  if (std.cookie_exists(PREFS_KEY) === Y) {
+    std.copy_tree(_M, 130, std.cookie_read(PREFS_KEY), std.adr(prefs));
+  }
+  if (std.ne2(getn(prefs, F_version), 1)) {
+    prefs_reset();
+  }
+  update_cs();
+}
+
+
+//====================
+//   play
+//====================
+function play(s) {
+  if (getn(prefs, F_sounds) === Y) {
+    std.sound_play(s, {});
+  }
+}
+
+
+//====================
+//   prefs_reset
+//====================
+function prefs_reset() {
+  std.trunc_tree(_M, 905, std.adr(prefs));
+  std.path_setv(_M, 906, std.adr(prefs, F_version), 1);
+  std.path_setv(_M, 907, std.adr(prefs, F_sounds), Y);
+  std.path_setv(_M, 908, std.adr(prefs, F_dark_mode), Y);
+  std.path_setv(_M, 909, std.adr(prefs, F_track_views), Y);
+  std.path_setv(_M, 910, std.adr(prefs, F_track_downs), Y);
+}
+
+
+//====================
+//   prefs_write
+//====================
+function prefs_write() {
+  std.cookie_write(PREFS_KEY, prefs, { duration:std.meas(10, std.N_avg_year, std.Y_Time) });
+}
+
+
+//====================
+//   reset_zoom
+//====================
+function reset_zoom() {
+  std.path_setv(_M, 883, std.adr(intf, F_zoomx), 1);
+  std.path_setv(_M, 884, std.adr(intf, F_img_focus, std.F_x), 0.5);
+  std.path_setv(_M, 885, std.adr(intf, F_img_focus, std.F_y), 0.5);
+}
+
+
+//====================
+//   update_cs
+//====================
+function update_cs() {
+  if (getn(prefs, F_dark_mode) === Y) {
+    std.merge_tree(_M, 142, std.adr(DARK_COLORS), std.adr(cs));
+  } else {
+    std.merge_tree(_M, 144, std.adr(LIGHT_COLORS), std.adr(cs));
+  }
+}
+
+
+//====================
+//   d_checkbox_302
+//====================
+function d_checkbox_302(b, label, valptr, _o=null) {
+var action = null; if ((_o != null) && _o.hasOwnProperty("action")) action = _o.action;
+std.k_enter(b);
+  if (getn(valptr) === Y) {
+    std.draw_str(b, "✅", { size:0.85 });
+  } else {
+    std.draw_rect(b, { thick:std.pt_to_dots(b, 1.5), pos:0, color:0x2D940 });
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   d_filename_418
+//====================
+function d_filename_418(b) {
+std.k_enter(b);
+  std.draw_str(b, "My_long_file_Filename.jpg", { size:std.pt_to_dots(b, 13), font:F1, bold:Y, just:std.LEFT, color:getn(cs, F_c_text) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_home_outline2_765
+//====================
+function d_home_outline2_765(b) {
+std.k_enter(b);
+  std.draw_str(b, "Boards\nMy super board\n  A sub board", { size:std.pt_to_dots(b, 12), vert:0, color:getn(cs, F_c_text), just:std.LEFT, font:F1, wrap:Y });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_note_410
+//====================
+function d_note_410(b) {
+std.k_enter(b);
+  std.draw_str(b, "This is a note\nAbout this file\nIt has 3 lines", { size:std.pt_to_dots(b, 12), font:F1, wrap:Y, just:std.LEFT, color:getn(cs, F_c_text) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_upload_info2_439
+//====================
+function d_upload_info2_439(b) {
+std.k_enter(b);
+  std.draw_str(b, "by Ekbart van der Klunk", { size:std.pt_to_dots(b, 12), font:F1, just:std.LEFT, color:getn(cs, F_c_text) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_upload_info2_441
+//====================
+function d_upload_info2_441(b) {
+std.k_enter(b);
+  std.draw_str(b, "85 kb   on Feb 18, 2022", { size:std.pt_to_dots(b, 12), font:F1, just:std.LEFT, color:getn(cs, F_c_text) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_views_446
+//====================
+function d_views_446(b) {
+std.k_enter(b);
+  std.draw_str(b, "Views: 0", { size:std.pt_to_dots(b, 12), font:F1, just:std.LEFT, color:getn(cs, F_c_text) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_views_449
+//====================
+function d_views_449(b) {
+std.k_enter(b);
+  std.draw_str(b, "Downloads: 0", { size:std.pt_to_dots(b, 12), font:F1, just:std.LEFT, color:getn(cs, F_c_text) });
+std.k_leave(b);
+}
+
+
+//====================
+//   draw_icon_butt_830
+//====================
+function draw_icon_butt_830(b, icon, label) {
+std.k_enter(b);
+  std.draw_image(b, icon, {});
+std.k_leave(b);
+}
+
+
+//====================
+//   draw_icon_butt_832
+//====================
+function draw_icon_butt_832(b, icon, label) {
+std.k_enter(b);
+  std.draw_str(b, label, { just:std.LEFT, size:std.pt_to_dots(b, 12), indent:std.pt_to_dots(b, 8), font:F1, color:getn(cs, F_c_text) });
+std.k_leave(b);
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "playbook");
+main_init();
+std.rebuild_all();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,336 @@
+beads 1 library devpicker  //  handy device emulator module
+
+//  to use: call d_dev_picker to draw the device picker window
+//  recommend at least xxx points wide
+
+==========================
+//  DEV PICKER
+==========================
+const
+	SHOW_ORIENT = Y   //  if N, then leave it at static orient
+	
+record a_device  --  information about each of the devices we support emulating
+	dev_name : str  --  device name
+	dev_h			--  horz pixels (in portrait mode)
+	dev_v			--  vert pixels
+	dev_ppi  		--  pixels per inch
+
+const DEVICES : array of a_device <=== [<  // all resolutions given for portrait mode, minus menu bar
+	dev_name    				dev_h   dev_v 	dev_ppi
+	---------					------	-----	---------		
+	"Full window",				600,	800,	100  //  use whole window, whatever it is
+	"Laptop - Small",			760,	1280,	126
+	"Laptop - Big",				1040,	1920,	146
+	"Apple iPad Mini",			1536,	2048,	326
+	"Apple iPad Air",			1536,	2048,	264
+	"Apple iPad Pro 10.5 inch",	1668,	2224,	264
+	"Apple iPad Pro 11 inch",	1668,	2388,	264
+	"Apple iPad Pro 12.9 inch",	2048,	2732,	264
+//	"Apple iPhone 5",			640,	1136,	326
+//	"Apple iPhone 6/7/8/SE",	750,	1334,	326
+	"Apple iPhone Xr",			828,	1792,	326
+//	"Apple iPhone 6+/7+",		1080,	1920,	401
+	"Apple iPhone X/Xs",		1125,	2436,	458
+//	"Apple iPhone 8+",			1242,	2208,	401
+	"Apple iPhone Xs Max",		1242,	2688,	458
+	"Kindle Fire 7 inch",		600,	1024,	151  // screen is 6.75 inch across Amazon lies, says 189
+//	"Kindle Fire HD 8 inch",	800,	1280,	171
+//	"Kindle Fire HD 10 inch",	1200,	1920,	223
+//	"Samsung Galaxy A21",		720,	1600,	270
+//	"Samsung Galaxy A51",		1080,	2400,	405
+	"Samsung Galaxy S20",		1440,	3200,	563
+	>]
+
+const BROWN_GRAD:a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM,
+   grad_stops:[ { stop_pos:0, stop_color:#402C23 },
+   { stop_pos:19.175871549185796, stop_color:#714C3C },
+   { stop_pos:82.75902458069659, stop_color:#815745 },
+   { stop_pos:100, stop_color:#4F362B },
+    ] }
+
+const SCROLLBAR_GRAD : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM, 
+		grad_stops:[ { stop_pos:0, stop_color:CHOCOLATE },
+				     { stop_pos:48, stop_color:BEIGE },
+					 { stop_pos:52, stop_color:BEIGE },
+					 { stop_pos:100, stop_color:CHOCOLATE }] }
+
+const NDEV = tree_count(DEVICES)
+const LINEV = 20
+const
+	C_TOOLBAR_BACK = #2e2330
+
+	PREVIEW_BACK = #2b212d
+	PREVIEW_FORE = #efe1f1
+
+	TAB_LO_BACK = #7F6B6B
+	TAB_LO_BORD = #054056 
+	TAB_LO_TEXT = #F0F0EA
+
+	TAB_HI_BACK = #F6F7CA
+	TAB_HI_BORD = #054056
+	TAB_HI_TEXT = #2B2927
+
+	//  colors used for orientation icons
+	C_ORIENT_B_LO = #c3cfe5
+	C_ORIENT_B_HI = #e53959
+	C_ORIENT_ICON = GRAY7
+
+	C_FOOTER_TEXT = PREVIEW_FORE
+	C_THUMB_BACK  = #17527F  // med blue
+	C_THUMB_BORD  = #27B39E  // aqua
+
+	BUTT_LO_BACK = SLATE_BLUE 
+	BUTT_LO_BORD = #054056
+	BUTT_LO_TEXT = IVORY
+
+	BUTT_HI_BACK = #962a67
+	BUTT_HI_BORD = #054056
+	BUTT_HI_TEXT = IVORY
+
+record a_intf
+	ide_active : yesno  -- is the IDE visible?
+	devx  --  index in DEVICES of our selected hardware emulation
+	//  parameters that affect the display of the preview window
+	portrait : yesno  --  device shown in landscape orientation
+	scale_actual : yesno -- if Y, show actual size on screen
+	dev_zoom  --  derived quantity in draw, is zoom factor like 0.32 for 32%
+	run_id : num  -- timer ID
+
+	is_frozen : yesno
+	major_last : num  // max major step we can jump to
+	is_sped : yesno
+	markA : num
+	frozen_thumb_pct
+
+//  we don't track changes to devintf so that don't get into loops
+var devintf nolog : a_intf <=== { devx:1, portrait:N, scale_actual:Y } //  percent of history where thumb is
+
+================================
+draw d_preview_area* (
+	user_drawfunc : draw ()
+	)  --  the area that holds the device preview inset slightly
+	background fill:GRAY5
+
+	if devintf.devx == 1
+		user_drawfunc()
+		return
+
+	const FRACT_USABLE = 0.95 // amount of screen area we use for the window (inset slightly)
+	var net_dpi
+	var aspect
+	var net_ratio
+	var r : a_rect
+	var dh = DEVICES[devintf.devx].dev_h
+	var dv = DEVICES[devintf.devx].dev_v
+
+	if not devintf.portrait
+		swap dh <=> dv
+
+	if devintf.scale_actual
+		//  scale to match the same inches of the display
+		//  we use the window DPI but match the same inches as are on the physical device
+		var dev_pts_h = 72*dh / DEVICES[devintf.devx].dev_ppi  //  how wide in points the device is
+		var dev_pts_v = 72*dv / DEVICES[devintf.devx].dev_ppi
+		var need_h = pt_to_dots(dev_pts_h)  // how many dots we would need to hold the screen
+		var need_v = pt_to_dots(dev_pts_v)
+		var ratio_h = (bb.width*FRACT_USABLE)  / need_h  // available width / needed
+		var ratio_v = (bb.height*FRACT_USABLE) / need_v
+		if ratio_h >= 1 and ratio_v >= 1
+			//  needed amount can fit entirely 
+			net_ratio = 1
+		elif ratio_h < ratio_v
+			//  horz is limiting
+			net_ratio = ratio_h
+		else
+			net_ratio = ratio_v
+
+		var net_h = round(need_h * net_ratio)
+		var net_v = round(need_v * net_ratio)
+		r <=== solve_rect(basis:bb, pin:5, width:net_h, height:net_v)
+		net_dpi = net_h / (dh / DEVICES[devintf.devx].dev_ppi)
+		//log "need={need_h},{need_v}, ratio={ratio_h},{ratio_v}, net={net_h},{net_v}, dpi={net_dpi}"
+
+	else
+		//  zoom to fit available window
+		//  we are about to draw a device preview
+		//  since our window will be in general way smaller than the device window
+		//  calculate our best fit for the device preview
+
+		//  try to find a rectangle that has the same aspect ratio, with slight margin
+		//  yet fits inside our current box.
+		aspect = dh / dv
+		r <=== solve_rect(basis:b.box, pin:5, aspect:aspect, inset:6 pt, round:Y)
+		devintf.dev_zoom = r.width / dh
+
+		//  don't allow the screen to be magnified. clamp at 100% zoom
+		if devintf.dev_zoom > 1
+			//log "don't magnify, r={r}"
+			r <=== solve_rect(basis:bb, pin:5, width:dh, height:dv, round:Y)
+			devintf.dev_zoom = 1
+
+		//log "aspect={to_str(aspect, dig:2)}, basis={b.box}, zoom={devintf.dev_zoom}\nr={r}"
+
+		//  reduce the dpi to match the zoom factor, so that 10 pt objects are reasonable
+		net_dpi = DEVICES[devintf.devx].dev_ppi * devintf.dev_zoom
+		//draw_rect(r, pos:1, thick:1)  --  draw thin black border around the outside of the preview
+
+	layer area:r dpi:net_dpi user_drawfunc 
+
+=========================
+draw d_oneshot(
+	prompt : str
+	action : calc()
+	)
+	draw_rect(corner:b.box.height/4, fill:BUTT_LO_BACK, color:BUTT_LO_BORD, thick:3 pt)
+	draw_str(prompt, size:0.6, indent:1.5 pt, color:BUTT_LO_TEXT)
+track EV_TAP
+	action()
+
+================================
+vert slice d_dev_picker*
+	under
+		draw_rect(fill:C_TOOLBAR_BACK)
+
+	skip 18 pt
+	add (LINEV*NDEV) pt on:devintf.is_frozen<>Y d_dev_grid
+
+	if devintf.devx <> 1
+		if SHOW_ORIENT
+			skip 10 pt
+			add 24 pt d_orient_butts
+		skip 10 pt
+		add 24 pt d_scale_butts
+		skip 18 pt
+		add 18 pt
+			//  device name
+			draw_str("{DEVICES[devintf.devx].dev_name}", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+		add 18 pt
+			if devintf.portrait
+				draw_str("dev: {DEVICES[devintf.devx].dev_h} x {DEVICES[devintf.devx].dev_v}", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+			else
+				draw_str("dev: {DEVICES[devintf.devx].dev_v} x {DEVICES[devintf.devx].dev_h}", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+		add 18 pt
+			draw_str("{DEVICES[devintf.devx].dev_ppi} dpi", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+		add 18 pt
+			if devintf.scale_actual
+				nop
+			else
+				draw_str("drawn at {to_str(devintf.dev_zoom*100, dig:0)}%", just:LEFT, indent:10 pt, size:0.8, color:WHITE)
+		skip 18 pt
+		add 24 pt d_run_butts
+		skip 10 al
+
+================
+horz slice d_scale_butts
+	skip 1 al
+	add 10 al d_scale_zoom
+	add 10 al d_scale_actual
+	skip 1 al
+
+================
+draw d_scale_zoom --  button to let user switch orientation below the preview window
+	var color : color
+
+	//  draw the button background
+	if devintf.scale_actual
+		color = C_ORIENT_B_LO
+	else
+		color = C_ORIENT_B_HI
+	draw_rect(fill:color, corner:2 pt)
+
+	//  draw the icon for the portrait orientation
+	draw_str("Zoomed", size:0.6, color:GRAY7)
+track EV_TAP
+	devintf.scale_actual = N
+
+================
+draw d_scale_actual   --  button to let user switch orientation below the preview window
+	var color : color
+
+	//  draw the button background
+	if devintf.scale_actual
+		color = C_ORIENT_B_HI
+	else
+		color = C_ORIENT_B_LO
+	draw_rect(fill:color, corner:2 pt)
+
+	//  draw the icon for the portrait orientation
+	draw_str("Actual", size:0.6, color:GRAY7)
+track EV_TAP
+	devintf.scale_actual = Y
+
+================
+horz slice d_orient_butts
+	skip 1 al
+	add 10 al d_orient_port
+	add 10 al d_orient_land
+	skip 1 al
+
+================
+draw d_orient_port --  button to let user switch orientation below the preview window
+	var color : color
+
+	//  draw the button background
+	if devintf.portrait
+		color = C_ORIENT_B_HI
+	else
+		color = C_ORIENT_B_LO
+	draw_rect(fill:color, corner:2 pt)
+
+	//  draw the icon for the portrait orientation
+	var r:a_rect = solve_rect(basis:b.box, pin:5, height:b.box.height*0.8, width:b.box.height*0.38)
+	draw_rect(box:r, fill:GRAY7, corner:2 pt)
+track EV_TAP
+	devintf.portrait = Y
+
+================
+draw d_orient_land   --  button to let user switch orientation below the preview window
+	var color : color
+
+	//  draw the button background
+	if devintf.portrait
+		color = C_ORIENT_B_LO
+	else
+		color = C_ORIENT_B_HI
+	draw_rect(fill:color, corner:2 pt)
+
+	//  draw the icon for the portrait orientation
+	var r:a_rect = solve_rect(basis:b.box, pin:5, height:b.box.height*0.4, width:b.box.height*0.8)
+	draw_rect(box:r, fill:GRAY7, corner:2 pt)
+track EV_TAP
+	devintf.portrait = N
+
+================================
+horz slice d_run_butts
+	skip 5 al
+	add 40 al on:devintf.run_id <> U d_oneshot("Stop", do_stop_cycling)
+	if devintf.run_id <> U
+		skip 40 al // is running don't start another timer
+	else
+		add 40 al on:devintf.is_frozen<>Y d_oneshot("Cycle", do_start_cycling)
+	skip 5 al
+
+calc do_start_cycling
+	log "start cycling"
+
+================================
+grid d_dev_grid
+	horz slice
+		add 10 al
+	vert slice
+		loop across:DEVICES
+			add 10 al
+	cell
+		draw_rect(grad:BROWN_GRAD)
+		if b.cell_seq == devintf.devx
+			draw_str("\u2705", just:LEFT, indent:3 pt size:0.5, color:CORAL)
+		draw_str(DEVICES[b.cell_seq].dev_name, just:LEFT, indent:20 pt, size:0.6, color:WHITE)
+track EV_TAP
+	devintf.devx = b.cell_seq
+
+================================
+calc do_stop_cycling
+	//  kill our timer
+	if devintf.run_id <> U
+		loom_clear(id:devintf.run_id)
+	devintf.run_id = U
