@@ -1,5 +1,7 @@
-####Tolkien database SDK
-#####version 1 by Edward de Jong  March 2022
+#### Tolkien database SDK  (Note: this is not a Beads project)
+##### version 1 by Edward de Jong  March 2022
+
+
 
 The [the-one-api.dev](http://the-one-api.dev) service allows you to query a Tolkein book and film database.
 
