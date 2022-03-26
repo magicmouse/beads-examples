@@ -233,6 +233,7 @@ tablename ::= 'books' | 'movies' | 'quotes' | 'characters'
 
 *implementation note: if a regular query fails, we will return an empty array, and a gloal status variable in the module will be set that the user can reference.* 
 
+*implementation note: although the underlying API offers pagination and limit features, given the tiny number of records in most tables, with a max of around 3200 records in quotes, the decision to eliminate such features was made. The additional complexity is not justified for either RAM or data transfer reasons. For a different application one would merely add a range operator to the query syntax so as to be able to subset selectively* 
 
 Note that query results from host look like this:
 
