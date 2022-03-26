@@ -23,7 +23,7 @@ The SDK has only 1 function inside: `get_info`, which has 2 parameters: your acc
 
 The `get_info` function is implemented as an async function using `await`, and will return when the service has responded.  
 
-The following are the different types of queries you can make. The first parameter to `get_info` is your secret key supplied by host:
+The following are the different types of queries you can make. The first parameter to `get_info` is your secret key supplied by host, the second parameter is the query operation:
 
 ### Check the status of the server
 
@@ -40,7 +40,7 @@ The status string returned will be one of the following:
 508 Service busy 			-- you are being rate limited
 ```
 
-By checking the first 3 characters you can create the appropriate error messages.  We recommend that you first test the status of the server before proceeding with your queries, because this unpaid service could disappear at any time.
+By checking the first 3 characters you can create the appropriate error messages.  We recommend that you first test the status of the server before proceeding with your queries.
 
 ### Get a list of all the books
 
@@ -81,11 +81,11 @@ The search criteria can involve only the name of the book. Matching patterns met
 ```
 name=hobbit		-- match any books that have hobbit somewhere (liberal method)
 name=^hobbit	-- match books that start with "hobbit"
-name=hobbit$	-- match books that ends with "hobbit"
+name=hobbit$	-- match books that end with "hobbit"
 name=^hobbit$	-- match books with a name that exactly matches "hobbit"
 ```
 
-The return value is an array of `book` records as before.  Note that since the the book is called "The Hobbit", the search for `name=hobbit` will work, but a search for `name=^hobbit` will not work, because the book title begins "The Hobbit".  Note that all string matches are case insensitive
+The return value is an array of `book` records as before.  Note that since one of the books is named "The Hobbit", the search for `name=hobbit` will work, but a search for `name=^hobbit` will not work, because the book title begins "The Hobbit".  All string matches are case insensitive for user convenience.
  
 
 ### Get a list of all the movies
@@ -228,6 +228,8 @@ tablename ::= 'books' | 'movies' | 'quotes' | 'characters'
 *implementation note: when user submits a syntactically invalid query (bad field name, etc.), either emit console.log or an alert box to notify them that the query was malformed.*
 
 *implementation note:  the raw database only holds the character ID string, so each quote we return must access the cached character ID table, which the SDK stores upon first quote request. The user will almost certainly need to know the character or movie name to make the quote presentable, so we eliminate the need for a second query in the common case.*
+
+*implementation note: all field matching queries are done case insensitive, which means that the user's query strings are mapped to regular expressions with the i suffix.* 
 
 *implementation note: the raw database does not return the character name, so the query will need to be mapped to use the character ID instead.* 
 
