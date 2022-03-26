@@ -19,7 +19,7 @@ The `one.js` file has no external dependencies. There is also available a `one.m
 
 ### Using the SDK
 
-The SDK has only 1 function inside: `get_into`, which has 2 parameters: your access key, and the query string. The query string is very similar, but not identical, to MySQL query strings.  You first specify the `table` you want to get data from, and then give any search refinement criteria or sort requets.  See the appendix for a complete listing of all the options in railroad diagram format.
+The SDK has only 1 function inside: `get_info`, which has 2 parameters: your access key, and the query string. The query string is very similar, but not identical, to MySQL query strings.  You first specify the `table` you want to get data from, and then give any search refinement criteria or sort requets.  See the appendix for a complete listing of all the options in railroad diagram format.
 
 The `get_info` function is implemented as an async function using `await`, and will return when the service has responded.  
 
