@@ -40,7 +40,7 @@ The status string returned will be one of the following:
 508 Service busy 			-- you are being rate limited
 ```
 
-By checking the first 3 characters you can create the appropriate error messages.
+By checking the first 3 characters you can create the appropriate error messages.  We recommend that you first test the status of the server before proceeding with your queries, because this unpaid service could disappear at any time.
 
 ### Get a list of all the books
 
@@ -205,7 +205,7 @@ Note that most of the fields for character are not populated in the database and
 In EBNF format:
 
 ```
-query ::= 'status' | 'table' tablename ('where' criteria ('and' criteria)* ('or' criteria)* )?
+query ::= 'status' | 'table' tablename ('where' criteria ('and' criteria)* ('or' criteria)* )? ('sort' fieldname 'desc'?)?
 
 tablename ::= 'books' | 'movies' | 'quotes' | 'characters'
  
