@@ -36,11 +36,11 @@ The status string returned will be one of the following:
 ```
 200 OK						-- system is up
 408 Bad key					-- your access key is bad
-503 Service Unavailable		-- system is down (timed out)
-508 Service Busy 			-- you are being rate limited
+503 Service unavailable		-- system is down (timed out)
+508 Service busy 			-- you are being rate limited
 ```
 
-*implementation note:*  set timeout to 1 second so that status request is fast.  
+By checking the first 3 characters you can create the appropriate error messages.
 
 ### Get a list of all the books
 
@@ -87,23 +87,6 @@ name=^hobbit$	-- match books with a name that exactly matches "hobbit"
 
 The return value is an array of `book` records as before.  Note that since the the book is called "The Hobbit", the search for `name=hobbit` will work, but a search for `name=^hobbit` will not work, because the book title begins "The Hobbit".  Note that all string matches are case insensitive
  
-*implementation note:  the raw database on the host has chapters as a separate table, so when a book is retrieved, the SDK will need to perform a further query to return the array of chapter names for each book.  Note also that the raw database structure of the book return data is as follows:*
-
-```  "docs": [
-    {
-      "_id": "5cf5805fb53e011a64671582",
-      "name": "The Fellowship Of The Ring"
-    },
-    {
-      "_id": "5cf58077b53e011a64671583",
-      "name": "The Two Towers"
-    },
-    {
-      "_id": "5cf58080b53e011a64671584",
-      "name": "The Return Of The King"
-    }
-  ],
-```
 
 ### Get a list of all the movies
 
@@ -117,6 +100,7 @@ console.log(`first movie name=${movielist[0].name}`)
 This will return an array of `movie` objects, which has the following structure:
 
 	type movie = record
+		id : String			-- internal movie ID (used for linkage with quotes)
 		name : String   		-- movie name
 		runtime : Number		-- runtune in minutes
 		budget  : Number		-- budget in millions
@@ -184,16 +168,12 @@ This will return an array of `quote` objects, which has the following structure:
 
 The movieID and charID fields are useful getting traversing the relational database without a join. To obtain the character birth date, from a quote, you take the `charID` field and then do a query on the `character` table (described below).  
 
-*implementation note:  the raw database only holds the character ID string, so each quote we return must access the cached character ID table, which the SDK stores upon first quote request. The user will almost certainly need to know the character or movie name to make the quote presentable, so we eliminate the need for a second query in the common case.*
-
 ### Get a subset of the quotes given search criteria
 
 ```
 var quotes = get_info(MYKEY, "table quotes where char=frodo")
 
 ```
-*implementation note: the raw database does not return the character name, so the query will need to be mapped to use the character ID instead. 
-
 ### Get a list of the characters in the books and films
 
 ```
@@ -219,8 +199,6 @@ This will return an array of `character` objects, which has the following struct
 
 Note that most of the fields for character are not populated in the database and will often be empty strings.
 
-*implementation note: there is some bad data in the host database, wherein, some of these fields have value of NaN, so one must convert any JSON data transmitted by the host into null strings.  Also note that raw DB field names are very long and obnoxious, so have been shortened for more convenient use*
-
 
 ### The general syntax of the query string
 
@@ -236,8 +214,6 @@ tablename ::= 'books' | 'movies' | 'quotes' | 'characters'
  literal ::= '^'? string '$'?
 ```
 
-*implementation note: when user submits a syntactically invalid query (bad field name, etc.), either emit console.log or an alert box to notify them that the query was malformed.*
-
 ### Railroad diagram of the syntax
 
 ![r1](http://beadslang.com/projects/tolkien_sdk/railroad_query.gif)
@@ -246,4 +222,37 @@ tablename ::= 'books' | 'movies' | 'quotes' | 'characters'
 ![r4](http://beadslang.com/projects/tolkien_sdk/railroad_literal.gif)
 
 
+### Implementation notes
 
+*implementation note:  set timeout to 1 second so that status request is fast.*
+
+*implementation note:  the raw database on the host has chapters as a separate table, so when a book is retrieved, the SDK will need to perform a further query to return the array of chapter names for each book.  Note also that the raw database structure of the book return data is as follows:*
+
+*implementation note: there is some bad data in the host database, wherein, some of these fields have value of NaN, so one must convert any JSON data transmitted by the host into null strings.  Also note that raw DB field names are very long and obnoxious, so have been shortened for more convenient use*
+
+*implementation note: when user submits a syntactically invalid query (bad field name, etc.), either emit console.log or an alert box to notify them that the query was malformed.*
+
+*implementation note:  the raw database only holds the character ID string, so each quote we return must access the cached character ID table, which the SDK stores upon first quote request. The user will almost certainly need to know the character or movie name to make the quote presentable, so we eliminate the need for a second query in the common case.*
+
+*implementation note: the raw database does not return the character name, so the query will need to be mapped to use the character ID instead.* 
+
+*implementation note: if a regular query fails, we will return an empty array, and a gloal status variable in the module will be set that the user can reference.* 
+
+
+Note that query results from host look like this:
+
+```  "docs": [
+    {
+      "_id": "5cf5805fb53e011a64671582",
+      "name": "The Fellowship Of The Ring"
+    },
+    {
+      "_id": "5cf58077b53e011a64671583",
+      "name": "The Two Towers"
+    },
+    {
+      "_id": "5cf58080b53e011a64671584",
+      "name": "The Return Of The King"
+    }
+  ],
+```
