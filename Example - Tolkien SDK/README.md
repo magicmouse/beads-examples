@@ -216,7 +216,7 @@ tablename ::= 'books' | 'movies' | 'quotes' | 'characters'
 
 ### Railroad diagram of the syntax
 
-![r1](http://beadslang.com/projects/tolkien_sdk/railroad_query.gif)
+![r1](http://beadslang.com/projects/tolkien_sdk/railroad_query2.gif)
 ![r2](http://beadslang.com/projects/tolkien_sdk/railroad_tablename.gif)
 ![r3](http://beadslang.com/projects/tolkien_sdk/railroad_criteria.gif)
 ![r4](http://beadslang.com/projects/tolkien_sdk/railroad_literal.gif)
