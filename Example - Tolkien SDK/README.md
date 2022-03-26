@@ -100,7 +100,6 @@ console.log(`first movie name=${movielist[0].name}`)
 This will return an array of `movie` objects, which has the following structure:
 
 	type movie = record
-		id : String			-- internal movie ID (used for linkage with quotes)
 		name : String   		-- movie name
 		runtime : Number		-- runtune in minutes
 		budget  : Number		-- budget in millions
@@ -162,8 +161,6 @@ This will return an array of `quote` objects, which has the following structure:
 		dialog : String		-- the quote text (e.g. "the eagles are coming!")
 		movie : String   	-- name of movie where quote spoken
 		char : String		-- character name
-		movieID : String   	-- movie ID
-		charID : String		-- character ID
 	end
 
 The movieID and charID fields are useful getting traversing the relational database without a join. To obtain the character birth date, from a quote, you take the `charID` field and then do a query on the `character` table (described below).  
@@ -185,8 +182,7 @@ This will return an array of `character` objects, which has the following struct
 
 ```
  	type character = record
- 		id : String	-- internal character ID (used for linking to quotes)
-		name : String		-- the character name
+ 		name : String		-- the character name
 		birth : String   	-- when character was born		death : String		-- when character dies
 		spouse : String   	-- spouse of character
 		race : String   	-- the race of the character
@@ -220,7 +216,6 @@ tablename ::= 'books' | 'movies' | 'quotes' | 'characters'
 ![r2](http://beadslang.com/projects/tolkien_sdk/railroad_tablename.gif)
 ![r3](http://beadslang.com/projects/tolkien_sdk/railroad_criteria.gif)
 ![r4](http://beadslang.com/projects/tolkien_sdk/railroad_literal.gif)
-
 
 ### Implementation notes
 
