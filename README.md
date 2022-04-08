@@ -29,17 +29,19 @@ This shows how short and simple programs can be when written in Beads. It is imp
 
 ### Example: Recursive structures
 
+This shows how you can build a simple tree structure with up/down expand/contract buttons.
 
 ![screenshot](http://beadslang.com/projects/recursive/screenshot.gif)
 
-The puzzle can be [run here](http://beadslang.com/projects/sliding_puzzle/puzzle.html)
+The disclosure triangle tree example can be [run here](http://beadslang.com/projects/recursive/cats.html)
+
 
 ### Example: Sliding block puzzle
 
 
 ![screenshot](http://beadslang.com/projects/sliding_puzzle/puzzle.gif)
 
-The disclosure triangle tree example can be [run here](http://beadslang.com/projects/recursive/cats.html)
+The puzzle can be [run here](http://beadslang.com/projects/sliding_puzzle/puzzle.html)
 
 
 ### Example: Translation tool
@@ -191,7 +193,7 @@ The classic bubble sorting algorithm is pitted against the just slightly more co
 
 This simple program simulates a wristwatch. Program complexity rating: 180 words.
 
-![watch example](http://beadslang.com/examples/watch/watch_example_animated.gif)
+![watch example](http://beadslang.com/projects/watch/watch_example_animated.gif)
 
 ### Example: Analog clock
 
