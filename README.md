@@ -27,6 +27,13 @@ This is an example of a client + server program, showing how you can build both 
 
 This shows how short and simple programs can be when written in Beads. It is impossible to write a shorter version that performs the same function (this version auto-adjusts to the screen size).
 
+
+### Example: Neat looking liquid slider
+
+![screenshot](http://beadslang.com/projects/temperature2/screenshot.gif)
+
+This is a rewrite of a CSS-mostly project from CodePen. Our version is interactive, and lets the user drag a control thumb to set the value, and it shows the dramatic difference between wrestling with the intricacies of CSS, and instead doing it in a straightforward imperative style that is much less tangled.
+
 ### Example: Recursive structures
 
 This shows how you can build a simple tree structure with up/down expand/contract buttons.
