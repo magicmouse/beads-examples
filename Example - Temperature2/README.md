@@ -4,7 +4,7 @@ Program difficulty: Simple
 
 This simple example project draws a fun liquid control that could be used for all sorts of purposes.  It shows how you can make the control with or without an operable input adjustment draggable arrow
 
-![sketch](http://beadslang.com/projects/temperature2/screenshot4_big.gif)
+![sketch](http://beadslang.com/projects/temperature2/screenshot2.gif)
 
 You can [run the program](http://beadslang.com/projects/temperature2/temperature2.html)
 

@@ -30,7 +30,7 @@ This shows how short and simple programs can be when written in Beads. It is imp
 
 ### Example: Neat looking liquid slider
 
-![screenshot](http://beadslang.com/projects/temperature2/screenshot.gif)
+![screenshot](http://beadslang.com/projects/temperature2/screenshot2.gif)
 
 This is a rewrite of a CSS-mostly project from CodePen. Our version is interactive, and lets the user drag a control thumb to set the value, and it shows the dramatic difference between wrestling with the intricacies of CSS, and instead doing it in a straightforward imperative style that is much less tangled.
 
