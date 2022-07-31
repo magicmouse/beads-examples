@@ -10,7 +10,7 @@ To run the program please visit:  [picker running on a server](https://beadslang
 
 Regular mode:
 
-![example](http://beadslang.com/examples/colorchart/docs/screenshot.jpg)
+![example](http://beadslang.com/projects/colorchart/screenshot.jpg)
 
 
 In this example, we will use the following standard library routines:
@@ -35,11 +35,10 @@ In this example, we will use the following standard library routines:
 #### The picker code: 
 
 ```
-beads 1 program picker  //  color picker
-//  written by edj october 2019
-//  copyright waived
+beads 1 program color_chart ver:[4] title:"Color Picker"
+//  © edj October 2019 - July 2022
 //  lets you pick a HTML color, copies the name or hex value to the clipboard
-//  complexity rating: 1150 words
+//  complexity rating: 1400 lines
 
 assets local:"./art/" remote:"http://beadslang.com/beads/projects/color_picker/art/"
 	file:"click.mp3" label:CLICK
@@ -50,6 +49,8 @@ const
 	TRACE_FUDGE = N
 	TRACE_SIZING = N
 	TRACE_PALETTE = N
+	TRACE_ENTRY = N
+	TRACE_TWEAK = N
 
 record a_slot
 	name  : str   //  color name
@@ -58,6 +59,7 @@ record a_slot
 	key1  // color category  1:color band  98:low sat, 99:gray ramp
 	key2  // value band
 	key3  //  hue
+	hilite : yesno
 ```
 
 The first line identifies the language version, and names the program.  The `assets` statement imports audiovisual resources.  The console logging is currently off. Beads uses `Y` for yes and `N` for No instead of the historic `true` and `false` of JS.  It is less typing.
@@ -219,21 +221,19 @@ The first code chunk executed is called `main_init`. In this chunk we build our 
 =================================
 vert slice main_draw
 =================================
-	under
-		draw_rect(fill:C_DEAD)
-	add BARV px d_modebar
-	skip 6 pt
+	background fill:C_DEAD
 	case g.mode_grid.selx 
 	| MODE_COLORS
 		add 16 al d_html_palette
-		skip 8 pt
+		skip 6 pt
 		//  since the ferrari palette is in 7 rows make it a nice multiple of 7 pixels
 		//var v = round(bb.height*10/24, multiple:7)
 		add 10 al d_ferrari_palette
-		skip 4 pt
 	| MODE_GRADS
 		add 10 al d_grad_designer
-
+	skip 6 pt
+	add BARV pt d_bottom_bar
+	skip 6 pt
 ```
 
 The main_draw block is simple subdividing the screen into two parts, one for the modebar, and the other for the color chart.
@@ -269,60 +269,12 @@ track EV_RESIZE  //  this sets global BARV, NCOLS, NROWS
 	NROWS = round_up(NCELLS/NCOLS)
 	log "-- end resize, NCELLS={NCELLS}, NCOLS={NCOLS}, NROWS={NROWS}, BARV={BARV}" on:TRACE_SIZING
 
-=================================
-draw d_grad_designer
-=================================
-	draw_rect(fill:OLIVE_DRAB)
-	draw_str("not yet", size:40 pt, color:C_TEXT)
+```
 
-=================================
-horz slice d_modebar
-=================================
-	add 30 al 
-		draw_str(b.box, "Colorchart v.{runtime.app_version}", size:b.box.height*0.6, indent:6 pt)
-	add 55 al d_format_selector
-	add 80 al
-		draw_str(b.box, "Click on the color chip or name to copy to the clipboard", size:b.box.height*0.7, indent:14 pt)
-	add 40 al d_made_with
-	skip 8 pt
+The `main_draw` function is the main drawing function that is called when the screen needs refreshing. In this case we are drawing three vertical slices. One of them is the HTML color set, then the Ferrari palette, then the bottom bar which controls mode, and also shows nearby colors.
 
-=================================
-horz slice d_format_selector  //  show the format selector (mutually exclusive button)
-=================================
-	add 10 al d_choice(FORMAT_BEADS, "Beads name", "Beads")
-	add 10 al d_choice(FORMAT_HTML, "HTML name", "HTML")
-	add 10 al d_choice(FORMAT_HEX, "Hex name", "Hex")
-	add 10 al d_choice(FORMAT_RGB, "rgb call", "rgb()")
-
-=================================
-draw d_choice(  //  show a format choice button
-=================================
-	formx : num
-	long_label : str
-	short_label : str
-	) -------
-	var fill:color = if formx == g.format then TOMATO else OLD_LACE
-	draw_rect(b.box, fill:fill, thick:1 pt, color:BLACK)
-	var label:str = if b.box.width > 70 pt then long_label else short_label
-	draw_str(b.box, label, size:b.box.height*0.60, indent:3 pt)
-track EV_TAP
-	g.format = formx
-track EV_HOVER
-	cursor_set(CURS_FINGER)
-
-=================================
-draw d_made_with  //  show the "made with" button
-=================================
-	draw_str(b.box, "Made with Beads", size:b.box.height*0.65, just:RIGHT)
-track EV_TAP
-	//  go to the beads home page
-	html_redirect("http://beadslang.com", newtab:Y)
-track EV_HOVER
-	cursor_set(CURS_FINGER)
-
-=================================
-grid chart_draw order:TBLR
-=================================
+```
+grid d_html_palette order:TBLR
 	horz slice
 		skip 10 al
 		loop reps:NCOLS count:col
@@ -338,66 +290,46 @@ grid chart_draw order:TBLR
 				skip 5 al
 			add 80 al
 		skip 5 al
-```
-
-The `main_draw` function is the main drawing function that is called when the screen needs refreshing. In this case we are drawing two slices. One of them is the command/status bar, and the other is the color grid. We want the command bar to be of a reasonable size; we estimate it at 1/17th of the total height, but keep it inside a range of a reasonable height so we devote maximum space to the color grid. The color grid, which is first broken down into columns in the `horz slice` section, where we are using aliquots (proportional measurements) to create the columns.  Then we subdivide the screen into vertical slices in the `vert slice` section. 
-
-```	cell
-		// inside: b.box, b.cell_seq, b.cell.x/y, b.cell_id.x/y
-		//  note that the first sequential cell correponds to slot 0
-		//  and the sequential 2 means slot 1 because of the extra slot we used
-		if b.cell_seq == 1
-			//  button
-			d_mode_button
-		elif b.cell_seq <= NCELLS
+		skip 1 px
+	cell
+		// inside: bb, b.cell_seq, b.cell.x/y, b.cell_id.x/y
+		if b.cell_seq <= NCELLS
 			var slotx = b.cell_seq
-			d_cell(slotlist[slotx]^^, slotx)
-		//  ignore cells at the end due to partial last row fill
+			d_cell(slotlist[slotx], slotx)
 ```
 
-The cell section draws the color chips. We reserve slot #1 for the mode button to change between hex and named colors.
+The HTML palette section is drawn as a 2 dimensional grid.
 
-```
-	over
-		//  draw the sizing square in the corner
-		var r : a_rect <=== solve_rect(basis:b.box, pin:BOT_RIGHT, width:12 pt, height:12 pt)
-		draw_rect(r, fill:PINK, corner_tl:4 pt)
-		draw_str(r, "\u2921", size: 10 pt)  //  NW-SE arrow
-```
-
-The `over` section is an overlay on top of the grid cells. In this case we are drawing a little pink square with a diagonal arrow in it to remind the user the window can be resized.
 
 ```
 -----------------------
-track EV_TAP
+track EV_TAP  // user is tapping in HTML palette
 	//  make a sound effect 
 	if b.cell_seq == U or b.cell_seq > NCELLS
 		//  bad selection, clicked on dead space, a gap or past end of list
 		sound_play(BEEP)
-		g.selectedx = U  // deselect
-	elif b.cell_seq == 1
-		//  first cell is not a color, but a format switcher
-		sound_play(CLICK)
-		//  second click changes the display, cycle between the modes
-		if g.format == FORMAT_BEADS
-			g.format = FORMAT_HEX
-		else
-			g.format = FORMAT_BEADS
+		g.htmlchip_selx = U  // deselect
 	else
 		//  color choice
-		sound_play(CLICK)
-		g.selectedx = b.cell_seq
-		//log "tapped on color {slotlist[g.selectedx]^^.name}"
-		os_to_clipboard(calc_slot_str(slotlist[g.selectedx]^^))
+		//  move the value of the slot hilite flag to the new one
+		if g.htmlchip_selx <> U
+			slotlist[g.htmlchip_selx].hilite = N
+		g.htmlchip_selx = b.cell_seq
+		slotlist[g.htmlchip_selx].hilite = Y
+
+		var newsel:color = slotlist[g.htmlchip_selx].color
+		select_new_color(newsel)
+
+		//  now find closest ferrari color
+		g.ferrari_selx = find_closest_ferrari(g.sel_color)
+
 ```
 
 The track block allows us to respond to mouse clicks. Beads assumes a future universe of touch screens, so the click is mapped to the EV_TAP event type. If the user clicks on dead space between cells, we beep and ignore the click. If the user clicks on cell #1, that is our mode switcher. Otherwise the clicks will select that color slot, and we copy the string to the clipboard.
 
 
 ```
-=================================
 horz slice d_cell(  //  inside each cell we draw the color and the name
-=================================
 	myslot : a_slot
 	slotx
 	)
@@ -411,8 +343,6 @@ horz slice d_cell(  //  inside each cell we draw the color and the name
 	if g.sizing == FULL_SIZE
 		//  add the name or hex value
 		add 140 al
-			//  get rid of the underscores
-			//var name : str = str_replace(myslot.name, xxxx)
 			if slotx == g.selectedx
 				var radius = b.box.height/6
 				draw_rect(b.box, fill:PEACH_PUFF, corner_tr:radius, corner_br:radius)

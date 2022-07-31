@@ -1,9 +1,8 @@
-beads 1 program color_chart ver:[3 0] title:"Color Picker"
-//  © edj October 2019 - March 2021
-//  modified nov. 2021 for speedup by not refreshing names constantly
+beads 1 program color_chart ver:[4] title:"Color Picker"
+//  © edj October 2019 - July 2022
 
 //  lets you pick a HTML color, copies the name or hex value to the clipboard
-//  complexity rating: 4000 words
+//  complexity rating: 1400 lines
 
 assets local:"./art/" remote:"http://beadslang.com/beads/projects/color_picker/art/"
 	file:"click.mp3" label:CLICK
@@ -14,6 +13,8 @@ const
 	TRACE_FUDGE = N
 	TRACE_SIZING = N
 	TRACE_PALETTE = N
+	TRACE_ENTRY = N
+	TRACE_TWEAK = N
 
 record a_slot
 	name  : str   //  color name
@@ -68,7 +69,7 @@ var SET1 : array of a_slot <=== [ {name:"ALICE_BLUE", color:ALICE_BLUE},
 	{name:"FIREBRICK", color:FIREBRICK},
 	{name:"FLORAL_WHITE", color:FLORAL_WHITE},
 	{name:"FOREST_GREEN", color:FOREST_GREEN},
-	{name:"FUCHSIA", color:FUCHSIA}, 
+	//{name:"FUCHSIA", color:FUCHSIA},  // a duplicate of magenta
 	{name:"GAINSBORO", color:GAINSBORO},
 	{name:"GHOST_WHITE", color:GHOST_WHITE},
 	{name:"GOLD", color:GOLD},
@@ -179,12 +180,13 @@ const SET2 : array of a_slot <=== [ {name:"GRAY1", color:GRAY1},
 const hue_fudge = 150  // break the HSV wheel not at 0/359 which is in the middle of red
 const AREA_THRESHOLD = 140000  // below this screen area in points we switch to compact form
 const TARG_WIDTH = 100
+const BARV = 150  //  bottom bar section
 
 //  these functions as constants after the resize event is processed, which calculates basic geometry
 var NCOLS
 var NROWS
 var NCELLS
-var BARV
+
 
 var slotlist : array of ptr to a_slot  //  our sorted array of pointers
 
@@ -216,8 +218,11 @@ record a_state
 	ferrari_selx  //  which chip is selected in the ferrari palette
 	sel_color : color
 	prior_color : color
+	prior2_color : color
+	clipboard_ss : str
+	input_field : a_input_field
 
-	format  : (FORMAT_BEADS, FORMAT_HTML, FORMAT_HEX, FORMAT_C, FORMAT_RGB)
+	format  : (FORMAT_BEADS, FORMAT_HTML, FORMAT_HEX, FORMAT_C, FORMAT_RGB, FORMAT_HSL)
 	sizing  : (COMPACT_SIZE, FULL_SIZE)
 	mode_grid : a_choice_set
 
@@ -228,8 +233,9 @@ const
 	DIMMED = 0.3
 
 	C_CHOICE_HI_BACK = TOMATO
-	C_CHOICE_LO_BACK = LAVENDER_BLUSH
-	C_CHOICE_TEXT = BLACK
+	C_CHOICE_HI_TEXT = BLACK
+	C_CHOICE_LO_BACK = #244022
+	C_CHOICE_LO_TEXT = LINEN
 	C_CHOICE_BORD = GRAY5
 
 	TAB_LO_BACK = #7F6B6B
@@ -316,12 +322,12 @@ grid draw_choice_grid(
 			// selected item
 			back = C_CHOICE_HI_BACK
 			bord = C_CHOICE_BORD
-			text = C_CHOICE_TEXT
+			text = C_CHOICE_HI_TEXT
 		else
 			//  regular item
 			back = C_CHOICE_LO_BACK
 			bord = C_CHOICE_BORD
-			text = C_CHOICE_TEXT
+			text = C_CHOICE_LO_TEXT
 			
 		//  calculate the corners
 		if b.cell.x == 1
@@ -337,7 +343,7 @@ grid draw_choice_grid(
 		
 		//  draw the background for this cell
 		draw_rect(fill:back, color:bord, thick:BUTT_THICK pt, pos:0, 
-			corner_tl:tl, corner_tr:tr, corner_bl:bl, corner_br:br, opacity:opacity)
+			corner:[tl, tr, bl, br], opacity:opacity)
 
 		//  if the cell has a drawing function, use that
 		var f : draw(a_rect) = o.label_func[b.cell_seq]
@@ -389,7 +395,7 @@ draw draw_tabs2(
 		back = TAB_LO_BACK
 		bord = TAB_LO_BORD
 		text = TAB_LO_TEXT
-	draw_rect(fill:back, color:bord, thick:TAB_BORD pt, corner_tl:TAB_CORNER pt, corner_tr:TAB_CORNER pt)
+	draw_rect(fill:back, color:bord, thick:TAB_BORD pt, corner:[TAB_CORNER pt, TAB_CORNER pt])
 	draw_str(tabs.label_list[ix], indent:1.5 pt, size:0.6, color:text)
 ---------------------------
 track EV_TAP
@@ -413,23 +419,23 @@ calc main_init
 
 		//  fudge the hue because splitting inside red is very bad
 		//  a mistake in the design of HSV
-		var hue2 = mod(hsv.hue + hue_fudge, 360)
+		var hue2 = mod(hsv.hsv_h + hue_fudge, 360)
 
-		if hsv.saturation <= 10
+		if hsv.hsv_s <= 10
 			//  low saturation color, sort at end
 			p.key1 = 90  //  low saturation, sort near end
 			p.key2 = hue2
-			p.key3 = hsv.value
-		elif hsv.saturation >= 90
+			p.key3 = hsv.hsv_v
+		elif hsv.hsv_s >= 90
 			p.key1 = 10  //  high saturation, first band
 			p.key2 = hue2
-			p.key3 = hsv.value
+			p.key3 = hsv.hsv_v
 		else
 			//  a regular color, not faint or bold
 			p.key1 = 50  //  medium saturation
-			p.key2 = hue2 // round_down(hsv.value/100*NRAMPS)
-			p.key3 = hsv.saturation // // hsv.hue
-		//log "{ix}: {p.name}, keys=[{p.key1},{p.key2},{p.key3}], rgb=[{color_r(p.color)},{color_g(p.color)},{color_b(p.color)}], hsv=[{hsv.hue},{hsv.saturation},{hsv.value}]" on:TRACE_COLORS
+			p.key2 = hue2 // round_down(hsv.hsv_v/100*NRAMPS)
+			p.key3 = hsv.hsv_s // // hsv.hsv_h
+		//log "{ix}: {p.name}, keys=[{p.key1},{p.key2},{p.key3}], rgb=[{color_r(p.color)},{color_g(p.color)},{color_b(p.color)}], hsv=[{hsv.hsv_h},{hsv.hsv_s},{hsv.hsv_v}]" on:TRACE_COLORS
 	//..end loop
 
 	//  pass 2 - now loop through the set in sort order
@@ -450,31 +456,59 @@ calc main_init
 	g.mode_grid.selx = MODE_COLORS
 	g.mode_grid.label_list <=== ["Colors", "Gradients"]
 	//g.mode_grid.val_list <=== [MODE_COLORS, MODE_GRADS]
+	g.input_field.in_label = "INPUTF"  //  DOM ID
+	g.input_field.in_validator = validate_input
 
 	g.format = FORMAT_BEADS	
 	NCELLS = tree_count(slotlist)
+
+	select_new_color(BLACK)
+
+=================================
+regexp A_WEB_COLOR starts ends -- regular expression for a hex color
+	optional '#'
+	6 hexdigit
+
+=================================
+calc validate_input (  //  see if the input field is a color value
+	field : a_input_field
+	):yesno --  return true if valid
+
+	var list : array of a_find
+	var newcolor : color
+	var ss = field.in_value
+
+	str_find(ss, A_WEB_COLOR, list)
+	if tree_count(list) > 0
+		//  once we hit a valid color jump to that value
+		newcolor = hex_to_color(ss)
+		select_new_color(newcolor)
+		log "valid color of {ss}" on:TRACE_ENTRY
+		return Y  -- is a valid color value
+
+	log "ignoring non-numeric color {ss}" on:TRACE_ENTRY
+	return N
 
 =================================
 vert slice main_draw
 =================================
 	under
 		draw_rect(fill:C_DEAD)
-	add BARV px d_modebar
-	skip 6 pt
 	case g.mode_grid.selx 
 	| MODE_COLORS
 		add 16 al d_html_palette
-		skip 8 pt
+		skip 6 pt
 		//  since the ferrari palette is in 7 rows make it a nice multiple of 7 pixels
 		//var v = round(bb.height*10/24, multiple:7)
 		add 10 al d_ferrari_palette
-		skip 4 pt
 	| MODE_GRADS
 		add 10 al d_grad_designer
+	skip 6 pt
+	add BARV pt d_bottom_bar
+	skip 6 pt
 -------
 track EV_RESIZE  //  this sets global BARV, NCOLS, NROWS
 	//  when we resize (or before first draw) this event is sent
-	BARV = clamp(bb.height/17, 14 pt, 20 pt)
 	var h_pts = dots_to_pt(bb.width)
 	var v_pts = dots_to_pt(bb.height-BARV)
 	var area = h_pts * v_pts
@@ -507,35 +541,303 @@ draw d_grad_designer
 	draw_str("not yet", size:40 pt, color:C_TEXT)
 
 =================================
-horz slice d_modebar
+horz slice d_bottom_bar
 =================================
-	add 25 al 
-		draw_str("Colorchart v.{runtime.app_version}", size:bb.height*0.6, indent:6 pt, color:C_TEXT)
-	add 40 al draw_choice_grid(g.mode_grid, 0.65)
-	skip 5 al
-	if g.mode_grid.selx == MODE_COLORS
-		add 60 al d_color_fmt_sel
-		add 80 al d_prompt
-	else
-		skip 55 al
-		skip 80 al
-	add 25 al d_made_with
+	skip 6 pt
+	add 100 pt d_color_format
+	skip 15 pt
+	add 140 pt d_bottom_col2
+	skip 70 pt // reserved space
+	add 40 al d_nearby
+	skip 70 pt // reserved space
+
+=================================
+vert slice d_bottom_col2
+	add 22 pt d_input_box
 	skip 8 pt
+	add 10 al d_recent("Current", g.sel_color)
+	skip 2 pt
+	add 10 al d_recent("Prev", g.prior_color)
+	skip 2 pt
+	add 10 al d_recent("Prev 2", g.prior2_color)
+	skip 8 pt
+	add 18 pt d_made_with
+	skip 4 pt
 
-draw d_prompt
-	if g.sel_color == U
-		draw_str("Click to copy to the clipboard", size:0.7, indent:14 pt, color:C_TEXT)
+=================================
+draw d_input_box
+	draw_input(bb, g.input_field, indent:3 pt, color:BLACK, border:1 pt, size:0.55, font:MONOSPACE,
+		border_color:LIGHT_SLATE_GRAY, fill:GHOST_WHITE, caret:BLACK, corner:2 pt)
+	//draw_rect(fill:IVORY, corner:2 pt)
+	//draw_str(g.clipboard_ss, size:0.6, color:BLACK)
+
+------
+//  transient values needed by tracking
+record a_hex_cell
+	x
+	y
+	netc : color
+
+var HEX_CENTER : a_xy
+var HEX_H
+var ROW_SPACING 
+var HEX_HALF_H
+var tweak_map notrack : array of a_hex_cell  -- indexed by col & row to get the net color
+
+=================================
+draw d_nearby // clip
+	// for formulae see https://calcresource.com/geom-hexagon.html
+	const COVERAGE = 0.95  // lower value creates a bigger gap between cells
+	const HEX_RADIUS = 15 pt
+	HEX_H = 1.732 * HEX_RADIUS
+	HEX_HALF_H = HEX_H/2
+	const HEX_V = 2 * HEX_RADIUS
+	const HEX_HALF_V = HEX_V/2
+	const ROW_V = HEX_RADIUS*1.732  //  effective row height for calculating how many rows can fit
+	const NH = round_down(bb.width*0.5 / HEX_H)
+	const NV = round_down(bb.height*0.5 / ROW_V)
+	const NET_RADIUS = HEX_RADIUS*COVERAGE
+	var cx
+	var cy
+	var c : color
+	var lo
+	var offsetx
+	var offsetcell
+	var tcol
+	var trow
+	var theta : Angle
+
+	//draw_rect(fill:GRAY4)
+
+	//  transient values we need during tracking
+	HEX_CENTER <=== solve_point(basis:bb, pin:MID_CENTER)
+	ROW_SPACING = HEX_RADIUS*1.6
+
+	trunc tweak_map
+
+	loop from:-NV to:NV index:row
+		if is_odd(row)
+			lo = -(NH-1)
+			offsetx = -HEX_HALF_H
+			offsetcell = -1
+		else
+			lo = -NH
+			offsetx = 0
+			offsetcell = 0
+
+		loop from:lo to:NH index:col
+			//  index and row are offsets from center
+			cx = col*HEX_H + offsetx
+			cy = row*ROW_SPACING
+			theta = arc_tan2(-cy, cx)  // actual true angle as drawn, flipped on the Y
+			HEX_CENTER.x +=> cx
+			HEX_CENTER.y +=> cy
+			
+			//  calculate the tweak col and row, which go down as we move downward
+			//  so that darker colors will be at the bottom which is more natural
+			tcol = col*2 + offsetcell
+			trow = -row
+
+			//  calculate the adjusted color
+			c = tweak_color(g.sel_color, theta, tcol, trow) 
+
+			//  save the xy coordinate and the final color so we can recover it at tracking time
+			append { x:cx, y:cy, netc:c } ===> tweak_map
+
+			draw_hexagon(tcol, trow, cx, cy, NET_RADIUS, c)
+			//draw_circle(x:cx, y:cy, diam:HEX_DIAM*0.8, fill:random_color())
+-----
+track EV_TAP
+	//  find the closest cell we picked
+	var tweakp : ptr to a_hex_cell
+	var best_dist = INFINITY
+	var distance
+	var dx
+	var dy
+	var best_color : color
+
+	loop across:tweak_map ptr:tweakp
+		dx = e.x - tweakp.x
+		dy = e.y - tweakp.y
+		distance =  dx*dx + dy*dy  -- leave it squared
+		if distance < best_dist
+			best_dist = distance
+			best_color = tweakp.netc
+
+	//  closest cell has been found
+	log "tap in nearby at {e.x},{e.y} best color {best_color}"
+	select_new_color(best_color)
+	//  update the ferrari palette
+	g.ferrari_selx = find_closest_ferrari(g.sel_color)
+
+=================================
+draw draw_hexagon (  -- draw a hexagon given a center point and radius
+	col
+	row
+	cx 
+	cy
+	r  -- radius
+	clr : color
+	)
+	//   first build the raw steps
+	var steps : array of a_xy
+
+	loop from:0 to:5 index:ix
+		var angle:Angle = (30 deg) + (ix/6 turn)
+		steps[ix] <=== { x:cx + r*cos(angle), y:cy + r*sin(angle) }
+
+	var thick = 2 pt if col == 0 and row == 0 else 0
+
+	draw_polygon(steps, fill:clr, color:CRIMSON, thick:thick)
+	//draw_str("{col},{row}", x:cx, y:cy-8, color:WHITE)  // tracing
+
+=================================
+calc tweak_color (  --  tweak a color
+	base : color
+	theta : Angle
+	dx  -- from origin, going left: 0,0;  -2,0;  -4,0;
+	dy  -- from origin cell upper left cell is -1,+1; -2,+2
+	) : color
+
+	//   handle case where no tweaking will happen
+	if dx == 0 and dy == 0
+		return base
+		
+	//  we have 3 dimensions in color tweak, alpha/beta/gamma
+	var alpha = 0
+	var beta = 0
+	var gamma = 0
+	var side
+	var posx
+	var posy
+	var adx = abs(dx)
+	var ady = abs(dy)
+
+	//  there are 12 different regions we go in the color space
+	//  basically the 6 triangles of the hexagon, cut in half
+	//  we will only change 2 of the dimensions at a time
+	//  by following the closest of the 3 angle lines of a hex grid at 0, 60, 120
+	if theta <= 30 deg
+		//  past 0 degree line, +alpha then +beta
+		beta = dy  // side mvt +
+		alpha = adx - beta
+
+	elif theta <= 60 deg
+		//  approaching 60 degree line +beta, then +alpha
+		alpha = (adx - ady)/2  // side mvt +
+		beta = dy
+		
+	elif theta <= 90 deg
+		//  past 60 degree line +beta, then +gamma
+		gamma = (ady - adx)/2  // side mvt +
+		beta = dy - gamma
+		
+	elif theta <= 120 deg
+		//  approaching 120 +gamma, then +beta
+		beta = (ady - adx)/2  // side mvt +
+		gamma = dy - beta
+		
+	elif theta <= 150 deg
+		//  past 120  +gamma, then -alpha
+		alpha = (ady - adx)/2   // side mvt -
+		gamma = dy
+
+	elif theta <= 180 deg
+		//a pproaching 180 -alpha, then +gamma
+		gamma = dy   // side mvt +
+		alpha = dx + ady
+
+	elif theta <= 210 deg
+		//  past 180, -alpha, then -beta
+		beta = dy  //  side mvt -
+		alpha = dx + ady
+
+	elif theta <= 240 deg
+		//  approaching 240, -beta then -alpha
+		alpha = (ady - adx)/2  // side mvt
+		beta = dy
+		
+	elif theta <= 270 deg
+		//  past 240, -beta, then -gamma
+		gamma = (adx - ady)/2  // side mvt
+		beta = dy - gamma
+
+	elif theta <= 300 deg
+		//  approaching 300, -gamma, then -beta
+		beta = (adx - ady)/2  // side mvt -
+		gamma = dy - beta
+		
+	elif theta <= 330 deg
+		//  past 300,  -gamma, then +alpha
+		gamma = dy
+		alpha = (adx - ady)/2   //  side mvt +
+
 	else
-		draw_str(" rgb {r255(g.sel_color)}, {g255(g.sel_color)}, {b255(g.sel_color)}", size:0.7, indent:14 pt, color:C_TEXT)
+		//  approaching 360, +alpha, then -gamma
+		gamma = dy  // side mvt -
+		alpha = adx - ady
+
+	log "tweak dx={dx}, dy={dy}, angle={to_unit(theta, enum deg)} adjustment [{alpha},{beta},{gamma}]" on:TRACE_TWEAK
+
+	// RGB tweak method
+	//------------------------
+	// extract color components
+	var r = r255(base)
+	var g = g255(base)
+	var b = b255(base)
+
+	const SCALE = 6
+
+	//  tweak the color based on the alpha/beta/gamma adjustments
+	2*alpha +=> r
+	SCALE*beta +=> g
+	SCALE*gamma +=> b
+	return rgb(r,g,b)
+
+/*....
+	//  HSL tweak method
+	//  alpha=lightness, beta=sat, gamma=hue
+	var hsl : a_hsl
+	color_to_hsl(base) ===> hsl
+	1*gamma +=> hsl.hsl_h
+	1*alpha +=> hsl.hsl_l
+	1*beta  +=> hsl.hsl_s
+	return hsl_to_color(hsl)
+...*/
+	
+=================================
+horz slice d_recent (
+	label : str
+	clr : color
+	)
+	add 14 al
+		draw_str(label, size:0.55, just:LEFT, color:WHITE)
+	skip 2 pt
+	add 20 al
+		draw_rect(fill:clr, corner:3 pt)
+------
+track EV_TAP
+	//  select this color again
+	select_new_color(clr)
+
+//	draw_str(" rgb {r255(g.sel_color)}, {g255(g.sel_color)}, {b255(g.sel_color)}", size:0.7, indent:14 pt, color:C_TEXT)
 
 =================================
-horz slice d_color_fmt_sel  //  show the color format selector (mutually exclusive button)
+vert slice d_color_format  //  show the color format selector (mutually exclusive button)
 =================================
-	add 10 al d_choice(FORMAT_BEADS, "Beads name", "Beads")
-	add 10 al d_choice(FORMAT_HTML, "HTML name", "HTML")
-	add 10 al d_choice(FORMAT_HEX, "Hex name", "Hex")
+	skip 1 al
+	add 10 al d_choice(FORMAT_BEADS, "Beads format", "Beads")
+	skip 1 al
+	add 10 al d_choice(FORMAT_HTML, "HTML format", "HTML")
+	skip 1 al
+	add 10 al d_choice(FORMAT_HEX, "Plain Hex", "Hex")
+	skip 1 al
 	add 10 al d_choice(FORMAT_C, "C Hex", "C")
-	add 10 al d_choice(FORMAT_RGB, "rgb call", "rgb()")
+	skip 1 al
+	add 10 al d_choice(FORMAT_RGB, "rgb(...)", "rgb()")
+	skip 1 al
+	add 10 al d_choice(FORMAT_HSL, "hsl(...)", "hsl()")
+	skip 2 al
 
 =================================
 draw d_choice(  //  show a format choice button
@@ -545,18 +847,25 @@ draw d_choice(  //  show a format choice button
 	short_label : str
 	) -------
 	var fill:color = C_CHOICE_HI_BACK if formx == g.format else C_CHOICE_LO_BACK
-	draw_rect(fill:fill, thick:1 pt, color:C_CHOICE_TEXT)
 	var label:str = long_label if bb.width > 70 pt else short_label
-	draw_str(label, size:bb.height*0.60, indent:3 pt)
+
+	draw_rect(fill:fill, thick:1 pt, color:C_CHOICE_BORD)
+	if formx == g.format
+		draw_str("▶", size:0.6, just:LEFT, color:MAROON)
+		draw_str(label, size:0.60, indent:3 pt, color:C_CHOICE_HI_TEXT)
+	else
+		draw_str(label, size:0.60, indent:3 pt, color:C_CHOICE_LO_TEXT)
 track EV_TAP
 	g.format = formx
+	build_clipboard
 track EV_HOVER
 	cursor_set(CURS_FINGER)
 
 =================================
 draw d_made_with  //  show the "made with" button
 =================================
-	draw_str("Made with Beads", size:bb.height*0.65, just:RIGHT, color:C_TEXT)
+	draw_rect(fill:STEEL_BLUE, corner:4 pt)
+	draw_str("ver {runtime.app_version}    written in Beads", size:bb.height*0.65, color:C_TEXT)
 track EV_TAP
 	//  go to the beads home page
 	browser_redirect("http://beadslang.com", newtab:Y)
@@ -591,7 +900,7 @@ grid d_html_palette order:TBLR
 // 	over
 // 		//  draw the sizing square in the corner
 // 		var r : a_rect <=== solve_rect(basis:bb, pin:BOT_RIGHT, width:12 pt, height:12 pt)
-// 		draw_rect(box:r, fill:PINK, corner_tl:4 pt)
+// 		draw_rect(box:r, fill:PINK, corner[4 pt 0])
 // 		draw_str("\u2921", box:r, size: 10 pt)  //  NW-SE arrow
 -----------------------
 track EV_TAP  // user is tapping in HTML palette
@@ -602,19 +911,14 @@ track EV_TAP  // user is tapping in HTML palette
 		g.htmlchip_selx = U  // deselect
 	else
 		//  color choice
-		sound_play(CLICK)
-		
 		//  move the value of the slot hilite flag to the new one
 		if g.htmlchip_selx <> U
 			slotlist[g.htmlchip_selx].hilite = N
 		g.htmlchip_selx = b.cell_seq
 		slotlist[g.htmlchip_selx].hilite = Y
 
-		g.prior_color = g.sel_color
-		g.sel_color = slotlist[g.htmlchip_selx].color
-
-		//log "tapped on color {slotlist[g.htmlchip_selx].name}"
-		os_clipboard_copy(calc_slot_str(slotlist[g.htmlchip_selx]))
+		var newsel:color = slotlist[g.htmlchip_selx].color
+		select_new_color(newsel)
 
 		//  now find closest ferrari color
 		g.ferrari_selx = find_closest_ferrari(g.sel_color)
@@ -640,6 +944,79 @@ track EV_HOVER
 // 	return N
 
 =================================
+calc select_new_color (  //  user has picked a new color
+	newcolor : color
+	)
+	sound_play(CLICK)
+	
+	if newcolor == g.sel_color
+		//  ignore duplicate clicks
+		return
+	
+	g.prior2_color = g.prior_color
+	g.prior_color = g.sel_color
+	g.sel_color = newcolor
+	
+	build_clipboard
+
+=================================
+calc build_clipboard  //  regenerate what is on the clipboard
+	var beads_name:str
+	var ss : str
+	var newcolor = g.sel_color
+
+	case g.format
+	| FORMAT_BEADS
+		beads_name = find_exact_beads(newcolor)
+		if beads_name == U
+			ss = color_to_hex(newcolor)
+		else
+			ss = beads_name
+
+	| FORMAT_HTML
+		//  use HTML name if we can, otherwise use hex
+		beads_name = find_exact_beads(newcolor)
+		if beads_name == U
+			ss = color_to_hex(newcolor)
+		else
+			//  convert the beads name to an html name (convert caps, strip underscore)
+			ss = beads_to_html(beads_name)
+
+	| FORMAT_HEX
+		//  plain hex color, no # sign.
+		ss = subset(color_to_hex(newcolor), from:2)  // strip #
+
+	| FORMAT_C
+		// always in 0xAABBCC format
+		ss = "0x" & subset(color_to_hex(newcolor), from:2)
+
+	| FORMAT_RGB
+		//  as in rgb(1,2,3)
+		ss = to_rgb_str(newcolor)
+
+	| FORMAT_HSL
+		//  as in hsl(1,2,3)
+		ss = to_hsl_str(newcolor)
+
+	log "posting {ss}"
+	g.clipboard_ss = ss
+	os_clipboard_copy(ss)
+
+	//  update the input field value
+	input_set_value(g.input_field, ss)
+	g.input_field.in_ok = Y  // turn off the warning sign
+
+=================================
+calc find_exact_beads (  // try to find a beads name slot that exactly matches
+	targ : color
+	) :str  -- beads name if found
+	var p : ptr to a_slot
+	loop across:slotlist val:p
+		if p.color == targ
+			return p.name
+	return U // not found
+
+=================================
 horz slice d_cell(  //  inside each cell we draw the color and the name
 =================================
 	myslot : a_slot
@@ -656,22 +1033,18 @@ draw d_color_name ditto
 	//  in current selection, we avoid referencing g.htmlchip_selx
 // 	if slotx < 10
 // 		log "d_color_name {slotx}"
-	var textc = C_TEXT
 	if myslot.hilite
 		//  this is the currently selected HTML color
 		var radius = bb.height/6
-		draw_rect(fill:MEDIUM_VIOLET_RED /*C_CHOICE_HI_BACK*/, corner_tr:radius, corner_br:radius)
-		//textc = C_CHOICE_TEXT
+		draw_rect(fill:MEDIUM_VIOLET_RED /*C_CHOICE_HI_BACK*/, corner:[0 radius 0 radius])
 
 	//  if this is a hex format, we can make it 1/8th the width, else 1/12th
 	var ss : str = calc_slot_str(myslot)
-	case g.format
-	| FORMAT_BEADS, FORMAT_HTML
-		//  show the color name
-		draw_str(ss, just:LEFT, indent:4 pt, size:bb.width/11, color:textc)
-	| FORMAT_HEX, FORMAT_C, FORMAT_RGB
-		//  show the hex value in slightly larger type
-		draw_str(ss, just:LEFT, indent:4 pt, size:bb.width/8, font:"_typewriter", color:C_TEXT)
+	if g.format == FORMAT_HTML
+		//  draw slightly larger as HTML names are all lower case
+		draw_str(ss, just:LEFT, indent:4 pt, size:bb.width/8, color:C_TEXT)
+	else
+		draw_str(ss, just:LEFT, indent:4 pt, size:bb.width/11, color:C_TEXT)
 
 =================================
 draw d_chip_color ditto
@@ -813,9 +1186,9 @@ calc color_difference2 (
 	var hsv1 : a_hsv <=== color_to_hsv(c1)
 	var hsv2 : a_hsv <=== color_to_hsv(c2)
 	//  this will weight hue much more closely than sat and value
-	var dh = hsv1.hue - hsv2.hue
-	var ds = hsv1.saturation - hsv2.saturation
-	var dv = hsv1.value - hsv2.value
+	var dh = hsv1.hsv_h - hsv2.hsv_h
+	var ds = hsv1.hsv_s - hsv2.hsv_s
+	var dv = hsv1.hsv_v - hsv2.hsv_v
 	return sqrt(dh*dh + ds*ds + dv*dv)
 
 calc color_difference (
@@ -839,8 +1212,7 @@ horz slice d_ferrari_palette
 	chip_h = round_down(bb.width / CHIPS_PER_ROW)
 	var used = chip_h*CHIPS_PER_ROW
 	var leftover = bb.width - used
-	var sampleh = round(leftover*0.8)
-	var gap = (leftover - sampleh)*0.5
+	var gap = leftover*0.5
 
 	//  we want perfect pixel alignment for this
 // 	var leftover = bb.width - used
@@ -848,33 +1220,9 @@ horz slice d_ferrari_palette
 // 	var leftover2 = leftover - leftover1
 // 	log "used={used}, leftover={leftover}, l1={leftover1}, l2={leftover2}"
 	//skip leftover1 px
+	skip gap px
 	add used px d_ferrari_grid
 	skip gap px
-	add sampleh px d_sample
-	skip gap px
-
-=================================
-vert slice d_sample
-	//  draw sample
-	if g.sel_color <> U
-		add 15 pt
-			draw_str("sample", vert:0, size:0.7, color:WHITE)
-		add 10 al
-			draw_rect(fill:g.sel_color, corner:10 pt)
-	else
-		skip 15 pt
-		skip 10 al
-
-	//  draw prior sample
-	skip 10 pt
-	if g.prior_color <> U
-		add 15 pt
-			draw_str("prior", vert:0, size:0.7, color:WHITE)
-		add 10 al
-			draw_rect(fill:g.prior_color, corner:10 pt)
-	else
-		skip 15 pt
-		skip 10 al
 
 =================================
 grid d_ferrari_grid  order:TBLR
@@ -920,7 +1268,6 @@ draw ferr_ramp_chip(  //  ferrari palette - chip in ramp
 		ferr_hilite_chip(bb)
 --------------
 track EV_TAP
-	sound_play(CLICK)
 	log "ferrari tap, colorx={colorx}" on:TRACE_PALETTE
 
 	//  user is selecting a color chip
@@ -932,16 +1279,7 @@ track EV_TAP
 		g.htmlchip_selx = U
 
 	//color_ctl_setv(g.palette_targ_ptr^^, FERRARI[colorx])
-	g.prior_color = g.sel_color
-	g.sel_color = FERRARI[colorx]
-
-	case g.format
-	| FORMAT_RGB
-		os_clipboard_copy(color_to_rgb(g.sel_color))
-	| FORMAT_C
-		os_clipboard_copy("0x" & subset(color_to_hex(g.sel_color), from:2))
-	else
-		os_clipboard_copy(color_to_hex(g.sel_color))
+	select_new_color(FERRARI[colorx])
 
 =================================
 draw ferr_hilite_chip(  //  ferrari palette - hilite color chip
@@ -1016,22 +1354,33 @@ calc calc_slot_str ( -- calculate the string for the color slot
 	slot : a_slot  -- index in our color chart
 	) : str
 	case g.format
-	| FORMAT_BEADS
-		return slot.name
 	| FORMAT_HTML
 		return beads_to_html(slot.name)
-	| FORMAT_HEX
-		return color_to_hex(slot.color)
-	| FORMAT_C
-		return "0x" & subset(color_to_hex(slot.color), from:2)
-	| FORMAT_RGB
-		return color_to_rgb(slot.color)
+	else
+		return slot.name
+
+// 	| FORMAT_HEX
+// 		return color_to_hex(slot.color)
+// 	| FORMAT_C
+// 		return "0x" & subset(color_to_hex(slot.color), from:2)
+// 	| FORMAT_RGB
+// 		return to_rgb_str(slot.color)
+// 	| FORMAT_HSL
+// 		return to_hsl_str(slot.color)
 
 ======================
-calc color_to_rgb (
+calc to_rgb_str (
 	color : color
 	) : str
 	return "rgb({r255(color)},{g255(color)},{b255(color)})"
+
+======================
+calc to_hsl_str (
+	color : color
+	) : str
+	//  convert the rgb color to hsl
+	var hsl : a_hsl <=== color_to_hsl(color)
+	return "hsl({hsl.hsl_h},{hsl.hsl_s}%,{hsl.hsl_l}%)"
 
 ======================
 calc beads_to_html ( -- convert a color name like LIGHT_PINK to LightPink

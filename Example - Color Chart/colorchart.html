@@ -15,7 +15,7 @@
 	see more meta options at https://matt.might.net/articles/how-to-native-iphone-ipad-apps-in-javascript/  
 */
 div { outline-style:none;}
-div:hover { cursor:default; }
+div:hover { cursor:inherit; }
 /*  this customizes the default scrollbar appearance */
 ::-webkit-scrollbar { width: 6pt; }
 ::-webkit-scrollbar-corner { background: transparent; }
@@ -30,122 +30,200 @@ div:hover { cursor:default; }
 </head>
 <body style="margin:0; padding:0;position:fixed;">
 <script type="module">
-// beads ver 0.48 compiled Wed Nov 17 22:33:03 GMT-0800 2021
-import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_048/beads_std.js';
-import * as std from '../../runtime_048/beads_std.js';
-import * as str from '../../runtime_048/beads_str.js';
-export const CODE_HASH = 0xde5fd784;
+// beads ver 0.52 compiled Sat Jul 30 15:38:54 GMT-0700 2022
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_052/beads_std.js';
+import * as std from '../../runtime_052/beads_std.js';
+import * as str from '../../runtime_052/beads_str.js';
+export const CODE_HASH = 0xd0b47345;
 const _M = std.MODULES.push("color_chart")-1;
 std.rtl_init();
 std.aaaa.main_init = main_init;
 std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw, track_main_draw);
 //------- enums
-const FORMAT_HEX=9007193301062174; std.ENUMS[9007193301062174]="FORMAT_HEX";
-const F_name=9007190800402099; std.ENUMS[9007190800402099]="name";
-std.FIELDS[F_name] = true;
-const F_key1=9007192080821082; std.ENUMS[9007192080821082]="key1";
-std.FIELDS[F_key1] = true;
+const F_name=9007190800402099; std.ENUMS[9007190800402099]="name"; std.FIELDS[F_name]=!0;
 const R_a_choice_set=9007193148669828; std.ENUMS[9007193148669828]="a_choice_set";
-const F_color=9007193200940231; std.ENUMS[9007193200940231]="color";
-std.FIELDS[F_color] = true;
-const F_selx=9007192042983600; std.ENUMS[9007192042983600]="selx";
-std.FIELDS[F_selx] = true;
-const FORMAT_C=9007193229773678; std.ENUMS[9007193229773678]="FORMAT_C";
-const F_format=9007190044619795; std.ENUMS[9007190044619795]="format";
-std.FIELDS[F_format] = true;
-const F_key3=9007192047265844; std.ENUMS[9007192047265844]="key3";
-std.FIELDS[F_key3] = true;
-const F_prior_color=9007191861560316; std.ENUMS[9007191861560316]="prior_color";
-std.FIELDS[F_prior_color] = true;
-const F_enabled=9007190189270801; std.ENUMS[9007190189270801]="enabled";
-std.FIELDS[F_enabled] = true;
-const R_a_state=9007192953576597; std.ENUMS[9007192953576597]="a_state";
-const F_label_list=9007191676280395; std.ENUMS[9007191676280395]="label_list";
-std.FIELDS[F_label_list] = true;
-const F_choice_func=9007193838393466; std.ENUMS[9007193838393466]="choice_func";
-std.FIELDS[F_choice_func] = true;
+const F_sel_color=9007192691030632; std.ENUMS[9007192691030632]="sel_color"; std.FIELDS[F_sel_color]=!0;
+const F_key2=9007192064043463; std.ENUMS[9007192064043463]="key2"; std.FIELDS[F_key2]=!0;
+const F_color=9007193200940231; std.ENUMS[9007193200940231]="color"; std.FIELDS[F_color]=!0;
 const FORMAT_RGB=9007190492816928; std.ENUMS[9007190492816928]="FORMAT_RGB";
-const F_sizing=9007191915790290; std.ENUMS[9007191915790290]="sizing";
-std.FIELDS[F_sizing] = true;
-const F_key2=9007192064043463; std.ENUMS[9007192064043463]="key2";
-std.FIELDS[F_key2] = true;
-const F_htmlchip_selx=9007190490148256; std.ENUMS[9007190490148256]="htmlchip_selx";
-std.FIELDS[F_htmlchip_selx] = true;
-const R_a_slot=9007193235264524; std.ENUMS[9007193235264524]="a_slot";
-const F_label_func=9007191941311145; std.ENUMS[9007191941311145]="label_func";
-std.FIELDS[F_label_func] = true;
-const FORMAT_BEADS=9007193714185134; std.ENUMS[9007193714185134]="FORMAT_BEADS";
-const F_nrows=9007194105500079; std.ENUMS[9007194105500079]="nrows";
-std.FIELDS[F_nrows] = true;
-const F_hilite=9007193844704215; std.ENUMS[9007193844704215]="hilite";
-std.FIELDS[F_hilite] = true;
-const COMPACT_SIZE=9007192111913864; std.ENUMS[9007192111913864]="COMPACT_SIZE";
-const F_val_list=9007192993813256; std.ENUMS[9007192993813256]="val_list";
-std.FIELDS[F_val_list] = true;
-const F_ferrari_selx=9007192062281798; std.ENUMS[9007192062281798]="ferrari_selx";
-std.FIELDS[F_ferrari_selx] = true;
-const FORMAT_HTML=9007191751459116; std.ENUMS[9007191751459116]="FORMAT_HTML";
-const F_is_open=9007191493292457; std.ENUMS[9007191493292457]="is_open";
-std.FIELDS[F_is_open] = true;
+const F_format=9007190044619795; std.ENUMS[9007190044619795]="format"; std.FIELDS[F_format]=!0;
+const F_enabled=9007190189270801; std.ENUMS[9007190189270801]="enabled"; std.FIELDS[F_enabled]=!0;
 const FULL_SIZE=9007192426333106; std.ENUMS[9007192426333106]="FULL_SIZE";
-const F_action=9007192789918218; std.ENUMS[9007192789918218]="action";
-std.FIELDS[F_action] = true;
-const F_sel_color=9007192691030632; std.ENUMS[9007192691030632]="sel_color";
-std.FIELDS[F_sel_color] = true;
-const F_selx_ptr=9007193212826961; std.ENUMS[9007193212826961]="selx_ptr";
-std.FIELDS[F_selx_ptr] = true;
-const F_mode_grid=9007193027891124; std.ENUMS[9007193027891124]="mode_grid";
-std.FIELDS[F_mode_grid] = true;
+const F_label_list=9007191676280395; std.ENUMS[9007191676280395]="label_list"; std.FIELDS[F_label_list]=!0;
+const R_a_hex_cell=9007192139196942; std.ENUMS[9007192139196942]="a_hex_cell";
+const F_netc=9007190269801736; std.ENUMS[9007190269801736]="netc"; std.FIELDS[F_netc]=!0;
+const F_choice_func=9007193838393466; std.ENUMS[9007193838393466]="choice_func"; std.FIELDS[F_choice_func]=!0;
+const FORMAT_C=9007193229773678; std.ENUMS[9007193229773678]="FORMAT_C";
+const F_prior_color=9007191861560316; std.ENUMS[9007191861560316]="prior_color"; std.FIELDS[F_prior_color]=!0;
+const F_selx_ptr=9007193212826961; std.ENUMS[9007193212826961]="selx_ptr"; std.FIELDS[F_selx_ptr]=!0;
+const R_a_state=9007192953576597; std.ENUMS[9007192953576597]="a_state";
+const F_mode_grid=9007193027891124; std.ENUMS[9007193027891124]="mode_grid"; std.FIELDS[F_mode_grid]=!0;
+const FORMAT_HSL=9007193571181364; std.ENUMS[9007193571181364]="FORMAT_HSL";
+const FORMAT_HTML=9007191751459116; std.ENUMS[9007191751459116]="FORMAT_HTML";
+const F_sizing=9007191915790290; std.ENUMS[9007191915790290]="sizing"; std.FIELDS[F_sizing]=!0;
+const F_hilite=9007193844704215; std.ENUMS[9007193844704215]="hilite"; std.FIELDS[F_hilite]=!0;
+const F_label_func=9007191941311145; std.ENUMS[9007191941311145]="label_func"; std.FIELDS[F_label_func]=!0;
 const R_a_tabset=9007191267514725; std.ENUMS[9007191267514725]="a_tabset";
+const F_clipboard_ss=9007190154157081; std.ENUMS[9007190154157081]="clipboard_ss"; std.FIELDS[F_clipboard_ss]=!0;
+const F_htmlchip_selx=9007190490148256; std.ENUMS[9007190490148256]="htmlchip_selx"; std.FIELDS[F_htmlchip_selx]=!0;
+const F_input_field=9007192745597275; std.ENUMS[9007192745597275]="input_field"; std.FIELDS[F_input_field]=!0;
+const F_prior2_color=9007192941679678; std.ENUMS[9007192941679678]="prior2_color"; std.FIELDS[F_prior2_color]=!0;
+const F_selx=9007192042983600; std.ENUMS[9007192042983600]="selx"; std.FIELDS[F_selx]=!0;
+const R_a_slot=9007193235264524; std.ENUMS[9007193235264524]="a_slot";
+const F_action=9007192789918218; std.ENUMS[9007192789918218]="action"; std.FIELDS[F_action]=!0;
+const F_key3=9007192047265844; std.ENUMS[9007192047265844]="key3"; std.FIELDS[F_key3]=!0;
+const F_is_open=9007191493292457; std.ENUMS[9007191493292457]="is_open"; std.FIELDS[F_is_open]=!0;
+const F_key1=9007192080821082; std.ENUMS[9007192080821082]="key1"; std.FIELDS[F_key1]=!0;
+const FORMAT_BEADS=9007193714185134; std.ENUMS[9007193714185134]="FORMAT_BEADS";
+const COMPACT_SIZE=9007192111913864; std.ENUMS[9007192111913864]="COMPACT_SIZE";
+const F_nrows=9007194105500079; std.ENUMS[9007194105500079]="nrows"; std.FIELDS[F_nrows]=!0;
+const F_val_list=9007192993813256; std.ENUMS[9007192993813256]="val_list"; std.FIELDS[F_val_list]=!0;
+const F_ferrari_selx=9007192062281798; std.ENUMS[9007192062281798]="ferrari_selx"; std.FIELDS[F_ferrari_selx]=!0;
+const FORMAT_HEX=9007193301062174; std.ENUMS[9007193301062174]="FORMAT_HEX";
+//[reflAAA]
+std.merge_lit(_M,0,std.META,"color_chart", std.F_mod_const, "AREA_THRESHOLD", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "A_WEB_COLOR", std.F_vv_typek, 1, VAL, std.TYPE_REGEXP
+, POP, POP, "BARV", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "BEEP", std.F_vv_typek, 1, VAL, std.TYPE_SOUND, POP, POP, "BUTT_HI_BACK", std.F_vv_typek, 1, VAL, std.TYPE_COLOR
+, POP, POP, "BUTT_HI_BORD", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "BUTT_HI_FILL", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "BUTT_HI_TEXT", std.F_vv_typek
+, 1, VAL, std.TYPE_COLOR, POP, POP, "BUTT_LO_BACK", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "BUTT_LO_BORD", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "BUTT_LO_TEXT"
+, std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "CHIPS_PER_RAMP", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "CHIPS_PER_ROW", std.F_vv_typek, 1, VAL, std.TYPE_NUM
+, POP, POP, "CLICK", std.F_vv_typek, 1, VAL, std.TYPE_SOUND, POP, POP, "C_CHOICE_BORD", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "C_CHOICE_HI_BACK", std.F_vv_typek
+, 1, VAL, std.TYPE_COLOR, POP, POP, "C_CHOICE_HI_TEXT", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "C_CHOICE_LO_BACK", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP
+, "C_CHOICE_LO_TEXT", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "C_DEAD", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "C_TEXT", std.F_vv_typek, 1, VAL, std.TYPE_COLOR
+, POP, POP, "DIMMED", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "FERRARI", std.F_vv_typek, 1, VAL, std.TYPE_ARRAY, 2, VAL, std.TYPE_COLOR, POP, POP, "FERR_NCOL", std.F_vv_typek
+, 1, VAL, std.TYPE_NUM, POP, POP, "FERR_NRAMPS", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "FERR_NROW", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "MODE_COLORS"
+, std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "MODE_GRADS", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "SET2", std.F_vv_typek, 1, VAL, std.TYPE_ARRAY, 2, VAL, std.TYPE_RECORD
+, 3, VAL, R_a_slot, POP, POP, "TAB_HI_BACK", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "TAB_HI_BORD", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "TAB_HI_TEXT"
+, std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "TAB_LO_BACK", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "TAB_LO_BORD", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP
+, POP, "TAB_LO_TEXT", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "TARG_WIDTH", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "TRACE_COLORS", std.F_vv_typek, 1, VAL, 
+std.TYPE_YESNO, POP, POP, "TRACE_ENTRY", std.F_vv_typek, 1, VAL, std.TYPE_YESNO, POP, POP, "TRACE_FUDGE", std.F_vv_typek, 1, VAL, std.TYPE_YESNO, POP, POP, "TRACE_PALETTE"
+, std.F_vv_typek, 1, VAL, std.TYPE_YESNO, POP, POP, "TRACE_SIZING", std.F_vv_typek, 1, VAL, std.TYPE_YESNO, POP, POP, "TRACE_TWEAK", std.F_vv_typek, 1, VAL, std.TYPE_YESNO
+, POP, POP, "hue_fudge", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, POP, std.F_mod_funcs, "beads_to_html", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk
+, VAL, std.PK_POS, std.F_vv_parmn, VAL, "beadsname", std.F_vv_typek, 1, VAL, std.TYPE_STR, POP, POP, POP, std.F_vv_typek, 1, VAL, std.TYPE_STR, POP, POP, "build_clipboard"
+, std.F_vv_funck, VAL, std.FK_CALC, POP, "calc_slot_str", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "slot"
+, std.F_vv_typek, 1, VAL, std.TYPE_RECORD, 2, VAL, R_a_slot, POP, POP, POP, std.F_vv_typek, 1, VAL, std.TYPE_STR, POP, POP, "choice_get_selx", std.F_vv_funck, VAL, std.FK_CALC
+, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "c", std.F_vv_typek, 1, VAL, std.TYPE_RECORD, 2, VAL, R_a_choice_set, POP, POP, POP, std.F_vv_typek
+, 1, VAL, std.TYPE_NUM, POP, POP, "choice_set_selx", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "c", std.F_vv_typek
+, 1, VAL, std.TYPE_RECORD, 2, VAL, R_a_choice_set, POP, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "newval", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP
+, POP, POP, "color_difference", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "c1", std.F_vv_typek, 1, VAL, std.TYPE_COLOR
+, POP, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "c2", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, POP, std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP
+, POP, "color_difference2", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "c1", std.F_vv_typek, 1, VAL, std.TYPE_COLOR
+, POP, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "c2", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, POP, std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP
+, POP, "compare_slots", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "a", std.F_vv_typek, 1, VAL, std.TYPE_RECORD
+, 2, VAL, R_a_slot, POP, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "b", std.F_vv_typek, 1, VAL, std.TYPE_RECORD, 2, VAL, R_a_slot, POP, POP, POP, std.F_vv_typek
+, 1, VAL, std.TYPE_NUM, POP, POP, "d_bottom_bar", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_bottom_col2", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_cell", std.F_vv_funck, VAL, 
+std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "myslot", std.F_vv_typek, 1, VAL, std.TYPE_RECORD, 2, VAL, R_a_slot, POP, POP, 2, std.F_vv_parmk
+, VAL, std.PK_POS, std.F_vv_parmn, VAL, "slotx", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, POP, POP, "d_chip_color", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms
+, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "myslot", std.F_vv_typek, 1, VAL, std.TYPE_RECORD, 2, VAL, R_a_slot, POP, POP, 2, std.F_vv_parmk, VAL, std.PK_POS
+, std.F_vv_parmn, VAL, "slotx", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, POP, POP, "d_choice", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, 
+std.PK_POS, std.F_vv_parmn, VAL, "formx", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "long_label", std.F_vv_typek
+, 1, VAL, std.TYPE_STR, POP, POP, 3, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "short_label", std.F_vv_typek, 1, VAL, std.TYPE_STR, POP, POP, POP, POP, "d_color_format"
+, std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_color_name", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "myslot"
+, std.F_vv_typek, 1, VAL, std.TYPE_RECORD, 2, VAL, R_a_slot, POP, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "slotx", std.F_vv_typek, 1, VAL, std.TYPE_NUM
+, POP, POP, POP, POP, "d_ferrari_grid", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_ferrari_palette", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_grad_designer", std.F_vv_funck
+, VAL, std.FK_DRAW, POP, "d_html_palette", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_input_box", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_made_with", std.F_vv_funck, VAL, 
+std.FK_DRAW, POP, "d_nearby", std.F_vv_funck, VAL, std.FK_DRAW, POP, "d_recent", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn
+, VAL, "label", std.F_vv_typek, 1, VAL, std.TYPE_STR, POP, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "clr", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP
+, POP, POP, POP, "d_recent_814", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "label", std.F_vv_typek, 1, VAL, 
+std.TYPE_STR, POP, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "clr", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, POP, POP, "d_recent_817", std.F_vv_funck
+, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "label", std.F_vv_typek, 1, VAL, std.TYPE_STR, POP, POP, 2, std.F_vv_parmk, VAL, 
+std.PK_POS, std.F_vv_parmn, VAL, "clr", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, POP, POP, "draw_choice_grid", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1
+, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "o", std.F_vv_typek, 1, VAL, std.TYPE_RECORD, 2, VAL, R_a_choice_set, POP, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, 
+std.F_vv_parmn, VAL, "textsize", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, POP, POP, "draw_hexagon", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk
+, VAL, std.PK_POS, std.F_vv_parmn, VAL, "col", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "row", std.F_vv_typek
+, 1, VAL, std.TYPE_NUM, POP, POP, 3, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "cx", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, 4, std.F_vv_parmk, VAL, std.PK_POS
+, std.F_vv_parmn, VAL, "cy", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, 5, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "r", std.F_vv_typek, 1, VAL, std.TYPE_NUM
+, POP, POP, 6, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "clr", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, POP, POP, "draw_tabs", std.F_vv_funck, VAL, std.FK_DRAW
+, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "tabs", std.F_vv_typek, 1, VAL, std.TYPE_RECORD, 2, VAL, R_a_tabset, POP, POP, 2, std.F_vv_parmk
+, VAL, std.PK_POS, std.F_vv_parmn, VAL, "deadspace|out of 100 aliquots, how much to devote to dead space on each side", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, POP
+, POP, "draw_tabs2", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "tabs", std.F_vv_typek, 1, VAL, std.TYPE_RECORD
+, 2, VAL, R_a_tabset, POP, POP, 2, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "ix", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, POP, POP, "ferr_closest_chip"
+, std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "targcolor", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, POP
+, std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "ferr_first_ramp", std.F_vv_funck, VAL, std.FK_DRAW, POP, "ferr_first_ramp_1250", std.F_vv_funck, VAL, std.FK_DRAW, POP, 
+"ferr_first_ramp_1252", std.F_vv_funck, VAL, std.FK_DRAW, POP, "ferr_hilite_chip", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn
+, VAL, "box", std.F_vv_typek, 1, VAL, std.TYPE_RECORD, 2, VAL, std.R_a_rect, 3, VAL, "std", POP, POP, POP, POP, "ferr_ramp", std.F_vv_funck, VAL, std.FK_DRAW, std.F_vv_parms
+, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "rampx", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, POP, POP, "ferr_ramp_chip", std.F_vv_funck, VAL, std.FK_DRAW
+, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "colorx", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, POP, POP, "find_closest_ferrari", std.F_vv_funck
+, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "targ", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, POP, std.F_vv_typek, 
+1, VAL, std.TYPE_NUM, POP, POP, "find_exact_beads", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "targ", std.F_vv_typek
+, 1, VAL, std.TYPE_COLOR, POP, POP, POP, std.F_vv_typek, 1, VAL, std.TYPE_STR, POP, POP, "main_draw", std.F_vv_funck, VAL, std.FK_DRAW, POP, "main_init", std.F_vv_funck, VAL, 
+std.FK_CALC, POP, "select_new_color", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "newcolor", std.F_vv_typek
+, 1, VAL, std.TYPE_COLOR, POP, POP, POP, POP, "to_hsl_str", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "color"
+, std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, POP, std.F_vv_typek, 1, VAL, std.TYPE_STR, POP, POP, "to_rgb_str", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, 
+std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "color", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, POP, std.F_vv_typek, 1, VAL, std.TYPE_STR, POP, POP, "tweak_color"
+, std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "base", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, 2, std.F_vv_parmk
+, VAL, std.PK_POS, std.F_vv_parmn, VAL, "theta", std.F_vv_typek, 1, VAL, std.TYPE_MEAS, POP, POP, 3, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "dx", std.F_vv_typek
+, 1, VAL, std.TYPE_NUM, POP, POP, 4, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "dy", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, POP, std.F_vv_typek, 1, VAL, 
+std.TYPE_COLOR, POP, POP, "validate_input", std.F_vv_funck, VAL, std.FK_CALC, std.F_vv_parms, 1, std.F_vv_parmk, VAL, std.PK_POS, std.F_vv_parmn, VAL, "field", std.F_vv_typek
+, 1, VAL, std.TYPE_RECORD, 2, VAL, std.R_a_input_field, 3, VAL, "std", POP, POP, POP, std.F_vv_typek, 1, VAL, std.TYPE_YESNO, POP, POP, POP, std.F_mod_recs, R_a_choice_set
+, F_choice_func, 1, VAL, std.TYPE_FUNC, POP, F_enabled, 1, VAL, std.TYPE_YESNO, POP, F_is_open, 1, VAL, std.TYPE_YESNO, POP, F_label_func, 1, VAL, std.TYPE_ARRAY, 2, VAL, 
+std.TYPE_FUNC, POP, F_label_list, 1, VAL, std.TYPE_ARRAY, 2, VAL, std.TYPE_STR, POP, F_nrows, 1, VAL, std.TYPE_NUM, POP, F_selx_ptr, 1, VAL, std.TYPE_PTR, 2, VAL, std.TYPE_NUM
+, POP, F_selx, 1, VAL, std.TYPE_NUM, POP, F_val_list, 1, VAL, std.TYPE_ARRAY, 2, VAL, std.TYPE_NUM, POP, POP, R_a_hex_cell, F_netc, 1, VAL, std.TYPE_COLOR, POP, std.F_x, 1
+, VAL, std.TYPE_NUM, POP, std.F_y, 1, VAL, std.TYPE_NUM, POP, POP, R_a_slot, F_color, 1, VAL, std.TYPE_COLOR, POP, F_hilite, 1, VAL, std.TYPE_YESNO, POP, F_key1, 1, VAL, std.TYPE_NUM
+, POP, F_key2, 1, VAL, std.TYPE_NUM, POP, F_key3, 1, VAL, std.TYPE_NUM, POP, F_name, 1, VAL, std.TYPE_STR, POP, POP, R_a_state, F_clipboard_ss, 1, VAL, std.TYPE_STR, POP, 
+F_ferrari_selx, 1, VAL, std.TYPE_NUM, POP, F_format, 1, VAL, std.TYPE_NUM, POP, F_htmlchip_selx, 1, VAL, std.TYPE_NUM, POP, F_input_field, 1, VAL, std.TYPE_RECORD, 2, VAL, 
+std.R_a_input_field, 3, VAL, "std", POP, F_mode_grid, 1, VAL, std.TYPE_RECORD, 2, VAL, R_a_choice_set, POP, F_prior2_color, 1, VAL, std.TYPE_COLOR, POP, F_prior_color, 1, VAL, 
+std.TYPE_COLOR, POP, F_sel_color, 1, VAL, std.TYPE_COLOR, POP, F_sizing, 1, VAL, std.TYPE_NUM, POP, POP, R_a_tabset, F_action, 1, VAL, std.TYPE_FUNC, POP, F_label_list, 1, VAL, 
+std.TYPE_ARRAY, 2, VAL, std.TYPE_STR, POP, F_selx, 1, VAL, std.TYPE_NUM, POP, POP, POP, std.F_mod_vars, "GRID_NCOLS", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "GRID_NPARTS"
+, std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "GRID_NROWS", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "HEX_CENTER", std.F_vv_typek, 1, VAL, std.TYPE_RECORD, 2, VAL, 
+std.R_a_xy, 3, VAL, "std", POP, POP, "HEX_H", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "HEX_HALF_H", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "NCELLS", std.F_vv_typek
+, 1, VAL, std.TYPE_NUM, POP, POP, "NCOLS", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "NROWS", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "ROW_SPACING", std.F_vv_typek
+, 1, VAL, std.TYPE_NUM, POP, POP, "SET1", std.F_vv_typek, 1, VAL, std.TYPE_ARRAY, 2, VAL, std.TYPE_RECORD, 3, VAL, R_a_slot, POP, POP, "chip_h", std.F_vv_typek, 1, VAL, std.TYPE_NUM
+, POP, POP, "g", std.F_vv_typek, 1, VAL, std.TYPE_RECORD, 2, VAL, R_a_state, POP, POP, "slotlist", std.F_vv_typek, 1, VAL, std.TYPE_ARRAY, 2, VAL, std.TYPE_PTR, 3, VAL, std.TYPE_RECORD
+, 4, VAL, R_a_slot, POP, POP, "tweak_map", std.F_vv_typek, 1, VAL, std.TYPE_ARRAY, 2, VAL, std.TYPE_RECORD, 3, VAL, R_a_hex_cell);
+function $eval(p) { return eval(p) }
+std.setv(_M,0,std.META,"color_chart",std.F_mod_eval,$eval);
+//[reflZZZ]
 //-------  func const for color_chart
-const main_draw_F = new std.a_function(_M, "main_draw", main_draw, track_main_draw);
-std.FUNCS[main_draw_F.hash]=main_draw_F;
-const draw_choice_grid_F = new std.a_function(_M, "draw_choice_grid", draw_choice_grid, track_draw_choice_grid);
-std.FUNCS[draw_choice_grid_F.hash]=draw_choice_grid_F;
-const d_ferrari_palette_F = new std.a_function(_M, "d_ferrari_palette", d_ferrari_palette);
-std.FUNCS[d_ferrari_palette_F.hash]=d_ferrari_palette_F;
-const ferr_first_ramp_902_F = new std.a_function(_M, "ferr_first_ramp_902", ferr_first_ramp_902);
-std.FUNCS[ferr_first_ramp_902_F.hash]=ferr_first_ramp_902_F;
-const d_made_with_F = new std.a_function(_M, "d_made_with", d_made_with, track_d_made_with);
-std.FUNCS[d_made_with_F.hash]=d_made_with_F;
-const ferr_first_ramp_904_F = new std.a_function(_M, "ferr_first_ramp_904", ferr_first_ramp_904);
-std.FUNCS[ferr_first_ramp_904_F.hash]=ferr_first_ramp_904_F;
-const d_modebar_F = new std.a_function(_M, "d_modebar", d_modebar);
-std.FUNCS[d_modebar_F.hash]=d_modebar_F;
-const draw_tabs2_F = new std.a_function(_M, "draw_tabs2", draw_tabs2, track_draw_tabs2);
-std.FUNCS[draw_tabs2_F.hash]=draw_tabs2_F;
-const d_ferrari_grid_F = new std.a_function(_M, "d_ferrari_grid", d_ferrari_grid);
-std.FUNCS[d_ferrari_grid_F.hash]=d_ferrari_grid_F;
-const d_sample_872_F = new std.a_function(_M, "d_sample_872", d_sample_872);
-std.FUNCS[d_sample_872_F.hash]=d_sample_872_F;
-const d_color_name_F = new std.a_function(_M, "d_color_name", d_color_name);
-std.FUNCS[d_color_name_F.hash]=d_color_name_F;
-const d_grad_designer_F = new std.a_function(_M, "d_grad_designer", d_grad_designer);
-std.FUNCS[d_grad_designer_F.hash]=d_grad_designer_F;
 const ferr_first_ramp_F = new std.a_function(_M, "ferr_first_ramp", ferr_first_ramp);
 std.FUNCS[ferr_first_ramp_F.hash]=ferr_first_ramp_F;
-const d_sample_F = new std.a_function(_M, "d_sample", d_sample);
-std.FUNCS[d_sample_F.hash]=d_sample_F;
-const d_sample_861_F = new std.a_function(_M, "d_sample_861", d_sample_861);
-std.FUNCS[d_sample_861_F.hash]=d_sample_861_F;
-const d_chip_color_F = new std.a_function(_M, "d_chip_color", d_chip_color);
-std.FUNCS[d_chip_color_F.hash]=d_chip_color_F;
-const d_html_palette_F = new std.a_function(_M, "d_html_palette", d_html_palette, track_d_html_palette);
-std.FUNCS[d_html_palette_F.hash]=d_html_palette_F;
-const d_prompt_F = new std.a_function(_M, "d_prompt", d_prompt);
-std.FUNCS[d_prompt_F.hash]=d_prompt_F;
-const d_sample_863_F = new std.a_function(_M, "d_sample_863", d_sample_863);
-std.FUNCS[d_sample_863_F.hash]=d_sample_863_F;
+const d_nearby_F = new std.a_function(_M, "d_nearby", d_nearby, track_d_nearby);
+std.FUNCS[d_nearby_F.hash]=d_nearby_F;
+const d_bottom_bar_F = new std.a_function(_M, "d_bottom_bar", d_bottom_bar);
+std.FUNCS[d_bottom_bar_F.hash]=d_bottom_bar_F;
+const d_ferrari_palette_F = new std.a_function(_M, "d_ferrari_palette", d_ferrari_palette);
+std.FUNCS[d_ferrari_palette_F.hash]=d_ferrari_palette_F;
+const d_recent_817_F = new std.a_function(_M, "d_recent_817", d_recent_817);
+std.FUNCS[d_recent_817_F.hash]=d_recent_817_F;
 const d_choice_F = new std.a_function(_M, "d_choice", d_choice, track_d_choice);
 std.FUNCS[d_choice_F.hash]=d_choice_F;
-const d_modebar_513_F = new std.a_function(_M, "d_modebar_513", d_modebar_513);
-std.FUNCS[d_modebar_513_F.hash]=d_modebar_513_F;
+const d_recent_814_F = new std.a_function(_M, "d_recent_814", d_recent_814);
+std.FUNCS[d_recent_814_F.hash]=d_recent_814_F;
 const ferr_ramp_chip_F = new std.a_function(_M, "ferr_ramp_chip", ferr_ramp_chip, track_ferr_ramp_chip);
 std.FUNCS[ferr_ramp_chip_F.hash]=ferr_ramp_chip_F;
-const d_color_fmt_sel_F = new std.a_function(_M, "d_color_fmt_sel", d_color_fmt_sel);
-std.FUNCS[d_color_fmt_sel_F.hash]=d_color_fmt_sel_F;
-const d_sample_874_F = new std.a_function(_M, "d_sample_874", d_sample_874);
-std.FUNCS[d_sample_874_F.hash]=d_sample_874_F;
+const main_draw_F = new std.a_function(_M, "main_draw", main_draw, track_main_draw);
+std.FUNCS[main_draw_F.hash]=main_draw_F;
+const d_recent_F = new std.a_function(_M, "d_recent", d_recent, track_d_recent);
+std.FUNCS[d_recent_F.hash]=d_recent_F;
+const ferr_first_ramp_1250_F = new std.a_function(_M, "ferr_first_ramp_1250", ferr_first_ramp_1250);
+std.FUNCS[ferr_first_ramp_1250_F.hash]=ferr_first_ramp_1250_F;
+const d_color_name_F = new std.a_function(_M, "d_color_name", d_color_name);
+std.FUNCS[d_color_name_F.hash]=d_color_name_F;
+const d_html_palette_F = new std.a_function(_M, "d_html_palette", d_html_palette, track_d_html_palette);
+std.FUNCS[d_html_palette_F.hash]=d_html_palette_F;
+const validate_input_F = new std.a_function(_M, "validate_input", validate_input);
+std.FUNCS[validate_input_F.hash]=validate_input_F;
+const d_ferrari_grid_F = new std.a_function(_M, "d_ferrari_grid", d_ferrari_grid);
+std.FUNCS[d_ferrari_grid_F.hash]=d_ferrari_grid_F;
+const draw_tabs2_F = new std.a_function(_M, "draw_tabs2", draw_tabs2, track_draw_tabs2);
+std.FUNCS[draw_tabs2_F.hash]=draw_tabs2_F;
+const ferr_first_ramp_1252_F = new std.a_function(_M, "ferr_first_ramp_1252", ferr_first_ramp_1252);
+std.FUNCS[ferr_first_ramp_1252_F.hash]=ferr_first_ramp_1252_F;
+const d_input_box_F = new std.a_function(_M, "d_input_box", d_input_box);
+std.FUNCS[d_input_box_F.hash]=d_input_box_F;
+const d_color_format_F = new std.a_function(_M, "d_color_format", d_color_format);
+std.FUNCS[d_color_format_F.hash]=d_color_format_F;
+const d_grad_designer_F = new std.a_function(_M, "d_grad_designer", d_grad_designer);
+std.FUNCS[d_grad_designer_F.hash]=d_grad_designer_F;
+const build_clipboard_F = new std.a_function(_M, "build_clipboard", build_clipboard);
+std.FUNCS[build_clipboard_F.hash]=build_clipboard_F;
+const d_chip_color_F = new std.a_function(_M, "d_chip_color", d_chip_color);
+std.FUNCS[d_chip_color_F.hash]=d_chip_color_F;
+const draw_choice_grid_F = new std.a_function(_M, "draw_choice_grid", draw_choice_grid, track_draw_choice_grid);
+std.FUNCS[draw_choice_grid_F.hash]=draw_choice_grid_F;
+const d_bottom_col2_F = new std.a_function(_M, "d_bottom_col2", d_bottom_col2);
+std.FUNCS[d_bottom_col2_F.hash]=d_bottom_col2_F;
+const d_made_with_F = new std.a_function(_M, "d_made_with", d_made_with, track_d_made_with);
+std.FUNCS[d_made_with_F.hash]=d_made_with_F;
 //-------  top nodes
 const CLICK = new std.a_sound("./art/click.mp3");
 const BEEP = new std.a_sound("./art/beep.mp3");
@@ -154,7 +232,9 @@ const TRACE_COLORS = N;
 const TRACE_FUDGE = N;
 const TRACE_SIZING = N;
 const TRACE_PALETTE = N;
-const SET2 = new std.a_tree(_M,"SET2", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 167, 1, F_name, VAL, "GRAY1", F_color, VAL, std.GRAY1, POP, 2, F_name, VAL, "GRAY2", 
+const TRACE_ENTRY = N;
+const TRACE_TWEAK = N;
+const SET2 = new std.a_tree(_M,"SET2", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 168, 1, F_name, VAL, "GRAY1", F_color, VAL, std.GRAY1, POP, 2, F_name, VAL, "GRAY2", 
 F_color, VAL, std.GRAY2, POP, 3, F_name, VAL, "GRAY3", F_color, VAL, std.GRAY3, POP, 4, F_name, VAL, "GRAY4", F_color, VAL, std.GRAY4, POP, 5, F_name, VAL, "GRAY5", F_color
 , VAL, std.GRAY5, POP, 6, F_name, VAL, "GRAY6", F_color, VAL, std.GRAY6, POP, 7, F_name, VAL, "GRAY7", F_color, VAL, std.GRAY7, POP, 8, F_name, VAL, "GRAY8", F_color, VAL, 
 std.GRAY8, POP, 9, F_name, VAL, "GRAY9", F_color, VAL, std.GRAY9, POP, 10, F_name, VAL, "BLACK", F_color, VAL, std.BLACK, POP, 11, F_name, VAL, "WHITE", F_color, VAL, std.WHITE
@@ -162,14 +242,16 @@ std.GRAY8, POP, 9, F_name, VAL, "GRAY9", F_color, VAL, std.GRAY9, POP, 10, F_nam
 const hue_fudge = 150;
 const AREA_THRESHOLD = 140000;
 const TARG_WIDTH = 100;
+const BARV = 150;
 const C_DEAD = std.DARK_SLATE_GRAY;
 const C_TEXT = std.SNOW;
 const MODE_COLORS = 1;
 const MODE_GRADS = 2;
 const DIMMED = 0.3;
 const C_CHOICE_HI_BACK = std.TOMATO;
-const C_CHOICE_LO_BACK = std.LAVENDER_BLUSH;
-const C_CHOICE_TEXT = std.BLACK;
+const C_CHOICE_HI_TEXT = std.BLACK;
+const C_CHOICE_LO_BACK = 0x244022;
+const C_CHOICE_LO_TEXT = std.LINEN;
 const C_CHOICE_BORD = std.GRAY5;
 const TAB_LO_BACK = 0x7F6B6B;
 const TAB_LO_BORD = 0x54056;
@@ -184,7 +266,8 @@ const BUTT_HI_BACK = TAB_HI_BACK;
 const BUTT_HI_BORD = TAB_HI_BORD;
 const BUTT_HI_TEXT = TAB_HI_TEXT;
 const BUTT_HI_FILL = 0x8AC8DC;
-const FERRARI = new std.a_tree(_M,"FERRARI", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 693, 1, VAL, 0x0, 2, VAL, 0xFFFFFF, 3, VAL, 0x290000, 4, VAL, 0x330000, 5, VAL, 
+const A_WEB_COLOR = /^#?[0-9a-fA-F]{6}$/g;
+const FERRARI = new std.a_tree(_M,"FERRARI", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 1066, 1, VAL, 0x0, 2, VAL, 0xFFFFFF, 3, VAL, 0x290000, 4, VAL, 0x330000, 5, VAL, 
 0x420000, 6, VAL, 0x560000, 7, VAL, 0x6F0001, 8, VAL, 0x8B0001, 9, VAL, 0xA70001, 10, VAL, 0xC10100, 11, VAL, 0xDB0101, 12, VAL, 0xEF0101, 13, VAL, 0xFE0101, 14, VAL, 0xFE1111
 , 15, VAL, 0xFF2626, 16, VAL, 0xFE403F, 17, VAL, 0xFE5C5C, 18, VAL, 0xFF7A7A, 19, VAL, 0xFE9999, 20, VAL, 0xFFB6B5, 21, VAL, 0xFFCFCF, 22, VAL, 0xFFE5E4, 23, VAL, 0xFFF4F4
 , 24, VAL, 0x330F00, 25, VAL, 0x401300, 26, VAL, 0x521800, 27, VAL, 0x671E01, 28, VAL, 0x802600, 29, VAL, 0x992D00, 30, VAL, 0xB23400, 31, VAL, 0xC93B01, 32, VAL, 0xDF4101
@@ -290,7 +373,7 @@ const FERR_NRAMPS = 42;
 const CHIPS_PER_RAMP = 21;
 const CHIPS_PER_ROW = std.mul(FERR_NCOL, CHIPS_PER_RAMP);
 
-let SET1 = new std.a_tree(_M,"SET1", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED, std.tree_lit(_M, 27, 1, F_name, VAL, "ALICE_BLUE", F_color, VAL, std.ALICE_BLUE, POP, 2
+let SET1 = new std.a_tree(_M,"SET1", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED, std.tree_lit(_M, 28, 1, F_name, VAL, "ALICE_BLUE", F_color, VAL, std.ALICE_BLUE, POP, 2
 , F_name, VAL, "ANTIQUE_WHITE", F_color, VAL, std.ANTIQUE_WHITE, POP, 3, F_name, VAL, "AQUA", F_color, VAL, std.AQUA, POP, 4, F_name, VAL, "AQUAMARINE", F_color, VAL, std.AQUAMARINE
 , POP, 5, F_name, VAL, "AZURE", F_color, VAL, std.AZURE, POP, 6, F_name, VAL, "BEIGE", F_color, VAL, std.BEIGE, POP, 7, F_name, VAL, "BISQUE", F_color, VAL, std.BISQUE, POP
 , 8, F_name, VAL, "BLANCHED_ALMOND", F_color, VAL, std.BLANCHED_ALMOND, POP, 9, F_name, VAL, "BLUE", F_color, VAL, std.BLUE, POP, 10, F_name, VAL, "BLUE_VIOLET", F_color, 
@@ -307,52 +390,97 @@ VAL, std.DARK_BLUE, POP, 22, F_name, VAL, "DARK_CYAN", F_color, VAL, std.DARK_CY
 , POP, 37, F_name, VAL, "DARK_VIOLET", F_color, VAL, std.DARK_VIOLET, POP, 38, F_name, VAL, "DEEP_PINK", F_color, VAL, std.DEEP_PINK, POP, 39, F_name, VAL, "DEEP_SKY_BLUE"
 , F_color, VAL, std.DEEP_SKY_BLUE, POP, 40, F_name, VAL, "DIM_GRAY", F_color, VAL, std.DIM_GRAY, POP, 41, F_name, VAL, "DODGER_BLUE", F_color, VAL, std.DODGER_BLUE, POP, 42
 , F_name, VAL, "FIREBRICK", F_color, VAL, std.FIREBRICK, POP, 43, F_name, VAL, "FLORAL_WHITE", F_color, VAL, std.FLORAL_WHITE, POP, 44, F_name, VAL, "FOREST_GREEN", F_color
-, VAL, std.FOREST_GREEN, POP, 45, F_name, VAL, "FUCHSIA", F_color, VAL, std.FUCHSIA, POP, 46, F_name, VAL, "GAINSBORO", F_color, VAL, std.GAINSBORO, POP, 47, F_name, VAL, 
-"GHOST_WHITE", F_color, VAL, std.GHOST_WHITE, POP, 48, F_name, VAL, "GOLD", F_color, VAL, std.GOLD, POP, 49, F_name, VAL, "GOLDENROD", F_color, VAL, std.GOLDENROD, POP, 50
-, F_name, VAL, "GRAY", F_color, VAL, std.GRAY, POP, 51, F_name, VAL, "GREEN", F_color, VAL, std.GREEN, POP, 52, F_name, VAL, "GREEN_YELLOW", F_color, VAL, std.GREEN_YELLOW
-, POP, 53, F_name, VAL, "HONEYDEW", F_color, VAL, std.HONEYDEW, POP, 54, F_name, VAL, "HOT_PINK", F_color, VAL, std.HOT_PINK, POP, 55, F_name, VAL, "INDIAN_RED", F_color, 
-VAL, std.INDIAN_RED, POP, 56, F_name, VAL, "INDIGO", F_color, VAL, std.INDIGO, POP, 57, F_name, VAL, "IVORY", F_color, VAL, std.IVORY, POP, 58, F_name, VAL, "KHAKI", F_color
-, VAL, std.KHAKI, POP, 59, F_name, VAL, "LAVENDER", F_color, VAL, std.LAVENDER, POP, 60, F_name, VAL, "LAVENDER_BLUSH", F_color, VAL, std.LAVENDER_BLUSH, POP, 61, F_name, 
-VAL, "LAWN_GREEN", F_color, VAL, std.LAWN_GREEN, POP, 62, F_name, VAL, "LEMON_CHIFFON", F_color, VAL, std.LEMON_CHIFFON, POP, 63, F_name, VAL, "LIGHT_BLUE", F_color, VAL, 
-std.LIGHT_BLUE, POP, 64, F_name, VAL, "LIGHT_CORAL", F_color, VAL, std.LIGHT_CORAL, POP, 65, F_name, VAL, "LIGHT_CYAN", F_color, VAL, std.LIGHT_CYAN, POP, 66, F_name, VAL, 
-"LIGHT_GOLDENROD", F_color, VAL, std.LIGHT_GOLDENROD, POP, 67, F_name, VAL, "LIGHT_GREEN", F_color, VAL, std.LIGHT_GREEN, POP, 68, F_name, VAL, "LIGHT_GREY", F_color, VAL, 
-std.LIGHT_GREY, POP, 69, F_name, VAL, "LIGHT_PINK", F_color, VAL, std.LIGHT_PINK, POP, 70, F_name, VAL, "LIGHT_SALMON", F_color, VAL, std.LIGHT_SALMON, POP, 71, F_name, VAL
-, "LIGHT_SEA_GREEN", F_color, VAL, std.LIGHT_SEA_GREEN, POP, 72, F_name, VAL, "LIGHT_SKY_BLUE", F_color, VAL, std.LIGHT_SKY_BLUE, POP, 73, F_name, VAL, "LIGHT_SLATE_GRAY", 
-F_color, VAL, std.LIGHT_SLATE_GRAY, POP, 74, F_name, VAL, "LIGHT_STEEL_BLUE", F_color, VAL, std.LIGHT_STEEL_BLUE, POP, 75, F_name, VAL, "LIGHT_YELLOW", F_color, VAL, std.LIGHT_YELLOW
-, POP, 76, F_name, VAL, "LIME", F_color, VAL, std.LIME, POP, 77, F_name, VAL, "LIME_GREEN", F_color, VAL, std.LIME_GREEN, POP, 78, F_name, VAL, "LINEN", F_color, VAL, std.LINEN
-, POP, 79, F_name, VAL, "MAGENTA", F_color, VAL, std.MAGENTA, POP, 80, F_name, VAL, "MAROON", F_color, VAL, std.MAROON, POP, 81, F_name, VAL, "MEDIUM_AQUAMARINE", F_color, 
-VAL, std.MEDIUM_AQUAMARINE, POP, 82, F_name, VAL, "MEDIUM_BLUE", F_color, VAL, std.MEDIUM_BLUE, POP, 83, F_name, VAL, "MEDIUM_ORCHID", F_color, VAL, std.MEDIUM_ORCHID, POP
-, 84, F_name, VAL, "MEDIUM_PURPLE", F_color, VAL, std.MEDIUM_PURPLE, POP, 85, F_name, VAL, "MEDIUM_SEA_GREEN", F_color, VAL, std.MEDIUM_SEA_GREEN, POP, 86, F_name, VAL, "MEDIUM_SLATE_BLUE"
-, F_color, VAL, std.MEDIUM_SLATE_BLUE, POP, 87, F_name, VAL, "MEDIUM_SPRING_GREEN", F_color, VAL, std.MEDIUM_SPRING_GREEN, POP, 88, F_name, VAL, "MEDIUM_TURQUOISE", F_color
-, VAL, std.MEDIUM_TURQUOISE, POP, 89, F_name, VAL, "MEDIUM_VIOLET_RED", F_color, VAL, std.MEDIUM_VIOLET_RED, POP, 90, F_name, VAL, "MIDNIGHT_BLUE", F_color, VAL, std.MIDNIGHT_BLUE
-, POP, 91, F_name, VAL, "MINT_CREAM", F_color, VAL, std.MINT_CREAM, POP, 92, F_name, VAL, "MISTY_ROSE", F_color, VAL, std.MISTY_ROSE, POP, 93, F_name, VAL, "MOCCASIN", F_color
-, VAL, std.MOCCASIN, POP, 94, F_name, VAL, "NAVAJO_WHITE", F_color, VAL, std.NAVAJO_WHITE, POP, 95, F_name, VAL, "NAVY", F_color, VAL, std.NAVY, POP, 96, F_name, VAL, "OLD_LACE"
-, F_color, VAL, std.OLD_LACE, POP, 97, F_name, VAL, "OLIVE", F_color, VAL, std.OLIVE, POP, 98, F_name, VAL, "OLIVE_DRAB", F_color, VAL, std.OLIVE_DRAB, POP, 99, F_name, VAL
-, "ORANGE", F_color, VAL, std.ORANGE, POP, 100, F_name, VAL, "ORANGE_RED", F_color, VAL, std.ORANGE_RED, POP, 101, F_name, VAL, "ORCHID", F_color, VAL, std.ORCHID, POP, 102
-, F_name, VAL, "PALE_GOLDENROD", F_color, VAL, std.PALE_GOLDENROD, POP, 103, F_name, VAL, "PALE_GREEN", F_color, VAL, std.PALE_GREEN, POP, 104, F_name, VAL, "PALE_TURQUOISE"
-, F_color, VAL, std.PALE_TURQUOISE, POP, 105, F_name, VAL, "PALE_VIOLET_RED", F_color, VAL, std.PALE_VIOLET_RED, POP, 106, F_name, VAL, "PAPAYA_WHIP", F_color, VAL, std.PAPAYA_WHIP
-, POP, 107, F_name, VAL, "PEACH_PUFF", F_color, VAL, std.PEACH_PUFF, POP, 108, F_name, VAL, "PERU", F_color, VAL, std.PERU, POP, 109, F_name, VAL, "PINK", F_color, VAL, std.PINK
-, POP, 110, F_name, VAL, "PLUM", F_color, VAL, std.PLUM, POP, 111, F_name, VAL, "POWDER_BLUE", F_color, VAL, std.POWDER_BLUE, POP, 112, F_name, VAL, "PURPLE", F_color, VAL
-, std.PURPLE, POP, 113, F_name, VAL, "REBECCA_PURPLE", F_color, VAL, std.REBECCA_PURPLE, POP, 114, F_name, VAL, "RED", F_color, VAL, std.RED, POP, 115, F_name, VAL, "ROSY_BROWN"
-, F_color, VAL, std.ROSY_BROWN, POP, 116, F_name, VAL, "ROYAL_BLUE", F_color, VAL, std.ROYAL_BLUE, POP, 117, F_name, VAL, "SADDLE_BROWN", F_color, VAL, std.SADDLE_BROWN, POP
-, 118, F_name, VAL, "SALMON", F_color, VAL, std.SALMON, POP, 119, F_name, VAL, "SANDY_BROWN", F_color, VAL, std.SANDY_BROWN, POP, 120, F_name, VAL, "SEA_GREEN", F_color, VAL
-, std.SEA_GREEN, POP, 121, F_name, VAL, "SEASHELL", F_color, VAL, std.SEASHELL, POP, 122, F_name, VAL, "SIENNA", F_color, VAL, std.SIENNA, POP, 123, F_name, VAL, "SILVER", 
-F_color, VAL, std.SILVER, POP, 124, F_name, VAL, "SKY_BLUE", F_color, VAL, std.SKY_BLUE, POP, 125, F_name, VAL, "SLATE_BLUE", F_color, VAL, std.SLATE_BLUE, POP, 126, F_name
-, VAL, "SLATE_GRAY", F_color, VAL, std.SLATE_GRAY, POP, 127, F_name, VAL, "SNOW", F_color, VAL, std.SNOW, POP, 128, F_name, VAL, "SPRING_GREEN", F_color, VAL, std.SPRING_GREEN
-, POP, 129, F_name, VAL, "STEEL_BLUE", F_color, VAL, std.STEEL_BLUE, POP, 130, F_name, VAL, "TAN", F_color, VAL, std.TAN, POP, 131, F_name, VAL, "TEAL", F_color, VAL, std.TEAL
-, POP, 132, F_name, VAL, "THISTLE", F_color, VAL, std.THISTLE, POP, 133, F_name, VAL, "TOMATO", F_color, VAL, std.TOMATO, POP, 134, F_name, VAL, "TURQUOISE", F_color, VAL, 
-std.TURQUOISE, POP, 135, F_name, VAL, "VIOLET", F_color, VAL, std.VIOLET, POP, 136, F_name, VAL, "WHEAT", F_color, VAL, std.WHEAT, POP, 137, F_name, VAL, "WHITE_SMOKE", F_color
-, VAL, std.WHITE_SMOKE, POP, 138, F_name, VAL, "YELLOW", F_color, VAL, std.YELLOW, POP, 139, F_name, VAL, "YELLOW_GREEN", F_color, VAL, std.YELLOW_GREEN, POP));
+, VAL, std.FOREST_GREEN, POP, 45, F_name, VAL, "GAINSBORO", F_color, VAL, std.GAINSBORO, POP, 46, F_name, VAL, "GHOST_WHITE", F_color, VAL, std.GHOST_WHITE, POP, 47, F_name
+, VAL, "GOLD", F_color, VAL, std.GOLD, POP, 48, F_name, VAL, "GOLDENROD", F_color, VAL, std.GOLDENROD, POP, 49, F_name, VAL, "GRAY", F_color, VAL, std.GRAY, POP, 50, F_name
+, VAL, "GREEN", F_color, VAL, std.GREEN, POP, 51, F_name, VAL, "GREEN_YELLOW", F_color, VAL, std.GREEN_YELLOW, POP, 52, F_name, VAL, "HONEYDEW", F_color, VAL, std.HONEYDEW
+, POP, 53, F_name, VAL, "HOT_PINK", F_color, VAL, std.HOT_PINK, POP, 54, F_name, VAL, "INDIAN_RED", F_color, VAL, std.INDIAN_RED, POP, 55, F_name, VAL, "INDIGO", F_color, 
+VAL, std.INDIGO, POP, 56, F_name, VAL, "IVORY", F_color, VAL, std.IVORY, POP, 57, F_name, VAL, "KHAKI", F_color, VAL, std.KHAKI, POP, 58, F_name, VAL, "LAVENDER", F_color, 
+VAL, std.LAVENDER, POP, 59, F_name, VAL, "LAVENDER_BLUSH", F_color, VAL, std.LAVENDER_BLUSH, POP, 60, F_name, VAL, "LAWN_GREEN", F_color, VAL, std.LAWN_GREEN, POP, 61, F_name
+, VAL, "LEMON_CHIFFON", F_color, VAL, std.LEMON_CHIFFON, POP, 62, F_name, VAL, "LIGHT_BLUE", F_color, VAL, std.LIGHT_BLUE, POP, 63, F_name, VAL, "LIGHT_CORAL", F_color, VAL
+, std.LIGHT_CORAL, POP, 64, F_name, VAL, "LIGHT_CYAN", F_color, VAL, std.LIGHT_CYAN, POP, 65, F_name, VAL, "LIGHT_GOLDENROD", F_color, VAL, std.LIGHT_GOLDENROD, POP, 66, F_name
+, VAL, "LIGHT_GREEN", F_color, VAL, std.LIGHT_GREEN, POP, 67, F_name, VAL, "LIGHT_GREY", F_color, VAL, std.LIGHT_GREY, POP, 68, F_name, VAL, "LIGHT_PINK", F_color, VAL, std.LIGHT_PINK
+, POP, 69, F_name, VAL, "LIGHT_SALMON", F_color, VAL, std.LIGHT_SALMON, POP, 70, F_name, VAL, "LIGHT_SEA_GREEN", F_color, VAL, std.LIGHT_SEA_GREEN, POP, 71, F_name, VAL, "LIGHT_SKY_BLUE"
+, F_color, VAL, std.LIGHT_SKY_BLUE, POP, 72, F_name, VAL, "LIGHT_SLATE_GRAY", F_color, VAL, std.LIGHT_SLATE_GRAY, POP, 73, F_name, VAL, "LIGHT_STEEL_BLUE", F_color, VAL, std.LIGHT_STEEL_BLUE
+, POP, 74, F_name, VAL, "LIGHT_YELLOW", F_color, VAL, std.LIGHT_YELLOW, POP, 75, F_name, VAL, "LIME", F_color, VAL, std.LIME, POP, 76, F_name, VAL, "LIME_GREEN", F_color, 
+VAL, std.LIME_GREEN, POP, 77, F_name, VAL, "LINEN", F_color, VAL, std.LINEN, POP, 78, F_name, VAL, "MAGENTA", F_color, VAL, std.MAGENTA, POP, 79, F_name, VAL, "MAROON", F_color
+, VAL, std.MAROON, POP, 80, F_name, VAL, "MEDIUM_AQUAMARINE", F_color, VAL, std.MEDIUM_AQUAMARINE, POP, 81, F_name, VAL, "MEDIUM_BLUE", F_color, VAL, std.MEDIUM_BLUE, POP, 
+82, F_name, VAL, "MEDIUM_ORCHID", F_color, VAL, std.MEDIUM_ORCHID, POP, 83, F_name, VAL, "MEDIUM_PURPLE", F_color, VAL, std.MEDIUM_PURPLE, POP, 84, F_name, VAL, "MEDIUM_SEA_GREEN"
+, F_color, VAL, std.MEDIUM_SEA_GREEN, POP, 85, F_name, VAL, "MEDIUM_SLATE_BLUE", F_color, VAL, std.MEDIUM_SLATE_BLUE, POP, 86, F_name, VAL, "MEDIUM_SPRING_GREEN", F_color, 
+VAL, std.MEDIUM_SPRING_GREEN, POP, 87, F_name, VAL, "MEDIUM_TURQUOISE", F_color, VAL, std.MEDIUM_TURQUOISE, POP, 88, F_name, VAL, "MEDIUM_VIOLET_RED", F_color, VAL, std.MEDIUM_VIOLET_RED
+, POP, 89, F_name, VAL, "MIDNIGHT_BLUE", F_color, VAL, std.MIDNIGHT_BLUE, POP, 90, F_name, VAL, "MINT_CREAM", F_color, VAL, std.MINT_CREAM, POP, 91, F_name, VAL, "MISTY_ROSE"
+, F_color, VAL, std.MISTY_ROSE, POP, 92, F_name, VAL, "MOCCASIN", F_color, VAL, std.MOCCASIN, POP, 93, F_name, VAL, "NAVAJO_WHITE", F_color, VAL, std.NAVAJO_WHITE, POP, 94
+, F_name, VAL, "NAVY", F_color, VAL, std.NAVY, POP, 95, F_name, VAL, "OLD_LACE", F_color, VAL, std.OLD_LACE, POP, 96, F_name, VAL, "OLIVE", F_color, VAL, std.OLIVE, POP, 97
+, F_name, VAL, "OLIVE_DRAB", F_color, VAL, std.OLIVE_DRAB, POP, 98, F_name, VAL, "ORANGE", F_color, VAL, std.ORANGE, POP, 99, F_name, VAL, "ORANGE_RED", F_color, VAL, std.ORANGE_RED
+, POP, 100, F_name, VAL, "ORCHID", F_color, VAL, std.ORCHID, POP, 101, F_name, VAL, "PALE_GOLDENROD", F_color, VAL, std.PALE_GOLDENROD, POP, 102, F_name, VAL, "PALE_GREEN"
+, F_color, VAL, std.PALE_GREEN, POP, 103, F_name, VAL, "PALE_TURQUOISE", F_color, VAL, std.PALE_TURQUOISE, POP, 104, F_name, VAL, "PALE_VIOLET_RED", F_color, VAL, std.PALE_VIOLET_RED
+, POP, 105, F_name, VAL, "PAPAYA_WHIP", F_color, VAL, std.PAPAYA_WHIP, POP, 106, F_name, VAL, "PEACH_PUFF", F_color, VAL, std.PEACH_PUFF, POP, 107, F_name, VAL, "PERU", F_color
+, VAL, std.PERU, POP, 108, F_name, VAL, "PINK", F_color, VAL, std.PINK, POP, 109, F_name, VAL, "PLUM", F_color, VAL, std.PLUM, POP, 110, F_name, VAL, "POWDER_BLUE", F_color
+, VAL, std.POWDER_BLUE, POP, 111, F_name, VAL, "PURPLE", F_color, VAL, std.PURPLE, POP, 112, F_name, VAL, "REBECCA_PURPLE", F_color, VAL, std.REBECCA_PURPLE, POP, 113, F_name
+, VAL, "RED", F_color, VAL, std.RED, POP, 114, F_name, VAL, "ROSY_BROWN", F_color, VAL, std.ROSY_BROWN, POP, 115, F_name, VAL, "ROYAL_BLUE", F_color, VAL, std.ROYAL_BLUE, POP
+, 116, F_name, VAL, "SADDLE_BROWN", F_color, VAL, std.SADDLE_BROWN, POP, 117, F_name, VAL, "SALMON", F_color, VAL, std.SALMON, POP, 118, F_name, VAL, "SANDY_BROWN", F_color
+, VAL, std.SANDY_BROWN, POP, 119, F_name, VAL, "SEA_GREEN", F_color, VAL, std.SEA_GREEN, POP, 120, F_name, VAL, "SEASHELL", F_color, VAL, std.SEASHELL, POP, 121, F_name, VAL
+, "SIENNA", F_color, VAL, std.SIENNA, POP, 122, F_name, VAL, "SILVER", F_color, VAL, std.SILVER, POP, 123, F_name, VAL, "SKY_BLUE", F_color, VAL, std.SKY_BLUE, POP, 124, F_name
+, VAL, "SLATE_BLUE", F_color, VAL, std.SLATE_BLUE, POP, 125, F_name, VAL, "SLATE_GRAY", F_color, VAL, std.SLATE_GRAY, POP, 126, F_name, VAL, "SNOW", F_color, VAL, std.SNOW
+, POP, 127, F_name, VAL, "SPRING_GREEN", F_color, VAL, std.SPRING_GREEN, POP, 128, F_name, VAL, "STEEL_BLUE", F_color, VAL, std.STEEL_BLUE, POP, 129, F_name, VAL, "TAN", F_color
+, VAL, std.TAN, POP, 130, F_name, VAL, "TEAL", F_color, VAL, std.TEAL, POP, 131, F_name, VAL, "THISTLE", F_color, VAL, std.THISTLE, POP, 132, F_name, VAL, "TOMATO", F_color
+, VAL, std.TOMATO, POP, 133, F_name, VAL, "TURQUOISE", F_color, VAL, std.TURQUOISE, POP, 134, F_name, VAL, "VIOLET", F_color, VAL, std.VIOLET, POP, 135, F_name, VAL, "WHEAT"
+, F_color, VAL, std.WHEAT, POP, 136, F_name, VAL, "WHITE_SMOKE", F_color, VAL, std.WHITE_SMOKE, POP, 137, F_name, VAL, "YELLOW", F_color, VAL, std.YELLOW, POP, 138, F_name
+, VAL, "YELLOW_GREEN", F_color, VAL, std.YELLOW_GREEN, POP));
 let NCOLS = U;
 let NROWS = U;
 let NCELLS = U;
-let BARV = U;
 let slotlist = new std.a_tree(_M,"slotlist", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
 let g = new std.a_tree(_M,"g", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
 let GRID_NPARTS = U;
 let GRID_NROWS = U;
 let GRID_NCOLS = U;
+let HEX_CENTER = new std.a_tree(_M,"HEX_CENTER", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+let HEX_H = U;
+let ROW_SPACING = U;
+let HEX_HALF_H = U;
+let tweak_map = new std.a_tree(_M,"tweak_map", std.NF_TOPLEVEL|std.NF_LOGGED);
 let chip_h = U;
+
+//====================
+//   d_bottom_bar
+//====================
+function d_bottom_bar(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 0, 6, std.pt);
+  std.div_add(b, U, 0, 100, std.pt, d_color_format_F, 0);
+  std.div_spa(b, 0, 15, std.pt);
+  std.div_add(b, U, 0, 140, std.pt, d_bottom_col2_F, 0);
+  std.div_spa(b, 0, 70, std.pt);
+  std.div_add(b, U, 0, 40, std.al, d_nearby_F, 0);
+  std.div_spa(b, 0, 70, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_bottom_col2
+//====================
+function d_bottom_col2(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 1, 22, std.pt, d_input_box_F, 0);
+  std.div_spa(b, 1, 8, std.pt);
+  std.div_add(b, U, 1, 10, std.al, std.freeze(d_recent_F, ["Current", getn(g, F_sel_color)]), 0);
+  std.div_spa(b, 1, 2, std.pt);
+  std.div_add(b, U, 1, 10, std.al, std.freeze(d_recent_F, ["Prev", getn(g, F_prior_color)]), 0);
+  std.div_spa(b, 1, 2, std.pt);
+  std.div_add(b, U, 1, 10, std.al, std.freeze(d_recent_F, ["Prev 2", getn(g, F_prior2_color)]), 0);
+  std.div_spa(b, 1, 8, std.pt);
+  std.div_add(b, U, 1, 18, std.pt, d_made_with_F, 0);
+  std.div_spa(b, 1, 4, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
 
 //====================
 //   d_cell
@@ -391,9 +519,14 @@ std.k_leave(b);
 function d_choice(b, formx, long_label, short_label) {
 std.k_enter(b);
   let fill = std.eq2(formx, getn(g, F_format)) ? C_CHOICE_HI_BACK : C_CHOICE_LO_BACK;
-  std.draw_rect(b, { fill:fill, thick:std.pt_to_dots(b, 1), color:C_CHOICE_TEXT });
   let label = std.gt2(b.bounds.width, std.pt_to_dots(b, 70)) ? long_label : short_label;
-  std.draw_str(b, label, { size:std.mul(b.bounds.height, 0.6), indent:std.pt_to_dots(b, 3) });
+  std.draw_rect(b, { fill:fill, thick:std.pt_to_dots(b, 1), color:C_CHOICE_BORD });
+  if (std.eq2(formx, getn(g, F_format))) {
+    std.draw_str(b, "▶", { size:0.6, just:std.LEFT, color:std.MAROON });
+    std.draw_str(b, label, { size:0.6, indent:std.pt_to_dots(b, 3), color:C_CHOICE_HI_TEXT });
+  } else {
+    std.draw_str(b, label, { size:0.6, indent:std.pt_to_dots(b, 3), color:C_CHOICE_LO_TEXT });
+  }
 std.k_leave(b);
 }
 
@@ -406,7 +539,8 @@ function track_d_choice(b, e, formx, long_label, short_label) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.path_setv(_M, 552, std.adr(g, F_format), formx);
+    std.path_setv(_M, 859, std.adr(g, F_format), formx);
+    build_clipboard();
   return Y;
   } else 
   //---------------
@@ -420,16 +554,24 @@ function track_d_choice(b, e, formx, long_label, short_label) {
 }
 
 //====================
-//   d_color_fmt_sel
+//   d_color_format
 //====================
-function d_color_fmt_sel(b) {
+function d_color_format(b) {
 std.k_enter(b);
 std.div_begin(b, null, false, false, false);
-  std.div_add(b, U, 0, 10, std.al, std.freeze(d_choice_F, [FORMAT_BEADS, "Beads name", "Beads"]), 0);
-  std.div_add(b, U, 0, 10, std.al, std.freeze(d_choice_F, [FORMAT_HTML, "HTML name", "HTML"]), 0);
-  std.div_add(b, U, 0, 10, std.al, std.freeze(d_choice_F, [FORMAT_HEX, "Hex name", "Hex"]), 0);
-  std.div_add(b, U, 0, 10, std.al, std.freeze(d_choice_F, [FORMAT_C, "C Hex", "C"]), 0);
-  std.div_add(b, U, 0, 10, std.al, std.freeze(d_choice_F, [FORMAT_RGB, "rgb call", "rgb()"]), 0);
+  std.div_spa(b, 1, 1, std.al);
+  std.div_add(b, U, 1, 10, std.al, std.freeze(d_choice_F, [FORMAT_BEADS, "Beads format", "Beads"]), 0);
+  std.div_spa(b, 1, 1, std.al);
+  std.div_add(b, U, 1, 10, std.al, std.freeze(d_choice_F, [FORMAT_HTML, "HTML format", "HTML"]), 0);
+  std.div_spa(b, 1, 1, std.al);
+  std.div_add(b, U, 1, 10, std.al, std.freeze(d_choice_F, [FORMAT_HEX, "Plain Hex", "Hex"]), 0);
+  std.div_spa(b, 1, 1, std.al);
+  std.div_add(b, U, 1, 10, std.al, std.freeze(d_choice_F, [FORMAT_C, "C Hex", "C"]), 0);
+  std.div_spa(b, 1, 1, std.al);
+  std.div_add(b, U, 1, 10, std.al, std.freeze(d_choice_F, [FORMAT_RGB, "rgb(...)", "rgb()"]), 0);
+  std.div_spa(b, 1, 1, std.al);
+  std.div_add(b, U, 1, 10, std.al, std.freeze(d_choice_F, [FORMAT_HSL, "hsl(...)", "hsl()"]), 0);
+  std.div_spa(b, 1, 2, std.al);
   std.div_end(b);
   std.draw_slices(b);
 std.k_leave(b);
@@ -441,17 +583,15 @@ std.k_leave(b);
 //====================
 function d_color_name(b, myslot, slotx) {
 std.k_enter(b);
-  let textc = C_TEXT;
   if (getn(myslot, F_hilite) === Y) {
     let radius = std.div(b.bounds.height, 6);
-    std.draw_rect(b, { fill:std.MEDIUM_VIOLET_RED, corner_tr:radius, corner_br:radius });
+    std.draw_rect(b, { fill:std.MEDIUM_VIOLET_RED, corner:std.tree_lit(_M, 1039, 1, VAL, 0, 2, VAL, radius, 3, VAL, 0, 4, VAL, radius) });
   }
   let ss = calc_slot_str(myslot);
-  var case180 = getn(g, F_format);
-  if (case180 === FORMAT_BEADS || case180 === FORMAT_HTML) {
-    std.draw_str(b, ss, { just:std.LEFT, indent:std.pt_to_dots(b, 4), size:std.div(b.bounds.width, 11), color:textc });
-  } else if (case180 === FORMAT_HEX || case180 === FORMAT_C || case180 === FORMAT_RGB) {
-    std.draw_str(b, ss, { just:std.LEFT, indent:std.pt_to_dots(b, 4), size:std.div(b.bounds.width, 8), font:"_typewriter", color:C_TEXT });
+  if (std.eq2(getn(g, F_format), FORMAT_HTML)) {
+    std.draw_str(b, ss, { just:std.LEFT, indent:std.pt_to_dots(b, 4), size:std.div(b.bounds.width, 8), color:C_TEXT });
+  } else {
+    std.draw_str(b, ss, { just:std.LEFT, indent:std.pt_to_dots(b, 4), size:std.div(b.bounds.width, 11), color:C_TEXT });
   }
 std.k_leave(b);
 }
@@ -463,12 +603,12 @@ std.k_leave(b);
 function d_ferrari_grid(b) {
 std.k_enter(b);
 std.div_begin(b, new std.a_function(_M, "d_ferrari_grid_cell", d_ferrari_grid_cell, null), true, false, false);
-  var loop181 = new std.a_loop({ limit:FERR_NCOL });
-  while (loop181.next()) {
+  var loop278 = new std.a_loop({ reps:FERR_NCOL });
+  while (loop278.next()) {
     std.div_add(b, U, 0, 10, std.al, null, 0);
   }
-  var loop182 = new std.a_loop({ limit:FERR_NROW });
-  while (loop182.next()) {
+  var loop279 = new std.a_loop({ reps:FERR_NROW });
+  while (loop279.next()) {
     std.div_add(b, U, 1, 10, std.al, null, 0);
     std.div_spa(b, 1, 3, std.px);
   }
@@ -500,11 +640,9 @@ std.div_begin(b, null, false, false, false);
   chip_h = std.round_down(std.div(b.bounds.width, CHIPS_PER_ROW), {});
   let used = std.mul(chip_h, CHIPS_PER_ROW);
   let leftover = std.sub(b.bounds.width, used);
-  let sampleh = std.round(std.mul(leftover, 0.8), {});
-  let gap = std.mul(std.sub(leftover, sampleh), 0.5);
-  std.div_add(b, U, 0, used, std.px, d_ferrari_grid_F, 0);
+  let gap = std.mul(leftover, 0.5);
   std.div_spa(b, 0, gap, std.px);
-  std.div_add(b, U, 0, sampleh, std.px, d_sample_F, 0);
+  std.div_add(b, U, 0, used, std.px, d_ferrari_grid_F, 0);
   std.div_spa(b, 0, gap, std.px);
   std.div_end(b);
   std.draw_slices(b);
@@ -530,9 +668,9 @@ function d_html_palette(b) {
 std.k_enter(b);
 std.div_begin(b, new std.a_function(_M, "d_html_palette_cell", d_html_palette_cell, null), true, false, false);
   std.div_spa(b, 0, 10, std.al);
-  var loop183 = new std.a_loop({ limit:NCOLS });
-  while (loop183.next()) {
-  var col = loop183.count;
+  var loop280 = new std.a_loop({ reps:NCOLS });
+  while (loop280.next()) {
+  var col = loop280.count;
     if ((std.gt2(col, 1) && std.eq2(getn(g, F_sizing), FULL_SIZE))) {
       std.div_spa(b, 0, 10, std.al);
     }
@@ -540,9 +678,9 @@ std.div_begin(b, new std.a_function(_M, "d_html_palette_cell", d_html_palette_ce
   }
   std.div_spa(b, 0, 10, std.al);
   std.div_spa(b, 1, 5, std.al);
-  var loop184 = new std.a_loop({ limit:NROWS });
-  while (loop184.next()) {
-  var row = loop184.count;
+  var loop281 = new std.a_loop({ reps:NROWS });
+  while (loop281.next()) {
+  var row = loop281.count;
     if ((std.gt2(row, 1) && std.eq2(getn(g, F_sizing), FULL_SIZE))) {
       std.div_spa(b, 1, 5, std.al);
     }
@@ -578,18 +716,16 @@ function track_d_html_palette(b, e) {
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
     if ((getn(b.extra, std.F_cell_seq) === U || std.gt2(getn(b.extra, std.F_cell_seq), NCELLS))) {
       std.sound_play(BEEP, {});
-      std.path_setv(_M, 602, std.adr(g, F_htmlchip_selx), U);
+      std.path_setv(_M, 911, std.adr(g, F_htmlchip_selx), U);
     } else {
-      std.sound_play(CLICK, {});
       if (getn(g, F_htmlchip_selx) !== U) {
-        std.path_setv(_M, 609, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), N);
+        std.path_setv(_M, 916, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), N);
       }
-      std.path_setv(_M, 610, std.adr(g, F_htmlchip_selx), getn(b.extra, std.F_cell_seq));
-      std.path_setv(_M, 611, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), Y);
-      std.path_setv(_M, 613, std.adr(g, F_prior_color), getn(g, F_sel_color));
-      std.path_setv(_M, 614, std.adr(g, F_sel_color), getn(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_color));
-      std.os_clipboard_copy(calc_slot_str(std.get_ptr(slotlist, getn(g, F_htmlchip_selx))));
-      std.path_setv(_M, 620, std.adr(g, F_ferrari_selx), find_closest_ferrari(getn(g, F_sel_color)));
+      std.path_setv(_M, 917, std.adr(g, F_htmlchip_selx), getn(b.extra, std.F_cell_seq));
+      std.path_setv(_M, 918, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), Y);
+      let newsel = getn(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_color);
+      select_new_color(newsel);
+      std.path_setv(_M, 924, std.adr(g, F_ferrari_selx), find_closest_ferrari(getn(g, F_sel_color)));
     }
   return Y;
   } else 
@@ -608,11 +744,23 @@ function track_d_html_palette(b, e) {
 }
 
 //====================
+//   d_input_box
+//====================
+function d_input_box(b) {
+std.k_enter(b);
+  std.draw_input(b, std.adr(b.extra, std.F_box), std.adr(g, F_input_field), { indent:std.pt_to_dots(b, 3), color:std.BLACK, border:std.pt_to_dots(b, 1), size:0.55, font:std.MONOSPACE
+  , border_color:std.LIGHT_SLATE_GRAY, fill:std.GHOST_WHITE, caret:std.BLACK, corner:std.pt_to_dots(b, 2) });
+std.k_leave(b);
+}
+
+
+//====================
 //   d_made_with
 //====================
 function d_made_with(b) {
 std.k_enter(b);
-  std.draw_str(b, "Made with Beads", { size:std.mul(b.bounds.height, 0.65), just:std.RIGHT, color:C_TEXT });
+  std.draw_rect(b, { fill:std.STEEL_BLUE, corner:std.pt_to_dots(b, 4) });
+  std.draw_str(b, std.cat("ver ", gets(std.runtime, std.F_app_version), "    written in Beads"), { size:std.mul(b.bounds.height, 0.65), color:C_TEXT });
 std.k_leave(b);
 }
 
@@ -639,23 +787,105 @@ function track_d_made_with(b, e) {
 }
 
 //====================
-//   d_modebar
+//   d_nearby
 //====================
-function d_modebar(b) {
+function d_nearby(b) {
+std.k_enter(b);
+  const COVERAGE = 0.95;
+  const HEX_RADIUS = std.pt_to_dots(b, 15);
+  HEX_H = std.mul(1.732, HEX_RADIUS);
+  HEX_HALF_H = std.div(HEX_H, 2);
+  const HEX_V = std.mul(2, HEX_RADIUS);
+  const HEX_HALF_V = std.div(HEX_V, 2);
+  const ROW_V = std.mul(HEX_RADIUS, 1.732);
+  const NH = std.round_down(std.div(std.mul(b.bounds.width, 0.5), HEX_H), {});
+  const NV = std.round_down(std.div(std.mul(b.bounds.height, 0.5), ROW_V), {});
+  const NET_RADIUS = std.mul(HEX_RADIUS, COVERAGE);
+  let cx = U;
+  let cy = U;
+  let c = U;
+  let lo = U;
+  let offsetx = U;
+  let offsetcell = U;
+  let tcol = U;
+  let trow = U;
+  let theta = null;
+  std.copy_tree(_M, 613, std.solve_point({ basis:std.adr(b.extra, std.F_box), pin:std.MID_CENTER }), std.adr(HEX_CENTER));
+  ROW_SPACING = std.mul(HEX_RADIUS, 1.6);
+  std.trunc_tree(_M, 616, std.adr(tweak_map));
+  var loop282 = new std.a_loop({ from:std.negate(NV), to_:NV });
+  while (loop282.next()) {
+  var row = loop282.index;
+    if (std.is_odd(row) === Y) {
+      lo = std.negate(std.sub(NH, 1));
+      offsetx = std.negate(HEX_HALF_H);
+      offsetcell = -1;
+    } else {
+      lo = std.negate(NH);
+      offsetx = 0;
+      offsetcell = 0;
+    }
+    var loop283 = new std.a_loop({ from:lo, to_:NH });
+    while (loop283.next()) {
+    var col = loop283.index;
+      cx = std.add(std.mul(col, HEX_H), offsetx);
+      cy = std.mul(row, ROW_SPACING);
+      theta = std.arc_tan2(std.negate(cy), cx);
+      cx = std.add(cx, getn(HEX_CENTER, std.F_x));
+      cy = std.add(cy, getn(HEX_CENTER, std.F_y));
+      tcol = std.add(std.mul(col, 2), offsetcell);
+      trow = std.negate(row);
+      c = tweak_color(getn(g, F_sel_color), theta, tcol, trow);
+      std.append_tree(_M, 645, std.tree_lit(_M, 645, std.F_x, VAL, cx, std.F_y, VAL, cy, F_netc, VAL, c), std.adr(tweak_map));
+      draw_hexagon(b, tcol, trow, cx, cy, NET_RADIUS, c);
+    }
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   track_d_nearby
+//====================
+function track_d_nearby(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    let tweakp = null;
+    let best_dist = std.INFINITY;
+    let distance = U;
+    let dx = U;
+    let dy = U;
+    let best_color = U;
+    var loop284 = new std.a_loop({ across:std.adr(tweak_map) });
+    while (loop284.next()) {
+    tweakp = loop284.path.clone();
+      dx = std.sub(getn(e, std.F_x), getn(tweakp, std.F_x));
+      dy = std.sub(getn(e, std.F_y), getn(tweakp, std.F_y));
+      distance = std.add(std.mul(dx, dx), std.mul(dy, dy));
+      if (std.lt2(distance, best_dist)) {
+        best_dist = distance;
+        best_color = getn(tweakp, F_netc);
+      }
+    }
+    log(lgp(std.cat("tap in nearby at ", str.to_str(getn(e, std.F_x), {dig:2}), ",", str.to_str(getn(e, std.F_y), {dig:2}), " best color ", str.color_to_hex(best_color))));
+    select_new_color(best_color);
+    std.path_setv(_M, 671, std.adr(g, F_ferrari_selx), find_closest_ferrari(getn(g, F_sel_color)));
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_recent
+//====================
+function d_recent(b, label, clr) {
 std.k_enter(b);
 std.div_begin(b, null, false, false, false);
-  std.div_add(b, U, 0, 25, std.al, d_modebar_513_F, 0);
-  std.div_add(b, U, 0, 40, std.al, std.freeze(draw_choice_grid_F, [std.adr(g, F_mode_grid), 0.65]), 0);
-  std.div_spa(b, 0, 5, std.al);
-  if (std.eq2(getn(g, F_mode_grid, F_selx), MODE_COLORS)) {
-    std.div_add(b, U, 0, 60, std.al, d_color_fmt_sel_F, 0);
-    std.div_add(b, U, 0, 80, std.al, d_prompt_F, 0);
-  } else {
-    std.div_spa(b, 0, 55, std.al);
-    std.div_spa(b, 0, 80, std.al);
-  }
-  std.div_add(b, U, 0, 25, std.al, d_made_with_F, 0);
-  std.div_spa(b, 0, 8, std.pt);
+  std.div_add(b, U, 0, 14, std.al, std.freeze(d_recent_814_F, [label, clr]), 0);
+  std.div_spa(b, 0, 2, std.pt);
+  std.div_add(b, U, 0, 20, std.al, std.freeze(d_recent_817_F, [label, clr]), 0);
   std.div_end(b);
   std.draw_slices(b);
 std.k_leave(b);
@@ -663,46 +893,18 @@ std.k_leave(b);
 
 
 //====================
-//   d_prompt
+//   track_d_recent
 //====================
-function d_prompt(b) {
-std.k_enter(b);
-  if (getn(g, F_sel_color) === U) {
-    std.draw_str(b, "Click to copy to the clipboard", { size:0.7, indent:std.pt_to_dots(b, 14), color:C_TEXT });
-  } else {
-    std.draw_str(b, std.cat(" rgb ", str.to_str(std.r255(getn(g, F_sel_color)), {dig:2}), ", ", str.to_str(std.g255(getn(g, F_sel_color)), {dig:2}), ", ", str.to_str(std.b255(
-    getn(g, F_sel_color)), {dig:2})), { size:0.7, indent:std.pt_to_dots(b, 14), color:C_TEXT });
+function track_d_recent(b, e, label, clr) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    select_new_color(clr);
+  return Y;
   }
-std.k_leave(b);
+  return N;
 }
-
-
-//====================
-//   d_sample
-//====================
-function d_sample(b) {
-std.k_enter(b);
-std.div_begin(b, null, false, false, false);
-  if (getn(g, F_sel_color) !== U) {
-    std.div_add(b, U, 1, 15, std.pt, d_sample_861_F, 0);
-    std.div_add(b, U, 1, 10, std.al, d_sample_863_F, 0);
-  } else {
-    std.div_spa(b, 1, 15, std.pt);
-    std.div_spa(b, 1, 10, std.al);
-  }
-  std.div_spa(b, 1, 10, std.pt);
-  if (getn(g, F_prior_color) !== U) {
-    std.div_add(b, U, 1, 15, std.pt, d_sample_872_F, 0);
-    std.div_add(b, U, 1, 10, std.al, d_sample_874_F, 0);
-  } else {
-    std.div_spa(b, 1, 15, std.pt);
-    std.div_spa(b, 1, 10, std.al);
-  }
-  std.div_end(b);
-  std.draw_slices(b);
-std.k_leave(b);
-}
-
 
 //====================
 //   draw_choice_grid
@@ -713,12 +915,12 @@ std.div_begin(b, new std.a_function(_M, "draw_choice_grid_cell", draw_choice_gri
   GRID_NPARTS = std.tree_count(std.adr(o, F_label_list));
   GRID_NROWS = getn(o, F_nrows) !== U ? getn(o, F_nrows) : 1;
   GRID_NCOLS = std.div(GRID_NPARTS, GRID_NROWS);
-  var loop185 = new std.a_loop({ limit:GRID_NCOLS });
-  while (loop185.next()) {
+  var loop285 = new std.a_loop({ reps:GRID_NCOLS });
+  while (loop285.next()) {
     std.div_add(b, U, 0, 12, std.al, null, 0);
   }
-  var loop186 = new std.a_loop({ limit:GRID_NROWS });
-  while (loop186.next()) {
+  var loop286 = new std.a_loop({ reps:GRID_NROWS });
+  while (loop286.next()) {
     std.div_add(b, U, 1, 12, std.al, null, 0);
   }
   std.div_end(b);
@@ -745,11 +947,11 @@ function draw_choice_grid_cell(b, o, textsize) {
   if (std.eq2(getn(b.extra, std.F_cell_seq), choice_get_selx(o))) {
     back = C_CHOICE_HI_BACK;
     bord = C_CHOICE_BORD;
-    text = C_CHOICE_TEXT;
+    text = C_CHOICE_HI_TEXT;
   } else {
     back = C_CHOICE_LO_BACK;
     bord = C_CHOICE_BORD;
-    text = C_CHOICE_TEXT;
+    text = C_CHOICE_LO_TEXT;
   }
   if (std.eq2(getn(b.extra, std.F_cell, std.F_x), 1)) {
     if (std.eq2(getn(b.extra, std.F_cell, std.F_y), 1)) {
@@ -767,7 +969,8 @@ function draw_choice_grid_cell(b, o, textsize) {
       br = std.pt_to_dots(b, CHOICE_CORNER);
     }
   }
-  std.draw_rect(b, { fill:back, color:bord, thick:std.pt_to_dots(b, BUTT_THICK), pos:0, corner_tl:tl, corner_tr:tr, corner_bl:bl, corner_br:br, opacity:opacity });
+  std.draw_rect(b, { fill:back, color:bord, thick:std.pt_to_dots(b, BUTT_THICK), pos:0, corner:std.tree_lit(_M, 346, 1, VAL, tl, 2, VAL, tr, 3, VAL, bl, 4, VAL, br), opacity
+  :opacity });
   let f = std.get_func(o, F_label_func, getn(b.extra, std.F_cell_seq));
   if (f !== null) {
     f.code(b, std.adr(b.extra, std.F_box));
@@ -795,6 +998,25 @@ function track_draw_choice_grid(b, e, o, textsize) {
 }
 
 //====================
+//   draw_hexagon
+//====================
+function draw_hexagon(b, col, row, cx, cy, r, clr) {
+std.k_enter(b);
+  let steps = new std.a_tree(_M,"steps", 0);
+  var loop287 = new std.a_loop({ from:0, to_:5 });
+  while (loop287.next()) {
+  var ix = loop287.index;
+    let angle = std.add(std.meas(30, std.N_deg, std.Y_Angle), std.meas(std.div(ix, 6), std.N_turn, std.Y_Angle));
+    std.copy_tree(_M, 687, std.tree_lit(_M, 687, std.F_x, VAL, std.add(cx, std.mul(r, std.cos(angle))), std.F_y, VAL, std.add(cy, std.mul(r, std.sin(angle)))), std.adr(steps, 
+    ix));
+  }
+  let thick = (std.eq2(col, 0) && std.eq2(row, 0)) ? std.pt_to_dots(b, 2) : 0;
+  std.draw_polygon(b, std.adr(steps), { fill:clr, color:std.CRIMSON, thick:thick });
+std.k_leave(b);
+}
+
+
+//====================
 //   draw_tabs
 //====================
 function draw_tabs(b, tabs, deadspace) {
@@ -803,9 +1025,9 @@ std.div_begin(b, null, false, false, false);
   const tabw = std.div(std.sub(100, deadspace), std.tree_count(tabs));
   const skip_per_side = std.div(deadspace, 2);
   std.div_spa(b, 0, skip_per_side, std.al);
-  var loop187 = new std.a_loop({ across:std.adr(tabs, F_label_list) });
-  while (loop187.next()) {
-  var ix = loop187.index;
+  var loop288 = new std.a_loop({ across:std.adr(tabs, F_label_list) });
+  while (loop288.next()) {
+  var ix = loop288.index;
     std.div_add(b, U, 0, tabw, std.al, std.freeze(draw_tabs2_F, [tabs, ix]), 0);
   }
   std.div_spa(b, 0, skip_per_side, std.al);
@@ -834,7 +1056,8 @@ std.k_enter(b);
     bord = TAB_LO_BORD;
     text = TAB_LO_TEXT;
   }
-  std.draw_rect(b, { fill:back, color:bord, thick:std.pt_to_dots(b, TAB_BORD), corner_tl:std.pt_to_dots(b, TAB_CORNER), corner_tr:std.pt_to_dots(b, TAB_CORNER) });
+  std.draw_rect(b, { fill:back, color:bord, thick:std.pt_to_dots(b, TAB_BORD), corner:std.tree_lit(_M, 398, 1, VAL, std.pt_to_dots(b, TAB_CORNER), 2, VAL, std.pt_to_dots(b, 
+  TAB_CORNER)) });
   std.draw_str(b, gets(tabs, F_label_list, ix), { indent:std.pt_to_dots(b, 1.5), size:0.6, color:text });
 std.k_leave(b);
 }
@@ -849,7 +1072,7 @@ function track_draw_tabs2(b, e, tabs, ix) {
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
     if (std.ne2(ix, getn(tabs, F_selx))) {
-      std.path_setv(_M, 398, std.adr(tabs, F_selx), ix);
+      std.path_setv(_M, 404, std.adr(tabs, F_selx), ix);
       if (std.get_func(tabs, F_action) !== null) {
         std.get_func(tabs, F_action).code();
       }
@@ -865,8 +1088,8 @@ function track_draw_tabs2(b, e, tabs, ix) {
 function ferr_first_ramp(b) {
 std.k_enter(b);
 std.div_begin(b, null, false, false, false);
-  std.div_add(b, U, 0, 10, std.al, ferr_first_ramp_902_F, 0);
-  std.div_add(b, U, 0, 10, std.al, ferr_first_ramp_904_F, 0);
+  std.div_add(b, U, 0, 10, std.al, ferr_first_ramp_1250_F, 0);
+  std.div_add(b, U, 0, 10, std.al, ferr_first_ramp_1252_F, 0);
   std.div_end(b);
   std.draw_slices(b);
 std.k_leave(b);
@@ -890,9 +1113,9 @@ std.k_leave(b);
 function ferr_ramp(b, rampx) {
 std.k_enter(b);
 std.div_begin(b, null, false, false, false);
-  var loop188 = new std.a_loop({ limit:CHIPS_PER_RAMP });
-  while (loop188.next()) {
-  var chipx = loop188.count;
+  var loop289 = new std.a_loop({ reps:CHIPS_PER_RAMP });
+  while (loop289.next()) {
+  var chipx = loop289.count;
     let colorx = std.add(std.add(2, std.mul(std.sub(rampx, 2), CHIPS_PER_RAMP)), chipx);
     std.div_add(b, U, 0, 10, std.al, std.freeze(ferr_ramp_chip_F, [colorx]), 0);
   }
@@ -923,22 +1146,12 @@ function track_ferr_ramp_chip(b, e, colorx) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.sound_play(CLICK, {});
-    std.path_setv(_M, 927, std.adr(g, F_ferrari_selx), colorx);
+    std.path_setv(_M, 1274, std.adr(g, F_ferrari_selx), colorx);
     if (getn(g, F_htmlchip_selx) !== U) {
-      std.path_setv(_M, 931, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), N);
-      std.path_setv(_M, 932, std.adr(g, F_htmlchip_selx), U);
+      std.path_setv(_M, 1278, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), N);
+      std.path_setv(_M, 1279, std.adr(g, F_htmlchip_selx), U);
     }
-    std.path_setv(_M, 935, std.adr(g, F_prior_color), getn(g, F_sel_color));
-    std.path_setv(_M, 936, std.adr(g, F_sel_color), getn(FERRARI, colorx));
-    var case189 = getn(g, F_format);
-    if (case189 === FORMAT_RGB) {
-      std.os_clipboard_copy(color_to_rgb(getn(g, F_sel_color)));
-    } else if (case189 === FORMAT_C) {
-      std.os_clipboard_copy(std.cat("0x", str.subset(str.color_to_hex(getn(g, F_sel_color)), { from:2 })));
-    } else {
-      std.os_clipboard_copy(str.color_to_hex(getn(g, F_sel_color)));
-    }
+    select_new_color(getn(FERRARI, colorx));
   return Y;
   }
   return N;
@@ -950,17 +1163,17 @@ function track_ferr_ramp_chip(b, e, colorx) {
 export function main_draw(b) {
 std.k_enter(b);
 std.div_begin(b, null, false, false, false);
-  std.div_add(b, U, 1, BARV, std.px, d_modebar_F, 0);
-  std.div_spa(b, 1, 6, std.pt);
-  var case190 = getn(g, F_mode_grid, F_selx);
-  if (case190 === MODE_COLORS) {
+  var case290 = getn(g, F_mode_grid, F_selx);
+  if (case290 === MODE_COLORS) {
     std.div_add(b, U, 1, 16, std.al, d_html_palette_F, 0);
-    std.div_spa(b, 1, 8, std.pt);
+    std.div_spa(b, 1, 6, std.pt);
     std.div_add(b, U, 1, 10, std.al, d_ferrari_palette_F, 0);
-    std.div_spa(b, 1, 4, std.pt);
-  } else if (case190 === MODE_GRADS) {
+  } else if (case290 === MODE_GRADS) {
     std.div_add(b, U, 1, 10, std.al, d_grad_designer_F, 0);
   }
+  std.div_spa(b, 1, 6, std.pt);
+  std.div_add(b, U, 1, BARV, std.pt, d_bottom_bar_F, 0);
+  std.div_spa(b, 1, 6, std.pt);
   std.div_end(b);
   //--under
   std.draw_rect(b, { fill:C_DEAD });
@@ -977,15 +1190,14 @@ export function track_main_draw(b, e) {
   //   on EV_RESIZE
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_RESIZE) {
-    BARV = std.clamp(std.div(b.bounds.height, 17), std.pt_to_dots(b, 14), std.pt_to_dots(b, 20));
     let h_pts = std.dots_to_pt(b, b.bounds.width);
     let v_pts = std.dots_to_pt(b, std.sub(b.bounds.height, BARV));
     let area = std.mul(h_pts, v_pts);
     if (std.ge2(area, AREA_THRESHOLD)) {
-      std.path_setv(_M, 486, std.adr(g, F_sizing), FULL_SIZE);
+      std.path_setv(_M, 520, std.adr(g, F_sizing), FULL_SIZE);
       NCOLS = std.round_down(std.div(h_pts, TARG_WIDTH), {});
     } else {
-      std.path_setv(_M, 490, std.adr(g, F_sizing), COMPACT_SIZE);
+      std.path_setv(_M, 524, std.adr(g, F_sizing), COMPACT_SIZE);
       let cell_area = std.round_down(std.div(area, NCELLS), {});
       let cell_height = std.sqrt(std.div(cell_area, 3));
       let cell_width = std.div(cell_area, cell_height);
@@ -1004,10 +1216,10 @@ function beads_to_html(beadsname) {
   let result = "";
   let words = new std.a_tree(_M,"words", 0);
   let word = null;
-  str.split_words(_M, 1045, str.to_lower(beadsname), std.adr(words), { delim:"_" });
-  var loop191 = new std.a_loop({ across:std.adr(words) });
-  while (loop191.next()) {
-  word = loop191.val;
+  str.split_words(_M, 1394, str.to_lower(beadsname), std.adr(words), { delim:"_" });
+  var loop291 = new std.a_loop({ across:std.adr(words) });
+  while (loop291.next()) {
+  word = loop291.val;
     result = std.cat(result, str.to_upper(str.subset(word, {from:1, len:1})), str.subset(word, { from:2 }));
   }
   return result;
@@ -1015,20 +1227,53 @@ function beads_to_html(beadsname) {
 
 
 //====================
+//   build_clipboard
+//====================
+function build_clipboard() {
+  let beads_name = null;
+  let ss = null;
+  let newcolor = getn(g, F_sel_color);
+  var case292 = getn(g, F_format);
+  if (case292 === FORMAT_BEADS) {
+    beads_name = find_exact_beads(newcolor);
+    if (beads_name === null) {
+      ss = str.color_to_hex(newcolor);
+    } else {
+      ss = beads_name;
+    }
+  } else if (case292 === FORMAT_HTML) {
+    beads_name = find_exact_beads(newcolor);
+    if (beads_name === null) {
+      ss = str.color_to_hex(newcolor);
+    } else {
+      ss = beads_to_html(beads_name);
+    }
+  } else if (case292 === FORMAT_HEX) {
+    ss = str.subset(str.color_to_hex(newcolor), { from:2 });
+  } else if (case292 === FORMAT_C) {
+    ss = std.cat("0x", str.subset(str.color_to_hex(newcolor), { from:2 }));
+  } else if (case292 === FORMAT_RGB) {
+    ss = to_rgb_str(newcolor);
+  } else if (case292 === FORMAT_HSL) {
+    ss = to_hsl_str(newcolor);
+  }
+  log(lgp(std.cat("posting ", ss)));
+  std.path_setv(_M, 1002, std.adr(g, F_clipboard_ss), ss);
+  std.os_clipboard_copy(ss);
+  std.input_set_value(_M, 1006, std.adr(g, F_input_field), ss);
+  std.path_setv(_M, 1007, std.adr(g, F_input_field, std.F_in_ok), Y);
+}
+
+
+//====================
 //   calc_slot_str
 //====================
 function calc_slot_str(slot) {
-  var case192 = getn(g, F_format);
-  if (case192 === FORMAT_BEADS) {
-    return gets(slot, F_name);
-  } else if (case192 === FORMAT_HTML) {
+  var case293 = getn(g, F_format);
+  if (case293 === FORMAT_HTML) {
     return beads_to_html(gets(slot, F_name));
-  } else if (case192 === FORMAT_HEX) {
-    return str.color_to_hex(getn(slot, F_color));
-  } else if (case192 === FORMAT_C) {
-    return std.cat("0x", str.subset(str.color_to_hex(getn(slot, F_color)), { from:2 }));
-  } else if (case192 === FORMAT_RGB) {
-    return color_to_rgb(getn(slot, F_color));
+  } else {
+    return gets(slot, F_name);
   }
 }
 
@@ -1050,9 +1295,9 @@ function choice_get_selx(c) {
 //====================
 function choice_set_selx(c, newval) {
   if (std.get_ptr(c, F_selx_ptr) !== null) {
-    std.path_setv(_M, 277, std.adr(c, F_selx_ptr, std.FOL), newval);
+    std.path_setv(_M, 283, std.adr(c, F_selx_ptr, std.FOL), newval);
   } else {
-    std.path_setv(_M, 280, std.adr(c, F_selx), newval);
+    std.path_setv(_M, 286, std.adr(c, F_selx), newval);
   }
 }
 
@@ -1080,18 +1325,10 @@ function color_difference(c1, c2) {
 function color_difference2(c1, c2) {
   let hsv1 = new std.a_tree(_M,"hsv1", 0, std.color_to_hsv(c1));
   let hsv2 = new std.a_tree(_M,"hsv2", 0, std.color_to_hsv(c2));
-  let dh = std.sub(getn(hsv1, std.F_hue), getn(hsv2, std.F_hue));
-  let ds = std.sub(getn(hsv1, std.F_saturation), getn(hsv2, std.F_saturation));
-  let dv = std.sub(getn(hsv1, std.F_value), getn(hsv2, std.F_value));
+  let dh = std.sub(getn(hsv1, std.F_hsv_h), getn(hsv2, std.F_hsv_h));
+  let ds = std.sub(getn(hsv1, std.F_hsv_s), getn(hsv2, std.F_hsv_s));
+  let dv = std.sub(getn(hsv1, std.F_hsv_v), getn(hsv2, std.F_hsv_v));
   return std.sqrt(std.add(std.add(std.mul(dh, dh), std.mul(ds, ds)), std.mul(dv, dv)));
-}
-
-
-//====================
-//   color_to_rgb
-//====================
-function color_to_rgb(color) {
-  return std.cat("rgb(", str.to_str(std.r255(color), {dig:2}), ",", str.to_str(std.g255(color), {dig:2}), ",", str.to_str(std.b255(color), {dig:2}), ")");
 }
 
 
@@ -1131,10 +1368,10 @@ function ferr_closest_chip(targcolor) {
   let lowestx = U;
   let testcolor = U;
   lowest = std.INFINITY;
-  var loop193 = new std.a_loop({ across:std.adr(FERRARI) });
-  while (loop193.next()) {
-  var ix = loop193.index;
-  testcolor = loop193.val;
+  var loop294 = new std.a_loop({ across:std.adr(FERRARI) });
+  while (loop294.next()) {
+  var ix = loop294.index;
+  testcolor = loop294.val;
     dx = std.sub(targ_r, std.r255(testcolor));
     badness = std.mul(dx, dx);
     dx = std.sub(targ_g, std.g255(testcolor));
@@ -1161,10 +1398,10 @@ function find_closest_ferrari(targ) {
   let best_score = std.INFINITY;
   let score = U;
   let c = U;
-  var loop194 = new std.a_loop({ across:std.adr(FERRARI) });
-  while (loop194.next()) {
-  var ix = loop194.index;
-  c = loop194.val;
+  var loop295 = new std.a_loop({ across:std.adr(FERRARI) });
+  while (loop295.next()) {
+  var ix = loop295.index;
+  c = loop295.val;
     score = color_difference(targ, c);
     if (std.lt2(score, best_score)) {
       best_score = score;
@@ -1176,113 +1413,215 @@ function find_closest_ferrari(targ) {
 
 
 //====================
+//   find_exact_beads
+//====================
+function find_exact_beads(targ) {
+  let p = null;
+  var loop296 = new std.a_loop({ across:std.adr(slotlist) });
+  while (loop296.next()) {
+  p = loop296.val;
+    if (std.eq2(getn(p, F_color), targ)) {
+      return gets(p, F_name);
+    }
+  }
+  return null;
+}
+
+
+//====================
 //   main_init
 //====================
 export function main_init() {
   let hsv = new std.a_tree(_M,"hsv", 0);
-  var loop195 = new std.a_loop({ across:std.adr(SET1) });
-  while (loop195.next()) {
-  var ix = loop195.index;
-  var p = loop195.path.clone();
-    std.copy_tree(_M, 412, std.color_to_hsv(getn(p, F_color)), std.adr(hsv));
-    let hue2 = std.mod(std.add(getn(hsv, std.F_hue), hue_fudge), 360, {});
-    if (std.le2(getn(hsv, std.F_saturation), 10)) {
-      std.path_setv(_M, 420, std.adr(p, F_key1), 90);
-      std.path_setv(_M, 421, std.adr(p, F_key2), hue2);
-      std.path_setv(_M, 422, std.adr(p, F_key3), getn(hsv, std.F_value));
-    } else if (std.ge2(getn(hsv, std.F_saturation), 90)) {
-      std.path_setv(_M, 424, std.adr(p, F_key1), 10);
-      std.path_setv(_M, 425, std.adr(p, F_key2), hue2);
-      std.path_setv(_M, 426, std.adr(p, F_key3), getn(hsv, std.F_value));
+  var loop297 = new std.a_loop({ across:std.adr(SET1) });
+  while (loop297.next()) {
+  var ix = loop297.index;
+  var p = loop297.path.clone();
+    std.copy_tree(_M, 418, std.color_to_hsv(getn(p, F_color)), std.adr(hsv));
+    let hue2 = std.mod(std.add(getn(hsv, std.F_hsv_h), hue_fudge), 360, {});
+    if (std.le2(getn(hsv, std.F_hsv_s), 10)) {
+      std.path_setv(_M, 426, std.adr(p, F_key1), 90);
+      std.path_setv(_M, 427, std.adr(p, F_key2), hue2);
+      std.path_setv(_M, 428, std.adr(p, F_key3), getn(hsv, std.F_hsv_v));
+    } else if (std.ge2(getn(hsv, std.F_hsv_s), 90)) {
+      std.path_setv(_M, 430, std.adr(p, F_key1), 10);
+      std.path_setv(_M, 431, std.adr(p, F_key2), hue2);
+      std.path_setv(_M, 432, std.adr(p, F_key3), getn(hsv, std.F_hsv_v));
     } else {
-      std.path_setv(_M, 429, std.adr(p, F_key1), 50);
-      std.path_setv(_M, 430, std.adr(p, F_key2), hue2);
-      std.path_setv(_M, 431, std.adr(p, F_key3), getn(hsv, std.F_saturation));
+      std.path_setv(_M, 435, std.adr(p, F_key1), 50);
+      std.path_setv(_M, 436, std.adr(p, F_key2), hue2);
+      std.path_setv(_M, 437, std.adr(p, F_key3), getn(hsv, std.F_hsv_s));
     }
   }
-  var loop196 = new std.a_loop({ across:std.adr(SET1), sort_mode:5, sort_func:compare_slots });
-  while (loop196.next()) {
-  var cx = loop196.count;
-  var ix = loop196.index;
-  var p = loop196.path.clone();
-    std.append_val(_M, 438, p, std.adr(slotlist));
+  var loop298 = new std.a_loop({ across:std.adr(SET1), sort_mode:5, sort_func:compare_slots });
+  while (loop298.next()) {
+  var cx = loop298.count;
+  var ix = loop298.index;
+  var p = loop298.path.clone();
+    std.append_val(_M, 444, p, std.adr(slotlist));
   }
-  var loop197 = new std.a_loop({ across:std.adr(SET2) });
-  while (loop197.next()) {
-  var p = loop197.path.clone();
-    std.append_val(_M, 443, p, std.adr(slotlist));
+  var loop299 = new std.a_loop({ across:std.adr(SET2) });
+  while (loop299.next()) {
+  var p = loop299.path.clone();
+    std.append_val(_M, 449, p, std.adr(slotlist));
   }
   if (TRACE_COLORS === Y) {
     log(lgp("----- after sort ------"));
-    var loop198 = new std.a_loop({ across:std.adr(slotlist) });
-    while (loop198.next()) {
-    var ix = loop198.index;
-    var p = loop198.val;
+    var loop300 = new std.a_loop({ across:std.adr(slotlist) });
+    while (loop300.next()) {
+    var ix = loop300.index;
+    var p = loop300.val;
       log(lgp(std.cat("", str.to_str(ix, {dig:2}), ": ", gets(p, F_name), ", keys=[", str.to_str(getn(p, F_key1), {dig:2}), ",", str.to_str(getn(p, F_key2), {dig:2}), ",", str.to_str(
       getn(p, F_key3), {dig:2}), "], color=", str.color_to_hex(getn(p, F_color)))));
     }
   }
-  std.path_setv(_M, 450, std.adr(g, F_mode_grid, F_selx), MODE_COLORS);
-  std.copy_tree(_M, 451, std.tree_lit(_M, 451, 1, VAL, "Colors", 2, VAL, "Gradients"), std.adr(g, F_mode_grid, F_label_list));
-  std.path_setv(_M, 454, std.adr(g, F_format), FORMAT_BEADS);
+  std.path_setv(_M, 456, std.adr(g, F_mode_grid, F_selx), MODE_COLORS);
+  std.copy_tree(_M, 457, std.tree_lit(_M, 457, 1, VAL, "Colors", 2, VAL, "Gradients"), std.adr(g, F_mode_grid, F_label_list));
+  std.path_setv(_M, 459, std.adr(g, F_input_field, std.F_in_label), "INPUTF");
+  std.path_setv(_M, 460, std.adr(g, F_input_field, std.F_in_validator), validate_input_F);
+  std.path_setv(_M, 462, std.adr(g, F_format), FORMAT_BEADS);
   NCELLS = std.tree_count(std.adr(slotlist));
+  select_new_color(std.BLACK);
 }
 
 
 //====================
-//   d_modebar_513
+//   select_new_color
 //====================
-function d_modebar_513(b) {
+function select_new_color(newcolor) {
+  std.sound_play(CLICK, {});
+  if (std.eq2(newcolor, getn(g, F_sel_color))) {
+    return;
+  }
+  std.path_setv(_M, 956, std.adr(g, F_prior2_color), getn(g, F_prior_color));
+  std.path_setv(_M, 957, std.adr(g, F_prior_color), getn(g, F_sel_color));
+  std.path_setv(_M, 958, std.adr(g, F_sel_color), newcolor);
+  build_clipboard();
+}
+
+
+//====================
+//   to_hsl_str
+//====================
+function to_hsl_str(color) {
+  let hsl = new std.a_tree(_M,"hsl", 0, std.color_to_hsl(color));
+  return std.cat("hsl(", str.to_str(getn(hsl, std.F_hsl_h), {dig:2}), ",", str.to_str(getn(hsl, std.F_hsl_s), {dig:2}), "%,", str.to_str(getn(hsl, std.F_hsl_l), {dig:2}), "%)"
+  );
+}
+
+
+//====================
+//   to_rgb_str
+//====================
+function to_rgb_str(color) {
+  return std.cat("rgb(", str.to_str(std.r255(color), {dig:2}), ",", str.to_str(std.g255(color), {dig:2}), ",", str.to_str(std.b255(color), {dig:2}), ")");
+}
+
+
+//====================
+//   tweak_color
+//====================
+function tweak_color(base, theta, dx, dy) {
+  if ((std.eq2(dx, 0) && std.eq2(dy, 0))) {
+    return base;
+  }
+  let alpha = 0;
+  let beta = 0;
+  let gamma = 0;
+  let side = U;
+  let posx = U;
+  let posy = U;
+  let adx = std.abs(dx);
+  let ady = std.abs(dy);
+  if (std.le2(theta, std.meas(30, std.N_deg, std.Y_Angle))) {
+    beta = dy;
+    alpha = std.sub(adx, beta);
+  } else if (std.le2(theta, std.meas(60, std.N_deg, std.Y_Angle))) {
+    alpha = std.div(std.sub(adx, ady), 2);
+    beta = dy;
+  } else if (std.le2(theta, std.meas(90, std.N_deg, std.Y_Angle))) {
+    gamma = std.div(std.sub(ady, adx), 2);
+    beta = std.sub(dy, gamma);
+  } else if (std.le2(theta, std.meas(120, std.N_deg, std.Y_Angle))) {
+    beta = std.div(std.sub(ady, adx), 2);
+    gamma = std.sub(dy, beta);
+  } else if (std.le2(theta, std.meas(150, std.N_deg, std.Y_Angle))) {
+    alpha = std.div(std.sub(ady, adx), 2);
+    gamma = dy;
+  } else if (std.le2(theta, std.meas(180, std.N_deg, std.Y_Angle))) {
+    gamma = dy;
+    alpha = std.add(dx, ady);
+  } else if (std.le2(theta, std.meas(210, std.N_deg, std.Y_Angle))) {
+    beta = dy;
+    alpha = std.add(dx, ady);
+  } else if (std.le2(theta, std.meas(240, std.N_deg, std.Y_Angle))) {
+    alpha = std.div(std.sub(ady, adx), 2);
+    beta = dy;
+  } else if (std.le2(theta, std.meas(270, std.N_deg, std.Y_Angle))) {
+    gamma = std.div(std.sub(adx, ady), 2);
+    beta = std.sub(dy, gamma);
+  } else if (std.le2(theta, std.meas(300, std.N_deg, std.Y_Angle))) {
+    beta = std.div(std.sub(adx, ady), 2);
+    gamma = std.sub(dy, beta);
+  } else if (std.le2(theta, std.meas(330, std.N_deg, std.Y_Angle))) {
+    gamma = dy;
+    alpha = std.div(std.sub(adx, ady), 2);
+  } else {
+    gamma = dy;
+    alpha = std.sub(adx, ady);
+  }
+  let r = std.r255(base);
+  let g = std.g255(base);
+  let b = std.b255(base);
+  const SCALE = 6;
+  r = std.add(r, std.mul(2, alpha));
+  g = std.add(g, std.mul(SCALE, beta));
+  b = std.add(b, std.mul(SCALE, gamma));
+  return std.rgb(r, g, b, {});
+}
+
+
+//====================
+//   validate_input
+//====================
+function validate_input(field) {
+  let list = new std.a_tree(_M,"list", 0);
+  let newcolor = U;
+  let ss = gets(field, std.F_in_value);
+  str.str_find(_M, 481, ss, A_WEB_COLOR, std.adr(list), {});
+  if (std.gt2(std.tree_count(std.adr(list)), 0)) {
+    newcolor = str.hex_to_color(ss);
+    select_new_color(newcolor);
+    return Y;
+  }
+  return N;
+}
+
+
+//====================
+//   d_recent_814
+//====================
+function d_recent_814(b, label, clr) {
 std.k_enter(b);
-  std.draw_str(b, std.cat("Colorchart v.", gets(std.runtime, std.F_app_version)), { size:std.mul(b.bounds.height, 0.6), indent:std.pt_to_dots(b, 6), color:C_TEXT });
+  std.draw_str(b, label, { size:0.55, just:std.LEFT, color:std.WHITE });
 std.k_leave(b);
 }
 
 
 //====================
-//   d_sample_861
+//   d_recent_817
 //====================
-function d_sample_861(b) {
+function d_recent_817(b, label, clr) {
 std.k_enter(b);
-  std.draw_str(b, "sample", { vert:0, size:0.7, color:std.WHITE });
+  std.draw_rect(b, { fill:clr, corner:std.pt_to_dots(b, 3) });
 std.k_leave(b);
 }
 
 
 //====================
-//   d_sample_863
+//   ferr_first_ramp_1250
 //====================
-function d_sample_863(b) {
-std.k_enter(b);
-  std.draw_rect(b, { fill:getn(g, F_sel_color), corner:std.pt_to_dots(b, 10) });
-std.k_leave(b);
-}
-
-
-//====================
-//   d_sample_872
-//====================
-function d_sample_872(b) {
-std.k_enter(b);
-  std.draw_str(b, "prior", { vert:0, size:0.7, color:std.WHITE });
-std.k_leave(b);
-}
-
-
-//====================
-//   d_sample_874
-//====================
-function d_sample_874(b) {
-std.k_enter(b);
-  std.draw_rect(b, { fill:getn(g, F_prior_color), corner:std.pt_to_dots(b, 10) });
-std.k_leave(b);
-}
-
-
-//====================
-//   ferr_first_ramp_902
-//====================
-function ferr_first_ramp_902(b) {
+function ferr_first_ramp_1250(b) {
 std.k_enter(b);
   std.k_isolate(b, b.bounds, "ferr_ramp_chip", std.freeze(ferr_ramp_chip_F, [1]));
 std.k_leave(b);
@@ -1290,16 +1629,16 @@ std.k_leave(b);
 
 
 //====================
-//   ferr_first_ramp_904
+//   ferr_first_ramp_1252
 //====================
-function ferr_first_ramp_904(b) {
+function ferr_first_ramp_1252(b) {
 std.k_enter(b);
   std.k_isolate(b, b.bounds, "ferr_ramp_chip", std.freeze(ferr_ramp_chip_F, [2]));
 std.k_leave(b);
 }
 
 std.setv(_M, 0, std.runtime, std.F_app_name, "color_chart");
-std.setv(_M, 0, std.runtime, std.F_app_version, "3.0");
+std.setv(_M, 0, std.runtime, std.F_app_version, "4");
 main_init();
 std.rebuild_all();
 
