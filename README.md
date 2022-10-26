@@ -21,6 +21,7 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 
 This is an example of a client + server program, showing how you can build both the client and the server in Beads. To develop this app, you start by first coding it as a standalone program, with fake data, and once you have the drawing part working well, you split off the data generation part into the server module. In this example you connect to the server (running the emitted JS code under Node.JS), and it will transmit to the client the prices. [run here](http://beadslang.com/projects/realtime_stock/hoody_client.html). Note that the server has to be running for the client to be able to connect. We don't run the server 24/7, mention it on the Discord group to fire it up.
 
+
 ### Example: Conway's game of life
 
 ![screenshot](http://beadslang.com/projects/game_of_life/screenshot.gif)
@@ -195,6 +196,12 @@ This is classic tiny program people write, where you take the numbers from 1 to 
 The classic bubble sorting algorithm is pitted against the just slightly more complicated but a zillion times faster Quicksort amethod. Watch the two side by side sort the same number list, and see why Quicksort is so much more clever, by moving things larger distances. The larger the sample size the more terrible the bubble sort works. Program complexity rating: 440 words.
 
 ![sort example](http://beadslang.com/examples/sort_contest/screenshot_bubble_400.png)
+
+### Example: Scrolling to a block
+
+This very short program shows how you can control the browser to scroll to a particular block on the screen.
+
+![screenshot](http://beadslang.com/projects/scroll_to/screenshot.gif)
 
 ### Example: Wristwatch simulation
 
