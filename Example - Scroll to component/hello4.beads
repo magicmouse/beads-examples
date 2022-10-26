@@ -1,0 +1,29 @@
+beads 1 program hello4
+
+const COLORS = [DARK_SEA_GREEN, LIGHT_GREEN, MEDIUM_SEA_GREEN, MEDIUM_AQUAMARINE] 
+const NBLOCKS = 10
+
+var clicked : array of yesno
+var blockname_to_id : array of str  
+		
+vert scroll main_draw
+	loop from:1 to:NBLOCKS index:ix
+		add 350 px d_block(ix)
+		skip 20 px 
+
+draw d_block (
+	ix
+	)
+	blockname_to_id[ix] = b.bname  // remember ID of this block for later
+	draw_rect(fill:COLORS[mod(ix, 4, one:Y)], corner:25 pt)
+	var ss = "{ix} Has been clicked" if clicked[ix] else "{ix}"
+	draw_str(ss, size:40 pt, color:WHITE)
+------
+track EV_TAP
+	clicked[ix] = Y
+
+	//  find lowest unclicked block
+	loop from:1 to:NBLOCKS index:j
+		if clicked[j] <> Y
+			scroll_into_view(blockname_to_id[j])
+			exit
