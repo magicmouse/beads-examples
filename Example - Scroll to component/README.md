@@ -46,7 +46,7 @@ draw d_block (
 
 #### Step 3 - Handle mouse clicks/taps
 
-WOn each block we handle the TAP event which is the same as a mouse click on desktop computers. We turn on the clicked flag for the block, and then look for the first unclicked block and ask the browser to bring that block into view. The `scroll_into_view` function is in the std library, and controls to the browser; it will scroll in either direction so that that element is visible. It has various options like TO_START, the default is to move nearest.
+In each block we handle the `EV_TAP` event which is the same as a mouse click on desktop computers. We turn on the clicked flag for the block, and then look for the first unclicked block and ask the browser to bring that block into view. The `scroll_into_view` function is in the std library, and controls to the browser; it will scroll in either direction so that that element is visible. It has various options like `TO_START`; the default is to move to the nearest. It all depends on how you want the screen to be positioned.
 
 ```
 track EV_TAP
