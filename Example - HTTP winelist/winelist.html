@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="color-scheme" content="light dark">
+<title>winelist</title>
+<link rel="shortcut icon" href="data:,">
+<style>
+/*  the above empty icon shuts the favicon stuff up.
+	put stmt above style if you want favicon: <link rel="shortcut icon" href="favicon.ico" />
+    this disables the annoying double click highlighting of DIV blocks 
+	see more meta options at https://matt.might.net/articles/how-to-native-iphone-ipad-apps-in-javascript/  
+*/
+div { outline-style:none;}
+div:hover { cursor:inherit; }
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover { background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0;position:fixed;">
+<script type="module">
+// beads ver 0.55 compiled Sun Nov 6 16:11:18 GMT-0800 2022
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_055/beads_std.js';
+import * as std from '../../runtime_055/beads_std.js';
+import * as str from '../../runtime_055/beads_str.js';
+export const CODE_HASH = 0x2fe3d0ab;
+const _M = std.MODULES.push("winelist")-1;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
+//------- enums
+const F_nskipped=9007192251468994; std.ENUMS[9007192251468994]="nskipped"; std.FIELDS[F_nskipped]=!0;
+const R_record_21=9007193998792859; std.ENUMS[9007193998792859]="record_21";
+const F_nfound=9007190593610870; std.ENUMS[9007190593610870]="nfound"; std.FIELDS[F_nfound]=!0;
+//-------  func const for std
+const draw_input_F = new std.a_function(1, "draw_input", std.draw_input);
+const draw_str_F = new std.a_function(1, "draw_str", std.draw_str);
+//-------  func const for winelist
+const d_input_F = new std.a_function(_M, "d_input", d_input);
+std.FUNCS[d_input_F.hash]=d_input_F;
+const do_filtering_F = new std.a_function(_M, "do_filtering", do_filtering);
+std.FUNCS[do_filtering_F.hash]=do_filtering_F;
+const d_info_F = new std.a_function(_M, "d_info", d_info);
+std.FUNCS[d_info_F.hash]=d_info_F;
+const decode_winelist_F = new std.a_function(_M, "decode_winelist", decode_winelist);
+std.FUNCS[decode_winelist_F.hash]=decode_winelist_F;
+const d_cell_body_F = new std.a_function(_M, "d_cell_body", d_cell_body);
+std.FUNCS[d_cell_body_F.hash]=d_cell_body_F;
+const d_cell_body2_F = new std.a_function(_M, "d_cell_body2", d_cell_body2);
+std.FUNCS[d_cell_body2_F.hash]=d_cell_body2_F;
+const d_cell_row_F = new std.a_function(_M, "d_cell_row", d_cell_row);
+std.FUNCS[d_cell_row_F.hash]=d_cell_row_F;
+const d_cell_body2_194_F = new std.a_function(_M, "d_cell_body2_194", d_cell_body2_194);
+std.FUNCS[d_cell_body2_194_F.hash]=d_cell_body2_194_F;
+//-------  top nodes
+const TRACE_DECODE = N;
+const TRACE_FILTER = N;
+const MAX_NFOUND = 100;
+const DUMMY_DATA = N;
+const C_CELL_BACK = 0x693D51;
+const C_CELL_TEXT = std.WHITE;
+const C_CELL_DIM = 0xDABCC7;
+const C_STARS = 0xFE6526;
+const SERVER_URL = "https://api.sampleapis.com/wines/reds";
+const STARS = new std.a_tree(_M,"STARS", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 45, 1, VAL, "☆☆☆☆☆", 2, VAL, "★☆☆☆☆", 3, VAL, "★★☆☆☆", 4, VAL, "★★★☆☆", 5, VAL, "★★★★☆"
+, 6, VAL, "★★★★★"));
+var db = new std.a_tree(_M,"db", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var filtered = new std.a_tree(_M,"filtered", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var db_images = new std.a_tree(_M,"db_images", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var input = new std.a_tree(_M,"input", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var last_input = "\u0001";
+var response = new std.a_tree(_M,"response", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var intf = new std.a_tree(_M,"intf", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var CELLH = U;
+var CELLV = U;
+var GAP = U;
+var N_COLS = U;
+var N_ROWS = U;
+
+//====================
+//   d_cell_body
+//====================
+function d_cell_body(b, cellx) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 1, 2, std.al);
+  std.div_add(b, U, 1, 18, std.al, std.freeze(d_cell_body2_F, [getn(filtered, cellx)]), 0);
+  std.div_spa(b, 1, 2, std.al);
+  std.div_end(b);
+  //--under
+  std.draw_rect(b, { fill:C_CELL_BACK, corner:std.pt_to_dots(b, 10) });
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_cell_body2
+//====================
+function d_cell_body2(b, dbx) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 0, 8, std.pt);
+  std.div_add(b, U, 0, 15, std.al, std.freeze(d_cell_body2_194_F, [dbx]), 0);
+  std.div_spa(b, 0, 6, std.pt);
+  std.div_add(b, U, 0, 80, std.al, std.freeze(d_info_F, [dbx]), 0);
+  std.div_spa(b, 0, 2, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_cell_row
+//====================
+function d_cell_row(b, rowx) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 0, 10, std.al);
+  var loop283 = new std.a_loop({ reps:N_COLS });
+  while (loop283.next()) {
+  var colx = loop283.count;
+    std.div_spa(b, 0, GAP, std.pt);
+    var cellx = std.add(std.mul(std.sub(rowx, 1), N_COLS), colx);
+    std.div_add(b, U, 0, CELLH, std.pt, std.freeze(d_cell_body_F, [cellx]), 0, std.le4(cellx, getn(intf, F_nfound)));
+  }
+  std.div_spa(b, 0, GAP, std.pt);
+  std.div_spa(b, 0, 10, std.al);
+  std.div_spa(b, 0, std.SCROLLBAR_WIDTH, std.px);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_info
+//====================
+function d_info(b, dbx) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  var data = std.adr(db, dbx);
+  std.div_add(b, U, 1, 14, std.pt, std.freeze(draw_str_F, [std.get_generic(data, "wine"), { just:std.LEFT, size:std.pt_to_dots(b, 14), bold:Y, color:C_CELL_TEXT }]), 0);
+  std.div_spa(b, 1, 4, std.pt);
+  std.div_add(b, U, 1, 14, std.pt, std.freeze(draw_str_F, [std.cat("Winery: ", gets(data, "winery")), { just:std.LEFT, size:std.pt_to_dots(b, 13), color:C_CELL_DIM }]), 0);
+  std.div_spa(b, 1, 10, std.al);
+  std.div_add(b, U, 1, 14, std.pt, std.freeze(draw_str_F, [std.get_generic(data, "rating", "reviews"), { just:std.LEFT, size:std.pt_to_dots(b, 13), color:C_CELL_DIM }]), 0);
+  std.div_spa(b, 1, 4, std.pt);
+  var nstars = str.to_num(std.get_generic(data, "rating", "average"));
+  std.div_add(b, U, 1, 14, std.pt, std.freeze(draw_str_F, [gets(STARS, std.interpolate(nstars, 0, 5, 1, 6, { round:Y, clamp:Y })), { just:std.LEFT, size:std.pt_to_dots(b, 13
+  ), color:C_STARS }]), 0);
+  std.div_spa(b, 1, 6, std.pt);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_input
+//====================
+function d_input(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 0, 10, std.al);
+  std.div_add(b, U, 0, 200, std.pt, std.freeze(draw_str_F, ["Winery name (partial):", { just:std.RIGHT, indent:std.pt_to_dots(b, 3), size:0.6 }]), 0);
+  std.div_add(b, U, 0, 200, std.pt, std.freeze(draw_input_F, [std.adr(input), { fill:std.WHITE, size:std.pt_to_dots(b, 13), indent:std.pt_to_dots(b, 2) }]), 0);
+  std.div_spa(b, 0, 10, std.al);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, true);
+  std.k_back(b, {fill:std.SEASHELL});
+  std.div_spa(b, 1, 20, std.pt);
+  std.div_add(b, U, 1, 14, std.pt, std.freeze(draw_str_F, ["Wine Search Utility", { size:std.pt_to_dots(b, 13) }]), 0);
+  std.div_spa(b, 1, 20, std.pt);
+  std.div_add(b, U, 1, 24, std.pt, d_input_F, 0);
+  std.div_spa(b, 1, 15, std.pt);
+  if (isNaN(getn(intf, F_nfound))) {
+    std.div_add(b, U, 1, 24, std.pt, std.freeze(draw_str_F, [std.cat("⚠\ufe0f\ufe0f  HTTP GET failed with status ", str.to_str(getn(response, std.F_http_status), {dig:2}), ", please check url:"
+    ), { size:0.6 }]), 0);
+    std.div_add(b, U, 1, 24, std.pt, std.freeze(draw_str_F, [SERVER_URL, { size:0.7 }]), 0);
+  } else if (getn(intf, F_nfound) === U) {
+    std.div_add(b, U, 1, 24, std.pt, std.freeze(draw_str_F, ["⌛   WAITING FOR SERVER  ⌛", { size:0.6 }]), 0);
+  } else if (std.eq2(getn(intf, F_nfound), 0)) {
+    std.div_add(b, U, 1, 24, std.pt, std.freeze(draw_str_F, ["😟  Sorry, no matching wineries, please adjust your search criteria.", { size:0.6 }]), 0);
+  } else {
+    CELLH = std.pt_to_dots(b, 220);
+    CELLV = std.pt_to_dots(b, 95);
+    GAP = std.pt_to_dots(b, 12);
+    N_COLS = std.max(1, std.idiv(std.sub(b.bounds.width, GAP), std.add(CELLH, GAP)));
+    N_ROWS = std.round_up(std.div(getn(intf, F_nfound), N_COLS), {});
+    var loop284 = new std.a_loop({ reps:N_ROWS });
+    while (loop284.next()) {
+    var rowx = loop284.count;
+      std.div_spa(b, 1, GAP, std.pt);
+      std.div_add(b, U, 1, CELLV, std.pt, std.freeze(d_cell_row_F, [rowx]), 0);
+    }
+    if (std.gt2(getn(intf, F_nskipped), 0)) {
+      std.div_spa(b, 1, 12, std.pt);
+      std.div_add(b, U, 1, 14, std.pt, std.freeze(draw_str_F, [std.cat("(", str.to_str(getn(intf, F_nskipped), {dig:2}), " wines not shown)"), { size:std.pt_to_dots(b, 13), color
+      :std.CHOCOLATE }]), 0);
+    }
+    std.div_spa(b, 1, 12, std.pt);
+    std.div_add(b, U, 1, 1, std.pt, std.freeze(draw_str_F, ["", {}]), 0);
+  }
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   decode_winelist
+//====================
+function decode_winelist() {
+  if (std.eq2(getn(response, std.F_http_status), 200)) {
+    str.json_to_tree(_M, 50106, std.get_generic(response, std.F_http_body), std.adr(db));
+    std.path_setv(_M, 50107, std.adr(intf, F_nfound), std.tree_count(std.adr(db)));
+    if (TRACE_DECODE === Y) {
+      var loop285 = new std.a_loop({ across:std.adr(db) });
+      while (loop285.next()) {
+      var ix = loop285.index;
+      var p = loop285.path.clone();
+        log(lgp(std.cat("list[", str.to_str(ix, {dig:2}), "] winery=", str.to_str(std.get_generic(p, "winery"), {dig:2}), ", wine=", str.to_str(std.get_generic(p, "wine"), {dig:2})
+        , ", rating=", str.to_str(std.get_generic(p, "rating", "average"), {dig:2}))));
+      }
+    }
+    do_filtering(std.adr(input));
+  } else {
+    std.path_setv(_M, 50115, std.adr(intf, F_nfound), std.ERR);
+  }
+}
+
+
+//====================
+//   do_filtering
+//====================
+function do_filtering(field) {
+  if (std.ne2(gets(input, std.F_in_value), last_input)) {
+    std.trunc_tree(_M, 20073, std.adr(filtered));
+    std.path_setv(_M, 20074, std.adr(intf, F_nfound), 0);
+    std.path_setv(_M, 20075, std.adr(intf, F_nskipped), 0);
+    if (std.eq2(gets(input, std.F_in_value), "")) {
+      var loop286 = new std.a_loop({ across:std.adr(db) });
+      while (loop286.next()) {
+      var ix = loop286.index;
+        if (std.le2(ix, MAX_NFOUND)) {
+          std.append_val(_M, 20083, ix, std.adr(filtered));
+          std.tree_add(_M, 20084, 1, std.adr(intf, F_nfound));
+        } else {
+          std.tree_add(_M, 20086, 1, std.adr(intf, F_nskipped));
+        }
+      }
+    } else {
+      var loop287 = new std.a_loop({ across:std.adr(db) });
+      while (loop287.next()) {
+      var ix = loop287.index;
+      var p = loop287.path.clone();
+        if (str.str_pos(std.get_generic(p, "winery"), gets(input, std.F_in_value), {}) !== U) {
+          if (std.le2(getn(intf, F_nfound), MAX_NFOUND)) {
+            std.append_val(_M, 20093, ix, std.adr(filtered));
+            std.tree_add(_M, 20094, 1, std.adr(intf, F_nfound));
+          } else {
+            std.tree_add(_M, 20096, 1, std.adr(intf, F_nskipped));
+          }
+        }
+      }
+    }
+  }
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.path_setv(_M, 30050, std.adr(input, std.F_in_label), "i_name");
+  std.path_setv(_M, 30051, std.adr(input, std.F_in_tip), "Search criteria");
+  std.path_setv(_M, 30052, std.adr(input, std.F_in_maxlen), 30);
+  std.path_setv(_M, 30053, std.adr(input, std.F_in_on_change), do_filtering_F);
+  std.path_setv(_M, 30054, std.adr(input, std.F_in_value), "");
+  if (DUMMY_DATA === Y) {
+    const INPUT = "[{\"winery\":\"Maselva\",\"wine\":\"Emporda 2012\",\"rating\":{\"average\":\"1.9\",\"reviews\":\"88 ratings\"},\"location\":\"Spain\\n·\\nEmpordà\",\"image\":\"https://images.vivino.com/thumbs/ApnIiXjcT5Kc33OHgNb9dA_375x500.jpg\",\"id\":1},{\"winery\":\"Ernesto Ruffo\",\"wine\":\"Amarone della Valpolicella Riserva N.V.\",\"rating\":{\"average\":\"4.9\",\"reviews\":\"75 ratings\"},\"location\":\"Italy\\n·\\nAmarone della Valpolicella\",\"image\":\"https://images.vivino.com/thumbs/nC9V6L2mQQSq0s-wZLcaxw_pb_x300.png\",\"id\":2},]"
+    ;
+    var ss = str.json_to_tree(_M, 30058, INPUT, std.adr(db));
+    log(lgp(std.cat("JSON err=[", ss, "]")));
+    do_filtering(std.adr(input));
+  } else {
+    std.http_request(_M, 30063, SERVER_URL, decode_winelist_F, { timeout:5, response:std.adr(response) });
+  }
+}
+
+
+//====================
+//   d_cell_body2_194
+//====================
+function d_cell_body2_194(b, dbx) {
+std.k_enter(b);
+  if (std.get_image(db_images, dbx) === null) {
+    var url = std.get_generic(db, dbx, "image");
+    std.path_setv(_M, 100198, std.adr(db_images, dbx), std.image_load(url, {}));
+  }
+  std.draw_image(b, std.get_image(db_images, dbx), {});
+std.k_leave(b);
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "winelist");
+main_init();
+std.rebuild_all();
+
+
+//  uncommend this to prevent accidental reload, useful for web apps that store input
+//   window.onbeforeunload = (event) => {
+// 	  const e = event || window.event;
+// 	  // Cancel the event
+// 	  e.preventDefault();
+// 	  if (e) {
+// 		e.returnValue = ''; // Legacy method for cross browser support
+// 	  }
+// 	  return ''; // Legacy method for cross browser support
+// 	}
+
+</script>
+</body>
+</html>
+
