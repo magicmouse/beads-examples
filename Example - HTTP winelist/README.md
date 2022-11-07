@@ -3,7 +3,9 @@
 
 This program shows you access remote data and images via HTTP GET protocol. In this case we access a public wine database, and let the user filter the resulting wines by entering part of the winery name.
 
-![screenshot](http://www.beadslang.com/projects/http_winelist/screenshot.jpg)
+![screenshot](https://beadslang.com/projects/http_winelist/screenshot.jpg)
+
+You can [run the program](https://beadslang.com/projects/http_winelist/winelist.html) in your browser.
 
 
 ### Section 1: Declarations
