@@ -14,8 +14,15 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 7. a simple and flexible module system 
 8. no make system needed for most projects
 
-### Example: Realtime stock price graph
 
+
+### Example: Using HTTP to draw a wine list
+
+![screenshot](http://beadslang.com/projects/http_winelist/screenshot.jpg)
+
+This example shows you how to retrieve a wine list from an external database, and adjust the display to fit the screen.
+
+### Example: Realtime stock price graph
 
 ![screenshot](http://beadslang.com/projects/realtime_stock/hoody.gif)
 
