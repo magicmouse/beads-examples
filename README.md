@@ -222,3 +222,9 @@ This simple program will draw a clock on the screen. This is among the shortest 
 
 ![clock example](http://beadslang.com/examples/clock/clock_screenshot_anim.gif)
 
+### Example: Fibonacci sequences
+
+![screenshot](http://beadslang.com/projects/fibonacci/screenshot.gif)
+
+This example shows you how to calculate the famous Fibonacci sequence of numbers.
+

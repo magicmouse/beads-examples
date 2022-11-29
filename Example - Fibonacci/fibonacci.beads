@@ -1,0 +1,33 @@
+beads 1 program fibonacci	// a fast fib calculator
+
+//  although we could easily do a recursive version
+//  a loop is far faster, and clearer
+//  the fibonacci sequence is 0, 1, 1, 2, 3, etc.
+
+calc fib (
+	n 
+	) : num
+	if n <= 0
+		return 0
+	
+	if n <= 2  // 1st and 2nd numbers are 1
+		return 1
+
+	var prev1 = 1
+	var prev2 = 1
+	var sum
+
+	//  the 3rd fibonacci number is 2
+	loop reps:n-2
+		sum = prev1 + prev2
+		prev1 = prev2
+		prev2 = sum
+	return sum
+
+=======================
+vert slice main_draw
+	background fill:#670029
+	skip 10 al
+	loop from:0 to:32 index:ix
+		add 14 pt draw_str("{ix}: {to_str(fib(ix), thou:Y)}", size:0.7, color:WHITE)
+	skip 10 al

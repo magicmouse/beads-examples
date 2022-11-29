@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="color-scheme" content="light dark">
+<title>fibonacci</title>
+<link rel="shortcut icon" href="data:,">
+<style>
+/*  the above empty icon shuts the favicon stuff up.
+	put stmt above style if you want favicon: <link rel="shortcut icon" href="favicon.ico" />
+    this disables the annoying double click highlighting of DIV blocks 
+	see more meta options at https://matt.might.net/articles/how-to-native-iphone-ipad-apps-in-javascript/  
+*/
+div { outline-style:none;}
+div:hover { cursor:inherit; }
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover { background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0;position:fixed;">
+<script type="module">
+// beads ver 0.55 compiled Mon Nov 28 20:32:00 GMT-0800 2022
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_055/beads_std.js';
+import * as std from '../../runtime_055/beads_std.js';
+import * as str from '../../runtime_055/beads_str.js';
+export const CODE_HASH = 0x45f2055a;
+const _M = std.MODULES.push("fibonacci")-1;
+std.rtl_init();
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
+//------- enums
+//-------  func const for std
+const draw_str_F = new std.a_function(1, "draw_str", std.draw_str);
+//-------  top nodes
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.k_back(b, {fill:0x670029});
+  std.div_spa(b, 1, 10, std.al);
+  var loop6196 = new std.a_loop({ from:0, to_:32 });
+  while (loop6196.next()) {
+  var ix = loop6196.index;
+    std.div_add(b, U, 1, 14, std.pt, std.freeze(draw_str_F, [std.cat("", str.to_str(ix, {dig:2}), ": ", str.to_str(fib(ix), { thou:Y })), { size:0.7, color:std.WHITE }]), 0);
+  }
+  std.div_spa(b, 1, 10, std.al);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   fib
+//====================
+function fib(n) {
+  if (std.le2(n, 0)) {
+    return 0;
+  }
+  if (std.le2(n, 2)) {
+    return 1;
+  }
+  var prev1 = 1;
+  var prev2 = 1;
+  var sum = U;
+  var loop6197 = new std.a_loop({ reps:std.sub(n, 2) });
+  while (loop6197.next()) {
+    sum = std.add(prev1, prev2);
+    prev1 = prev2;
+    prev2 = sum;
+  }
+  return sum;
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "fibonacci");
+std.rebuild_all();
+
+
+//  uncommend this to prevent accidental reload, useful for web apps that store input
+//   window.onbeforeunload = (event) => {
+// 	  const e = event || window.event;
+// 	  // Cancel the event
+// 	  e.preventDefault();
+// 	  if (e) {
+// 		e.returnValue = ''; // Legacy method for cross browser support
+// 	  }
+// 	  return ''; // Legacy method for cross browser support
+// 	}
+
+</script>
+</body>
+</html>
+
