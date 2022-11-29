@@ -22,22 +22,16 @@ We could have easily made code use recursion, but the function is defined as a s
 calc fib (
 	n 
 	) : num
-	if n <= 0
-		return 0
-	
-	if n <= 2  // 1st and 2nd numbers are 1
-		return 1
-
-	var prev1 = 1
-	var prev2 = 1
+	var a = 0
+	var b = 1
 	var sum
 
 	//  the 3rd fibonacci number is 2
-	loop reps:n-2
-		sum = prev1 + prev2
-		prev1 = prev2
-		prev2 = sum
-	return sum
+	loop reps:n
+		sum = a + b
+		a = b
+		b = sum
+	return a
 ```
 
 ### Section 3: Drawing

@@ -30,11 +30,11 @@ div:hover { cursor:inherit; }
 </head>
 <body style="margin:0; padding:0;position:fixed;">
 <script type="module">
-// beads ver 0.55 compiled Mon Nov 28 20:32:00 GMT-0800 2022
+// beads ver 0.55 compiled Mon Nov 28 21:21:27 GMT-0800 2022
 import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_055/beads_std.js';
 import * as std from '../../runtime_055/beads_std.js';
 import * as str from '../../runtime_055/beads_str.js';
-export const CODE_HASH = 0x45f2055a;
+export const CODE_HASH = 0x110749f5;
 const _M = std.MODULES.push("fibonacci")-1;
 std.rtl_init();
 std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
@@ -51,9 +51,9 @@ std.k_enter(b);
 std.div_begin(b, null, false, false, false);
   std.k_back(b, {fill:0x670029});
   std.div_spa(b, 1, 10, std.al);
-  var loop6196 = new std.a_loop({ from:0, to_:32 });
-  while (loop6196.next()) {
-  var ix = loop6196.index;
+  var loop6198 = new std.a_loop({ from:0, to_:32 });
+  while (loop6198.next()) {
+  var ix = loop6198.index;
     std.div_add(b, U, 1, 14, std.pt, std.freeze(draw_str_F, [std.cat("", str.to_str(ix, {dig:2}), ": ", str.to_str(fib(ix), { thou:Y })), { size:0.7, color:std.WHITE }]), 0);
   }
   std.div_spa(b, 1, 10, std.al);
@@ -67,22 +67,16 @@ std.k_leave(b);
 //   fib
 //====================
 function fib(n) {
-  if (std.le2(n, 0)) {
-    return 0;
-  }
-  if (std.le2(n, 2)) {
-    return 1;
-  }
-  var prev1 = 1;
-  var prev2 = 1;
+  var a = 0;
+  var b = 1;
   var sum = U;
-  var loop6197 = new std.a_loop({ reps:std.sub(n, 2) });
-  while (loop6197.next()) {
-    sum = std.add(prev1, prev2);
-    prev1 = prev2;
-    prev2 = sum;
+  var loop6199 = new std.a_loop({ reps:n });
+  while (loop6199.next()) {
+    sum = std.add(a, b);
+    a = b;
+    b = sum;
   }
-  return sum;
+  return a;
 }
 
 std.setv(_M, 0, std.runtime, std.F_app_name, "fibonacci");
