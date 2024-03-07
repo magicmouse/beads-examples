@@ -33,7 +33,8 @@ This is an example of a client + server program, showing how you can build both 
 
 ### Example: Conway's game of life
 
-![screenshot](http://beadslang.com/projects/game_of_life/screenshot.gif)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/fd7e2bb3-1402-4d75-bf31-826a7c95fd03)
+
 
 This shows how short and simple programs can be when written in Beads. It is impossible to write a shorter version that performs the same function (this version auto-adjusts to the screen size).
 
@@ -48,28 +49,23 @@ This is a rewrite of a CSS-mostly project from CodePen. Our version is interacti
 
 This shows how you can build a simple tree structure with up/down expand/contract buttons.
 
-![screenshot](http://beadslang.com/projects/recursive/screenshot.gif)
-
-The disclosure triangle tree example can be [run here](http://beadslang.com/projects/recursive/cats.html)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/5d13a207-42de-48ff-862e-126898659754)
 
 
 ### Example: Sliding block puzzle
 
-
-![screenshot](http://beadslang.com/projects/sliding_puzzle/puzzle.gif)
-
-The puzzle can be [run here](http://beadslang.com/projects/sliding_puzzle/puzzle.html)
+![puzzle](https://github.com/magicmouse/beads-examples/assets/5481132/de7cccad-d641-4dc6-9bb5-9cd61d8d9c53)
 
 
 ### Example: Translation tool
 
 This is the handy graphical interactive localization utility for Beads. It allows you to visit Google translate to get your translation started, and lets you keep track of your translation progress, add new languages, etc.
 
-Beads has a wonderful localization methodology, that people will find user friend and convenient.
+Beads has a friendly and convenient localization methodology, by using suffixes in the source code after a string literal.
 
 for a [video explanation of how to use it](https://youtu.be/xKQ9Uj8o_4w)
 
-![screenshot](https://beadslang.com/examples/localize/screenshot.gif)
+![localize_screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/a2ec3cc6-d48f-4470-a0fb-a7c69a402c21)
 
 
 ### Example: Dijkstra's pathfinder algorithm
@@ -78,13 +74,15 @@ This Beads language sample program runs a simulation of Dijkstra's famous pathfi
 
 You draw a wall with the mouse (right click to erase wall cells), and then you press ENTER and let the simulation run. You can also press SPACEBAR to go one step at a time. 
 
-![snake example](http://beadslang.com/apps/pathfinder/pathfinder.gif)
+![pathfinder](https://github.com/magicmouse/beads-examples/assets/5481132/e2296487-2642-438a-b16c-cb75bad1200b)
+
 
 ### Example: Temperature control
 
 This is a simple temperature control which demonstrates the physical units of measurement in Beads, and how you can have a dual control and either one will update the model and refresh the other version of the control that uses the same data, all without locks or conflicts arising.
 
-![screenshot](https://beadslang.com/projects/temperature/screenshot.png)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/2a376a43-0f3e-476d-9b57-52584f26cb0b)
+
 
 Here is a short video talking about it.
 
@@ -94,7 +92,8 @@ Here is a short video talking about it.
 
 This handy utility shows how you can run a program inside another program in Beads (by using the *monitor* keyword instead of program on the first line of code).
 
-![screenshot](https://beadslang.com/examples/cycler/screenshot.jpg)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/0cae1bf0-ea0b-46a5-9356-8f69554e495e)
+
 
 Here is a short video talking about it.
 
