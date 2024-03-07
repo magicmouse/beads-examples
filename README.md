@@ -104,52 +104,54 @@ Here is a short video talking about it.
 
 In this example we show how you can use the physical units of measure features in the Beads language, where you can easily switch between the different temperature scales. Beads includes all the basic units used in engineering and science, with the unit conversions built into the language.
 
-![heat](http://beadslang.com/examples/heat/screenshot_300w.gif)
+![screenshot_300w](https://github.com/magicmouse/beads-examples/assets/5481132/4b5c1f9e-fc6e-432e-a785-17ed7000e4fa)
+
 
 ### Example: Animate1 -- Animation using the HTML Canvas
 
 In this example we show how you can use the HTML canvas layer to achieve smooth animation effects.
 
-![constellation](http://beadslang.com/examples/animate3/animate3.gif)
+![animate3](https://github.com/magicmouse/beads-examples/assets/5481132/8d9ab56a-9bbe-4823-bcc6-a9c565e2fae4)
+
 
 
 ### Example: Fishing game
 
 This example shows the State-Action-Model pattern method of programming, which is the natural way to program in Beads. You have state variables which are used in a read-only manner by the drawing code, and only the event tracking code updates state.
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/ff3cf081-41c6-4732-86a5-f9e1399bbd72)
 
-![screenshot](http://beadslang.com/projects/fishing/screenshot.gif)
-
-The game can be [run here](http://beadslang.com/projects/fishing/fishing.html)
 
 ### Example: Animate1 -- Animation program execution
 
 In this example we show a prototype of a way of illustrating program execution, as we call and return from functions:
 
-![constellation](http://beadslang.com/examples/animate1/example.gif)
+![example](https://github.com/magicmouse/beads-examples/assets/5481132/a18619ca-49e7-4ebf-8ebf-c890336de8b5)
+
 
 ### Example: Beads versus Python
 
 In this short 200 word example we take an existing Python program and rewrite it in Beads. They Python version draws to the console as if we were in 1970's, while the Beads version runs in the browser (or could be emitted for Desktop or Mobile platforms), and resizes even while running without skipping a beat. 
 
-The [Python version](https://github.com/engineer-man/youtube/tree/master/089) is slightly shorter, but imports 4 libraries, and uses about 15 external functions. Beads uses only 7 external functions, and they are the same ones used in every program. The Python version uses a complex multi-threated scheme that requires semaphores and locking of critical sections. A rather advanced set of concepts. The Python version requires an external file to be read, because it doesn't have a powerful literal syntax.
+The [Python version](https://github.com/engineer-man/youtube/tree/master/089) is slightly shorter, but imports 4 libraries, and uses about 15 external functions. Beads uses only 7 external functions, and they are the same ones used in every program. The Python version uses a complex multi-threaded scheme that requires semaphores and locking of critical sections. A rather advanced set of concepts. The Python version requires an external file to be read, because it doesn't have a powerful literal syntax.
 
-![tree](http://beadslang.com/projects/xmas_tree/docs/tree_blinking.gif)
+![tree_blinking](https://github.com/magicmouse/beads-examples/assets/5481132/e3e59615-99e5-4f08-9635-7c80649b227f)
 
 
 ### Example: HTTP form that re-arranges its layout
 
 It is very common to need to have input forms and collect user data. This example shows how beads can rearrange a form based on the pixel density and size of a screen. As you make the window larger or smaller it resizes all the elements. This is different than HTML Flex boxes, as it completely rearranges the form using IF statements and can accomodate a very wide range of display densities and sizes. This means your forms can work on mobile devices which can have pixel densities 5 times that of a desktop. Many desktop forms are unusable on mobile.  Complexity rating: 1200 words
 
-![form1A](http://beadslang.com/projects/form1/docs/screenshot_very_narrow.png)
-![form1B](http://beadslang.com/projects/form1/docs/screenshot_narrow.png)
-![form1C](http://beadslang.com/projects/form1/docs/screenshot_wide.png)
 
+![screenshot_wide](https://github.com/magicmouse/beads-examples/assets/5481132/7ab6bcc4-7b7a-47e8-80d5-b48c4fb9d76a)
+![screenshot_very_narrow](https://github.com/magicmouse/beads-examples/assets/5481132/75234717-6aab-4d95-be74-3e2b21dc4ae2)
+![screenshot_narrow](https://github.com/magicmouse/beads-examples/assets/5481132/67f625c8-ba4d-419c-be3f-135a80fe22c9)
 
 ### Example: Chess
 
 The classic board game. Complexity rating: 1500 words
 
-![chess example](http://beadslang.com/projects/chess/screenshots/chess.png)
+![chess](https://github.com/magicmouse/beads-examples/assets/5481132/95b0e913-b099-4cd4-ac36-2afcc40ab823)
+
 
 ### Example: Tic-tac-toe client/server version
 
