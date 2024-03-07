@@ -157,77 +157,90 @@ The classic board game. Complexity rating: 1500 words
 
 The classic board game, but in multiplayer form, where you can play or watch 12 different pairs of people playing across the internet, using TCP sockets. We write both the client and the server in Beads. The server publishes the game state, and the client subscribe to the published shared mutable state. Each of the players receives without any message handling code the updated state of the game. The clients make their moves by invoking remote function calls. You code the program as a standalone, then split the code into two parts. Client/server has never been so easy. No messy API's for message handling, all encoding and decoding is done automatically, and packets are sent in binary not JSON for maxiumum compactness and performance. A complexity rating of 1500 words.
 
-![tictactoe example](http://beadslang.com/projects/tictactoe_net/docs/screenshot.png)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/c3275cd5-999f-4d58-92f4-48b9eeecb3d6)
+
 
 ### Example: Tic-tac-toe game standalone version
 
 The classic children's game, two player (no AI). Complexity rating: 520 words
 
-![tictactoe example](http://beadslang.com/examples/TicTacToe/tictactoe.gif)
+![tictactoe](https://github.com/magicmouse/beads-examples/assets/5481132/c28566da-4676-49a1-ac74-a25b04a594a0)
+
 
 ### Example: Color picker utility
 
 A handy tool for programming; shows the HTML named colors, sorted in a convenient to use sort order. Approx. 1300 words.
 
-![color picker](http://beadslang.com/examples/colorchart/docs/screenshot1.png)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/7a51fb38-f919-4f07-8314-292e6a4393f1)
+
 
 ### Example: Bearsweeper game
 
 The classic Minesweeper game, recast with a Bear in the starring role. Complexity rating: 1000 words
 
-![bearsweeper example](http://beadslang.com/examples/bearsweeper/game1_small.png)
+![game1_small](https://github.com/magicmouse/beads-examples/assets/5481132/f2b59832-6e5f-421a-8d3a-9dc8d6ab9329)
+
 
 ### Example: Lumberjack game
 
 A very simple wood chopping game, built for little kids. A rewrite of an existing React/TS game that is can be run [here](https://lumber-jack.netlify.com/). We compare the two implementations to see how it differs in word count, number of dependencies, memory usage. Complexity rating: 750 words
 
-![lumberjack example](http://beadslang.com/examples/lumberjack/lumberjack_screenshot.jpg)
+![lumberjack_screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/db5a4a97-d01f-4813-a7cf-fcb61e7ac474)
+
 
 ### Example: Calculator
 
 The classic Apple calculator program, except without the bugs that Apple has! Complexity rating: 500 words
+![calculator](https://github.com/magicmouse/beads-examples/assets/5481132/3957fc04-e56d-4fbc-b8cf-85b401df9d05)
 
-![calculator example](http://beadslang.com/examples/calculator/calculator.gif)
+
 
 ### Example: Snake game
 
 The classic snake game as popularized by Nokia cellphones. Probably the most fun per line of code ever made. Program complexity rating: 500 words.
 
-![snake example](http://beadslang.com/examples/snake/snake_animated.gif)
+![snake_animated](https://github.com/magicmouse/beads-examples/assets/5481132/6e41971b-b97c-40c0-b5f5-ae5777979eaf)
+
 
 ### Example: FizzBuzz, graphical style
 
 This is classic tiny program people write, where you take the numbers from 1 to 100, and draw either "Fizz", "Buzz" or the number, depending on the remainder when dividing by 3 and 5. This one is a bit fancier than normal, shows how you can store persistent data using cookies, and how auto refresh occurs.
 
-![screenshot](https://beadslang.com/projects/fizzbuzz/screenshot.gif)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/815ada40-23d7-4794-bf63-fd025f7de096)
+
 
 ### Example: Sort method contest
 
 The classic bubble sorting algorithm is pitted against the just slightly more complicated but a zillion times faster Quicksort amethod. Watch the two side by side sort the same number list, and see why Quicksort is so much more clever, by moving things larger distances. The larger the sample size the more terrible the bubble sort works. Program complexity rating: 440 words.
 
-![sort example](http://beadslang.com/examples/sort_contest/screenshot_bubble_400.png)
+![screenshot_bubble_400](https://github.com/magicmouse/beads-examples/assets/5481132/be1e1c90-c937-4204-aa61-f5043cc2a2b8)
+
 
 ### Example: Scrolling to a block
 
 This very short program shows how you can control the browser to scroll to a particular block on the screen.
 
-![screenshot](http://beadslang.com/projects/scroll_to/screenshot.gif)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/0d69916e-6a66-4717-b9d2-5a958276372b)
+
 
 ### Example: Wristwatch simulation
 
 This simple program simulates a wristwatch. Program complexity rating: 180 words.
 
-![watch example](http://beadslang.com/projects/watch/watch_example_animated.gif)
+![watch_example_animated](https://github.com/magicmouse/beads-examples/assets/5481132/27582130-43e5-474d-ab86-d1df2f911fdb)
+
 
 ### Example: Analog clock
 
 This simple program will draw a clock on the screen. This is among the shortest possible graphical programs one can imagine. Program complexity rating: 150 words.
 
-![clock example](http://beadslang.com/examples/clock/clock_screenshot_anim.gif)
+![clock_screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/c1f873aa-70dd-4775-89d0-a1b91ac05541)
+
 
 ### Example: Fibonacci sequences
 
-![screenshot](http://beadslang.com/projects/fibonacci/screenshot.gif)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/29feb234-b4a2-448c-a246-967ec93cc956)
+
 
 This example shows you how to calculate the famous Fibonacci sequence of numbers.
 
