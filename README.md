@@ -18,7 +18,7 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 
 ### Example: Using HTTP to draw a wine list
 
-![screenshot](http://beadslang.com/projects/http_winelist/screenshot.jpg)
+![screenshot](https://github.com/magicmouse/beads-examples/blob/master/Example - HTTP winelist/screenshot.jpg)
 
 This example shows you how to retrieve a wine list from an external database, and adjust the display to fit the screen.
 
