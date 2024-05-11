@@ -18,7 +18,8 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 
 A handy tool for programming; shows the HTML named colors, sorted in a convenient to use sort order. Approx. 1300 words.
 
-![color picker](http://beadslang.com/examples/colorchart/docs/screenshot1.png)
+![colorchart_screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/e08e59e9-ed6e-4f32-afdb-2a8b80162130)
+
 
 You can [run the color picker here](https://voicecarrier.com/lab/colors/colorchart.html)
 
