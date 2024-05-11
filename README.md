@@ -14,7 +14,13 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 7. a simple and flexible module system 
 8. no make system needed for most projects
 
+### Example: Color picker utility
 
+A handy tool for programming; shows the HTML named colors, sorted in a convenient to use sort order. Approx. 1300 words.
+
+![color picker](http://beadslang.com/examples/colorchart/docs/screenshot1.png)
+
+You can [run the color picker here](https://voicecarrier.com/lab/colors/colorchart.html)
 
 ### Example: Using HTTP to draw a wine list
 
@@ -37,9 +43,6 @@ This is an example of a client + server program, showing how you can build both 
 ![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/b5897a59-30e9-4603-a3b5-eed185a1f252)
 
 
-This shows how short and simple programs can be when written in Beads. It is impossible to write a shorter version that performs the same function (this version auto-adjusts to the screen size).
-
-
 ### Example: Neat looking liquid slider
 
 ![screenshot4_big](https://github.com/magicmouse/beads-examples/assets/5481132/7a1239c1-4f9a-4ffb-80dc-2238cbc82ffc)
@@ -54,26 +57,20 @@ This shows how you can build a simple tree structure with up/down expand/contrac
 ![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/e42fe869-0f40-481b-b99f-fd02e6a8a571)
 
 
-The disclosure triangle tree example can be [run here](http://beadslang.com/projects/recursive/cats.html)
-
-
 ### Example: Sliding block puzzle
 
-
-![screenshot](http://beadslang.com/projects/sliding_puzzle/puzzle.gif)
-
-The puzzle can be [run here](http://beadslang.com/projects/sliding_puzzle/puzzle.html)
+![puzzle](https://github.com/magicmouse/beads-examples/assets/5481132/c5d201c0-921c-4d09-ae5d-b09c06d40f85)
 
 
 ### Example: Translation tool
 
 This is the handy graphical interactive localization utility for Beads. It allows you to visit Google translate to get your translation started, and lets you keep track of your translation progress, add new languages, etc.
 
-Beads has a wonderful localization methodology, that people will find user friend and convenient.
+Beads has a wonderful localization methodology, that people will find user friendly and convenient.
 
 for a [video explanation of how to use it](https://youtu.be/xKQ9Uj8o_4w)
 
-![screenshot](https://beadslang.com/examples/localize/screenshot.gif)
+![localize_screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/a88a24de-07b9-4f59-a2a8-6ef1e49c536f)
 
 
 ### Example: Dijkstra's pathfinder algorithm
@@ -82,13 +79,15 @@ This Beads language sample program runs a simulation of Dijkstra's famous pathfi
 
 You draw a wall with the mouse (right click to erase wall cells), and then you press ENTER and let the simulation run. You can also press SPACEBAR to go one step at a time. 
 
-![snake example](http://beadslang.com/apps/pathfinder/pathfinder.gif)
+![pathfinder](https://github.com/magicmouse/beads-examples/assets/5481132/02c16dc0-31c3-40d4-aaa2-7105d8448259)
+
 
 ### Example: Temperature control
 
 This is a simple temperature control which demonstrates the physical units of measurement in Beads, and how you can have a dual control and either one will update the model and refresh the other version of the control that uses the same data, all without locks or conflicts arising.
 
-![screenshot](https://beadslang.com/projects/temperature/screenshot.png)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/53001a9d-79d9-4ae6-8689-06ea997d87d7)
+
 
 Here is a short video talking about it.
 
@@ -98,7 +97,8 @@ Here is a short video talking about it.
 
 This handy utility shows how you can run a program inside another program in Beads (by using the *monitor* keyword instead of program on the first line of code).
 
-![screenshot](https://beadslang.com/examples/cycler/screenshot.jpg)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/ea2e23be-3ab1-48e0-b5d0-35b72686413a)
+
 
 Here is a short video talking about it.
 
@@ -109,28 +109,30 @@ Here is a short video talking about it.
 
 In this example we show how you can use the physical units of measure features in the Beads language, where you can easily switch between the different temperature scales. Beads includes all the basic units used in engineering and science, with the unit conversions built into the language.
 
-![heat](http://beadslang.com/examples/heat/screenshot_300w.gif)
+![screenshot_300w](https://github.com/magicmouse/beads-examples/assets/5481132/1d7ba94a-fac7-4df1-8439-eadfa3005b99)
+
 
 ### Example: Animate1 -- Animation using the HTML Canvas
 
 In this example we show how you can use the HTML canvas layer to achieve smooth animation effects.
 
-![constellation](http://beadslang.com/examples/animate3/animate3.gif)
+![animate3](https://github.com/magicmouse/beads-examples/assets/5481132/0d492895-0516-4c25-8b34-4722147f784a)
+
 
 
 ### Example: Fishing game
 
 This example shows the State-Action-Model pattern method of programming, which is the natural way to program in Beads. You have state variables which are used in a read-only manner by the drawing code, and only the event tracking code updates state.
 
-![screenshot](http://beadslang.com/projects/fishing/screenshot.gif)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/c98f07da-7a33-4919-bb39-567a28372b39)
 
-The game can be [run here](http://beadslang.com/projects/fishing/fishing.html)
 
 ### Example: Animate1 -- Animation program execution
 
 In this example we show a prototype of a way of illustrating program execution, as we call and return from functions:
 
-![constellation](http://beadslang.com/examples/animate1/example.gif)
+![example](https://github.com/magicmouse/beads-examples/assets/5481132/c85e0139-6684-4aca-90c4-dcead6323eaf)
+
 
 ### Example: Beads versus Python
 
@@ -138,99 +140,85 @@ In this short 200 word example we take an existing Python program and rewrite it
 
 The [Python version](https://github.com/engineer-man/youtube/tree/master/089) is slightly shorter, but imports 4 libraries, and uses about 15 external functions. Beads uses only 7 external functions, and they are the same ones used in every program. The Python version uses a complex multi-threated scheme that requires semaphores and locking of critical sections. A rather advanced set of concepts. The Python version requires an external file to be read, because it doesn't have a powerful literal syntax.
 
-![tree](http://beadslang.com/projects/xmas_tree/docs/tree_blinking.gif)
+![tree_blinking](https://github.com/magicmouse/beads-examples/assets/5481132/b794e92e-2bdf-416a-a84a-fe48bffc5524)
 
 
 ### Example: HTTP form that re-arranges its layout
 
 It is very common to need to have input forms and collect user data. This example shows how beads can rearrange a form based on the pixel density and size of a screen. As you make the window larger or smaller it resizes all the elements. This is different than HTML Flex boxes, as it completely rearranges the form using IF statements and can accomodate a very wide range of display densities and sizes. This means your forms can work on mobile devices which can have pixel densities 5 times that of a desktop. Many desktop forms are unusable on mobile.  Complexity rating: 1200 words
 
-![form1A](http://beadslang.com/projects/form1/docs/screenshot_very_narrow.png)
-![form1B](http://beadslang.com/projects/form1/docs/screenshot_narrow.png)
-![form1C](http://beadslang.com/projects/form1/docs/screenshot_wide.png)
+![screenshot_very_narrow](https://github.com/magicmouse/beads-examples/assets/5481132/09c67bf2-6682-4959-b97a-b368f54e7428)
+![screenshot_narrow](https://github.com/magicmouse/beads-examples/assets/5481132/2518ee4f-9e53-4231-b116-10c1f036cd16)
+![screenshot_wide](https://github.com/magicmouse/beads-examples/assets/5481132/d0179d1c-f880-43b6-a9b7-cbcfddcd7d62)
 
 
 ### Example: Chess
 
 The classic board game. Complexity rating: 1500 words
 
-![chess example](http://beadslang.com/projects/chess/screenshots/chess.png)
+![chess](https://github.com/magicmouse/beads-examples/assets/5481132/7f8385cb-c3b1-4651-8d6d-2b264342b690)
+
 
 ### Example: Tic-tac-toe client/server version
 
 The classic board game, but in multiplayer form, where you can play or watch 12 different pairs of people playing across the internet, using TCP sockets. We write both the client and the server in Beads. The server publishes the game state, and the client subscribe to the published shared mutable state. Each of the players receives without any message handling code the updated state of the game. The clients make their moves by invoking remote function calls. You code the program as a standalone, then split the code into two parts. Client/server has never been so easy. No messy API's for message handling, all encoding and decoding is done automatically, and packets are sent in binary not JSON for maxiumum compactness and performance. A complexity rating of 1500 words.
 
-![tictactoe example](http://beadslang.com/projects/tictactoe_net/docs/screenshot.png)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/97da228f-b472-4f5c-a95a-171b31c54d7a)
+
 
 ### Example: Tic-tac-toe game standalone version
 
 The classic children's game, two player (no AI). Complexity rating: 520 words
 
-![tictactoe example](http://beadslang.com/examples/TicTacToe/tictactoe.gif)
+![tictactoe](https://github.com/magicmouse/beads-examples/assets/5481132/9348b328-649a-4a50-bf79-571860e78bf4)
 
-### Example: Color picker utility
 
-A handy tool for programming; shows the HTML named colors, sorted in a convenient to use sort order. Approx. 1300 words.
-
-![color picker](http://beadslang.com/examples/colorchart/docs/screenshot1.png)
 
 ### Example: Bearsweeper game
 
 The classic Minesweeper game, recast with a Bear in the starring role. Complexity rating: 1000 words
 
-![bearsweeper example](http://beadslang.com/examples/bearsweeper/game1_small.png)
+![game1_small](https://github.com/magicmouse/beads-examples/assets/5481132/a520dd14-2f24-4999-ba71-9c4a0d3d925b)
+
 
 ### Example: Lumberjack game
 
 A very simple wood chopping game, built for little kids. A rewrite of an existing React/TS game that is can be run [here](https://lumber-jack.netlify.com/). We compare the two implementations to see how it differs in word count, number of dependencies, memory usage. Complexity rating: 750 words
 
-![lumberjack example](http://beadslang.com/examples/lumberjack/lumberjack_screenshot.jpg)
+![lumberjack_screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/524d2de5-19ef-44e6-8535-e467938f90f6)
+
 
 ### Example: Calculator
 
 The classic Apple calculator program, except without the bugs that Apple has! Complexity rating: 500 words
 
-![calculator example](http://beadslang.com/examples/calculator/calculator.gif)
+![calculator](https://github.com/magicmouse/beads-examples/assets/5481132/4cd38681-6d47-42db-b011-bdcf92a41aa8)
+
 
 ### Example: Snake game
 
 The classic snake game as popularized by Nokia cellphones. Probably the most fun per line of code ever made. Program complexity rating: 500 words.
 
-![snake example](http://beadslang.com/examples/snake/snake_animated.gif)
+![snake_animated](https://github.com/magicmouse/beads-examples/assets/5481132/367e2f5e-d3f7-4741-b09f-6e52de50f6f0)
 
-### Example: FizzBuzz, graphical style
-
-This is classic tiny program people write, where you take the numbers from 1 to 100, and draw either "Fizz", "Buzz" or the number, depending on the remainder when dividing by 3 and 5. This one is a bit fancier than normal, shows how you can store persistent data using cookies, and how auto refresh occurs.
-
-![screenshot](https://beadslang.com/projects/fizzbuzz/screenshot.gif)
 
 ### Example: Sort method contest
 
 The classic bubble sorting algorithm is pitted against the just slightly more complicated but a zillion times faster Quicksort amethod. Watch the two side by side sort the same number list, and see why Quicksort is so much more clever, by moving things larger distances. The larger the sample size the more terrible the bubble sort works. Program complexity rating: 440 words.
 
-![sort example](http://beadslang.com/examples/sort_contest/screenshot_bubble_400.png)
+![screenshot_bubble_400](https://github.com/magicmouse/beads-examples/assets/5481132/4f0bc21d-c28c-4974-a049-3d9eb6eceaf7)
 
-### Example: Scrolling to a block
-
-This very short program shows how you can control the browser to scroll to a particular block on the screen.
-
-![screenshot](http://beadslang.com/projects/scroll_to/screenshot.gif)
 
 ### Example: Wristwatch simulation
 
 This simple program simulates a wristwatch. Program complexity rating: 180 words.
 
-![watch example](http://beadslang.com/projects/watch/watch_example_animated.gif)
+![watch_example_animated](https://github.com/magicmouse/beads-examples/assets/5481132/d1b657c7-a651-4b66-9950-d29dcbf84c38)
 
-### Example: Analog clock
-
-This simple program will draw a clock on the screen. This is among the shortest possible graphical programs one can imagine. Program complexity rating: 150 words.
-
-![clock example](http://beadslang.com/examples/clock/clock_screenshot_anim.gif)
 
 ### Example: Fibonacci sequences
 
-![screenshot](http://beadslang.com/projects/fibonacci/screenshot.gif)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/aa96ecbb-d572-46cd-abcf-295d908b77c7)
 
 This example shows you how to calculate the famous Fibonacci sequence of numbers.
 
