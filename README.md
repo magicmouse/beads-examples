@@ -25,7 +25,8 @@ This example shows you how to retrieve a wine list from an external database, an
 
 ### Example: Realtime stock price graph
 
-![screenshot](http://beadslang.com/projects/realtime_stock/hoody.gif)
+![Uploading hoody_animated.gif…]()
+
 
 This is an example of a client + server program, showing how you can build both the client and the server in Beads. To develop this app, you start by first coding it as a standalone program, with fake data, and once you have the drawing part working well, you split off the data generation part into the server module. In this example you connect to the server (running the emitted JS code under Node.JS), and it will transmit to the client the prices. [run here](http://beadslang.com/projects/realtime_stock/hoody_client.html). Note that the server has to be running for the client to be able to connect. We don't run the server 24/7, mention it on the Discord group to fire it up.
 
