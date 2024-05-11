@@ -34,14 +34,16 @@ This is an example of a client + server program, showing how you can build both 
 
 ### Example: Conway's game of life
 
-![screenshot](http://beadslang.com/projects/game_of_life/screenshot.gif)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/b5897a59-30e9-4603-a3b5-eed185a1f252)
+
 
 This shows how short and simple programs can be when written in Beads. It is impossible to write a shorter version that performs the same function (this version auto-adjusts to the screen size).
 
 
 ### Example: Neat looking liquid slider
 
-![screenshot](http://beadslang.com/projects/temperature2/screenshot2.gif)
+![screenshot4_big](https://github.com/magicmouse/beads-examples/assets/5481132/7a1239c1-4f9a-4ffb-80dc-2238cbc82ffc)
+
 
 This is a rewrite of a CSS-mostly project from CodePen. Our version is interactive, and lets the user drag a control thumb to set the value, and it shows the dramatic difference between wrestling with the intricacies of CSS, and instead doing it in a straightforward imperative style that is much less tangled.
 
@@ -49,7 +51,8 @@ This is a rewrite of a CSS-mostly project from CodePen. Our version is interacti
 
 This shows how you can build a simple tree structure with up/down expand/contract buttons.
 
-![screenshot](http://beadslang.com/projects/recursive/screenshot.gif)
+![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/e42fe869-0f40-481b-b99f-fd02e6a8a571)
+
 
 The disclosure triangle tree example can be [run here](http://beadslang.com/projects/recursive/cats.html)
 
