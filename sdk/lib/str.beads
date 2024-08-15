@@ -1,0 +1,392 @@
+beads 1 system str
+
+@index "String ops"
+
+//  commonly used characters
+const CR  = '\r'
+const LF  = '\n'
+const TAB = '\t'
+const ESC = '\u001B'
+const BS  = '\u0008'
+
+// byte order marks for UTF16 files
+const BOM_UTF16_LE = 0xFEFF
+const BOM_UTF16_BE = 0xFFFE
+
+	
+calc str_len ( --- string length
+	ss : str --- string to count length of
+	)  : num --- length of string
+	
+calc str_repeat ( --- repeat a string
+	ss : str --- string to repeat
+	n  : num --- number of times to repeat
+	)  : str --- repeated version
+
+calc str_reverse ( --- reverse a string
+	ss : str --- string to reverse
+	)  : str --- reversed version
+
+calc str_strip_quotes ( --- strip quotes around a string
+	ss : str --- string to process
+	)  : str --- stripped version
+
+// calc str_suffix (  --- extract the file suffix
+// 	ss : str  --- string to process
+// 	)  : str  --- suffix "image1.pict" --> ".pict"
+
+calc str_trim ( --- trim whitespace on either side of a string
+	ss  : str       --- starting string
+	)   : str       --- resulting string
+	
+calc pad_left ( --- pad a string on the left to a specified length
+	ss  : str       --- starting string
+	len : num       --- target length
+	pad : str  = ' ' --- character to pad with
+	)   : str       --- resulting string
+	
+calc pad_right ( --- pad a string on the right to a specified length
+	ss  : str       --- starting string
+	len : num       --- target length
+	pad : str  = ' ' --- character to pad with
+	)   : str       --- resulting string
+	
+//  normal forward substrings can be done by a[start::len] or [start..stop]
+//  this function is useful when you want to count from end
+//  must specify either end or len
+@favorite
+calc subset ( --- string subset
+	ss       : str --- starting string
+	from     : num = 1  --- starting position to take from, 1=first
+	to       : num = U --- ending position (inclusive)
+	len      : num = U --- number of characters to extract
+	rev      : yesno = N --- count from end?
+	)        : str --- extracted string, might be empty
+	
+calc str_digit ( --- get a numeric digit out of a string
+	ss       : str  --- string to extract from
+	from     : num  = 1  --- position of character, 1=first
+	rev      : yesno = N --- count from end?
+	)        : num --- character converted to a number 0-9, E if non-numeric
+	
+calc str_ins ( --- insert characters into a string just once
+	ss       : str --- starting string
+	ins      : str --- string to insert
+	to       : num = U --- position to insert in front of 1=first
+	del      : num = U --- number of characters to delete while doing the insert
+	rev      : yesno = N --- count from end?	
+	)        : str --- modified string
+
+calc str_del ( --- remove characters from a string
+	ss       : str --- string to manipulate
+	from     : num = 1 --- starting position to delete, 1=first
+	//  must specify either 'to' or 'len'
+	to       : num = U --- ending position (inclusive) to delete
+	len      : num = U --- number of characters to delete
+	rev      : yesno = N --- count from end? 	
+	)        : str --- modified string
+
+//  convenience function for string matching
+calc str_begins ( --- see if string begins with a pattern
+	haystack : str --- big string to check against
+	needle   : str --- string to look for
+	) : yesno  --- Y, N, U
+
+calc str_ends ( --- see if string ends with a pattern
+	haystack : str --- big string to check against
+	needle   : str --- string to look for
+	) : yesno  --- Y, N, U
+
+//  used by str_find
+record a_find
+	find_start  : num  --- the starting position of the match
+	find_len    : num  --- the number of characters matched  
+
+//  used by str_replace_multiple
+//  use \$1 to escape $1 matched group meta-chars in replacement string
+record a_find_repl
+	find_patt : regexp  --- regular expression to look for
+	repl_patt : str  --- replacement string ($1, $2, etc. refer to matched groups)
+
+calc escape_for_regexp (  --- put backslashes in front of RegExp special chars
+	input : str  --- input string
+	) : str -- fixed characters like '.'
+
+calc str_to_regexp ( --- convert a string to a regular expression
+	s : str --- regexp string like "[a-z]" 
+	ignore_case : yesno = Y  // case sensitive (i flag)
+	global      : yesno = N // global flag (g)
+	multiline   : yesno = N  //  multiline flag (m)
+	) : regexp --- result
+
+//  finds all occurrences of a pattern in a string
+calc str_find ( --- find a pattern in a string
+	haystack : str     --- haystack to search
+	needle   : any     --- either regular expression or plain string to find
+	list     : out array of a_find --- (OUT) array of a_find, position/len of the matched string 1..N
+	start    : num = 1 --- starting position, 1=first
+	reps     : num = 1 --- max repetitions
+	wrap     : yesno = N --- wrap around search
+	ignore_case: yesno = Y  --- only used when needle is a plain string
+	)  location
+
+//  finds the first occurance of a string, case insensitive
+calc str_pos ( --- find the first occurance of a pattern in a string
+	haystack : str     --- haystack to search
+	needle   : any     --- either regular expression or plain string to find
+	start    : num = 1 --- starting position, 1=first char
+	ignore_case: yesno = Y  --- only used when needle is a plain string
+	) : num  --- if found, the starting position, otherwise U
+
+// and add the ignore_case, start, reps, etc. options to match find.
+calc str_replace ( --- find and replace in a string
+	haystack : str  --- haystack to search
+	needle   : any  --- either regular expression or plain string to find
+	replace  : str  --- replacement string ($1, $2, etc. refer to matched groups)
+	start    : num = 1 --- starting position, 1=first char
+	) : str --- new string with replacements done
+
+//  loops through the array of changes, applying them to the string either once
+//  or all instances if pattern has global flag
+calc str_replace_multiple ( --- apply a series of changes to a string
+	haystack : str  --- haystack to search
+	changes  : array of a_find_repl  --- array of find/replace operations to perform
+	trace    : yesno = N --- write progress to log
+	)        : str --- new string with replacements done
+
+//  this is used when you need to inject into a translated string
+//  because translated strings cannot have inline string substitutions, as those are done at compile time
+calc str_inject ( --- inject substrings into another, use $1, $2,.. $9 etc. for markers
+	input : str  -- string to modify
+	... parms : str  -- parameters to inject (up to 9)
+	) : str  --- new string
+
+calc str_hash_fnv (  --- utility to hash strings
+	input : str  --- string to hash
+	) : num --- hashed string as unsigned 32 bit number
+
+================================
+//  text break-apart functions
+================================
+
+//  this function does not include the line delimiter in the target strings
+calc split_lines ( --- split a string into lines on each line break (\r, \n, \r\n)
+	buf    : str    --- starting string
+	result : out array of str  --- (OUT) array of lines
+	) location
+
+//  delim can be more than one char long. will be absorbed
+//  empty string delimiter will break string into an array of chars
+calc split_words ( --- split a line into words 
+	buf    : str    --- starting string
+	result : out array of str  --- (OUT) array of words
+	delim  : str = '\t'    --- word break character like tab or comma
+	) location
+	
+calc split_lines_words ( --- split a string into 2D array of strings, indexed [lines, words]
+	buf    : str   --- starting string
+	result : out array^2 of str  --- (OUT) array of lines and words
+	delim  : str = '\t' --- single word break character like tab or comma
+	quotes : yesno = Y  --- if true, then consider double quotes to allow embedding of LF, strip them	
+	) location
+
+calc join_words (  --- join an array of words
+	list  : array of str
+	delim : str
+	) : str   --- list of words joined together, with delimiter between
+
+
+================================
+//  URL encoding
+================================
+
+@index "URL encoding"
+//  not escaped:  A-Z a-z 0-9 - _ . ! ~ * ' ( )
+//  converts space to %20, unless plus is set
+calc http_encodeURIComponent(  --- encode a URI component
+	input : str  --- string to encode.
+	plus  : yesno = N  --- if Y, then convert %20 to + in second pass
+	) : str  --- resulting encoded string, converted to UTF8 with %xx notation
+
+calc http_decodeURIComponent(  --- decode a URI component
+	input : str  --- string to decode.
+	plus  : yesno = N  --- if Y, then convert + to %20 in first pass
+	) : str  --- resulting decoded string,
+
+//  calls JS encodeURI
+calc http_encodeURI(
+	input : str
+	) : str
+
+calc http_decodeURI(
+	input : str
+	) : str
+
+================================
+//  String conversions
+================================
+
+@index "String conversions"
+
+calc str_to_enum ( --- convert a string of an enum into its internal value
+	s : str --- enum string
+	) : num --- internal representation of that enum
+
+---------------- 
+
+//  same as the modula-2 ORD() function
+calc from_char ( --- convert a character to its numeric value
+	char : str --- first character in string is used
+	)    : num --- numeric value (null string returns 0)
+
+//  same as the modula-2 CHR() function
+calc to_char ( --- convert a number into its character value
+	n : num --- unicode code point
+	) : str --- unicode character, null string if out of range
+
+----------------
+
+calc num_to_hex ( --- convert a double precision floating point number into 16 character hex string
+	n : num --- input number
+	) : str --- 16 char hex string, e.g.: "ff332211ff332211"
+
+calc hex_to_num ( --- convert a 16 character hex string into a num  
+	ss : str --- 16 character string
+	) : num  --- resulting num value, ERR on invalid input
+
+----------------
+
+calc color_to_hex ( --- convert a color into a hex string: "#AABBCC"
+	c : color --- input color
+	) : str --- HTML hex form: #AABBCC
+
+calc hex_to_color ( --- convert a hex string "AABBCC" or "#AABBCC" into a color  
+	ss : str --- 6 or 7 character hex string
+	) : color  --- resulting color value, ERR on invalid input
+
+----------------
+//  WARNING: not using JSON.stringify() and JSON.parse() at present
+//  enum subscripts and enum values are converted to strings, with the form "@enumss"
+//  all numeric subscripts are also converted to strings like "123"
+//  javascript makes no distinction in arrays between list[1] and list["1"] 
+calc tree_to_json ( --- convert a tree into a JSON-compatible string
+	t : tree   --- tree to convert
+	limit : num = INFINITY  --- number of items to stop after
+	) : str --- output JSON string
+
+calc json_to_tree ( --- convert a JSON string back into a tree
+	json : str   --- JSON string to convert
+	t : out tree  --- where to store resulting tree
+	) : str location  //  returns an error message if it failed, "" if okay
+
+----------------
+calc tree_to_str ( --- convert a tree into a string
+	t      : tree  --- tree to convert
+	limit  : num = INFINITY  --- number of items to stop after
+	) : str --- output BSON string
+
+// calc str_to_tree ( --- convert a string back into a tree
+// 	s : str   --- string to convert
+// 	) : tree  --- output tree
+
+----------------
+
+//  conversion functions between Bytes and Base64 strings
+
+calc bytes_to_base64 ( --- convert from byte array to base64 string
+	buf : bytes --- array of bytes to convert
+	) : str
+
+calc base64_to_bytes ( --- convert a base64 string into bytes
+	s : str --- string to convert
+	) : bytes
+
+/*.....
+//  conversion functions between native UTF16 format and UTF8
+//  note that astral plane characters such as emoji take 2 chars in UTF16
+
+calc utf8_to_16 ( --- convert a string from utf8 to 16
+	utf8 : bytes --- array of utf8 bytes to convert
+	) : str
+
+calc utf16_to_8 ( --- convert a string from utf16 to 8
+	s : str --- string to convert
+	) : bytes
+......*/
+
+----------------
+
+calc to_num ( --- convert a string like "12.34" into a number, empty is 0
+	s : str --- string to convert
+	) : num --- number form (ERR if bad string)
+
+@favorite
+calc to_str ( --- convert a value into string form
+	val       : any   --- value to convert, usually a num type
+	dig       : num = U   --- U: automatic number of digits after decimal
+	max       : num = 999 --- max number of characters in length
+	min       : num = 0   --- pad on left to this min. length
+	base      : num = 10  --- we support bases 2/8/10/16
+	currency  : yesno = N   --- if Y, then show currency character
+	thou      : yesno = N     --- if Y, then insert thousands marks
+	k   	  : yesno = N   --- if Y, then round to K (1000), M (million), B (billion)
+	neg_paren : yesno = N   --- draw parenthesis for negative values
+	pos_plus  : yesno = N     --- draw plus in front of positive quantities
+	percent   : yesno = N     --- if Y, add % as suffix, mult by 100
+	zero_pad  : yesno = N     --- if Y, pad with leading zeros to make min. width
+	zero_drop : yesno = Y     --- if Y, drop trailing zeros after decimal point 3.00 -> 3
+	currency_cc : str = '$' --- override default currency of $
+	decimal_cc  : str = '.' --- override default decimal point of .
+	thou_cc   : str = ','   --- override default thousands symbol
+	u_cc	  : str = 'U'   --- what to use when value is U
+	) : str --- string form of the input value
+
+//  format directives:
+//    [sun] 	  - abbreviated weekday, e.g. Sun
+//    [sunday]  - full weekday name, e.g. Sunday
+//    [jan]     - abbrev month
+//    [january] - full month
+//    [day]     - day of the month 1, 2, ..31
+//    [day2]    - day of the month as two digits 01, 02, ..31
+//    [hour]    - hour 00, 01, 03..23
+//    [hour12]  - hour 1..12
+//    [julian]  - day of the year 1..366
+//    [month]	  - month 1..12
+//    [month2]  - month as two digits 01, 02, ..12
+//    [minute]  - Minute 00, 01, 02..59
+//    [am]      - AM or PM 
+//    [sec]  		- second 00, 01, 02..61
+//    [msec]		- millisecond 000...999
+//    [week sun]    - week number of the year, sunday based (ranges 01-53, per ISO spec)
+//    [week mon]    - week number of the year, monday based
+//    [year]        - year with century 2024
+//    [year2]       - year without century 00, 01, ..99
+//    [date]        - default date format (e.g. Jan 14, 2015  )
+//    [date time]   -  (e.g. Jan 14, 2015 3:45 PM)
+//    [iso date]		= [year]-[month2]-[day2], e.g. 2015-02-22 
+//    [iso time]		= [hour]:[minute]:[second], e.g. 18:06:05
+calc time_to_str(  --- convert a date/time to a string
+	format : str      ---  formatting string
+	time   : num = U  ---  unix epoch time in seconds to convert, U uses now()
+	date   : a_date = U --- date input
+	city   : num = U  --- enum TIMEZONE_PARIS, TIMEZONE_GMT
+	lang   : num = U  ---  language
+	) : str  ---  output string
+
+calc to_upper ( --- convert to uppercase
+	ss : str --- string to convert
+	)  : str --- upper case version
+	
+calc to_lower ( --- convert to lowercase
+	ss : str --- string to convert
+	)  : str --- lower case version
+
+//  replaces special characters like < to be &lt; so hmtl won't get confused
+calc safe_for_html ( --- replace various metacharacters used in HTML
+	input : str
+	) : str  --- fixed up string
+
+calc markdown_to_html ( --- decode a markdown block into plain HTML
+	input : str     --- markdown text to convert
+	)     : str     --- plain HTML string
+

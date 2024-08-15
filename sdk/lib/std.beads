@@ -1,0 +1,3943 @@
+beads 1 system std
+//  to compile /CodeW/Compiler/std.beads
+//  normal file compiles with lib=/codeW/Compiler myfile
+
+================================
+//  STD LIBRARY version 1
+================================
+//  special functions that can be called at compile time
+//  to call these functions at compile time, use the preprocessor prefix '@'
+//  these produce literals of colors, dates, etc.
+//macro hex_color(
+//	ss : str  --- a 3 or 6 hex digit RGB color, like F0C (which expands to FF 00 CC) or FF00CC
+//	) : color
+
+const
+	================================
+	//  predefined values in the compiler
+	================================
+	//  ERR 
+	//  U 
+	//  Y  
+	//  N  
+	//  INFINITY
+	//  enumerated names are reserved: al, pt, px, pc
+	//  the prefix adr a[b,c,d]  --- gets address of a tree node, operates like a function
+
+	================================
+	//  Mathematical constants
+	================================
+	@index "Math" 
+	PI      ⇐ 3.141592653589793238462
+	TAU     ⇐ 6.28318530717958647692    --- 2*PI
+	E       ⇐ 2.718281828459045235360	 --- euler's/napier's number
+	GOLDEN_RATIO ⇐ 1.6180339887498948482  ---(1 + sqrt(5))/2
+	
+	//MAX_SAFE_INTEGER = 9007199254740991  //  2^53 - 1
+	//MIN_SAFE_INTEGER = -9007199254740991
+
+	================================
+	//  String constants
+	================================
+	@index ""
+	FIRST ⇐ 1	 ---   first character in a string, or element in an array
+
+	@index "Definitions" / "Characters"
+	//  frequently used characters
+	CR  ⇐ '\r'
+	LF  ⇐ '\n'
+	TAB ⇐ '\t'
+	ESC ⇐ '\u001B'
+	BS  ⇐ '\u0008'
+	
+	//UTF8_BOM = "\uFEFF" //  "0xEF 0xBB 0xBF"  //  Byte order mark for UTF8 file
+
+	================================
+	//  Generic font name constants
+	================================
+	@index "Definitions" / "Fonts"
+	SANS_SERIF  = "_sans"
+	SERIF = "_serif"
+	MONOSPACE = "_typewriter"  
+	//  you can also use 'fantasy' or 'cursive'
+
+	================================
+	//  Synonyms for pin points per Daniel Sperl suggestion
+	================================
+	@index "Drawing" 
+	TOP_LEFT   ⇐ 1
+	TOP_CENTER ⇐ 2
+	TOP_RIGHT  ⇐ 3
+	MID_LEFT   ⇐ 4
+	MID_CENTER ⇐ 5
+	MID_RIGHT  ⇐ 6
+	BOT_LEFT   ⇐ 7
+	BOT_CENTER ⇐ 8
+	BOT_RIGHT  ⇐ 9
+	
+	================================
+	//  Time constants
+	================================
+	@index "Definitions" / "Time"
+	SECONDS_PER_MIN  = 60
+	SECONDS_PER_HOUR = 3600
+	SECONDS_PER_DAY  = 86400
+	SECONDS_PER_YEAR = 31557600  -- approximate value
+	SECONDS_PER_MONTH = SECONDS_PER_YEAR / 12   -- approximate value
+	
+	================================
+	//  Keyboard constants
+	================================
+	@index "Events" / "Key codes"
+	KEYCODE_LEFT  			= 37
+	KEYCODE_RIGHT 			= 39
+	KEYCODE_UP 				= 38
+	KEYCODE_DOWN			= 40
+	
+	KEYCODE_PAGE_UP 		= 33
+	KEYCODE_PAGE_DOWN		= 34
+
+	KEYCODE_HOME			= 36
+	KEYCODE_END				= 35
+
+	KEYCODE_BS				= 8
+	KEYCODE_DEL				= 46
+	KEYCODE_ENTER			= 13
+	KEYCODE_ESC				= 27
+	KEYCODE_INS				= 45    --- note that plain INSERT is absorbed by OSX to ?
+	KEYCODE_SPACE			= 32
+	KEYCODE_TAB				= 9
+
+	KEYCODE_F1    			= 112
+	KEYCODE_F2				= 113
+	KEYCODE_F3 				= 114
+	KEYCODE_F4				= 115
+	KEYCODE_F5				= 116
+	KEYCODE_F6 				= 117
+	KEYCODE_F7				= 118
+	KEYCODE_F8				= 119
+	KEYCODE_F9 				= 120
+	KEYCODE_F10				= 121
+	KEYCODE_F11				= 122
+	KEYCODE_F12				= 123
+	KEYCODE_F13				= 124 ---  on MS keyboard, is the PrtScn key
+	KEYCODE_PRINT_SCREEN	= 124 ---   WARNING: same as F13 on some keyboards
+
+	KEYCODE_SCROLL_LOCK     = 125
+	KEYCODE_PAUSE_BREAK     = 126
+
+	//  special android virtual keys
+	//  these keys have special system dependent values, handled by runtime system
+	KEYCODE_ANDROID_BACK	= 0	 --- Keyboard.BACK
+	KEYCODE_ANDROID_SEARCH	= 0	 --- Keyboard.SEARCH
+	KEYCODE_ANDROID_MENU 	= 0  --- Keyboard.MENU
+
+	================================
+	//  Colors in RGB24
+	================================
+	@index "Drawing" / "Color" 
+	ALICE_BLUE ⇐ #F0F8FF
+	ANTIQUE_WHITE ⇐ #FAEBD7
+	AQUA ⇐ #00FFFF
+	AQUAMARINE ⇐ #7FFFD4
+	AZURE ⇐ #F0FFFF
+	BEIGE ⇐ #F5F5DC
+	BISQUE ⇐ #FFE4C4
+	BLACK ⇐ #000000
+	BLANCHED_ALMOND ⇐ #FFEBCD
+	BLUE ⇐ #0000FF
+	BLUE_VIOLET ⇐ #8A2BE2
+	BROWN ⇐ #A52A2A
+	BURLY_WOOD ⇐ #DEB887
+	CADET_BLUE ⇐ #5F9EA0
+	CHARTREUSE ⇐ #7FFF00
+	CHOCOLATE ⇐ #D2691E
+	CORAL ⇐ #FF7F50
+	CORNFLOWER_BLUE ⇐ #6495ED
+	CORNSILK ⇐ #FFF8DC
+	CRIMSON ⇐ #DC143C
+	CYAN ⇐ #00FFFF
+	DARK_BLUE ⇐ #00008B
+	DARK_CYAN ⇐ #008B8B
+	DARK_GOLDENROD ⇐ #B8860B
+	DARK_GRAY ⇐ #A9A9A9
+	DARK_GREEN ⇐ #006400
+	DARK_KHAKI ⇐ #BDB76B
+	DARK_MAGENTA ⇐ #8B008B
+	DARK_OLIVE_GREEN ⇐ #556B2F
+	DARK_ORANGE ⇐ #FF8C00
+	DARK_ORCHID ⇐ #9932CC
+	DARK_RED ⇐ #8B0000
+	DARK_SALMON ⇐ #E9967A
+	DARK_SEA_GREEN ⇐ #8FBC8F
+	DARK_SLATE_BLUE ⇐ #483D8B
+	DARK_SLATE_GRAY ⇐ #2F4F4F
+	DARK_TURQUOISE ⇐ #00CED1
+	DARK_VIOLET ⇐ #9400D3
+	DEEP_PINK ⇐ #FF1493
+	DEEP_SKY_BLUE ⇐ #00BFFF
+	DIM_GRAY ⇐ #696969
+	DODGER_BLUE ⇐ #1E90FF
+	FIREBRICK ⇐ #B22222
+	FLORAL_WHITE ⇐ #FFFAF0
+	FOREST_GREEN ⇐ #228B22
+	//FUCHSIA ⇐ #FF00FF  //  duplicate of MAGENTA
+	GAINSBORO ⇐ #DCDCDC
+	GHOST_WHITE ⇐ #F8F8FF
+	GOLD ⇐ #FFD700
+	GOLDENROD ⇐ #DAA520
+	GRAY ⇐ #808080
+-------------------------
+	//  9 steps of evenly spaced gray
+	GRAY9 ⇐ #1A1A1A  --- almost black
+	GRAY8 ⇐ #333333
+	GRAY7 ⇐ #4C4C4C
+	GRAY6 ⇐ #666666
+	GRAY5 ⇐ #7F7F7F  --- a middle gray
+	GRAY4 ⇐ #999999
+	GRAY3 ⇐ #B2B2B2
+	GRAY2 ⇐ #CCCCCC
+	GRAY1 ⇐ #E5E5E5  --- almost white
+--------------------------
+	GREEN ⇐ #008000
+	GREEN_YELLOW ⇐ #ADFF2F
+	HONEYDEW ⇐ #F0FFF0
+	HOT_PINK ⇐ #FF69B4
+	INDIAN_RED ⇐ #CD5C5C
+	INDIGO ⇐ #4B0082
+	IVORY ⇐ #FFFFF0
+	KHAKI ⇐ #F0E68C
+	LAVENDER ⇐ #E6E6FA
+	LAVENDER_BLUSH ⇐ #FFF0F5
+	LAWN_GREEN ⇐ #7CFC00
+	LEMON_CHIFFON ⇐ #FFFACD
+	LIGHT_BLUE ⇐ #ADD8E6
+	LIGHT_CORAL ⇐ #F08080
+	LIGHT_CYAN ⇐ #E0FFFF
+	LIGHT_GOLDENROD ⇐ #FAFAD2
+	LIGHT_GREEN ⇐ #90EE90
+	LIGHT_GREY ⇐ #D3D3D3
+	LIGHT_PINK ⇐ #FFB6C1
+	LIGHT_SALMON ⇐ #FFA07A
+	LIGHT_SEA_GREEN ⇐ #20B2AA
+	LIGHT_SKY_BLUE ⇐ #87CEFA
+	LIGHT_SLATE_GRAY ⇐ #778899
+	LIGHT_STEEL_BLUE ⇐ #B0C4DE
+	LIGHT_YELLOW ⇐ #FFFFE0
+	LIME ⇐ #00FF00
+	LIME_GREEN ⇐ #32CD32
+	LINEN ⇐ #FAF0E6
+	MAGENTA ⇐ #FF00FF
+	MAROON ⇐ #800000
+	MEDIUM_AQUAMARINE ⇐ #66CDAA
+	MEDIUM_BLUE ⇐ #0000CD
+	MEDIUM_ORCHID ⇐ #BA55D3
+	MEDIUM_PURPLE ⇐ #9370DB
+	MEDIUM_SEA_GREEN ⇐ #3CB371
+	MEDIUM_SLATE_BLUE ⇐ #7B68EE
+	MEDIUM_SPRING_GREEN ⇐ #00FA9A
+	MEDIUM_TURQUOISE ⇐ #48D1CC
+	MEDIUM_VIOLET_RED ⇐ #C71585
+	MIDNIGHT_BLUE ⇐ #191970
+	MINT_CREAM ⇐ #F5FFFA
+	MISTY_ROSE ⇐ #FFE4E1
+	MOCCASIN ⇐ #FFE4B5
+	NAVAJO_WHITE ⇐ #FFDEAD
+	NAVY ⇐ #000080
+	OLD_LACE ⇐ #FDF5E6
+	OLIVE ⇐ #808000
+	OLIVE_DRAB ⇐ #6B8E23
+	ORANGE ⇐ #FFA500
+	ORANGE_RED ⇐ #FF4500
+	ORCHID ⇐ #DA70D6
+	PALE_GOLDENROD ⇐ #EEE8AA
+	PALE_GREEN ⇐ #98FB98
+	PALE_TURQUOISE ⇐ #AFEEEE
+	PALE_VIOLET_RED ⇐ #DB7093
+	PAPAYA_WHIP ⇐ #FFEFD5
+	PEACH_PUFF ⇐ #FFDAB9
+	PERU ⇐ #CD853F
+	PINK ⇐ #FFC0CB
+	PLUM ⇐ #DDA0DD
+	POWDER_BLUE ⇐ #B0E0E6
+	PURPLE ⇐ #800080
+	REBECCA_PURPLE ⇐ #663399
+	RED ⇐ #FF0000
+	ROSY_BROWN ⇐ #BC8F8F
+	ROYAL_BLUE ⇐ #4169E1
+	SADDLE_BROWN ⇐ #8B4513
+	SALMON ⇐ #FA8072
+	SANDY_BROWN ⇐ #F4A460
+	SEA_GREEN ⇐ #2E8B57
+	SEASHELL ⇐ #FFF5EE
+	SIENNA ⇐ #A0522D
+	SILVER ⇐ #C0C0C0
+	SKY_BLUE ⇐ #87CEEB
+	SLATE_BLUE ⇐ #6A5ACD
+	SLATE_GRAY ⇐ #708090
+	SNOW ⇐ #FFFAFA
+	SPRING_GREEN ⇐ #00FF7F
+	STEEL_BLUE ⇐ #4682B4
+	TAN ⇐ #D2B48C
+	TEAL ⇐ #008080
+	THISTLE ⇐ #D8BFD8
+	TOMATO ⇐ #FF6347
+	TURQUOISE ⇐ #40E0D0
+	VIOLET ⇐ #EE82EE
+	WHEAT ⇐ #F5DEB3
+	WHITE ⇐ #FFFFFF
+	WHITE_SMOKE ⇐ #F5F5F5
+	YELLOW ⇐ #FFFF00
+	YELLOW_GREEN ⇐ #9ACD32
+
+	//------ built-in bitmaps
+	//  looks better when drawn with corner of 20
+var PLACEHOLDER : image //  100x100 pixel placeholder graphic, guaranteed preloaded
+
+enum
+	================================
+	//  block size units
+	================================
+	//  special length suffixes only usable inside a draw block
+	//al	 --  aliquot
+	//pt	 --  point
+	//pc	 --  picas
+	//px	 --  pixel
+
+	================================
+	//  orientation for scrollbars, slices, etc.
+	================================
+	//HORZ
+	//VERT
+
+	================================
+	//  Text justifications
+	================================
+	@index "Definitions" / "Text just"
+	LEFT
+	CENTER
+	RIGHT
+	FLUSH
+
+	//  included for completeness 
+	//TOP
+	//BOTTOM
+
+	================================
+	//  Runtime enums, used only internally
+	================================
+	@index ""  
+	FOL  --  used for designator ptr follow
+	VAL	 --  used for building tree literals, set value and pop
+	VNP  --  used for building tree literals, set value and no pop
+	POP	 --  used for building tree literals, pop stack
+	RTL_SS  -- run time library strings
+	//AUTO    -- not sure where used
+	IDE_GROUP  --used to mark events for IDE so that we avoid removing them during reset
+
+	================================
+	//  primitive data types
+	================================
+	@index "Definitions" / "Data types"
+	//  these are the fundamental types in Beads
+	TYPE_ANY
+	TYPE_BITS
+	TYPE_BYTES
+	TYPE_COLOR -- internally stored as a 24/32 bit uint/number
+	TYPE_ENUM  -- equivalent to a num
+	TYPE_ERR   -- internally stored as NaN
+	TYPE_FUNC
+	TYPE_IMAGE
+	TYPE_MEAS 
+	TYPE_NUM
+	TYPE_OBJECT   -- internal system object
+	TYPE_REGEXP   -- regular expression, internally stored as a tree with sys object
+	TYPE_PTR
+	TYPE_SOUND
+	TYPE_STR
+	TYPE_TREE
+	TYPE_U
+	TYPE_VIDEO
+	TYPE_VOID   -- used to denote functions that return nothing
+	TYPE_YESNO  -- equivalent to a num
+
+	// -- these types are stored as trees
+	TYPE_ARRAY
+	TYPE_ARRAY2
+	TYPE_ARRAY3
+	TYPE_ARRAY4
+	TYPE_RECORD
+	
+	// --low level types used to pack values into byte arrays
+	// 	INT8
+	// 	INT16
+	// 	INT32
+	// 	INT64
+	// 	CARD8
+	// 	CARD16
+	// 	CARD32
+	// 	CARD64
+	// 	FLOAT32
+	// 	FLOAT64
+
+	//	TYPE_MONEY  -- future type
+	//  TYPE_DATE   -- future type
+
+	//  when packing values into byte arrays, we can override the default little endinanness
+	//  both ARM and Intel architectures load low order byte first; internet standard however is big end
+	@index "Definitions" / "Endian"
+	BIG_ENDIAN
+	LITTLE_ENDIAN
+
+	================================
+	//  image loader status codes
+	================================
+	@index "Definitions" / "Image Loader"
+	LOADER_BUSY
+	LOADER_OK
+	LOADER_FAIL
+	
+	================================
+	//  block purpose
+	================================
+	@index "Drawing"
+	FOR_SCREEN	 --  block is for drawing on screen
+	FOR_PRINT	 --  block is for printing
+	FOR_MEASURING --  block is for measuring
+
+	//  special row value that signals the row background being drawn
+	DRAW_ROW_BACK --  a special row value
+	
+	================================
+	//  tree traversal orderings
+	================================
+	@index "Definitions" / "Traversal order"
+	ORDER_LRTB  -- left to right, top to bottom
+	ORDER_LRBT
+	ORDER_RLTB
+	ORDER_RLBT
+	ORDER_TBLR  -- top to bottom, left to right
+	ORDER_TBRL
+	ORDER_BTLR
+	ORDER_BTRL
+
+	================================
+	//   currencies reported by ECB
+	================================
+	@index "Definitions" / "Currencies"
+	CURRENCY_USD  "$" -- "USD"
+	CURRENCY_EUR  "€" -- "EUR"
+	CURRENCY_JPY  "¥" -- "JPY"
+	CURRENCY_GBP  "£" -- "GBP"
+	CURRENCY_BGN  "BGN"
+	CURRENCY_CZK  "CZK"
+	CURRENCY_DKK  "DKK"
+	CURRENCY_HUF  "HUF"
+	CURRENCY_PLN  "PLN"
+	CURRENCY_RON  "RON"
+	CURRENCY_SEK  "SEK"
+	CURRENCY_CHF  "CHF"
+	CURRENCY_NOK  "NOK"
+	CURRENCY_HRK  "HRK"
+	CURRENCY_RUB  "RUB"
+	CURRENCY_TRY  "TRY"
+	CURRENCY_AUD  "AUD"
+	CURRENCY_BRL  "BRL"
+	CURRENCY_CAD  "CAD"
+	CURRENCY_CNY  "CNY"
+	CURRENCY_HKD  "HKD"
+	CURRENCY_IDR  "IDR"
+	CURRENCY_ILS  "ILS"
+	CURRENCY_INR  "INR"
+	CURRENCY_KRW  "KRW"
+	CURRENCY_MXN  "MXN"
+	CURRENCY_MYR  "MYR"
+	CURRENCY_NZD  "NZD"
+	CURRENCY_PHP  "PHP"
+	CURRENCY_SGD  "SGD"
+	CURRENCY_THB  "THB"
+	CURRENCY_ZAR  "ZAR"
+
+	================================
+	// language codes
+	================================
+	@index "Definitions" / "Languages"
+	LANG_AMH "AMH"		 --  amharic
+	LANG_ARA "ARA"		 --  arabic
+	LANG_BEL "BEL"		 --  belarusian
+	LANG_BEN "BEN"		 --  bengali
+	LANG_BUL "BUL"		 --  bulgarian
+	LANG_BUR "BUR"		 --  burmese
+	LANG_CAT "CAT"		 --  catalan
+	LANG_CHS "CHS"		 --  chinese simplified
+	LANG_CHT "CHT"		 --  chinese traditional
+	LANG_CRO "CRO"		 --  croation
+	LANG_CZE "CZE"		 --  czech
+	LANG_DAN "DAN"		 --  danish
+	// LANG_DAR "DAR"		 --  dari
+	LANG_DEU "DEU"		 --  deutsch / german
+	LANG_ENG "ENG"		 --  english for US
+	LANG_ENK "ENK"		 --  english for UK
+	LANG_ESL "ESL"		 --  spanish for latin america
+	LANG_ESP "ESP"		 --  spanish for España
+	LANG_FIN "FIN"		 --  suomi / finnish
+	LANG_FRA "FRA"		 --  french for france
+	LANG_FRC "FRC"		 --  french for canada
+	LANG_GEO "GEO"		 --  georgian
+	LANG_GRE "GRE"		 --  greek
+	LANG_GUJ "GUJ"		 --  gujarati
+	LANG_HEB "HEB"		 --  hebrew
+	LANG_HIN "HIN"		 --  hindi
+	LANG_HUN "HUN"		 --  hungarian
+	LANG_ICE "ICE"		 --  icelandic
+	LANG_IND "IND"		 --  indonesian
+	LANG_ITA "ITA"		 --  italian
+	LANG_JAP "JAP"		 --  japanese
+	LANG_KOR "KOR"		 --  korean
+	LANG_MAL "MAL"		 --  malayalam
+	LANG_MAR "MAR"		 --  marathi
+	LANG_NED "NED"		 --  nederlands / dutch
+	LANG_NOR "NOR"		 --  norwegian
+	LANG_ORI "ORI"		 --  oriya
+	LANG_PER "PER"		 --  persian
+	LANG_POL "POL"		 --  polish
+	LANG_POR "POR"		 --  portuguese
+	LANG_PUN "PUN"		 --  punjabi
+	LANG_ROM "ROM"		 --  romanian
+	LANG_RUS "RUS"		 --  russian
+	LANG_SLK "SLK"		 --  slovak
+	LANG_SLV "SLV"		 --  slovenian
+	LANG_SVE "SVE"		 --  svenska / swedish
+	LANG_TAG "TAG"		 --  filipino / tagalog
+	LANG_TAM "TAM"		 --  tamil
+	LANG_TEL "TEL"		 --  telegu
+	LANG_THA "THA"		 --  thai
+	LANG_TUR "TUR"		 --  turkish
+	LANG_UKR "UKR"		 --  ukranian
+	LANG_URD "URD"		 --  urdu
+	LANG_VIE "VIE"		 --  vietnamese
+
+	================================
+	//  string localization
+	================================
+	@index "Definitions" / "Localization"
+	LOC_PLAIN	 --   msg is a simple string
+	LOC_ARRAY	 --   msg is an array of strings
+	LOC_PLURAL	 --   msg is a set of plural strings
+	LOC_NOTES	 --   translation notes for this message
+	LOC_INVERSE	 --   inverse table for key_ss -> key_enum
+
+	//  verbs used in localization IF statements
+// 	LOC_IF
+// 	LOC_EQ
+// 	LOC_NE
+// 	LOC_LT
+// 	LOC_LE
+// 	LOC_GT
+// 	LOC_GE
+// 	LOC_THEN
+// 	LOC_ELSE
+
+	//  a plural form can have up to 6 different variations
+	//  usage varies by language, see GNU documentation on this
+	PLURAL_DEFAULT --   the default form in plural case
+	PLURAL_ONE	 --   european languages use this one also
+	PLURAL_TWO	 --   when qty 2
+	PLURAL_FEW	 --   used in various ways by different languages
+	PLURAL_MANY	 --   used in various ways by different languages
+	PLURAL_ZERO	 --   only a few languages have a special form for zero
+
+//  this is the merged table of all localized strings used in the product
+var LOCALIZED : array^3 of str  //  indexed by [langx, modulename, stringx]
+
+	//  this function is usually used internally to retrieve a localized string
+	//  but occasionally will be called manually
+	//  the string tables are typically called myprod_FRA.strings
+calc loc (  --- obtain a localized string
+	base_ss : str    //  the default string in the base language
+	base_lang : num  //  the language that the base is in
+	module  : str    //  the module of the string table
+	stringx : num    //  the index in the string table
+	langx : num = U  //  the language to find translation for, default is runtime.ui_language
+	table : str = U  //  the string table name override
+	plural: num = U  //  the plural quantity specifier
+	) : str  //  the localized version of the string
+
+calc set_ui_language(  --- change the UI language, affects all localized strings
+	newlang : num  --- new language to set runtime.ui_language to
+	)
+
+enum
+	================================
+	//  localization manager tool
+	================================
+// 	LOCMAN_MAPPING	 --   used for building mapping table
+// 	LOCMAN_TOGGLE	 --   is this language toggled?
+// 	LOCMAN_CELL_COLOR --   field to store color of the cell
+// 	LOCMAN_CELL_MSGID --   field to store msgID of the cell
+// 	LOCMAN_CELL_SELECTED --   currently selected cell ID
+// 	LOCMAN_LANG_TOGGLE --   field stores lang selected toggle
+// 	LOCMAN_NMISSING  --   stats for nmissing
+// 	LOCMAN_NTOT		 --   total number of msgs
+
+	================================
+	//  blend modes for image drawing
+	================================
+	@index "Definitions" / "Blend modes"
+	BLENDMODE_ADD
+	BLENDMODE_ALPHA
+	BLENDMODE_DARKEN
+	BLENDMODE_DIFFERENCE
+	BLENDMODE_ERASE
+	BLENDMODE_HARDLIGHT
+	BLENDMODE_INVERT
+	BLENDMODE_LAYER
+	BLENDMODE_LIGHTEN
+	BLENDMODE_MULTIPLY
+	BLENDMODE_NORMAL
+	BLENDMODE_OVERLAY
+	BLENDMODE_SCREEN
+	BLENDMODE_SHADER
+	BLENDMODE_SUBTRACT
+
+	================================
+	//  orientation choices
+	================================
+	//  used for both print orientation, and also for callback to aaaa_orient, where the user's code can block an orientation change
+	@index "Definitions" / "Orientation"
+	ORIENTATION_PORTRAIT
+	ORIENTATION_LANDSCAPE
+
+	================================
+	//  printing related fields
+	================================
+	@index "Definitions" / "Printing"
+	PRINT_NCOPIES
+	PRINT_FIRST_PAGE
+	PRINT_LAST_PAGE
+	PRINT_ORIENTATION
+	PRINT_IS_COLOR
+	PRINT_RESOLUTION
+	PRINT_PHASE
+	PRINT_PAGENUM
+	PRINT_ROWX
+
+	================================
+	//  menu bar subsystem
+	================================
+	@index "Definitions" / "Menu bar"
+	MENUBAR_APP_MENU    --  Enum / special Mac OSX required menu
+	MENUBAR_APP_ABOUT   --  Enum / special Mac OSX required menu item in App menu
+	MENUBAR_APP_QUIT    --  Enum / special Mac OSX required menu item in App menu
+	MENUBAR_HELP_MENU   --  Enum / special Mac OSX required menu
+	MENUBAR_SHORTCUT    --  Str / shortcut label to display in menu
+	MENUBAR_CODE        --  Num / physical keycode that activates shortcut
+	MENUBAR_ENABLED     --  Num / item enabled?
+	MENUBAR_CHECKMARK   --  Num / item has a checkmark?
+	MENUBAR_ACTION      --  Func / function to call when menu item is selected
+
+	================================
+	//  line drawing styles
+	================================
+	//  three line cap styles
+	@index "Drawing" / "Line styles"
+	CAP_BUTT   --  default style, stops at end point
+	CAP_ROUND  --  forces JOINT_ROUND 
+	CAP_SQUARE --  draw square end
+
+	//  three styles of joints with two lines meet
+	JOINT_ROUND  --  default style
+	JOINT_MITER  --  doesn't work if you select CAP_ROUND
+	JOINT_BEVEL  --  truncate the bevel
+
+	================================
+	//  system values
+	================================
+	//  possible cpu_kind values
+	@index "Definitions" / "Hardware"
+	CPU_ARM
+	CPU_INTEL
+	
+	//  possible os_kind values
+	OS_AND  -- google android
+	OS_IOS  -- apple iOS
+	OS_OSX  -- macintosh desktop
+	OS_WIN  -- microsoft windows
+	OS_WEB  -- unknown OS like Tizen or Linux
+	
+	//  possible touch_kind values
+	TOUCH_FINGER
+	TOUCH_STYLUS
+	TOUCH_NONE
+
+================================
+//  conversion related
+================================
+//--------------------------------
+//  Temperature conversion functions
+//--------------------------------
+@index "Physical units"
+
+//  these conversion functions only work inside a draw block	
+graphics mm_to_dots( --- convert a number of millimeters into device dots (rounded)
+	millimeters : num  --- number of mm
+	)  : num  --- number of device dots
+
+graphics pt_to_dots( --- convert a number of points(1/72nd of an inch) into device dots (rounded)
+	points : num  --- number of points
+	)  : num  --- number of device dots
+	
+graphics dots_to_pt( --- convert a number of device dots into points (rounded)
+	dots : num  --- number of dots
+	)    : num  --- number of points
+	
+graphics dots_to_mm( --- convert a number of device dots into mm (rounded)
+	dots : num  --- number of dots
+	)    : num  --- number of mm
+	
+calc conv_degK_to_degC(  --- convert Kelvin to Celsius
+	deg_k : num  --- in - degrees Kelvin
+	) : num --- out - degrees Celsius
+
+calc conv_degC_to_degK(  --- convert Celsius to Kelvin
+	deg_c : num  --- in - degrees Celsius
+	) : num --- out - degrees Kelvin
+
+calc conv_degK_to_degF(  --- convert Kelvin to Fahrenheit
+	deg_k : num  --- in - degrees Kelvin
+	) : num --- out - degrees N
+
+calc conv_degF_to_degK(  --- convert Fahrenheit to Kelvin
+	deg_f : num  --- in - degrees N
+	) : num --- out - degrees Kelvin
+	
+//  meas types have an implied record structure:
+//    .magnitude  -- magnitude in base units
+//    .family     -- unit family it belongs to, if any
+//    .unitss     -- the canonical internal exponent string like len^2|1
+
+//  this function can be called implicitly by writing: mymeas as kg
+calc to_unit( --- convert a measurement into a scalar value
+	n    : meas  --- input measurement
+	unit : num   --- target unit (must be in same family)
+	)    : num   --- value in that unit, ERR if unit not compatible
+
+calc to_meas( --- create a measurement out of a magnitude and a unit
+	mag	 : num   --- magnitude of the measurement
+	unit : num   --- the target unit
+	)    : meas  --- resulting measurement
+	
+//--------------------------------
+//  records for units
+//--------------------------------
+//  each unit we define is stored in a record
+record a_unit
+	unit_factor  : num   ---  factor to multply by to convert to the base unit(if linear unit)
+	base_to_unit : calc(num):num  ---  function to convert from base unit magnitude to this unit(for nonlinear units) f(num):num
+	unit_to_base : calc(num):num  ---  function to go from this unit to base units(for nonlinear units) f(num):num
+
+// each unit record is part of a unit family	
+record a_family
+	fam_dim       : str   ---  canonical dimensions, in alphabetical order, e.g.:  len^1|1,time^-1|1;
+	fam_nonlinear : num   ---  if Y then is a nonlinear family, and uses conversion functions instead of unit_factor
+	fam_units     : array of a_unit  ---  array[unitID] of a_unit records, indexed by the unit enum
+	fam_base      : num   ---  enum of unit that is the base unit for this family
+
+var
+	families : array of a_family ---   array of a_family, the defined units
+	unit_to_family : array of num ---   array[unitID] of familyID - inverse table, indexed by unit to get the family
+
+//--------------------------------
+//  Scalar 
+//--------------------------------
+family Scalar 
+unit each  family: Scalar base
+unit dozen family: Scalar ratio: 1 dozen == 12 each
+unit gross family: Scalar ratio: 1 gross == 144 each
+
+//--------------------------------
+//  Length 
+//--------------------------------
+family Length dim:"len^1"
+unit meter      family:Length base 
+//  note that due to a bug in Chrome, we can't define Angstrom abbrev:Å  as an abbreviation
+//  it allows the constant, but references don't work...because there are 2 unicode chars
+//  of A with circle above! so just dangerous to use it so we dropped it.
+unit angstrom   family:Length ratio: 100_000_000_000 angstrom == 1 meter  --- unicode 212BH
+unit nm         family:Length ratio: 10_000_000_000 nm == 1 meter
+unit um         family:Length ratio: 1_000_000 um == 1 meter
+unit mm         family:Length ratio: 1000 mm == 1 meter
+unit cm         family:Length ratio: 100 cm == 1 meter 
+unit dm         family:Length ratio: 10 dm == 1 meter
+unit km         family:Length ratio: 1 km == 1000 meter
+unit inch       family:Length ratio: 1 inch == 0.0254 meter
+unit foot       family:Length ratio: 1 foot == 12 inch
+unit yard       family:Length ratio: 1 yard == 3 foot
+unit mile       family:Length ratio: 1 mile == 5280 foot
+unit nautmile   family:Length ratio: 1 nautmile == 1852 meter
+
+//--------------------------------
+//  Area 
+//--------------------------------
+family Area dim:"len^2"
+unit sq_m    family:Area base
+unit sq_cm   family:Area ratio: 10_000 sq_cm == 1 sq_m
+unit sq_mm   family:Area ratio: 1_000_000 sq_mm == 1 sq_m
+unit hectare family:Area ratio: 1 hectare == 10000 sq_m
+unit sq_in   family:Area ratio: 1 sq_in == 0.0006451600000025807 sq_m
+unit sq_ft   family:Area ratio: 1 sq_ft == 0.09290303999749462 sq_m
+unit sq_yd   family:Area ratio: 1 sq_yd == 0.8361273600007553 sq_m
+unit sq_mi   family:Area ratio: 1 sq_mi == 2589988.110285327 sq_m
+unit acre    family:Area ratio: 1 acre == 4046.8564300507887 sq_m
+
+//--------------------------------
+//  Volume 
+//--------------------------------
+family Volume dim:"len^3"
+unit l     family:Volume base
+unit ml    family:Volume ratio: 1000 ml == 1 l
+unit tsp   family:Volume ratio: 1 tsp == 0.004928921598877499 l
+unit tbsp  family:Volume ratio: 1 tbsp == 0.014786764780962696 l
+unit oz    family:Volume ratio: 1 oz == 0.029573529564111873 l
+unit cup   family:Volume ratio: 1 cup == 0.23658823637296003 l
+unit pint  family:Volume ratio: 1 pint == 0.47317647274592006 l
+unit quart family:Volume ratio: 1 quart == 0.9463529454918401 l
+unit gal   family:Volume ratio: 1 gal == 3.7854117891320316 l
+unit cu_ft family:Volume ratio: 0.035315 cu_ft == 1 l
+unit cu_yd family:Volume ratio: 0.00130795 cu_yd == 1 l
+
+//--------------------------------
+//  Time 
+//--------------------------------
+family Time dim:"time^1"
+unit sec   family:Time base
+unit picosec  family:Time ratio: 1000000000000 picosec == 1 sec
+unit nanosec  family:Time ratio: 1000000000 nanosec == 1 sec
+unit microsec family:Time ratio: 1000000 microsec == 1 sec
+unit millisec family:Time ratio: 1000 millisec == 1 sec
+unit minute   family:Time ratio: 1 minute == 60 sec
+unit hour     family:Time ratio: 1 hour == 60 minute
+unit day      family:Time ratio: 1 day == 24 hour
+unit week     family:Time ratio: 1 week == 7 day
+//  the following values are average astronomical lengths of time
+unit avg_year     family:Time ratio: 1 avg_year == SECONDS_PER_YEAR sec
+unit avg_month    family:Time ratio: 1 avg_month == SECONDS_PER_MONTH sec
+
+//--------------------------------
+//  Mass 
+//--------------------------------
+family Mass dim:"mass^1"
+unit kg         family:Mass base
+unit gram       family:Mass ratio: 1000 gram == 1 kg
+unit tonne      family:Mass ratio: 1 tonne == 1000 kg
+unit ounce      family:Mass ratio: 1 ounce == 0.02834952316484755 kg
+unit pound      family:Mass ratio: 1 pound == 0.4535923703803783 kg
+unit grain      family:Mass ratio: 1 grain == 0.00006479890999975407 kg
+unit troy_ounce family:Mass ratio: 1 troy_ounce == 0.031103476769649887 kg
+unit troy_pound family:Mass ratio: 1 troy_pound == 0.3732417216026466 kg
+unit ton        family:Mass ratio: 1 ton == 2000 pound  ---  american short ton
+unit slug       family:Mass ratio: 1 slug == 14.593903 kg
+
+/*......
+//--------------------------------
+//  Angle conversion functions
+//--------------------------------
+calc conv_rad_to_60th(
+	radians : num  --- in - radians
+	) : num --- out - 60ths of a circle
+
+calc conv_60th_to_rad(
+	angle : num  --- in - angle in 60ths
+	) : num --- out - radians
+
+calc conv_rad_to_24th(
+	radians : num  --- in - radians
+	) : num --- out - 24ths of a circle
+
+calc conv_24th_to_rad(
+	angle : num  --- in - angle in 24ths
+	) : num --- out - radians
+
+calc conv_rad_to_12th(
+	radians : num  --- in - radians
+	) : num --- out - 12ths of a circle
+
+calc conv_12th_to_rad(
+	angle : num  --- in - angle in 12ths
+	) : num --- out - radians
+...............*/
+
+//--------------------------------
+//  Angle 
+//--------------------------------
+family Angle dim:"angle^1"
+unit radian  family:Angle base
+unit deg     family:Angle ratio: 180 deg == PI radian
+unit grad    family:Angle ratio: 100 grad == 90 deg
+unit turn    family:Angle ratio: 1 turn == 360 deg
+//unit Angle_REV    family:Angle ratio: 0.5 Angle_REV == PI radian
+//unit Angle_CLOCK_60TH   family:Angle ratio: 30 Angle_CLOCK_60TH == PI radian --- from_base: conv_rad_to_60th to_base: conv_60th_to_rad
+//unit Angle_CLOCK_24TH   family:Angle ratio: 12 Angle_CLOCK_24TH == PI radian --- from_base: conv_rad_to_24th to_base: conv_24th_to_rad
+//unit Angle_CLOCK_12TH   family:Angle ratio:  6 Angle_CLOCK_12TH == PI radian --- from_base: conv_rad_to_12th to_base: conv_12th_to_rad
+
+//--------------------------------
+//  Frequency 
+//--------------------------------
+family Frequency dim:"time^-1"
+unit hz family:Frequency base 
+unit rpm family:Frequency ratio: 60 rpm == 1 hz
+
+//--------------------------------
+//  Force 
+//--------------------------------
+family Force dim:"len^1,mass^1,time^-2"
+unit newton family:Force base 
+unit lbf family:Force ratio: 1 lbf == 4.448221618990737 newton
+
+//--------------------------------
+//  Energy  (and Work)
+//--------------------------------
+family Energy dim:"len^2,mass^1,time^-2"
+unit joule     family:Energy base 
+unit gigajoule family:Energy ratio: 1 gigajoule == 1_000_000_000 joule
+unit kw_hr     family:Energy ratio: 1 kw_hr == 3599999.9971200004 joule
+unit BTU       family:Energy ratio: 1 BTU == 1055.0558529687669 joule
+unit therm_ec  family:Energy ratio: 1 therm_ec == 105506000 joule // European therm
+unit therm_us  family:Energy ratio: 1 therm_us == 105480400 joule // US therm
+unit calorie_th family:Energy ratio: 1 calorie_th == 4.184 joule // thermochemical calorie
+unit calorie   family:Energy ratio: 1 calorie == 4.1868 joule  // International table 
+unit hp_hr     family:Energy ratio: 1 hp_hr == 2684519.5376862194 joule
+unit ev        family:Energy ratio: 1 ev == 1.6021773300241367E-19 joule
+
+//--------------------------------
+//  Power 
+//--------------------------------
+family Power dim:"len^2,mass^1,time^-3"
+unit watt      family:Power base 
+unit milliwatt family:Power ratio: 1000 milliwatt == 1 watt
+unit kilowatt  family:Power ratio: 1 kilowatt == 1000 watt
+unit megawatt  family:Power ratio: 1 megawatt == 1_000_000 watt
+unit gigawatt  family:Power ratio: 1 gigawatt == 1_000_000_000 watt
+unit hp        family:Power ratio: 1 hp == 745.6998713570781 watt
+
+//--------------------------------
+//  Pressure 
+//--------------------------------
+family Pressure dim:"len^1,mass^-1,time^-2"
+unit pascal family:Pressure base 
+unit bar    family:Pressure ratio: 1 bar == 100000 pascal
+unit psi    family:Pressure ratio: 1 psi == 6894.7572798677575 pascal
+unit torr   family:Pressure ratio: 1 torr == 133.32236836846923 pascal
+
+//--------------------------------
+//  Speed 
+//--------------------------------
+family Speed dim:"len^1,time^-1"
+unit m_per_sec  family:Speed base 
+unit m_per_min  family:Speed ratio: 60 m_per_min == 1 m_per_sec
+unit km_per_hr  family:Speed ratio: 3600 km_per_hr == 1000 m_per_sec
+unit ft_per_sec family:Speed ratio: 1 ft_per_sec == 0.304799999536704 m_per_sec
+unit ft_per_min family:Speed ratio: 1 ft_per_min == 0.0050799999922784 m_per_sec
+unit mi_per_hr  family:Speed ratio: 1 mi_per_hr == 0.4470400004105615 m_per_sec
+
+//--------------------------------
+//  Temperature 
+//--------------------------------
+family Temperature dim:"temp^1"
+unit degK family:Temperature base 
+unit degC family:Temperature from_base: conv_degK_to_degC to_base: conv_degC_to_degK --unicode  abbrev:℃  --- unicode 2103
+unit degF family:Temperature from_base: conv_degK_to_degF to_base: conv_degF_to_degK --unicode abbrev:℉  --- unicode 2109H
+
+@index "Coordinates" 
+
+================================
+record a_xy ---  a 2 dimensional point
+	x
+	y
+
+================================
+record a_xyz ---  a 3 dimensional point
+	x
+	y
+	z 
+
+================================
+record a_rect ---  super commonly used rectangle
+	left
+	top
+	width
+	height
+
+================================
+record a_polar_coord --- a polar coord point
+	polar_radius : num
+	polar_angle  : Angle	
+
+@index "Events" 
+
+================================
+//  event kinds for a_event.evkind
+================================
+enum
+	EV_NOP		 ---   nop, used to disable pending events that we want to have be ignored
+	EV_TIMER	 ---   timer callback event
+	EV_KEYBOARD	 ---   keystroke - sets e.keycode, e.unicode, e.is_shift, etc.
+
+	EV_GEST_BEGIN
+	EV_GEST_END
+		
+	EV_TAP		 ---   equivalent of mouse main click
+	EV_ALT_TAP	 ---   equivalent of mouse right click
+	EV_MID_TAP	 ---   equivalent of mouse middle button click
+	EV_DOUBLE_TAP ---  equivalent of mouse double click
+		
+	EV_DRAG_BEGIN ---   beginning of a drag operation
+	EV_DRAG_MOVE
+	EV_DRAG_END	    ---  end of the drag operation
+		
+	EV_HOLD		 ---  pressing but not moving
+	EV_HOVER	 ---  mouse move or stylus hover on Samsung Note, Apple Pencil
+	EV_ENTER	 ---  mouse just entered this block
+	EV_LEAVE	 ---  mouse just left this block
+
+	EV_ROTATE	 ---   two fingers rotating
+	EV_SWIPE	 ---   single finger swipe
+		
+	EV_RESIZE	 ---  window resize from OS, is sent to all programs after main_init, before main_draw
+	EV_ZOOM		 ---  pinch/zoom gesture, two fingers together or apart
+	EV_WHEEL     ---  mouse wheel move. positive=wheel towards user (down), z value, ranges from 4 to 500
+
+	//  for TCP socket communication
+	EV_TCP_CONNECTED  ---  socket is now connected
+	EV_TCP_CLOSE	  ---  socket has been closed
+	EV_TCP_DATA		  ---  socket has some data just arrived
+	EV_TCP_ERR		  ---  socket encountered an error like timeout
+
+	//  internal event types
+	EV_INIT		 ---   used in major_steps to show the call to the main_init function
+	EV_STOP		 ---   used in major_steps for the marker node that is the end of the list
+	EV_TRACK_PLAIN ---  tracking of a plain block
+	EV_TRACK_GRID  ---  tracking of a grid block
+	EV_TRACK_TABLE ---  tracking of a table block
+	EV_DRAW        ---  drawing of some block
+	EV_INPUT       ---  input field change in value
+
+	//  animation events
+	EV_ANIM_SPRITE   ---  a sprite animation
+	EV_ANIM_VAL      ---  a value animation
+	EV_ANIM_BLOCK    ---  a block animation
+	EV_ANIM_CURVE    ---  a bezier curve animation
+
+	EV_GAMECTRL      --- a game controller input
+	//EV_SOUND_DONE  ---  a sound has finished playing
+	//EV_FRAME		 ---  on each frame
+
+================================
+record a_event	 ---   loom event record, is returned in local variable 'e' in a tracking function
+================================
+	evkind     ---  EV_TAP, etc
+	when       ---  elapsed time when the event arrived
+	//id         ---  unique id of this event
+
+	//----------------
+	//  for pointing device kinds of events like EV_TAP
+	//----------------
+	x          ---  x coordinate in local coordinates of of block with translation transforms (rotation NYI)
+	y
+	z          ---  used for pressure value, wheel, or a 3D mouse
+
+	global_x   --- global x coordinate (the monitor coordinate (AS3) or the web window coord (Web))
+	global_y   --- global y coordinate
+	touch_id   ---  OS dependent field, for touch events
+	
+	//----------------
+	//  for keyboard events
+	//----------------
+	//  the virt code is OS dependent, allows for keys like 2nd enter key
+	keycode  ---  virtual keycode, KEYCODE_F1, etc.
+	unicode : str  ---  unicode character if any
+
+	//  we note on each key press the state of the shift keys when that key was pressed
+	is_shift : yesno   --- Y if set, otherwise U
+	is_ctrl  : yesno   --- Y if set
+	is_alt   : yesno   --- Y if set
+	is_cmd   : yesno   --- Y if set; Apple cloverleaf key, also known as Windows key
+	
+	//----------------
+	//  for game controller events
+	//----------------
+	gamec_id       --- id of controller (could have multiple controllers connected)
+	gamec_butt_ix  --- button index
+	gamec_butt_down : yesno  --- is button down?
+	//  on each event we stored the state of the sticks at that moment
+	gamec_joystick_l : a_xy  --- analog value -1..+1
+	gamec_joystick_r : a_xy
+	gamec_trigger_l
+	gamec_trigger_r
+
+	//----------------
+	//  used internally
+	//----------------
+	//  for callback functions
+	callback : calc()  ---  function being called 
+
+	//  pending event fields
+	pending_prereq          ---  prerequisite event    
+	pending_targtime        ---  absolute target start time
+	pending_delay           ---  delay in seconds from now or prerequisite event for first callback, default is U
+	pending_limit		    ---  number of times to fire event, default 1
+	pending_interval        ---  seconds between each repeated firing
+	pending_parms : tree    ---  array of parameters for callbacks
+
+	//  for EV_TAP, EV_KEYBOARD, etc.
+	hist_absorber : str    ---  name of the block which absorbed the event
+
+	//  emitted in k.track_xy_in_grid, for EV_TRACK_GRID:
+	hist_cell_cum		 ---  cumulative cell index, 1=first
+	hist_cell    : a_xy  ---  logical cell x, y [1,1] ⇐ first
+	hist_cell_id : a_xy  ---  cell id [col,row], if cells have non-integer column indices, will be U if not different
+
+	//  linkage to micro_step array
+	hist_rawx   ---  index in raw delta table of first delta generated by the consequences of the event
+
+@index "Drawing" / "Canvas"
+================================
+record a_shadow   --- drop shadow spec, used in svg drop shadow filtering
+================================
+	dx      : num   -- x offset, default is 0
+	dy      : num	-- y offset, default is 0
+	spread  : num   -- default is 0
+	color   : color -- default is black
+	opacity : num   -- default is 1
+
+================================
+record  a_canvas  --- record used for storing canvas buffers
+================================
+	width  : num    --- pixel width
+	height : num    --- pixel height
+	sysobj : object --- internal system object, can be used in draw_image
+	
+// not yet implemented the functions to retrieve and set the pixels in bulk
+// calc get_canvas_pixels(
+// 	box : a_rect  --- sub-area you want to extract
+// 	pixels : array of PIXEL32
+// 	)
+// 
+// calc set_canvas_pixels(
+// 	pixels : array of PIXEL32
+// 	)
+
+calc canvas_to_image (  -- convert a canvas bitmap into an image
+	canv : a_canvas
+	) : image  -- get an image usable for draw_image
+
+================================
+//  gradients
+================================
+@index "Drawing" / "Gradients"
+enum
+	//--------------------------------
+	//  gradient types
+	//--------------------------------
+	LINEAR_GRADIENT
+	RADIAL_GRADIENT
+
+const
+	//  commonly used gradient angles (note: CSS uses 0 as bottom to top, so we add 90 to make CSS angle)
+	GRAD_TO_RIGHT    ⇐ 0  //  left to right
+	GRAD_TO_BOTTOM   ⇐ 90 //  top to bottom
+	GRAD_TO_LEFT     ⇐ 180 // right to left
+	GRAD_TO_TOP      ⇐ 270 // bottom to top
+
+//  a gradient is a tree object, with an internal compiled form that is OS dependent
+//  the internal object is automatically calculated on demand if the constituent
+//  elements of the gradient have changed.
+//  each gradient stop is a triple of pos, color, and optional opacity
+//  therefore you can define a gradient typically by using a tree constant
+record a_gradient_stop
+	stop_pos   : num    --- position (0..100)
+	stop_color : color	--- color at this position
+	opacity : num  --- opacity 0..1
+
+record a_gradient
+	grad_shape  : num   ---  LINEAR_GRADIENT or RADIAL_GRADIENT
+
+	//--- fields needed for linear gradient
+	grad_angle  : num   --- (linear) angle in degrees to use, 0=GRAD_TO_RIGHT, 90=GRAD_TO_BOTTOM, etc.
+
+	//--- fields needed for radial gradient
+	grad_centerx : num  --- (radial) center of gradient (0.5 ⇐ center)
+	grad_centery : num  --- (radial) center of gradient (0..1)
+	grad_radius_inner :num ---  (radial) innermost radius (0..1)
+	grad_radius_outer :num ---  (radial) outermost radius (0..1)
+	//  at the present time the difference between as3 and JS with regards to 
+	//  focal point specification is so different as to require further study
+	grad_focusx  : num     ---  (radial) focus x ratio (0..1)
+	grad_focusy  : num     ---  (radial) focus y ratio (0..1)
+
+	//  when syntax is upgrade this will be:  of num | color
+	grad_stops  : array of a_gradient_stop
+	grad_sysobj : object ---  low-level system gradient object  // used by JS runtime
+
+@index "Drawing" / "Blocks" 
+================================
+record a_block	 ---   b:a_block implied in each drawing block. Internally stored in b.extra : tree
+================================
+	bname   : str      ---  unique block ID (same as DOM id)
+	box     : a_rect   ---  local bounds of the drawing area (can use bb as abbrev for b.box)
+	boxtot  : a_rect   ---  bounds of the total content area including scrolling content
+	dpi     : num      ---  the resolution of this block in dots per inch (read only)
+	mouse_inside  : yesno --- is the mouse inside this block?
+
+	//  we pass these fields inside the b meta variable because there is no event record while drawing cells
+	//  and to be consistent between drawing and tracking we keep this data here
+	//  fields used in grids/slices to describe the cell we are drawing.
+	cell    : a_xy  ---  the logical column/row, first is 1
+	cell_id : a_xy  ---  the id of the column/row (usually an enum)
+	cell_seq: num   ---  cumulative cell index, first is 1, depends on grid ordering LRTB (default) or TBLR
+	ncells  : a_xy  ---  how many cells in each direction
+
+	//  fields used in tables
+	row_kind  : num    ---  TRACK, the kind of row we tapped on 
+
+//  this function is used in transitions, like fade in / fade out
+//  where you draw a block and then at the end slap on a transform
+draw draw_with_transform (
+	drawfunc : draw()  -- function that draws a block
+	opacity : num = 1  -- optional opacity override
+	pushx : num = 0 -- delta x, inside the same bbox, so clips
+	pushy : num = 0 -- delta y
+	)
+
+@index "Finite state" 
+================================
+//  Finite state machine
+================================
+
+enum
+	//  machine state transition messages
+	MSG_ENTER  	 ---   we are entering a new state
+	MSG_LEAVE	 ---   we are leaving a old state
+	
+record a_fsm  ---  a spawned finite state machine has at least one field holding the state
+	fsm_state : num  --- current state of the machine
+
+================================
+//  Sound functions
+================================
+@index "Audio / Visual" 
+
+calc sound_play( --- add a sound to the sound queue
+	s      : sound   --- sound to play
+	loop   : yesno ⇐ N --- if Y, then loop the sound
+	notify : yesno ⇐ N --- if Y, then emit notification event when done
+	offset : num ⇐ 0 --- offset in seconds into the sound
+	id     : num ⇐ 0 --- id for notification event
+	)
+
+calc sound_play_file(  --- play a sound file
+	path : str
+	)
+
+//calc sound_pause  --- pause the sound queue
+//calc sound_resume --- resume the sound queue
+//calc sound_clear  --- clear the sound queue
+
+//  on AS3: NOT YET - resolved at compile time, will embed the bitmap into the program	
+//  on JS: will create an image object with url stored inside, other parms mean nothing.
+//  must specify either local or remote
+//  to embed an inline svg image: 
+//       image_load('data:image/svg+xml;utf8,<svg....</svg>')
+//  you can embed image/png, image/svg, and the encoding can be utf8 or base64
+calc image_load( --- load an external bitmap image
+	url    : str --- local or remote file holding the image, or utf/base64 image data string
+	hint   : str = '' --- description; for screen readers to speak
+	//base64 : yesno = N  --- url is a base64 image string:  "data:image/png;base64,iVBOR..."
+	) : image
+
+calc image_size( --- retrieve size of an image (if not loaded yet, will be U)
+	img : image  --- image to test
+	) : a_xy     --- size
+
+================================
+//  OS interface
+================================
+@index "OS Interface"
+
+//  log is a statement in the language, not a built in function, saves lots of parentheses
+//  console logging function	
+//calc log( --- write to the console
+//	msg : str --- message--  --- ... args : any
+//	)
+
+//  this function allows is what log compiles to on a server module, so that it can be echoed to client
+calc log_echo (
+	message : str --- string to echo to the client (from server)
+	)
+	
+//  this function ends the program abruptly
+//  note: IOS doesn't support a program quitting! so has no effect on IOS!
+//  only way to quit is to set XML flag to allow program to quit automatically on suspend
+calc halt( --- abort the program
+	message : str --- error message
+	)
+
+//  note: IOS doesn't support a program quitting! so has no effect on IOS!
+calc quit( --- stop the program, no message
+	errcode : num
+	)
+
+calc launch_file( --- open a file with the default application
+	file : str --- pathname of file like /mydir/myfile.txt 	
+	)
+	
+================================
+//  game controllers
+================================
+// record a_gamectrl
+// 	//  the current state of the analog sticks on the controller
+// 	is_active  : yesno   --- Y if this controller connected
+// 	joystick_l : a_xy --- -1..+1 range
+// 	joystick_r : a_xy --- -1..+1 range
+// 	trigger_l  : num --- 0..1 range
+// 	trigger_r  : num --- 0..1 range
+// 
+// //  if we call game_controllers_init, this will be active
+// //  should not interrogate the live values
+// var game_controllers : array of a_gamectrl  --- array 0.. of installed game controllers
+
+calc game_controllers_init --- enable game controllers
+
+
+================================
+//  Predicates
+================================
+@index "Tests"
+//  maps 0=>N, 1=>Y, -1=>Y, INFINITY=>ERR, enum=>ERR
+calc is_odd( --- test for oddness
+	n : num --- number to test, will be rounded
+	) : yesno --- Y if numeric and odd
+	
+//  maps 0=>Y, 1=>N, -1=>N, INFINITY=>ERR, enum=>ERR
+calc is_even( --- test for evenness
+	n : num --- number to test, will be rounded
+	) : yesno --- Y if numeric and even
+
+//  maps integer=>Y  ERR=>ERR, U=>U, else N	
+calc is_integer( --- test for integer
+	n : num --- number to test
+	) : yesno --- Y if integer
+
+//  maps enum=>Y, ERR=>ERR, U=>U, else N	
+calc is_enum( --- test if an enum value
+	n : num --- number to test
+	) : yesno --- Y if enum
+
+//  maps meta=>Y, ERR=>ERR, U=>U, else N	
+calc is_meta( --- test if an num is in the meta value range
+	n : num --- number to test
+	) : yesno --- Y if meta
+
+//  maps ERR=>Y, U=>Y, else N	
+calc is_err_u( --- equivalent to if(n==ERR) or (n==U)
+	n : num --- number to test
+	) : yesno --- Y if U or ERR
+
+//  maps number=>Y, INFINITY=>Y, enum=>N, U=>U, ERR=>ERR, 
+calc is_numeric( --- test for numeric value
+	n : num --- number to test
+	) : yesno --- Y if regular number or INFINITY
+
+//  maps ERR=>Y, enum=>Y, U=>U, else N	
+calc is_err_enum( --- test if err or enum
+	n : num --- number to test
+	) : yesno --- Y if ERR or enum
+
+//  maps number=>Y, INFINITY=>N, ERR=>ERR, U=>U	
+calc is_finite( --- test for finite numeric value
+	n : num --- number to test
+	) : yesno --- Y if regular number not INFINITY
+
+//  maps INFINITY=>Y, -INFINITY=>Y, ERR=>ERR, U=>U, else N	
+calc is_infinite( --- test for infinite numeric value
+	n : num --- number to test
+	) : yesno --- Y if regular number not INFINITY
+
+//  introspection functions
+calc is_field(  --- test enum to see if it is a field
+	field : num  --- enum of field name
+	) : yesno --- Y if field
+	
+calc is_field_in_record( --- test field for membership in a record
+	field : num  --- enum of field name
+	rec   : num  --- enum of record name, must be a constant
+	) : yesno --- Y if field in the specified record
+
+================================
+//  Rectangle functions
+================================
+@index "Math" / "Rectangles"
+	
+calc rect_intersect(  --- calculate intersection of two rectangles
+	r1 : a_rect
+	r2 : a_rect
+	) : a_rect ---  intersection
+
+calc rect_union(  --- calculate the union of two rectangles
+	r1 : a_rect
+	r2 : a_rect
+	) : a_rect ---  union
+
+//  if aspect is square, it will be considered portrait
+calc rect_is_portrait( --- is rectangle in portrait orientation?
+	r : a_rect --- rectangle to test
+	) : yesno --- Y if portrait, N otherwise
+	
+calc rect_is_landscape( --- is rectangle in landscape orientation?
+	r : a_rect --- rectangle to test
+	) : yesno --- Y if landscape, N otherwise
+
+calc rect_is_intersecting(  ---  do two rectangles intersect?
+	r1 : a_rect
+	r2 : a_rect
+	) : yesno --- Y if rectangles have non-zero intersection
+
+//  we treat the bottom & right as exclusive
+calc rect_is_inside(  --- is a point inside a rectangle?
+	r  : a_rect  --- rectangle to test against
+	xy : a_xy = U
+	x  : num = U
+	y  : num = U
+	) : yesno --- Y if point inside rectangle
+
+
+================================
+//  mouse/pointing device event capture
+================================
+//  these functions are used during drag tracking to keep the mouse move streams fixed
+//  to the same block that you start capturing inside
+// graphics capture_mouse ---  start the capture
+// calc release_mouse --- release the previous capture
+
+================================
+//  cursor manipulation
+================================
+//  note: cursor manipulation functions have no effect on iOS, Android
+@index "Drawing" / "Cursors"
+enum
+	//-- AS3 + JS cursors
+	CURS_ARROW   --- default arrow cursor  js:"default" as3:MouseCursor.ARROW
+	CURS_FINGER  --- hand with 1 finger out  js:"pointer", as3:MouseCursor.BUTTON
+	CURS_HAND    --- open hand  js:"grab", as3:MouseCursor.HAND
+	CURS_IBEAM   --- caret symbol for text edit fields, js:"text", as3:MouseCursor.IBEAM
+	CURS_HIDE    --- hide the cursor  js:"none", as3:?
+
+	//-- JS only cursors
+	CURS_ALIAS  --- curved CW arrow  js:"alias"
+	CURS_CELL   --- thick plus (black border, white inside)  js:"cell"
+	CURS_CONTEXT  --- little context menu  js:"context-menu"
+	CURS_COPY    --- circle plus  js:"copy"
+	CURS_CROSSHAIR --- thin plus (white border, black inside) js:"crosshair"
+	CURS_GRABBING  --- hand with fingers closed  js:'grabbing'
+	CURS_MOVE       --- four way arrow, js:"move", same as all-scroll
+	CURS_NOT   --- arrow with circle NOT, js:"no-drop", same as 'not-allowed'
+	CURS_QUESTION  ---  question mark, js:"help"
+	CURS_WAIT  --- spinning wheel with arrow, js:"wait", same as 'progress'
+	CURS_ZOOM_IN  --- magnifier with +, js:"zoom-in"
+	CURS_ZOOM_OUT  --- magnifier with -, js:"zoom-out"	 
+	CURS_RESIZE_COL  --- double vertical bar with horz arrows, js:"col-resize"
+	CURS_RESIZE_ROW  --- double horz bar with vert arrows, js:"row_resize"
+	CURS_RESIZE_N    --- eastward arrow, js:"n-resize"
+	CURS_RESIZE_S    --- arrow, js:"s-resize"
+	CURS_RESIZE_E    --- arrow, js:"e-resize"
+	CURS_RESIZE_W    --- arrow, js:"w-resize"
+	CURS_RESIZE_EW   --- arrow, js:"ew-resize"  left right double arrow
+	CURS_RESIZE_NS   --- arrow, js:"ns-resize"  up down double arrow
+	CURS_RESIZE_NE   --- arrow, js:"ne-resize" 
+	CURS_RESIZE_NW   --- arrow, js:"nw-resize"
+	CURS_RESIZE_SE   --- arrow, js:"se-resize"
+	CURS_RESIZE_SW   --- arrow, js:"sw-resize"
+	CURS_RESIZE_NESW --- arrow, js:"nesw-resize"  diagonal double arrow
+	CURS_RESIZE_NWSE --- arrow, js:"nwse-resize"  diagonal double arrow
+	CURS_DIAG_RIGHT  --- diagonal arrow from top left to bot right, js:"nesw-resize"
+	CURS_DIAG_LEFT   --- diagonal arrow from top right to bot left, js:"nwse-resize"
+	CURS_CUSTOM  --- internal value used when running a custom cursor
+
+//  when you change the cursor, the flag runtime.cursor_changed is set to Y
+//  that flag is reset each refresh cycle so you can tell when some piece of code
+//  has commanded a cursor change
+calc cursor_set(  ---  set the system cursor to one of the predefined shapes
+	newcursor  ---  CURS_ARROW, etc.
+	)
+
+calc cursor_custom(  --- set a custom cursor, typically used in EV_HOVER tracking
+	cursor : image  --- the image to draw
+	hotspot: a_xy   --- the origin point inside the image which corresponds to the tip of the arrow
+	target : a_xy   --- the target XY coordinate of the cursor (minus the hotspot offset)
+	)
+
+================================
+//  coordinate mapping
+================================
+@index "Drawing" / "Coordinates"
+//  at present the coordinate mapping functions only work against translations
+//  does not yet support rotation transforms
+graphics local_to_global( --- convert a point from local to global coordinates
+	x : num ⇐ U   --- x coordinate
+	y : num ⇐ U   --- y coordinate
+	xy : a_xy ⭅ {} --- xy coord in point form
+	) : a_xy
+	
+graphics global_to_local( --- convert a point from global to local coordinates
+	x : num ⇐ U   --- x coordinate
+	y : num ⇐ U   --- y coordinate
+	xy : a_xy ⭅ {} --- xy coord in point form
+	) : a_xy
+
+graphics local_to_parent (  --- convert a point from local to parent block coord
+	name : str     --- block name
+	x : num ⇐ U   --- x coordinate
+	y : num ⇐ U   --- y coordinate
+	xy : a_xy ⭅ {} --- xy coord in point form
+	) : a_xy
+
+================================
+//   solving functions
+================================
+@index "Math" / "Solving" 
+	
+calc distance( --- distance between two points
+	a : a_xy  --- point A
+	b : a_xy  --- point B
+	) : num  --- sqrt((a.x - b.x)^2 +(a.y - b.y)^2)
+
+calc distance_xyz( --- three-dimensional distance between two points
+	a : a_xyz  --- point A
+	b : a_xyz  --- point B
+	) : num  --- distance in 3-space
+
+calc distance_to_segment( ---  distance from a point to a line segment
+	p : a_xy  --- reference point
+	a : a_xy  --- line segment start point
+	b : a_xy  --- line segment end point
+	) : num  ---  distance between point and segment
+
+calc interpolate( --- simple linear interpolation
+	val         --- value to map
+	in1         --- input starting value
+	in2         --- input ending value
+	out1        --- output starting value
+	out2        --- output ending value
+	round : yesno ⇐ N   --- flag to round to nearest integer
+	clamp : yesno ⇐ N   --- flag to clamp to output range
+	) : num --- returns val mapped in a linear ratio
+
+/*.... easier to write in beads
+calc interpolate_color( --- simple color interplolation
+	val         --- value to map
+	val1         --- input starting value
+	val2         --- input ending value
+	color1        --- output starting value
+	color2        --- output ending value
+	) : num --- returns color that is between color1 and color2
+...*/
+
+//  supply enough information to create a rectangle. you can give any set of information such that it can solve for the result.
+//  if you specify insufficient information it will generate a runtime error if checks are on.
+
+calc solve_rect( --- solve for a rectangle
+	basis   : a_rect ⭅ {} --- starting rectangle
+	pin     : num ⇐ 5     --- a pin point, 1..9
+	cx      : num ⇐ U     --- the center x coordinate
+	cy      : num ⇐ U     --- the center y coordinate
+	dx      : num ⇐ U     --- the offset relative to the basis rect
+	dy      : num ⇐ U     --- the offset relative to the basis rect
+	corner1 : a_xy ⇐ U --- one of the corners as a point
+	corner2 : a_xy ⇐ U --- the opposite corner
+	left    : num ⇐ U     --- the left side of the final rect
+	top     : num ⇐ U     --- the top
+	right   : num ⇐ U     --- the right side of the rect
+	bottom  : num ⇐ U     --- the bottom
+	width   : num ⇐ U     --- the width
+	height  : num ⇐ U     --- the height
+	aspect  : num ⇐ U     --- force width/height to be this ratio 1.0=square
+	//horz    : num ⇐ U     --- horz proportion
+	//vert    : num ⇐ U     --- vert proportion
+	//prop_width  : num ⇐ U --- relative proportion for width
+	//prop_height : num ⇐ U --- relative proportion for height
+	inset   : num ⇐ U     --- inset on all four sides (negative grows rectangle)
+	inset_n : num ⇐ U     --- inset on north side
+	inset_s : num ⇐ U     --- inset on south side
+	inset_e : num ⇐ U     --- inset on east side
+	inset_w : num ⇐ U 	   --- inset on west side
+	inset_x : num ⇐ U     --- inset on both east and west
+	inset_y : num ⇐ U     --- inset on both north and south
+	round   : yesno ⇐ N    --- if Y then round all corners to integer coordinates
+	) : a_rect --- the output rectangle
+
+//  given a basis rectangle, calculate the coordinate of the specified pin point
+calc solve_point( --- solve for a pin point for a rectangle
+	basis   : a_rect ⭅ {} --- basis rectangle
+	pin     : num ⇐ 5  --- which pin point, default is center
+	round   : yesno ⇐ N    --- if Y then round to nearest integer coordinates
+	dx      : num ⇐ U     --- the offset relative to the basis 
+	dy      : num ⇐ U     --- the offset relative to the basis
+	)       : a_xy --- that point of the rectangle
+
+graphics solve_grid_rect( --- calculate a rectangle covering a cell range in a grid
+	col1  --- column index, 1=first drawable column
+	row1  --- row index, 1=first drawable row
+	col2  --- includise ending column index
+	row2  --- inclusive ending row index
+	gap : num ⇐ 0.5 --- how much of the gap to include
+	) : a_rect --- the box
+ 
+//  given the available width of the screen area, and the cell width calculates 
+//  the dimensions (ncols/nrows) of a grid such that it will hold a specified number of cells
+//  solving for most even dimensions that will accomodate the number of cells
+calc solve_grid_dim(  ---  calculate the number of grid cols/rows needed to fit a given number of cells
+	ncells    ---  total number of cells we need to hold
+	avail     ---  total available width
+	cellwidth ---  cell content width
+	gapwidth  ---  gap between cells width
+	indent    ---  indent on both sides (will be used twice)
+	) : a_xy  ---  a point with .x, .y is the cols, rows; most evenly balanced product such that it will fit ncells
+ 
+calc solve_cellsize( --- solve for a cellsize to fill a width
+	totwidth  --- total width of area
+	ncells    --- number of cells
+	gapfract  --- fraction of the cell width to use for gap
+	) : num --- net cell width such that ncells + ncells+1 of gap use all space
+/*... code when we have ability to mix beads and runtime code
+	return totwidth/(ncells +(ncells+1)*gapfract)
+...*/
+				
+================================
+//  General Math functions
+================================
+@index "Math" / "General"
+	
+//  compiler has built in functions inc(n) and dec(n) to increment a value or node.
+//  note that inc() or dec() on an enumerated value will create ERR
+	
+calc sign( --- calculate sign
+	n : num  --- input value
+	) : num ---  n>0 => +1, n=0 => 0, n<0 => -1
+
+calc abs( --- calculate absolute value
+	n : num --- input value
+	) : num ---  if numeric then |n|
+
+calc power( --- exponentiation to non-integer exponent
+	base  : num --- number to be raised to a power
+	power : num --- exponent
+	)     : num --- result
+
+calc lg( --- logarithm, default base is E
+	n    : num --- input value to calculate exponent
+	base : num ⇐ E  --- base of logarithm, default is Euler's number
+	)    : num --- result
+	
+calc hypot( --- calculate sqrt(a^2 + b^2)
+	a : num --- side A of right triangle
+	b : num --- side B of right triangle
+	) : num --- result
+	
+//  sqrt(a) is the same as a^1|2
+// #partial sqrt(a) #to a^1|2
+calc sqrt( --- square root
+	n : num --- input value
+	) : num --- result
+
+calc factorial( --- factorial	
+	n : num --- input value 
+	) : num --- n*(n-1)*(n-2)...
+
+//  if any item in the list is E it will return E
+//  if any item in the list is U it will be ignored
+//  if the list is empty it will return U
+calc min( --- return the smallest of a list of numbers	
+	... list : num ---  variable length list of numbers
+	) : num --- result
+	
+//  if any item in the list is E it will return E
+//  if any item in the list is U it will be ignored
+//  if the list is empty it will return U
+calc max( --- return the largest of a list of numbers
+	... list : num ---  variable length list of numbers
+	) : num	--- result
+ 
+calc fract( --- get fractional part of a number e.g 12.6 ==> 0.6
+	n : num --- input
+	) : num --- result
+
+calc uzero( --- convert U to zero, a convenience for those situations where an unknown value should be considered 0
+	n : num  --- input value
+	) : num  --- if input U, zero, else input
+
+calc clamp( --- clamp a number to a range
+	lo : num --- lowest value
+	n  : num  --- input value
+	hi : num --- highest value
+	) : num  --- n clamped to that range
+
+================================
+//  Rounding functions
+================================
+@index "Math" / "Rounding"
+
+calc round( --- round to the nearest multiple of a value
+	number     --- number to round
+	multiple ⇐ 1  --  100 will round to a multiple of 100
+	) : num --- rounded value
+ 
+calc round_up( --- round upwards to a multiple of a value
+	number    --- number to round
+	multiple ⇐ 1  --  100 will round to a multiple of 100
+	) : num --- rounded value
+
+calc round_down( --- round downwards to a multiple of a value
+	number    --- number to round
+	multiple ⇐ 1  --  100 will round to a multiple of 100
+	) : num --- rounded value
+
+//  truncation of a number is the same as rounding towards zero	
+calc round_zero( --- round towards zero to a multiple of a value
+	number    --- number to round
+	multiple ⇐ 1  --  100 will round to a multiple of 100
+	) : num --- rounded value
+  
+================================
+//  Modulo / integer division functions
+================================
+@index "Math" / "Remainder"
+//  our modulo function is a bit more flexible than a plain modulo function as in C
+//  you can get an output that permits negative numbers, in which case it will find the closest to zero value
+//  if you set the 'one=Y' flag, the output will be in the range of 1..interval, instead of the usual 0..interval-1
+calc mod( --- remainder(modulo) function
+	input   :num  --- input number
+	divisor :num  --- integer interval, must be > 0
+	one     :yesno ⇐ N  --- if Y, returns 1..divisor, else usual 0..divisor-1
+	neg     :yesno ⇐ N  --- if Y, allow answer to be negative if it is closer to zero
+	) : num  --- remainder, in the specified range
+
+calc idiv( --- integer division (shortcut is x /. y)
+	input ---  input number
+	divisor ---  divisor, must be positive non-zero
+	one :yesno ⇐ N --- if Y, returns 1+round_down((input-1)/round(divisor))
+	) : num --- quotient of input/divisor, as an integer, truncated
+
+================================
+//  Trig functions
+================================
+@index "Math" / "Trigonometry"
+
+calc cos( --- cosine trig function
+	n : Angle --- angle
+	) : num ---  if numeric then cosine(n)
+
+calc sin( --- sine trig function
+	n : Angle --- angle
+	) : num ---  if numeric then sine(n)
+
+calc tan( --- tangent trig function
+	n : Angle --- angle
+	) : num ---  if numeric then tangent(n)
+
+calc arc_cos( --- inverse cosine
+	n : num   --- cosine value
+	) : Angle --- angle
+	
+calc arc_sin( --- inverse sine
+	n : num   --- sine value
+	) : Angle --- angle 
+	
+calc arc_tan( --- inverse tangent
+	n : num   --- tangent value
+	) : Angle --- angle in the range -90..90 deg
+
+//  arc_tan2(-INFINITY, 0) returns -90 deg
+calc arc_tan2( --- inverse tangent given y and x
+	y : num   --- y value of tangent
+	x : num   --- x value of tangent
+	) : Angle --- angle in the range 0..359.99 deg
+	
+================================
+//  Random number functions
+================================
+@index "Math" / "Random"
+
+calc random : num --- random number in range 0..1(exclusive of 1)
+
+calc random_range(  --- generate random number in a range
+	a : num --- beginning value of range
+	b : num --- ending value of range
+	) : num --- random number in range a..b inclusive
+	
+calc random_int( --- generate a random integer in a range
+	a : num --- integer starting value (inclusive)
+	b : num --- integer ending value (inclusive)
+	) : num --- random integer in range a..b inclusive
+
+calc random_parm( --- randomly pick from a list of parameters
+	... list : any  --- the parameters to choose from
+	) : any --- random selection from the list
+
+calc random_color : color --- generate a random 24 bit color
+	
+//calc random_card32 : num --- generate random integer in the range 0..2^32
+
+calc random_word4  : str --- generate a scrabble-compatible 4 letter word
+
+//  this will be unique across runs, as it involves time
+//  however, is not guaranteed unique across multiple machines running at same time
+calc unique_key : str  --- generate a monotonic unique key string
+
+//  the perlin noise function
+//  default is 4 octaves, 50% attenuation, y=0, z=0
+calc perlin_noise (
+	x       : num        -- x coordinate, use steps of 0.01
+	-- optional parameters --
+	y       : num = 0    -- y coordinate
+	z       : num = 0    -- z coordinate
+	octaves : num = 4    -- how many octaves to run
+	atten   : num = 0.5  -- attenuation per octave
+	)  : num  // value between 0..1
+
+================================
+//  Time zones
+================================
+@index "Time" 
+//  commonly used city timezone codes, used by seconds_to_date() to get the time in a specific city
+enum
+	TIMEZONE_BAKER_ISLAND ---  GMT -12:00
+	TIMEZONE_PAGO_PAGO    ---  GMT -11:00
+	TIMEZONE_HONOLULU     ---  GMT -10:00
+	TIMEZONE_MARQUESAS    ---  GMT -9:30
+	TIMEZONE_ANCHORAGE    ---  GMT -9:00
+	TIMEZONE_LOS_ANGELES  ---  GMT -8:00
+	TIMEZONE_DENVER       ---  GMT -7:00
+	TIMEZONE_CHICAGO      ---  GMT -6:00
+	TIMEZONE_NEW_YORK     ---  GMT -5:00
+	TIMEZONE_CARACAS      ---  GMT -4:30
+	TIMEZONE_SANTIAGO     ---  GMT -4:00
+	TIMEZONE_ST_JOHNS     ---  GMT -3:30
+	TIMEZONE_RIO          ---  GMT -3:00
+	TIMEZONE_FERNANDO     ---  GMT -2:00
+	TIMEZONE_PRAIA        ---  GMT -1:00
+
+	TIMEZONE_GMT
+	TIMEZONE_UTC	 ---   latest name for GMT
+	TIMEZONE_LONDON       ---  GMT  0:00
+
+	TIMEZONE_PARIS        ---  GMT +1:00
+	TIMEZONE_ATHENS       ---  GMT +2:00
+	TIMEZONE_JEDDAH       ---  GMT +3:00
+	TIMEZONE_TEHRAN       ---  GMT +3:30
+	TIMEZONE_DUBAI        ---  GMT +4:00
+	TIMEZONE_KABUL        ---  GMT +4:30
+	TIMEZONE_KARACHI      ---  GMT +5:00
+	TIMEZONE_DELHI        ---  GMT +5:30
+	TIMEZONE_DHAKA        ---  GMT +6:00
+	TIMEZONE_BANGKOK      ---  GMT +7:00
+	TIMEZONE_HONG_KONG    ---  GMT +8:00
+	TIMEZONE_TOKYO        ---  GMT +9:00
+	TIMEZONE_SYDNEY       ---  GMT +10:00
+	TIMEZONE_NOUMEA       ---  GMT +11:00
+	TIMEZONE_WELLINGTON   ---  GMT +12:00
+	TIMEZONE_NUKU         ---  GMT +13:00
+	TIMEZONE_KIRITIMATI   ---  GMT +14:00
+
+================================
+//  Time 
+================================
+record a_date ---   a gregorian calendar date/time record 
+	dt_year    --- integer year like 2030 
+	dt_month   --- integer month 1-12 
+	dt_day     --- integer day of the month 1-31 
+	dt_hour    --- integer hour 00-23 
+	dt_minute  --- integer minute 00-59 
+	dt_second  --- 0.0-60.99 includes fraction of a sec, leap seconds will read as 60
+	dt_city    --- the time zone enum of the city, e.g. TIMEZONE_PARIS, U means GMT
+
+//  these time variables are updated at the current frame rate (typically 60 fps)
+//  these are read-only variables
+//  the raw versions are the system hardware clock times, programs should use the plain versions
+
+var time_launched : num --- epoch time in seconds when program was launched 
+var now : num --- epoch time in seconds (0= Jan 1, 1970), influenced by time dilation/shifting
+var elapsed : num --- time in seconds since program start, influenced by time dilation/shifting
+
+var time_launched_raw : num  --- not influenced by time dilation
+var now_raw : num --- not influenced by time dilation
+var elapsed_raw : num ---  not influenced by time dilation
+
+//  if you are writing calendar applications you can speed up time to debug
+//  this function will affect now and elapsed, but now_raw will still show system time
+calc set_clock_scale(  --- control the rate at which the external clock runs
+	newscale  // new time scale 1=restore to actual speed, 0=freeze, U/ERR:abort
+	)
+
+//  if you are debugging calendar apps you can force the clock to a particular moment
+calc set_clock(  --- set the clock so the program thinks we are at a time
+	newtime   // epoch seconds to set. U means reset to actual time
+	)
+
+calc seconds_to_date( --- convert an elapsed seconds to a datetime record
+	seconds : num     --- unix epoch time in seconds, U means now
+	city : num ⇐ U   --- enum value of the city in question, default is current locale
+	)    : a_date 
+
+calc date_to_seconds( --- convert a datetime record into a unix epoch time
+	date : a_date  --- if city is U, will use default locale
+	)    : num  --- seconds since Jan 1, 1970
+
+calc is_leap_year (
+	year
+	) : yesno  --- returns Y if the year is a leap year
+
+calc days_in_month(
+	year
+	month
+	) : num  --- returns number of days in that month
+
+//  you might want sunday to be the first day, or monday  (default sunday)
+//  you might want to have a day of the week start at 0 or 1 (default 1)
+calc day_of_week(
+	year
+	month
+	day
+	monday : yesno = N -- if Y, monday is first value, else sunday
+	zero : yesno = N  -- if Y, first value will have index 0, else starts with 1
+	) : num --- day of week
+
+calc day_of_year(
+	year
+	month
+	day
+	) : num --- cumulative day in the year, 1..365/366
+
+
+================================
+//  Color functions
+================================
+//  note that there is a macro to convert 3 and 6 digit hex colors: hex_color() defined earlier
+@index "Drawing" / "Color" 
+
+calc r255 ( --- get red value out of a pixel
+	pixel		: color	 ---  input RGB32 pixel
+	)			: num	 ---  red value 0..255
+
+calc g255 ( --- get green value out of a pixel
+	pixel		: color	 ---  input RGB32 pixel
+	)			: num	 ---  green value 0..255
+
+calc b255 ( --- get blue value out of a pixel
+	pixel		: color	 ---  input RGB32 pixel
+	)			: num	 ---  blue value 0..255
+
+calc a255 ( --- get alpha value out of a color
+	pixel		: color	 ---  input RGB32 pixel
+	)			: num	 ---  alpha value 0..255, where 255 is opaque
+
+calc r1 ( --- get red value out of a pixel
+	pixel		: color	 ---  input RGB32 pixel
+	)			: num	 ---  red value 0..1
+
+calc g1 ( --- get green value out of a pixel
+	pixel		: color	 ---  input RGB32 pixel
+	)			: num	 ---  green value 0..1
+
+calc b1 ( --- get blue value out of a pixel
+	pixel		: color	 ---  input RGB32 pixel
+	)			: num	 ---  blue value 0..1
+
+calc a1 ( --- get alpha value out of a color
+	pixel		: color	 ---  input RGB32 pixel
+	)			: num	 ---  alpha value 0..1, where 1 is opaque
+
+calc rgb( --- set a color using RGB values in the range 0..255 (will clamp)
+	r   : num      --- red 0..255
+	g   : num      --- green 0..255
+	b   : num      --- blue 0..255
+	a   : num ⇐ 0  --- alpha 0..255
+	)   : color    --- resulting color
+
+calc rgb1( --- set a color using RGB values in the range 0..1 (will clamp)
+	r   : num      --- red 0..1
+	g   : num      --- green 0..1
+	b   : num      --- blue 0..1
+	a   : num ⇐ 0  --- alpha 0..1
+	)   : color    --- resulting color
+
+record a_hsl  ---  HSL color space is used in CSS
+	hsl_h : num  --- hue 0..360
+	hsl_s : num  --- saturation 0..100
+	hsl_l : num  --- lightness 0..100
+	
+calc hsl( --- set a color using hue/sat/lightness representation
+	hue : num  --- hue	0..360
+	sat : num  --- saturation 0..100
+	light : num  --- lightness 0..100
+	) : color
+
+calc hsl_to_color( --- convert from a_hsl record to color
+	hsl : a_hsl --- color as hsl record
+	) : color --- rgb color
+
+calc color_to_hsl( --- convert from color to a_hsl record
+	mycolor : color --- input color
+	) : a_hsl  --- output as an hsl record
+
+record a_hsv  ---  HSV/hsv are the same color system, but not the same as HSL
+	hsv_h : num  --- hue 0..360
+	hsv_s : num  --- saturation 0..100
+	hsv_v : num  --- brightness 0..100  // value is brightness
+	
+calc hsv( --- set a color using hue/sat/brightness representation
+	hue : num  --- hue	0..360
+	sat : num  --- saturation 0..100
+	bri : num  --- brightness 0..100
+	) : color
+
+calc hsv_to_color( --- convert from a_hsv record to color
+	hsv : a_hsv --- color as hsv record
+	) : color --- rgb color
+
+calc color_to_hsv( --- convert from color to a_hsv record
+	mycolor : color --- input color
+	) : a_hsv  --- output as an hsv record
+
+calc color_tweak_hsv(  --- adjust a color in the hsv space
+	mycolor : color --- input color
+	deltah  --- change in hue 0..360
+	deltas  --- change in saturation 0..100 
+	deltab  --- change in brightness 0..100
+	) : color --- adjusted color
+
+================================
+//  collating functions
+================================
+//  default number sorting function
+//  orders by: regular values / U / ERR / enums in alphabetical order
+calc collate_num(
+	a : num
+	b : num
+	) : num  ---  -1 if a < b, 0 if a == b, +1 if a > b
+
+//  default text sorting function
+//  orders by:  regular strings / U / ERR 
+calc collate_str(
+	a : str
+	b : str
+	) : num  ---  -1 if a < b, 0 if a == b, +1 if a > b
+
+================================
+//  tree functions
+================================
+@index "Tree ops" 
+
+calc count( --- count the number of nodes at this level of the tree (array)
+	node : ptr  --- tree to count
+	) : num   --- number of nodes
+
+calc tree_hi( --- return the highest existing numerical subscript
+	node : ptr   --- tree to study
+	) : num    --- highest numeric subscript, U if none
+	
+calc tree_lo( --- find lowest existing numeric subscript in the array
+	node : ptr --- tree being examined
+	) : num  --- lowest numeric subscript, U if none
+
+calc tree_next_hi( --- find subscript that would append to the list
+	node : ptr --- tree being examined
+	) : num  --- next higher subscript, 1 if would be the first
+
+calc tree_next_lo( --- find subscript that would prepend to the list
+	node : ptr --- tree being examined
+	) : num  --- next lower subscript, 1 if would be the first
+
+calc tree_sibling_hi( --- find next sibling upwards in ascending subscripts
+	node : ptr --- tree being examined
+	) : ptr  --- U if no higher sibling found or original was not a numeric sub
+
+calc tree_sibling_lo( --- find next sibling downwards in descending subscripts
+	node : ptr --- tree being examined
+	) : ptr  --- U if no higher sibling found or original was not a numeric sub
+
+calc tree_index( --- create a sorted index, so you can traverse a tree in sort order
+	node : ptr --- tree being sorted
+	sortfunc : calc(ptr, ptr) : num  --- the collating function. return -1=in order, 0=equal, else +1
+	) : array of ptr ---  an array of ptrs that point to the records of the tree in sort order
+
+calc tree_deep_index( --- create a sorted index, so you can traverse a tree in sort order, multiple levels deep
+	node : ptr --- tree being sorted
+	... keys    --- fields to sort on
+	) : tree ---  a tree with nkeys+1 levels (because duplicates can exist)
+
+calc find_min (  -- find the lowest value in the array
+	node : ptr  -- array to search, ignores U and ERR values
+	) : num  -- returns U if array is empty
+
+calc find_max (  -- find the highest value in the array
+	node : ptr  -- array to search, ignores U and ERR values
+	) : num  -- returns U if array is empty
+
+//  note that this only traverses numerically indexed subscripts, string subscripts are skipped over
+/*...
+calc tree_seqx( --- convert a sequence number into an index
+	node : ptr --- tree being sorted
+	seq   --- sequence number, 1 is first
+	rev : yesno = N   --- count from right side
+	) : num  --- the index corresponding to the sequence, else U
+...*/
+
+/*....
+calc tree_find(  --- look through the top level of the tree for a matching value (num or str)
+	node    : ptr  ---  tree being searched
+	targval : any  ---  num | str value to look for
+	) : any  ---  num | str index if found, else U
+
+calc is_tree_equal( --- compare two trees, using defined fields in the records
+	t1 : ptr
+	t2 : ptr
+	)  : yesno  --- Y if all field values are identical
+...*/
+
+================================
+//  ptr functions
+================================
+calc last_subscript ( --- get the last subscript in a path
+	path : ptr ---  path to examine
+	) : any  --- num | str, the last subscript in the path
+
+================================
+//  draw functions
+================================
+@index "Drawing" 
+//  in general, if gradient or bitmap fill is specified, then that overrides color
+
+//  encodings for text encoding:
+// enum
+// 	PLAINTEXT
+// 	MARKDOWN
+// 	HTML
+
+var SCROLLBAR_WIDTH  //  the width of the browser scrollbar in pixels
+
+@favorite
+graphics draw_str( --- draw a static string 
+	text    : any         --- string to draw (if send in number it will call to_str(val) automatically
+	//-- either specify the upper left corner xy or the box, default is entire box
+	box     : a_rect ⇐ U  --- bounding box, if U it means use b.box
+	xy      : a_xy ⇐ U    ---  upper left corner as a point
+	x       : num ⇐ U     ---  left corner
+	y       : num ⇐ U     ---  top corner
+	//--  styling options
+	angle   : Angle = U     --- angle of baseline
+	bold	: yesno ⇐ N    --- same as weight=700
+	border  : num ⇐ 0 		--- border thickness
+	border_color : color ⇐ BLACK  --- border color
+	color   : color ⇐ BLACK --- text stroke color
+	corner  : num ⇐ 0 		--- corner radius for block fill and/or border
+	fill    : color ⇐ U    --- background color
+	font    : str ⇐ SANS_SERIF --- font names, separated by commas; other generic choices: SERIF, MONOSPACE
+	hide_u  : yesno ⇐ N    --- if Y, then U strings draw as blank 
+	html    : yesno ⇐ N    --- is string in HTML?
+	indent  : num ⇐ 0   	--- indent from left edges
+	italic  : yesno ⇐ N    --- italic?
+	just    : num ⇐ CENTER --- text justification LEFT/CENTER/RIGHT/FLUSH
+	leading : num ⇐ U      --- leading for multiline. if < 2, then ratio to size, else pixels; 
+	max_lines : num ⇐ U    --- maximum number of lines to draw, use ellipsis
+	metrics : out a_xy ⇐ U --- no draw, just measure, store size here
+	opacity : num ⇐ 1      --- opacity 0=transp 1=opaque
+	rindent : num ⇐ 0   	--- right indent from edges (only for LEFT/FLUSH)
+	sel     : yesno ⇐ N    --- selectable text? (used in browsers mainly)
+	shadowc : color = BLACK	--- shadow color
+	shadowr : num = 0 		--- shadow radius, if 0 no shadow
+	shadowx : num = 0		--- shadow x offset
+	shadowy : num = 0		--- shadow y offset
+	shrink  : yesno ⇐ Y    --- automatically shrink to fit
+	shrink_min : num ⇐ 9   --- min size to allow in a shrink (browsers won't render below 9 pix)
+	size    : num ⇐ 10 pt  --- size of text. if < 1, then fraction of box.height, else pixels
+	spacing : num ⇐ 0   	--- extra space between letters
+	strike  : yesno ⇐ N    --- strikeout?
+	und     : yesno ⇐ N    --- underline?
+	vert    : num ⇐ 0.5    --- vert positioning 0.5 ⇐ vert center
+	weight  : num = 400		--- 300:light 400:normal 500:medium 700:bold 800:heavy 900:black
+	wrap    : yesno ⇐ N    --- word wrap? must have box to get wrap to work
+	//encoding: num ⇐ PLAINTEXT  --- either PLAINTEXT or MARKDOWN or HTML
+	)
+
+@favorite
+//  note corner value is either single number, or an array of numbers, with either 1/2/4/8 values
+//  if 1 value, same for all corners
+//  if 2 values, then all four corners use [1] as X, [2] as Y
+//  if 4 values, then [1]:TL  [2]:TR  [3]:BR  [4]:BL
+//  if 8 values, then each corner has 2 values, [1]:TLx, [2]:TLy, [3]:TRx, [4]:TRy, [5]:BRx, etc.
+//  note that we are using CSS ordering for the corners (AS3 used different ordering)
+
+graphics draw_rect( --- basic draw rectangle (canvas or regular)
+	box     : a_rect ⇐ U     --- bounding box, U means use b.box
+	fill    : color ⇐ U      --- fill color
+	grad    : a_gradient ⇐ U --- fill with gradient--
+	tile    : image ⇐ U      --- fill with a repeating bitmap tile
+	corner  : any ⇐ 0        --- corner radius (single value, or array of 2/4/8 vals)
+	opacity : num ⇐ 1        --- opacity 0=transp 1=opaque
+	color   : color ⇐ BLACK  --- stroke color
+	thick   : num ⇐ 0        --- stroke thickness
+	pos     : num ⇐ 0        --- position of stroke	0=inside 0.5=centered(default) 1.0=outside
+	blur    : num ⇐ 0        --- gaussian blur amount
+	shadow  : array of a_shadow ⇐ U --- array of drop shadows
+	)
+
+//  clear_rect is used only inside a canvas context	
+graphics clear_rect( --- clear a rectangle (canvas only)
+	box		: a_rect --- bounding box
+	)
+
+graphics draw_oval( --- basic draw oval (canvas or regular)
+	box     : a_rect ⇐ U --- bounding box, U means use b.box
+	fill    : color ⇐ U  --- fill with color
+	grad    : a_gradient ⇐ U --- fill with gradient
+	tile    : image ⇐ U  --- fill with pattern
+	opacity : num ⇐ 1    --- opacity 0=transp 1=opaque
+	color   : color ⇐ BLACK --- stroke color
+	thick   : num ⇐ 0    --- stroke width
+	pos     : num ⇐ 0    --- position of stroke	0=inside 0.5=centered(default) 1.0=outside
+	blur    : num ⇐ 0    --- gaussian blur amount
+	shadow  : array of a_shadow ⇐ U --- array of drop shadows
+	)
+	
+graphics draw_circle(  --- basic draw circle  (canvas or regular)
+	//  caller must supply either center or x and y, plus radius or diameter
+	xy      : a_xy ⇐ U ---  xy of center as a point
+	x       : num ⇐ U   --- center x
+	y       : num ⇐ U   --- center y
+	radius  : num ⇐ U  --- radius
+	diam    : num ⇐ U  --- diameter
+	fill    : color ⇐ U   --- fill color
+	grad    : a_gradient ⇐ U --- fill with gradient
+	tile    : image ⇐ U --- fill with pattern
+	opacity : num ⇐ 1   --- opacity 0=transp 1=opaque
+	color   : color ⇐ BLACK ---  stroke color
+	thick   : num ⇐ 0   --- stroke width
+	pos     : num ⇐ 0   --- position of stroke	0=inside 0.5=centered(default) 1.0=outside
+	blur    : num ⇐ 0   --- gaussian blur amount
+	shadow  : array of a_shadow ⇐ U --- array of drop shadows
+	)
+
+//  user must specify at least two points, or one point and a dx/dy or length	
+graphics draw_line( --- basic line segment drawing (canvas or regular)
+	//-- must specify at least enough info to define two points
+	p1      : a_xy ⇐ U ---  starting point
+	p2      : a_xy ⇐ U ---  ending point
+	x1      : num ⇐ U   --- starting x
+	y1      : num ⇐ U   --- starting y
+	x2      : num ⇐ U   --- ending x
+	y2      : num ⇐ U   --- ending y
+	dx      : num ⇐ U   --- delta x
+	dy      : num ⇐ U   --- delta y
+	angle   : Angle ⇐ U  --- angle of line
+	len     : num ⇐ U   --- length of line
+	//-- style options
+	opacity : num ⇐ 1   --- opacity 0=transp 1=opaque
+	color   : color ⇐ BLACK	 --- stroke color
+	thick   : num ⇐ 1    --- stroke width
+	cap     : num ⇐ CAP_ROUND --- line cap style
+	dash    : array of num ⇐ U --- array of dash/gap pixel counts
+	)	
+
+//  draws a 2nd order (quadratic) bezier curve with a start point, a control point and an endpoint
+//  to use 2 control points, use a cubic bezier curve
+//  can draw subsets of the curve if you specify t0 and t1
+graphics draw_curve(  --- draw 2nd order bezier curve
+	p1 : a_xy  --- starting point
+	c1 : a_xy  --- control point
+	p2 : a_xy  --- ending point
+	t0 : num ⇐ 0  --- parametric starting point (0..)
+	t1 : num ⇐ 1  --- parametric ending point (..1)
+	//-- style options
+	opacity : num ⇐ 1   --- opacity 0=transp 1=opaque
+	color   : color ⇐ BLACK	 --- stroke color
+	thick   : num ⇐ 1 px   --- stroke width
+	cap     : num ⇐ CAP_ROUND --- line cap style
+	)
+
+graphics draw_polygon(  --- draw a polygon
+	points  : array of a_xy  --- array of points that make a polygon, auto closes
+	//-- style options
+	fill    : color ⇐ U   --- fill with color
+	grad    : a_gradient ⇐ U --- fill with gradient
+	tile    : image ⇐ U --- fill with pattern
+	opacity : num ⇐ 1   --- opacity 0=transp 1=opaque
+	color   : color ⇐ BLACK ---  stroke color
+	thick   : num ⇐ 0 px --- stroke width
+	cap     : num ⇐ CAP_ROUND --- line cap style
+	joint   : num ⇐ JOINT_ROUND --- line joint style
+	close   : yesno ⇐ 1
+	//  this lets us use input coords that are in the range 0-100 but get scaled to fit the coordinates
+	viewbox : a_rect ⇐ U --- take the input coordinates/100 and scale to the width and height
+	)
+
+enum
+	STEP_MOVE
+	STEP_LINE
+	STEP_BEZIER1
+	STEP_BEZIER2
+
+//  each path step is a tuple of numbers
+//     [STEP_MOVE X Y], [STEP_LINE X Y],
+//     [STEP_BEZIER1 CTRLX CTRLY X Y]
+//	   [STEP_BEZIER2 C1X C1Y C2X C2Y X Y]
+graphics draw_polycurve(  --- draw a series of line segments, bezier curves
+	data    : array^2 of num  --- array of curve segment tuples
+	//-- style options
+	fill    : color ⇐ U   --- fill with color
+	grad    : a_gradient ⇐ U --- fill with gradient
+	tile    : image ⇐ U --- fill with pattern
+	opacity : num ⇐ 1   --- opacity 0=transp 1=opaque
+	color   : color ⇐ BLACK ---  stroke color
+	thick   : num ⇐ 0 px --- stroke width
+	cap     : num ⇐ CAP_ROUND --- line cap style
+	joint   : num ⇐ JOINT_ROUND --- line joint style
+	)
+
+//  by default, image will be scaled to fit into the box(nto preserving aspect ratio) 
+@favorite
+graphics draw_image( --- draw a bitmap image
+	image    : image  --- image to draw
+
+	//------- optional parms
+	//  if you specify xy then the box is ignored
+	box      : a_rect  ⇐ U --- destination boxf if shrink to fit, default is context bounds
+	xy       : a_xy ⇐ U --- coordinate as a point
+	x        : num     ⇐ 0 --- x-coordinate
+	y        : num     ⇐ 0 --- y-coordinate
+
+	indent   : num    ⇐ 0     --- number of pixels to indent on all 4 sides
+	horz     : num    ⇐ 0.5   --- horz justification in box 0=left 0.5=middle 1.0=right
+	vert     : num    ⇐ 0.5   --- vert justification in box 0=top 0.5=middle 1.0=bottom
+
+	//  default is to either grow or shrink to fit the box
+	shrink   : yesno   ⇐ Y     --- shrink to make sure it fits the box
+	grow     : yesno   ⇐ Y     --- grow to make sure sure it fills the box
+	aspect   : yesno   ⇐ Y     --- preserve aspect ratio
+	//selectable : yesno ⇐ N     --- can user select image in browsers?
+
+	//  either specify a pin point or the origin of rotation
+	//  default origin of rotation is center of original image
+	origin   : a_xy ⇐ U --- origin of rotation in original image
+	originx  : num    ⇐ U
+	originy  : num    ⇐ U
+
+	//  you can put a border on the image, strokes at an implied pos of 0.5 (center stroked)
+	//color    : color   ⇐ BLACK --- stroke color
+	//thick    : num   ⇐ 0    --- stroke width
+
+	angle    : Angle ⇐ 0 deg   --- rotation angle
+	corner   : any ⇐ 0        --- corner radius (single value, or array of corners)
+	opacity  : num   ⇐ 1 ---  opacity 0=transp 1=opaque
+	blend    : num   ⇐ BLENDMODE_NORMAL --- blend mode
+	//  filters are blur(%), brightness(%), contrast(%), drop-shadow(dx dy blur color), grayscale(%),
+	//  hue-rotate(deg), invert(%), opacity(%), saturate(%), sepia(%)  % values can be 0-100% or 0-1
+	//  color can be named, #AAA or #AABBCC form, or rgba(255, 120, 120, 0.3) format
+	//  note: must specify units like drop-shadow(15px 15px 10px green)
+	filters  : str   ⇐ U  --- space delimited filters, see https://www.w3schools.com/jsref/prop_style_filter.asp
+	)
+
+graphics set_auto_size(  --- used at the end of an autosized block to tell the system the dimensions of the block
+	width  :num  --- how wide was the block
+	height :num  --- how tall was the block
+	)
+	
+================================
+//  measurement functions
+================================
+@index "Drawing" / "Measurement"
+
+//  this function is valid inside a table block
+graphics measure_table_column( --- get the width of a table row column
+	rowkind  : num  --- row kind index(usually enumerated)
+	column   : num  --- column number
+	) : num --- the width in pixels of the column
+
+graphics measure_wrapped_text( --- measure how tall a column of text will be
+	width : num --- the width of the column in pixels
+	ss    : str  --- the string to wrap
+	size    : num ⇐ 10 pt   --- size of text
+	leading : num ⇐ 12 pt   --- leading for multiline text
+	indent  : num ⇐ 0 pt    --- indent from edges
+	font    : str ⇐ SANS_SERIF --- font name; other generic choices: SERIF, MONOSPACE
+	weight  : num = 400		 --- font weight 400=regular
+	bold	: yesno ⇐ N     --- same as weight=700
+	italic  : yesno ⇐ N     --- synthetic italic
+	style   : ptr ⇐ U      --- pointer to style record
+	) : num --- the height of the column in pixels
+
+================================
+//  input field related
+================================
+@index "Input fields"
+enum
+	//  kinds of input fields in browsers, see https:--www.w3schools.com/tags/att_input_type.asp
+	IN_TEXT   --  the basic plain text field
+	IN_COLOR  --  a button showing a color, that when clicked brings up a popup for color selection
+	IN_DATE   --  YYYY/MM/DD
+	IN_DATETIME  -- YYYY/MM/DD HH:MM AM
+	IN_EMAIL   -- an input field with an email validator
+	IN_FILE    -- renders as a button that brings up the file picker
+	IN_MONTH   -- shows month name, and year. typing first letter cycles through months that match
+	IN_NUMBER  -- shows teeny up/down arrows at right
+	IN_PASSWORD  --  everything typed shows as dots
+	IN_RANGE   -- a horz slider
+	IN_SEARCH  -- soft keyboard shows "Search" as the submit key
+	IN_TEL	   -- same as text, but uses a special keyboard on mobile
+	IN_TIME    -- a compound input field with hours, minutes, seconds, and a button to pick date
+	IN_URL     -- a validated URL, psuedo classes :valid and :invalid are used to style based on validity
+	IN_WEEK    -- a compound input field with week number, and button to pick year 
+
+//  input fields have both styling information and use meta-data about the field to help draw and process it properly.
+//  the validator is called per character using the oninput() event
+//  if the value_ptr is available, it will store it in your area, only if it passes validation
+//  note: the tooltip popups style & pos is set by the browser and is not changeable as of 2024
+record a_input_field
+	in_value     : str      ---  the contents of the entry field as typed by the user
+	in_value_ptr : ptr to num ---  ptr to the contents of the field converted to a number
+	in_label     : str      ---  the label for this field (not drawn automatically) (used as DOM ID also! must be unique)
+	in_name      : str      ---  name of field as will be presented in name=value pairs in the POST body
+	in_hint      : str      ---  placeholder text shown inside box if no input has happened yet
+	in_tip       : str      ---  tooltip hovering prompt, also used as default error message text for validator
+	in_autofill  : str      ---  the browser autofill name like "off", or "cc-number", see html.spec.whatwg.org, https:--developers.google.com/web/updates/2015/06/checkout-faster-with-autofill
+	in_kind      : num      ---  kind of input field: IN_TEXT, IN_COLOR, etc. default is IN_TEXT (changes HTML presentation)
+	in_keyboard  : str      ---  name of soft keyboard to use on mobile devices: "numeric" (0-9 only), "decimal", "search", "tel", "email", "url", "none"), default "text"
+	in_tab       : num      ---  tab index order, 1=first, negative:exclude from tab ring
+
+	// -- fields used for in_kind IN_NUMBER or IN_RANGE
+	in_minval    : num      ---  min. numeric value we allow
+	in_maxval    : num      ---  max. numeric value we allow
+	in_step      : num      ---  step for up/down arrows in IN_NUMBER
+
+	// -- fields related to validation of input
+	in_multiline : yesno    ---  is this a multiline input field?	
+	in_spellcheck: yesno	---  should field be spellchecked? (web only)
+	in_required  : yesno    ---  is field required to not be empty?
+	in_disabled  : yesno    ---  if Y, then field is disabled and prevented from user input
+	in_minlen    : num      ---  minimum length of input in characters
+	in_maxlen    : num      ---  maximum length of input in characters	
+	in_pattern   : regexp   ---  regular expression pattern the field must match
+	in_validator : calc(a_input_field):yesno --- custom validation func on each keystroke, Y if ok
+	in_on_change : calc(a_input_field) --- called on each change
+	//  after a field is validated, we may want to enable/disable submit button
+	//  we call the in_form_ready function to recalculate the readiness of the form as a whole
+	//  we call this after a field validation.
+	in_form_ready : calc()  --- function to call to recalculate if submit is enabled
+
+	//-- status fields updated by the field validator (must have pattern or validator func to use in_ok)
+	in_ok        : yesno    ---  is the input valid? (empty fields will be N if a required field)
+	in_errmsg    : str      ---  error message that validator sets to help user enter correct data
+
+	//  call input_start to set this value once
+	in_sysobj    : object   ---  internal <textarea> or <input> DOM element ptr
+
+//  when a field loses focus (JS blur event) we will call this function to set the 'in_ok' value
+//  but this would also be used in user code to check if all the fields are ready (form_ready test)
+calc validate_input (  --- test input field for validity of user input
+	field : a_input_field  --- field to check
+	) : yesno  --- returns Y if valid, also sets in_ok, in_errmsg
+
+@favorite
+//  note: to set placeholder text color, use CSS ::placeholder psuedo element
+graphics draw_input ( --- draw a text input field
+	field   : inout a_input_field    --- record containing info about the field, its name, value, etc.
+	//-- styling options
+	box     : a_rect ⇐ U     --- bounding box, U means use b.box
+	size    : num ⇐ 10 pt   --- size of text. if < 1, then fraction of box.height, else pixels
+	leading : num ⇐ U       --- if < 2, then ratio to size, else pixels, leading for multiline text
+	indent  : num ⇐ 0  px   --- indent from edges
+	just    : num ⇐ LEFT    --- text justification LEFT/CENTER/RIGHT/FLUSH
+	opacity : num ⇐ 1       --- opacity 0=transp 1=opaque
+	corner  : num ⇐ 0 px    --- corner radius for block fill or border
+	border  : num ⇐ 2 px    --- border thickness
+	border_color : color ⇐ BLACK  --- border color
+	border_empty : color ⇐ TOMATO  --- border color when field bad
+	fill    : color ⇐ U --- background color of entry field, default is transparent
+	color   : color ⇐ BLACK   --- text stroke color
+	caret   : color ⇐ U      --- insertion point color, default is auto
+	font    : str ⇐ SANS_SERIF --- fonts separated by commas; generic fonts are _sans, _serif, _typewriter
+	weight  : num = 400		  --- font weight 400=regular 700=BOLD
+	bold	: yesno ⇐ N      --- same as weight=700
+	italic  : yesno ⇐ N      --- synthetic italic
+	show_errs : yesno ⇐ Y    ---  when field.in_ok ⇐ N, then show warning symbol
+	show_star : yesno ⇐ N    ---  when field is required, show asterisk (implies show_errs)
+	)
+
+//  because input fields are tricky you gotta call this routine to set the value
+//  if you just set .in_value after it is on the screen, it won't get updated, also sets in_ok field
+calc input_set_value (
+	field  : inout a_input_field
+	newval : str
+	)  location
+
+//  if you would prefer to have the input field store into a database directly
+//  you can set the pointer in the input field to point to the value you want
+//  this will force the input field to load the current value from the ptr
+calc input_set_value_ptr (
+	field  : inout a_input_field
+	newptr : ptr to str
+	)  location
+
+calc input_set_selection (  ---  focus and select a range in an input field
+	id  : str  --- input field ID (field.in_label) to modify
+	start = 1  --- starting position 1=first
+	stop  = U  -- ending position (inclusive), default is entire string
+	) 
+
+//  when initializing an input field record, call this function to set the in_sysobject
+calc input_start (
+	field : inout a_input_field  -- input field to start
+	)  location
+
+================================
+//  websocket interface
+================================
+//  low level raw websocket primitives
+//  websocket is permitted inside browsers (client side), in Node.JS (server side)
+@index "Networking" / "Websockets"
+
+enum
+	//  these messages are sent to the status handler function
+	WEBSOCK_OPEN  ---  message sent when server side socket is open
+	WEBSOCK_CLOSE ---  message sent when client side is shutting down
+	WEBSOCK_ERROR ---  socket got an error
+
+calc websocket_open ( --- client side uses this to connect to server
+	url    : str   ---  url to connect to
+	port   : num   ---  the TCP port 
+	binary : yesno ---  is this a binary connection? if not send str
+	data_handler   : calc(object, any) ---  function to call on each message f(sock:object, data:any)
+	status_handler : calc(object, num) ---  function to call on status change f(sock:object, status:num)
+	) : object     ---  system object
+
+calc websocket_close (  ---  close a prevously opened websocket
+	sock : object --- system object
+	)
+
+calc websocket_send (  ---  send data to server over websocket
+	sock : object --- system object
+	data : any   --- bytes | str  payload to send
+	len  : num ⇐ U   ---  if U, send entire buffer
+	)
+
+@index "Networking" / "Publish/Subscribe"
+
+enum
+	//  our possible connect_status values
+	CSTATUS_TRYING     ---  we just fired off the reqeust to connect, waiting on server
+	CSTATUS_CONNECTED  ---  connection is running between client and server
+	CSTATUS_DISCONNECTING ---  we just asked to disconnect, not yet discon.
+	CSTATUS_NO_ANSWER  ---  server didn't answer
+	CSTATUS_NO_AUTH    ---  server failed to authorize us
+	CSTATUS_DATA       ---  data has arrived on the connection
+	CSTATUS_CLOSED     ---  connection has been closed
+
+//  SERVER ONLY / publish read-only copies of a tree to client computers
+//  client will call subscribe_start to get a regularly updated version of this data
+//  browser clients have some ports blocked, so avoid using these ports:
+//    2049, 3659, 4045, 6000, 6665-6669, plus:
+//    https:--developer.mozilla.org/en-US/docs/Mozilla/Mozilla_Port_Blocking
+//    https:--neo4j.com/developer/kb/list-of-restricted-ports-in-browsers/
+calc publish_start (  ---  NODE.JS only server side function
+	cert_path : str --- path to certificate .pem file, or ""
+	key_path  : str --- path to private key .key file, or "" for insecure socket
+	port : num  ---  the TCP port we are going to listen on (0..64k)
+	id : num    ---  secret ID to protect against discovery by hackers (silent disconnect if no match)
+	bandwidth : num ---  max number of Kilobytes/sec we want to emit (bandwidth limit)
+	//  function new_subscriber(slot_id:num, extra:str) : ptr  -- ptr to subtree to transmit
+	data : any ---  the ptr of data to broadcast to all subscribers, or func that generates data ptr from extra
+	... funclist : calc() ---  list of functions that can be remote called
+	) : object  --- system object that controls the publish
+
+calc subscriber_disconnect (  -- disconnect a specific subscriber
+	pub_obj : object  -- publish object
+	slot_id : num  -- the slot of the subscriber
+	delay : num -- how many seconds to delay before closing the connection
+	)
+
+calc publish_stop (  --- stop publishing 
+	pub_obj : object  -- publish object
+	)	
+
+-----------------------
+
+record a_client_conn  --- a client-side subscription connection
+	client_channel : object ---  system object holding the internal channel data
+	client_status  	  ---  CSTATUS_TRYING, CSTATUS_CONNECTED, etc.
+	client_bytes_in	  ---  how many bytes have we received from server
+	client_bytes_out  ---  how many bytes have we sent to server
+
+//  client side / connect to a Beads opcode server, and start receiving updates to data structure
+//  this is a read-only subscription (the server holds the source of truth)
+//  to call a remote function use the syntax:  myfunc(myarg) via myconnection
+//  to connect to a web socket the url will be ws://... or wss://... for a secure socket
+calc subscribe_start (  ---  client side function to get changing data
+	connection : a_client_conn ---  the subscription connection record that is updated
+	url  : str  ---  url of the server, like localhost or http://127.0.0.1 for local machine
+	port : num  ---  the TCP port we are going to listen on (0..64k)
+	id   : num  ---  unique ID that server side expects
+	data : ptr ---  the subtree to receive the subscription data
+	handler : calc(object, num) = U ---  function to call on status change f(sock:object, cstatus:num)
+	extra  : str = U   --- optional extra data to pass to server so we get the data we want
+	echo   : yesno  = N --- if Y, then any log messages on server will be drawn at client side
+	add_ip : yesno  = N --- if Y, add IP addr to the data pointer path on the server side to uniquify
+	// machine_name  : func  ---  name of machine that we send events to
+	// machine_data  : ptr  ---  state data for the machine
+	) location
+
+//  stop a subscription that we started
+calc subscribe_stop (  --- client side request to stop a subscription
+	connection : a_client_conn ---  the subscription connection record that is updated
+	)
+
+-----------------------
+
+/*...... NOT YET
+//  SERVER ONLY / start accepting requests made via client-side download_start
+//  browser clients have some ports blocked, so avoid using these ports:
+//    2049, 3659, 4045, 6000, 6665-6669, plus:
+//    https:--developer.mozilla.org/en-US/docs/Mozilla/Mozilla_Port_Blocking
+//    https:--neo4j.com/developer/kb/list-of-restricted-ports-in-browsers/
+calc upload_start (  ---  NODE.JS only server side function
+	port : num  ---  the TCP port we are going to listen on (0..64k)
+	id : num    ---  secret ID to protect against discovery by hackers (silent disconnect if no match)
+	bandwidth : num ---  max number of Kilobytes/sec we want to emit (bandwidth limit)
+	handler : calc(str) --- the requested string from download_start
+	) : object  --- system object that controls the publish
+
+calc upload_stop (  --- stop processing requests from the user 
+	sysobject : object  --- system object that we created with upload_start start
+	)	
+
+-----------------------
+
+//  for one-shot download of a tree, use the download functions
+calc download_start (  ---  download a tree from a server
+	connection : a_client_conn ---  the connection record that is updated
+	url  : str  ---  url of the server, like localhost or http://127.0.0.1 for local machine
+	port : num  ---  the TCP port we are going to listen on (0..64k)
+	id   : num  ---  unique ID that server side expects
+	data : ptr ---  the subtree to receive the subscription data
+	request : str = U --- filename or string to pass to the server request function
+	status_handler : calc(object, num) = U ---  function to call on status change f(sock:object, cstatus:num)
+	) location
+
+calc downlaod_stop (  --  abort the download that was started
+	connection : a_client_conn ---  the connection record that is updated
+	) location
+...........*/
+	
+================================
+//  HTTP requests
+================================
+
+//  Web friendly
+//  request data over TCP using HTTP protocol
+//  previous design used loom events
+//    EV_HTTP_TIMEOUT - timed out or error before finished
+//    EV_HTTP_DONE - complete answer has been received
+//	  EV_HTTP_PROGRESS - partial download status (if progress=Y)
+//  
+@index "Networking"
+enum  
+	//  GET parameters have a single encoding scheme using ?, %20 for spaces, & between parms
+	//  POST method has several ways to encode the parms field: 
+	ENCODE_FORM_URL  --- Content-Type ⇐ application/x-www-form-urlencoded
+	ENCODE_PLAIN     --- Content-Type ⇐ text/plain
+	ENCODE_MULTIPART --- Content-Type ⇐ multipart/form-data
+	ENCODE_BINARY    --- Content-Type ⇐ application/octet-stream 
+
+	//  values used in .http_phase
+	HTTP_START
+	HTTP_HEADERS  --- headers have been received
+	HTTP_BUSY	  --- busy transferring data
+	HTTP_TIMEOUT  --- timeout happened (can be final phase)
+	HTTP_DONE     --- operation complete
+
+	//  values used in .http_body_type
+	BODY_PLAIN	  --- response body is plain text, (:str)
+	BODY_JSON     --- response body is JSON encoded text (:str)
+	BODY_HTML     --- response body is HTML text (:str)
+	BODY_BINARY   --- response body is a binary object, (:bytes)
+
+//  record used to store progress, final status and received data
+record a_http_response
+	http_headers        : str  ---  received headers
+	http_body_type      : num  ---  BODY_PLAIN, BODY_JSON, BODY_BINARY
+	http_body           : any ---  received data (either str or bytes)
+	http_bytes_now      : num  ---  bytes received so far
+	http_bytes_total    : num  ---  total bytes that will come (if known), else U
+	http_status         : num  ---  HTTP status code like 200, 403, etc.
+	http_phase          : num  ---  HTTP_DONE, etc.
+	http_sysobj         : object  ---  used internally
+
+//  an HTTP form is an array of fields
+// record a_http_form
+// 	form_name   : str  ---  form name
+// 	form_fields : array of a_input_field  ---  array of fields for the form (not necessarily mapped to a visible control)
+// 	form_ok     : yesno ---  all required fields have entries, and all fields values passed validation
+// 
+
+//  check form validity, and store result in form.form_ok; fields with errors will have an error message set for that field
+// calc http_validate_form (  --- check HTTP form validity
+// 	form      : a_http_form --- the form being tested
+// 	validator : calc(a_http_form)  ---  function to call to custom validate the form , else fields are validated individually
+//  )
+
+//  send the presumed validated form to the server for further processing	
+// calc http_post_form (  ---  submit the form to the server via a HTTP/HTTPS request
+// 	url       : str   ---  where to send the form 
+// 	form      : a_http_form  --- the form being submitted
+// 	encoding :num ⇐ ENCODE_FORM_URL  ---  for POST method
+// 	timeout  :num ⇐ 10  ---  number of seconds before timeout
+// 	response :ptr ⇐ U  ---  ptr to receving buffer, a_http_response record
+//	)
+
+//  it is caller's responsibility to format the send buffer properly
+//  for GET operations, the ? is automatically included    
+calc http_request (  --- perform a simple HTTP request
+	url      : str  ---  url to visit, includes port override if necessary
+	callback : calc(frozen)	 --- on error or completion, the function to call
+	method   : str ⇐ "GET"  --- "GET", "HEAD", "POST", "PUT", "DELETE"
+	encoding : num ⇐ ENCODE_FORM_URL  ---  for POST method
+	send     : any ⇐ U  ---  the str or bytes buffer to send
+	timeout  : num ⇐ 10  ---  number of seconds before timeout
+	nocache  : yesno ⇐ N ---  if Y, append a unique number to request so it never caches
+	response : ptr to a_http_response ⇐ U  ---  ptr to receving buffer
+	) location
+
+================================
+//  TCP socket communication
+================================
+enum
+	//  socket related machine messages
+	MSG_SOCKET_CONNECTED  ---  just got connected to other party
+	MSG_SOCKET_ERR		  ---  got an error
+	MSG_SOCKET_DATA		  ---  data received
+	MSG_SOCKET_CLOSED	  ---  socket was closed
+	MSG_SOCKET_TIMEOUT    ---  time limit passed
+
+	//  kinds of transport
+	//TRANSPORT_UDP  ---  UDP not available in browsers
+	//TRANSPORT_TCP  ---  only HTTP (TCP port 80) is available inside browsers
+
+record a_internet_link
+	link_url    : str   ---  url string like 1.2.3.4, will be prefixed by http:// if needed
+	link_local_port     ---  the local port we are communicating on
+	link_remote_port    ---  the remote port we are communicating with
+	link_state          ---  the machine state like MSG_TCP_CONNECTED
+	link_timeout        ---  TCP connection timeout in seconds
+	//link_transport      ---  TRANSPORT_UDP or TRANSPORT_TCP
+	link_data     : str     ---  received data buffer --- should be bytes
+	link_socket   : object  ---  internal low level socket object
+
+//  before you start ending data, you must request a connection
+//  the machine will get succeed with MSG_SOCKET_CONNECTED, or fail with SOCKET_ERR, or SOCKET_TIMEOUT
+calc tcp_connect(
+	machine  : machine() ---  name of func machine()tion
+	node     : a_internet_link ---  work area
+	) : object  ---  internal socket object
+
+//  after you get the SOCKET_CONNECTED message you can send data across the tcp connection
+//  when response from remote host is received, machine will get SOCKET_DATA message
+calc tcp_send(
+	machine  : machine()   ---  name of func machine()tion
+	node     : a_internet_link ---  work area
+	buf      : str	     ---  buffer to send --- should be bytes|str
+	)
+
+//  NOT avail in browsers
+//  stores the resulting local_port into node
+//  generates no state transitions
+calc udp_bind(
+	machine  : machine() ---  name of function
+	node     : a_internet_link ---  work area
+	local_port ⇐ 0  ---  local port, 0 means get next free dynamic port
+	)
+	
+//  calls machine back with SOCKET_DATA message when answer is received
+//  by convention, data comes back from remote host with the target port of the local_port
+calc udp_send(
+	machine  : machine() ---  name of func machine()tion
+	node     : a_internet_link ---  work area
+	buf      : str	     ---  buffer to send --- should be bytes|str
+	)
+
+================================
+//  bytes functions
+================================
+@index "Bits and bytes"
+
+//  bytes data type has an implied field of .offset, which can be modified
+//  offset is updated automatically by put and get functions, starts out at zero when creaed
+//  in JS bytes allocations have a fixed length, in AS they are variable len
+calc new_bytes ( ---  create a bytes block of data
+	len   : num     ---  length in bytes, cannot be changed in JS
+	order : num ⇐ U ---  byte order, default is LITTLE_ENDIAN
+	) : bytes
+
+calc bytes_get_pos (  --- get the current position
+	buf : bytes
+	) : num
+
+calc bytes_set_pos (  --- set the current position
+	buf : bytes
+	newpos : num
+	)
+
+-------
+
+calc bytes_get_tree (  --- retrieve a tree
+	buf : bytes  ---  buffer to add to
+	dest : ptr   ---  subtree to write into
+	)
+
+calc bytes_put_tree (  ---  write out a sub-tree
+	buf : bytes  ---  buffer to add to
+	val : ptr    --- subtree to write out
+	)
+
+-------
+//  note: string functions are limit to 2^32 bytes
+
+calc bytes_get_str (  --- retrieve a UTF8 str
+	buf : bytes  ---  buffer to retrieve from, offset is updated automatically
+	) : str  ---  native UTF16 string that was decoded from stored UTF8 bytes
+
+calc bytes_put_str (  ---  write a string into UTF8 format
+	buf : bytes  ---  buffer to add to
+	val : str    ---  string to store into buffer (prefixes with 16-bit length)
+	)
+
+-------
+
+calc bytes_get_utf16 (  --- retrieve a UTF16 str
+	buf : bytes  ---  buffer to retrieve from, offset is updated automatically
+	) : str  ---  string
+
+calc bytes_put_utf16 (  ---  write a string into UTF16 format
+	buf : bytes  ---  buffer to add to
+	val : str    ---  string to store into buffer (prefixes with 16-bit length)
+	)
+
+-------
+
+calc bytes_get_num (  --- retrieve a num
+	buf : bytes  ---  buffer to retrieve from, offset is updated automatically
+	) : num 
+
+calc bytes_put_num (  --- put a REAL64 in the buffer
+	buf : bytes  ---  buffer to add to
+	val : num    ---  num or yesno
+	)
+
+-------
+
+calc bytes_get_u8 (  --- retrieve a CARD8
+	buf : bytes  ---  buffer to retrieve from, offset is updated automatically
+	) : num 
+
+calc bytes_put_u8 (  ---  put a CARD8 in the buffer
+	buf : bytes  ---  buffer to add to
+	val : num  ---  clamped to 0..255
+	)
+
+-------
+
+calc bytes_get_i16 (  --- retrieve a INT16
+	buf : bytes  ---  buffer to retrieve from, offset is updated automatically
+	) : num 
+	
+calc bytes_put_i16 (  --- put a INT16 in the buffer
+	buf : bytes  ---  buffer to add to
+	val : num  ---  clamped to -32k .. +32k
+	)
+	
+calc bytes_get_u16 ( --- retrieve a CARD16
+	buf : bytes  ---  buffer to retrieve from, offset is updated automatically
+	) : num 
+	
+calc bytes_put_u16 (  --- put a CARD16 in the buffer
+	buf : bytes  ---  buffer to add to
+	val : num  ---  clamped to 0.. +64k
+	)
+	
+-------
+
+calc bytes_get_i32 ( --- retrieve a INT32
+	buf : bytes  ---  buffer to retrieve from, offset is updated automatically
+	) : num 
+
+calc bytes_put_i32 (  --- put a INT32 in the buffer
+	buf : bytes  ---  buffer to add to
+	val : num  ---  clamped to 32 bit value
+	)
+
+calc bytes_get_u32 ( --- retrieve a CARD32
+	buf : bytes  ---  buffer to retrieve from, offset is updated automatically
+	) : num 
+
+calc bytes_put_u32 (  --- put a CARD32 in the buffer
+	buf : bytes  ---  buffer to add to
+	val : num  ---  clamped to 32 bit value
+	)
+
+================================
+//  bit twiddling
+================================
+
+calc bit_test (
+	buf  
+	bitx  // 1=first
+	) : yesno  //  return the value of the bit
+	
+calc bit_toggle (
+	bufp  : ptr to num
+	bitx  // 1=first
+	) location
+
+calc bit_set(
+	bufp  : ptr to num
+	bitx  // 1=first
+	bitval : yesno
+	) location
+
+//-----------------------
+
+/*...
+================================
+//  low level socket communication
+================================
+
+//  an umpire module will have many subscriptions, one per client
+//  a client module will have one subscription
+record a_xsubscription
+	direction  : num  ---  OUTBOUND, ...
+	local_ptr : tree ---  ptr to local tree that we are going to store data into
+	remote_ptr: tree ---  ptr to remote tree that we going to subscribe to
+	chan       : tree ---  ptr to channel we are running on
+  
+record a_xchannel
+	// channel    : raw  ---  os-dependent channel info
+	local_port        ---  port number that we listen on locally
+	local_cap         ---  local transfer limit, kByte/sec
+	local_alive       ---  number of seconds between sending alives from local to remote
+	remote_port       ---  port number that we send to 
+	remote_dns : str  ---  dns name of remote server
+	remote_ip  : str  ---  ip address of remote server
+	remote_cap        ---  remote transfer limit, kByte/sec, this is updated by remote side
+	status            ---  CHAN_IDLE, etc.
+
+//  this fires up the channel	
+calc open_channel(
+	chan : ptr to a_xchannel  ---  channel record
+	)
+
+calc close_channel(
+	chan : ptr to a_xchannel
+	)
+
+//  a channel can be used for raw TCP, UDP, and HTTP requests
+calc channel_create(
+	id ⇐ 0		 ---  id number
+	subid ⇐ 0    ---  sub-id number
+	host ⇐ "127.0.0.1"  ---  host DNS or ip address
+	port ⇐ 80 --- port number
+	transport ⇐ TRANSPORT_TCP  ---  underlying packet kind
+	timeout ⇐ 10 ---  timeout in seconds
+	) : a_channel
+
+//  open a TCP connection, once the socket sends back a connected message you can send data
+calc channel_connect(
+	chan : a_channel
+	)
+
+//  close a TCP connection, socket can be re-used if you connect again
+calc channel_disconnect(
+	chan : a_channel
+	)
+
+//  send data over a channel, using TCP or UDP packets
+calc channel_send(
+	chan : a_channel
+	data : bytes
+	)
+
+//  dispose of a channel
+//calc channel_close(
+//	chan : a_channel
+//	)
+...*/
+
+================================
+//  Loom functions
+================================
+@index "Timers" 
+
+@favorite
+calc timer_start ( --- start up a timer, can be a oneshot or repeating
+	callback : calc(frozen)	 --- the function to call, the parms are frozen at call time
+	reps     : num ⇐ 1 --- number of times callback will happen
+	interval : Time ⇐ U --- interval between callbacks
+	interval_mon: Time ⇐ U --- interval between callbacks in secs, when being monitored
+	rate     : num ⇐ U --- frame rate of callbacks per second  (inverse of interval)
+	delay    : Time ⇐ 0 sec --- delay for first callback
+	time     : num ⇐ U --- absolute starting epoch time
+	is_dilated : yesno ⇐ Y  --- if Y, use dilated clocks, use N to get hardware clock
+	pre      : num ⇐ U --- prerequisite event ID
+	group    : num ⇐ U --- group ID
+	) : num  --- unique id of pending event we just created
+
+calc timer_clear(  ---  clear out one pending event by id, or a set of events by group
+	id : num = U	 ---  specify a single event ID to clear
+	group : num = U	 ---  specify a group of events
+	)
+
+@index "Animation" 
+//  animates a simple curve from one point to another over a certain time, possibly fading out afterwards
+//  operates in phases:  draws, holds, fades
+graphics loom_animate_curve(  --- animate a quadratic bezier curve, with fadeout at the end
+	p1       : a_xy   ---  starting point
+	c1       : a_xy   ---  control point
+	p2       : a_xy   ---  ending point
+	//---- animation parameters
+	duration : Time ⇐ 1 sec --- how long the animation takes per repetition
+	time     : num ⇐ U --- absolute starting time
+	delay    : Time ⇐ 0 sec --- delay before starting
+	group    : num ⇐ U --- group ID
+	//speed    : num ⇐ SPEED_LINEAR  --- which speed curve to follow, SPEED_EASE_IN_OUT, etc.
+	hold     : num ⇐ 0   --- how long to hold after finishing drawing before starting fadeout INFINITY=keep on screen
+	fadeout  : num ⇐ 1   --- how long to fade out after finishing holding, 0=disappear immediately
+	is_dilated : yesno ⇐ Y  --- if Y, use dilated clocks, use N to use hardware clock
+	//---- style parameters
+	opacity : num ⇐ 1   --- opacity 0=transp 1=opaque
+	color   : color ⇐ BLACK	 --- stroke color
+	width   : num ⇐ 1 px   --- stroke width
+	cap     : num ⇐ CAP_ROUND --- line cap style
+	)  : num  --- unique id of pending event we just created
+
+/*...
+graphics loom_animate_sprite(  --- animate a sprite on a linear path
+	drawer   : func calc()  ---  function that creates the sprite bitmap (bitmap has coord origin in it)
+	p1       : a_xy   ---  starting coordinate
+	p2       : a_xy   ---  ending coordinate
+	reps     : num ⇐ 1 --- number of times animation will happen
+	duration : Time ⇐ 1 sec --- how long the animation takes per repetition
+	time     : num ⇐ U --- absolute starting epoch time
+	delay    : Time ⇐ 0 sec --- delay for first callback in secs
+	group    : num ⇐ U --- group ID
+	//speed    : num ⇐ SPEED_LINEAR  --- which speed curve to follow, SPEED_EASE_IN_OUT, etc.
+	is_alternate: yesno ⇐ N --- if we are doing multiple reps, do we cycle (default) or go back and forth (Y)
+	is_dilated : yesno ⇐ Y  --- if Y, use dilated clocks, use N to get hardware clock
+	... args : any --- variable length parameter list to the function
+	) : num  --- unique id of pending event we just created
+...*/
+
+//  we have other functions to help linear animation like control for pause, resume, abort, jump to end	
+calc loom_animate_num_linear( --- animate a variable from current value to target, linear interpolation
+	variable : inout num       --- variable to update
+	busyflag : inout yesno ⇐ U --- busy flag to update
+	endval   : num ⇐ 0 --- target value to reach
+	duration : Time ⇐ 1 sec --- duration in secs
+	group    : num ⇐ U --- animation group thiis in 
+	is_dilated : yesno ⇐ Y  --- if Y, use dilated clocks, use N to get hardware clock
+	) : num --- id of animation we just created
+
+calc loom_animate_num_bezier( --- animate a number from current value to target, using bezier easing
+	variable : inout num --- variable to animate (ptr to 
+	x1       : num --- bezier control point
+	y1       : num --- bezier control point
+	x2       : num --- bezier control point
+	y2       : num --- bezier control point
+	busyflag : inout yesno ⇐ U --- busy flag to update
+	endval   : num ⇐ 0 --- target value to reach
+	duration : Time ⇐ 1 sec --- duration in secs
+	group    : num ⇐ U --- animation group thiis in 
+	is_dilated : yesno ⇐ Y  --- if Y, use dilated clocks, use N to get hardware clock
+	) : num --- id of animation we just created
+
+calc solve_unit_bezier(  --- solve for a bezier point
+	x       --- input value 0..1
+	epsilon --- accuracy desired, 0.001 takes 2-3 iterations
+	p1x     --- bezier control point
+	p1y
+	p2x
+	p2y
+	) : num --- output value
+
+================================
+//  Browser interface
+================================
+@index "Browser"
+
+enum  TO_START, TO_CENTER, TO_END, TO_NEAREST  // vertical alignment options for scroll
+
+//   a recursive structure (although HTML only allows 2 levels deep for pulldown selections)
+record a_browser_pulldown
+	opt_label    : str  --- what is displayed in the pulldown
+	opt_val      : str  --- internal value to return; if not specified, we use the label as the value
+	opt_disabled : yesno  ---  if Y, this item is grayed out and cannot be selected
+	opt_selected : yesno  ---  if Y, this item is selected at the start
+	//  members of a group item; if children are present it will be dimmed and children drawn indented
+	opt_children : array of a_browser_pulldown
+	
+graphics browser_draw_pulldown(  --- draw a HTML <select> control (pulldown menu or selection list)
+	box      : a_rect   ---  bounding box to draw into
+	items    : array of a_browser_pulldown  --- 1 or 2 level deep array of records with the pulldown choices
+	result   : out str    --- the resulting selection string value is stored here
+	multiple : yesno ⇐ N  --- if multiple, converts to scrolling selection list, also outputs an array in result
+	font     : str ⇐ U    --- font name override
+	size     : num ⇐ 10 pt  ---  font size
+	nitems   : num ⇐ U    --- number of items to draw; if specified, changes from pulldown to fixed size list
+	)
+
+//  jump to a new page --- restriction: only functions inside browser environments
+//  to send an email use:  "mailto:test@example.com?subject=subject&body=body"
+//  must use a prefix like http:, www.xyz.com may malfunction if a local server is running
+calc browser_redirect (  ---  equivalent to: window.location.href ⇐ url;
+	url    : str  ---  url to jump to
+	newtab : yesno ⇐ N  ---  if Y, open in a new tab, equiv to: var myWin ⇐ window.open(url);
+	)
+
+//  download a file --- restriction: only functions inside browser environments, creates an HREF tag, and clicks it
+calc browser_download (  ---  download a file
+	url : str  ---  url of the item to download
+	destname : str = "" --- destination filename we desire, if not specified let browser pick the name
+	)
+
+//  this is an async function, shouldn't take long
+//  user has to give permission to hook up to bluetooth
+//  only supported when you use HTTPS for the page
+calc browser_has_bluetooth (  //  does this browser & sys support bluetooth?
+	flagptr : ptr to yesno  -- yesno variable to set, Y:yes, N:computer no bluetooth, ERR:browser not imp
+	)
+
+calc browser_bluetooth_getc (  //  get bluetooth characteristic
+	service_ss : str  -- service string
+	char_ss	   : str  -- characteristic you want
+	finish_func : calc(tree)  -- callback function.  [-1]:step we got to,  [0]:okay:yesno  [1..N]:returnvals
+	)
+
+calc browser_get_param (  // extract from a URL like: www.example.com/?name=john&age=18
+	name : str  -- parameter to retrieve
+	) : str  -- value, returns U if param not found
+
+//  with appropriate prefixes, you can can launch different external programs:
+//    market:  --- search android market for an app, market:--search?q=pname:com.adobe.flashplayer
+//    mailto:  --- launch email client  mailto:ed@xyz.com?subject=Subject&body=Hello\nworld
+//    tel:     --- launch dialer with phone number, like +5555555
+//    sms:     --- send a text message
+//    http://  --- launch a web browser
+
+calc launch_url( --- launch the web browser
+	url : str --- URL like http://xyz.com-- 	
+	)
+
+calc browser_alert( --- browser modal dialog box with OK button
+	message : str --- prompt
+	)
+
+calc browser_confirm(  --- browser modal dialog box that shows OK or Cancel buttons
+	message : str --- message to show
+	) : yesno  --  Y if OK clicked, else N
+
+calc browser_prompt( --- browser modal dialog box that allows you to enter a string, OK or Cancel
+	message : str --- message to show
+	startval : str --- string value for the input field
+	) : str   --- string, U if user cancelled out of the dialog
+
+//  note: you cannot hide browser UI until after at least one click
+calc browser_nav_vis( --- control browser navigation visibility
+	visible : yesno
+	)
+
+calc browser_close  --- close the browser window
+
+//  this function is used typically to style the scrollbars, which uses psuedo elements that
+//  are not intended to be accessed directly by JS, and are injected as text styles
+//  if you call this multiple times it will replace the old stylesheet you added
+calc css_append (  --- add a stylesheet entry to the CSS
+	css : str  --- CSS style string
+	)
+
+//  this is used for scrolling blocks so you can force something to be visible
+calc scroll_into_view (  --- scroll a list item into view
+	id : str  --- ID string of sub-block that needs to become visible
+	horz_align = TO_NEAREST  --- horz scroll alignment such TO_START, etc.
+	vert_align = TO_NEAREST  --- vertical scroll alignment such TO_START, etc.
+	)
+
+calc scroll_by (  ---  set scroll pos, relative
+	id : str  --- ID string of block 
+	horz : num
+	vert : num
+	)
+
+calc scroll_to (  ---  set scroll pos, absolute
+	id : str  --- ID string of block
+	horz : num
+	vert : num
+	)
+
+calc scroll_get_limits (   ---  get scroll limits 0..
+	id : str  --- ID string of block
+	)  : a_xy 
+
+calc scroll_get_pos (  ---  get scroll pos 0..
+	id : str  --- ID string of block
+	)  : a_xy  
+
+================================
+//  Browser Cookie functions
+================================
+@index "Browser" / "Cookies"
+
+//  these functions are only available in browser, client-side
+//  interface functions to access Browser Cookie functionality
+//  note that as of 2021 cookies are limited in quantity to approx. 180, max size is 4K bytes
+//  since cookies have a limited string range of Latin basic block we convert to Base64
+//  note that cookies have a small overhead of path and duration, so an empty cookie will take about 10 bytes
+
+// WARNING: Chrome browser caps duration to 400 days now
+calc cookie_write(
+	key : str  -- the key for the cookie
+	val : any  -- the value to save (if a path or tree, it will encode the subtree)
+	duration : Time ⇐ U  -- how long until expiration like SECONDS_PER_YEAR sec; U=session end
+	)
+
+calc cookie_read(
+	key : str  -- cookie to get value of
+	) : any  -- reads in the cookie previously stored under that name
+
+calc cookie_del(
+	key : str  -- cookie to delete
+	)
+
+calc cookie_exists(
+	key : str  -- cookie to test
+	) : yesno  -- Y if cookie exists
+
+================================
+//  Browser LocalStorage functions
+================================
+@index "Browser" / "LocalStorage"
+
+//  interface functions to access LocalStorage functionality
+//  note that as of 2021 LocalStorage has a limit of 5 million 16-bit chars
+//  can be zapped by user when they clear browser data
+//  these functions are only available in browser, client-side
+//  under node, you can use node-localstorage as a drop-in substitute
+//  https: local storage is not the same data file as http: local storage
+//  data is stored in UTF16 form always, 2 bytes per char
+
+calc local_write(
+	key : any  -- the integer or string key for the item
+	val : str  -- the value as a string
+	)
+
+calc local_read(
+	key : any  -- integer or string key to get value of
+	) : str  -- value previously stored
+
+calc local_del(
+	key : any  -- integer or string key to delete
+	)
+
+calc local_del_all
+
+================================
+//  Browser IndexedDB functions
+================================
+@index "Browser" / "IndexedDB"
+
+//  interface functions to access Browser IndexedDB functionality
+//  you will need to define a schema for your database in order to access it
+//  these functions are only available in browser, client-side
+//  under node you can use LevelDB as a substitute
+record a_ixdb_index
+	index_name   : str   //  field name that is being indexed
+	index_unique : yesno //  if Y, the index will not allow duplicate values for a key
+	index_multi  : yesno //  if Y, then array keys will generate multiple records for each element of key array
+
+record a_ixdb_store
+	store_name    : str   // the objectstore name
+	store_autoinc : yesno // if Y, then autoincrement
+	store_indices : array of a_ixdb_index
+
+record a_ixdb_schema
+	db_name : str   // typically we use rev dns, like com.acme.myapp
+	db_ver  : num   // the integer version of the schema
+	db_stores : array of a_ixdb_store
+
+//  runs async, may kick in changes after 100 msec
+calc ixdb_write(  --- write a record to an IndexDB
+	schema   : a_ixdb_schema  //  the schema for the database
+	objstore : str   //  the objectstore name in the database
+	rec_key  : any   //  num | str key to the record, if U, then append to the store 
+	datapath : ptr  //  subtree to be written
+	) 
+
+//  WARNING: runs async, may kick in changes after 100 msec
+calc ixdb_read ( --- read a record from an IndexDB
+	schema   : a_ixdb_schema  //  the schema for the database
+	objstore : str   //  the objectstore name in the database
+	rec_key  : any   //  num | str key to the record 
+	datapath : ptr  //  subtree where we store the data read in
+	callback : calc()  // callback when read is finished
+	)  location
+
+//  runs async, may kick in changes after 100 msec
+calc ixdb_del(  --- delete a record in an IndexDB
+	schema   : a_ixdb_schema  //  the schema for the database
+	objstore : str   //  the objectstore name in the database
+	rec_key  : any   //  num | str key to the record, if U, then delete all records in the store
+	) 
+
+================================
+//  File I/O functions
+================================
+@index "File I/O" 
+
+//  file paths are strings, if you put in a prefix you can control the folder:
+//   --- macintosh --
+//  ~appres/     --- [APP]/Contents/Resources
+//  ~applib/     --- /Library/Application Support/[APP]/Local Store
+//  ~docs/       --- same as ~/Documents
+//  ~desk/       --- same as ~/Desktop/
+//  ~/           --- /Users/[USERNAME], the current user's home folder
+//  in browsers these meta names are empty strings
+
+enum
+	UTF8  -- utf8 character set
+	UNICODE_LE  -- unicode little endian format (most common)
+	UNICODE_BE  -- unicode big endian format
+	
+//  NOT FOR BROWSER / only AIR & node
+calc fs_write_str( ---  sync I/O - write out a string to a file
+	fpath : str  ---  file path
+	data  : str  ---  buffer to write
+	encoding = UTF8  //  default encoding is UTF8
+	): yesno  --- Y if successful, ERR if out of disk space or bad path
+
+//  read an entire file in one gulp into a string. supports utf8 and utf16 files(with BOM)
+//  if file doesn't exist, then return empty string 
+//  NOT FOR BROWSER / only AIR & node
+calc fs_read_str( --- sync I/O - read a sequential file
+	fpath  : str  --- path to the file on the local computer
+	encoding = UTF8  //  default encoding is UTF8
+	) : str
+
+//  NOT FOR BROWSER / only AIR & node
+calc fs_write_tree( --- sync I/O - write a tree out
+	fpath : str  ---  path to the file or browser database name
+	data  : ptr --- subtree to write out (read only)
+	): yesno  --- Y if successful, else ERR
+
+//  NOT FOR BROWSER / only AIR & node
+calc fs_read_tree( --- sync I/O - opposite of fs_write_tree
+	fpath : str  --- file pathname or browser database name
+	data  : ptr --- subtree to read data into (write only)
+	): yesno location  --- Y if successful, else ERR
+
+//  read an entire file in one gulp into a raw byte array. supports utf8 and utf16 files(with BOM)
+//  if file doesn't exist, then return empty string 
+//  NOT FOR BROWSER / only AIR & node
+// calc fs_read_bytes( --- sync I/O - read a sequential file
+// 	fpath  : str  --- path to the file on the local computer
+// 	) : bytes
+// 
+// //  NOT FOR BROWSER / only AIR & node
+// calc fs_write_bytes( ---  sync I/O - write out a string to a file
+// 	fpath : str  ---  path
+// 	data  : bytes  ---  buffer to write
+// 	): yesno  --- Y if successful, ERR if out of disk space or bad path
+
+//  NOT FOR BROWSER / only AIR
+// calc fs_read_object ( ---  sync I/O - read in a system object file 
+// 	fpath : str
+// 	) : object
+
+//  NOT FOR BROWSER / only AIR & node
+calc fs_exists( --- does a file exist?
+	fpath  : str --- path to file
+	) : yesno  --- Y if exists
+
+//  NOT FOR BROWSER / only AIR & node
+calc fs_modtime( --- get the modification time of a file
+	path  : str --- path to file
+	) : num  --- epoch time, or U if did not exist
+
+//  NOT FOR BROWSER / only AIR & node
+calc fs_delete( --- delete a file
+	fpath  : str --- path to file
+	) : yesno  --- Y if did exist
+
+//  NOT FOR BROWSER / only AIR & node
+calc fs_rename( --- rename a file
+	old_path  : str --- path to file
+	new_path  : str --- new path
+	) : yesno  --- Y if did exist
+
+// calc path_extract_folder( --- extract folder from a full path string that includes a filename
+// 	fpath : str --- path to a file
+// 	) : str  --- path of folder
+
+calc path_extract_filename( --- extract filename from a full path string that includes a filename
+	fpath : str --- path to a file
+	) : str  --- name of file
+
+calc path_replace_filename ( --- replace the filename in a path
+	fpath : str
+	newname : str
+	) : str --- fixed path
+
+calc path_replace_suffix (  --- change the suffix of the file in a path
+	fpath : str
+	newsuffix : str //  include . in the suffix
+	) : str --- fixed path
+
+================================
+//  OS file picking functions
+================================
+@index "OS Interface"
+
+calc performance_now : num   --- elapsed time in msec, high resolution, rounded to nearest msec
+
+//  this is an async function, sets system modal flag while it is running
+//  since this function can return multiple files, the callback is given a list
+//  in the case of only one file picked, it will be at list[1]
+//  in JS: file list is array of system File objects (has .name,.size,.type members)
+//  in AS: callback will be of type File
+calc os_pick_files (      --- ask user to pick existing files to open
+	title     : str      --- title at top of dialog box (ignored on Android, OSX)
+	callback  : calc(array of any, ptr)   --- callback is sent list of file objects, extra
+	extra     : ptr ⇐ U  --- sent as a parameter to the callback function
+	prompt    : str ⇐ U  --- the file kind prompt in the dialog, if we want to filter files, ignored on OSX
+	suffixes  : str ⇐ U  --- string of valid suffixes, separated by semicolon: "*.txt;*.csv"
+	multiple  : yesno ⇐ N  --- allow user to pick multiple files?
+	)
+
+//  supported in browser
+//  this uses a file descriptor that can only obtained via os_pick_files
+calc os_read_str (  --- read a local text file, executes callback when done
+	fileobj  : object   --- system object containing file descriptor
+	callback : calc(str)  --- function to callback when read is finished
+	)
+
+//  supported in browser
+//  this uses a file descriptor that can only obtained via os_pick_files
+calc os_read_bytes (    --- read a local binary file, executes callback when done
+	fileobj  : object   --- system object containing file descriptor
+	callback : calc(bytes)  --- function to callback when read is finished (byte array is little endian)
+	)
+
+//  supported in browser
+//  this uses a file descriptor that can only obtained via os_pick_files
+calc os_read_image (    --- read a local binary file, executes callback when done
+	fileobj  : object   --- system object containing file descriptor
+	callback : calc(image)  --- function to callback when read is finished
+	)
+
+//  in the browser this will likely write to the user's documents folder
+//  we cannot steer this to a specific folder or overwrite a file
+calc os_write_str (  --- write a string to a file in UTF8 format
+	filename : str  --- desired file name (will be sent to ResolvePath)
+	data  : str     --- data to write
+	)
+
+//  in the browser this will likely write to the user's documents folder
+//  we cannot steer this to a specific folder or overwrite a file
+calc os_write_bytes (  --- write a binary file
+	filename : str  --- desired file name (will be sent to ResolvePath)
+	data  : bytes   --- data to write (set position to end point)
+	)
+
+//  in the browser this will likely write to the user's documents folder
+//  we cannot steer this to a specific folder or overwrite a file
+//  this uses the toDataURL browser method, which can do /png /jpeg /webp (only 3 guaranteed to work as of 2022)
+// calc os_write_image (  --- write an image file
+// 	filename : str       --- desired file name (will be sent to ResolvePath)
+// 	data     : image     --- image to write
+// 	format   : str = ""  --- encoding format string, default is "image/png"
+// 	quality  : num = 0.92 --- encoding quality from 0 to 1 for JPEG or WEBP formats
+// 	)
+
+calc os_file_name (  --- extract info out of a system file object
+	fileobj  : object   --- system object containing file descriptor
+	) : str  --- return name of the system object
+
+//  available in AIR only 
+//  this is an async function, sets system modal flag while it is running
+//  callback function is of form: mycallback(name:str, myptr:path), where myptr is extra info i want to send to function
+calc os_pick_save ( --- ask user to specify where to save a file [not for Browser]
+	title    : str      --- title at top of dialog box(ignored on Android)
+	callback : calc(str, ptr)  --- callback, sends the path selected and the extra: parm
+	extra    : ptr ⇐ U --- argument to callback function, a pointer to user data
+	)
+
+//  available in AIR only 
+//  this is an async function, sets system modal flag while it is running
+//  callback function is of form: mycallback(dirname:str, myptr:path)
+calc os_pick_dir ( --- ask user to pick a directory [not for Browser]
+	title     : str      --- title at top of dialog(ignored on Android)
+	callback  : calc(str, ptr)  --- callback, sends the path selected and the extra: parm
+	extra     : ptr ⇐ U --- argument to callback function
+	)
+	
+//  available in AIR only 
+calc os_open ( ---  this will open the given file with the default application for that suffix  [not for Browser]
+	filepath : str      --- document to open (like a .doc for MS Word)
+	)
+
+//  available in AIR only 
+calc os_run ( --- run an executable program in the host OS  [not for Browser]
+	filepath : str     --- program to run
+	... args : str     --- parameters for the command
+	)
+	
+//  available in Node.JS only.  error_string will be "" if okay.
+calc os_shell ( --- execute a shell command async in the host OS
+	command : str      --- command line to run
+	callback : calc(str,str,str)  --- callback(error_string, stdout, stderr); if U will not report status
+	)
+
+calc os_clipboard_copy (  --- copy some text to the clipboard
+	msg : str   --- text to copy to clipboard
+	)
+
+//  this function only works in AIR. Browser will not work (have to use Async)
+calc os_clipboard_paste : str  --- text retrieved from the clipboard
+
+//  inside the browser, you will be asked the first time for permission to paste
+//calc os_clipboard_paste_async (
+//	callback : calc(str)   --- function to call with string, when ready with clipboard contents
+//	)
+
+/*....	
+enum
+	applicationStorageDirectory  --- a storage directory unique to each installed AIR application
+	applicationDirectory         --- the read-only directory where the application is installed(along with any installed assets)
+	desktopDirectory             --- the user's desktop directory
+	documentsDirectory           --- the user's documents directory
+	userDirectory                --- the user directory
+
+calc file_copy ( --- copy a file from one place to another
+	src      : str  --- source file path
+	dst      : str  --- destination path
+	async    : yesno ⇐ N  --- Y if you want an async copy
+	) : num  --- error code, 0=okay
+
+calc file_delete ( --- delete a file
+	dst      : str  --- file to delete
+	async    : yesno ⇐ N  --- Y if you want an async copy
+	) : num  --- error code, 0=okay
+...*/
+	
+================================
+//  debugger/ide functions
+================================
+
+@index "Debugging" 
+
+const
+	//  these values must match runtime usage
+	BKIND_ROOT = 0 //  the master root block
+	BKIND_PLAIN = 1 //  plain drawing block
+	BKIND_SUBSET = 2 //  a subset drawing block, isn't reachable from the outside world
+	BKIND_GRID_BASE = 3 //  outer block for grid
+	BKIND_GRID_CELL = 4 //  a cell in a grid
+	BKIND_SLICE = 5 //  a sliced sub-block
+	BKIND_TABLE_BASE = 9 //  the base table block
+	BKIND_TABLE_ROW = 10 //  a row in a table		
+	BKIND_OVERLAY = 11 //  a block that creates another layer	
+	BKIND_MEASURING = 12 //  a temp block used for measuring things
+	BKIND_MENUBAR = 13 //  a menu bar emulation block
+
+//  draw blocks only have bname, bbox, bdepth, bchildren
+//  func blocks have bname, bkind, bbox, bdepth, ...
+record a_block_desc  -- used by debug_blocklist, not META
+	bname   : str  --- unique label for this block
+	bkind   : num  --- kind (BKIND_PLAIN, etc)
+	ncells  : a_xy --- dimensions if a grid block
+	bbox    : a_rect  //  DOM screen rectangle
+	btracks : yesno   ---  does this block track events?
+	bdepth  : num     --- depth of the block 1=root level
+	bchildren : array of a_block_desc  --- the array of children blocks
+	//--- fields currently not set by debug_get_blocks
+	bobject : object  --- system object (AS3:a_block, JS:DIV with addl properties)
+
+//  the debug blocklist is an array of all blocks in the monitored that have been drawn as of the end of the last
+//  user area refresh event. It means the user draw space is quiescent until the next refresh change
+//  this will be updated if runtime.update_blocklist is set to Y
+var debug_blocklist : a_block_desc --- recursive tree describing the blocks	
+
+//  this can be called many times, it will always check to see if up to date
+calc debug_get_blocks ( --- get the list of drawn blocks
+	seqptr : ptr to num  //  ptr to the sequence number field to track in the interface
+	list : a_block_desc
+	)
+
+//  this function draws gray at 85% opacity around the not-area of the block so you can see where it is clearly
+//  this is used by the IDE when selecting in the block list panel to map from the block name back to what was drawn
+// calc debug_isolate_block (  --- used by IDE to isolate a single block
+// 	block : object  ---  draw block to isolate on screen
+// 	)
+ 
+//  this should be drawn into a scrolling region because it may overflow
+// draw debug_draw_flowchart tracks (  ---this function draws a flowchart of a entire module
+// 	flowfile : str    ---  path to .flow file for a module containing the AST info
+// 	funcname : str    ---  name of function in the module, or "ALL" for all functions
+// 	)
+
+//  for use with flowchart file
+// calc debug_get_code_range ( --- get some info about a function from the flow file
+// 	flowfile : str    ---  path to .flow file for a module containing the AST info
+// 	funcname : str    ---  name of function in the module, or "ALL" for all functions
+// 	) : a_xy  --- returns the start range in .x, end range in .y of the code lines in the source file
+
+//  this controls the position in our history
+calc debug_jump(  ---  jump to the front of a major step in the history
+	stepx : num  --- step index 1=first, to jump to EOF jump to count(runtime.major_steps)+1
+	is_blackbox : yesno --- are we jumping inside a prev. loaded blackbox file?
+	)
+
+//  this stores the steps into runtime.micro_steps, stored by at index of micro_step
+calc debug_get_micro (  --- retrieve micro steps that correspond to a major step
+	major_step : num --- major step index to retrieve, U:get all
+	)
+
+//  this clears the history past a given major step
+calc debug_clear_future  --- clears the future past the current runtime.major_step
+
+calc debug_blackbox_send (  ---  transmit a blackbox file to a server
+	url  : str  ---  url of the server, localhost redirects to: 'ws://127.0.0.1' for local machine
+	port : num  ---  the TCP port we are going to listen on (0..64k)
+	id   : num  ---  unique ID that server side expects
+	name : str  --- the name to store with on the server side (usually product name, no slashes or suffix
+	kind : str = "black box" --- a very short description of the reason, like crash, or dump
+	note : str = ""  --- a longer explanation of why it was being dumped out
+	mail_addr : str = ""  --- email address to send notification
+	mail_subj : str = ""  --- email subject override
+	mail_body : str = ""  --- email body text override
+	) 
+
+calc debug_blackbox_write (  --- writes a .bbox file for later time travel debugging
+	outfile : str  --- output file path (web:filename, path not obeyed)
+	kind    : str = "black box" --- a very short description of the reason, like crash, or dump
+	note	: str = ""  --- a longer explanation of why it was being dumped out
+	)
+
+calc debug_blackbox_encode (  --- writes a .bbox file for later time travel debugging
+	buf     : bytes  --- output buffer to store into (appends at current position)
+	kind    : str = "black box" --- a very short description of the reason, like crash, or dump
+	note	: str = ""  --- a longer explanation of why it was being dumped out
+	)
+
+calc debug_blackbox_read (  ---  read a blackbox file, sets debug_runtime, loads the state, positions at end of stream
+	fileobj  : object   --- system object containing file descriptor
+	callback : calc(num)  ---  callback(n: num)  Y=okay, -1: not found, -2: bad file, -3:bad version
+	)
+
+calc debug_stack_trace : str  --- return stack trace useful to put in log
+
+//  activate the debugger
+//calc debugger  //  passes through to JS debugger
+
+calc vars_ptr_to_value_ptr( --- convert a structure definition into the value ptr
+	vars_path : ptr
+	) : ptr  --- path to actual value
+
+//  this will allow an IDE type of program to draw whatever program is being monitored
+graphics monitored_draw (  --- the users main_draw entry point so we can draw it from a IDE
+	is_dead : yesno = N  --- is this a post-mortem draw?
+	)
+
+//  this is used by cycler tool to reset a program to its initial state
+calc     monitored_init  --- the users main initialization function, used to reset their state
+
+
+===============================
+
+//  low level delta value logging
+//  functions that belong in rtl, not normally used by an end-user
+// record a_hist_delta  ---  a raw record of the history change
+// 	dt_module : num
+// 	dt_where  : num  ---  source code line
+// 	dt_path   : ptr ---  what data element was touched
+// 	dt_oldval : str  ---  old value expressed as a string
+// 	dt_newval : str  ---  new value expressed as a string
+// 	
+// --------------------
+// calc hist_get_delta (  ---  given a low level raw history table index number, return the data
+// 	rawx : num    ---  raw delta index
+// 	) : a_hist_delta  ---  the record describing the delta
+// 
+// --------------------
+// calc debug_get_code ( ---  get a line of source code
+// 	module : num  ---  module enum
+// 	where  : num  ---  where in the module
+// 	) : str  ---  source code line
+
+================================
+//  scroll bar linkage
+================================
+//  because scrollbar functionality is built into runtime, we define a scrollbar record here
+//  so that the enums are defined
+//  external scrollbar widgets can augment these fields
+// record a_scroll_link_record
+// 	//-------------------------------
+// 	//  caller must set these values
+// 	//-------------------------------
+// 	//  these values are updated by block drawing functions when linked
+// 	s_content_size   --- [used in RTL] number of pixels high the content is
+// 	s_window_size    --- [used in RTL] number of pixels the window can fit
+// 	s_position       --- [used in RTL] umber of pixels scrolled, was position from 0 (no scroll) to 1 (max scroll)
+// 
+// 	//  internal values used by RTL
+// 	s_block_id	 ---   [used in RTL] used to find draw block later
+// 	s_step_size     ---  [used in RTL] step size when they click an arrow button
+// 	s_big_step_size   ---  [used in RTL] step size when they click in other part of bar
+
+================================
+//  micro steps
+================================
+@index "Introspection"
+enum  -- ms_kind choices
+	MICRO_DELTA "\u0394"
+	MICRO_RENUM "renum"
+	MICRO_TRUNC "trunc"
+	MICRO_CLEAR "clear"
+
+record a_micro_step
+	ms_kind      --- enum of the kind of micro step
+	ms_module    --- enum of module
+	ms_where     --- line number in module
+	ms_funcname  : str --- name of function
+	ms_dest      : ptr --- destination if delta
+	ms_newval    : any --- value if MICRO_DELTA
+	ms_oldval    : any --- value if MICRO_DELTA
+
+================================
+//  runtime
+================================
+
+//  this is a mostly read-only structure used to store system info
+record a_runtime
+	//  these fields are constant during execution
+	app_name    : str  --- app name
+	app_version : str  --- app version string
+	app_hash    : str  --- app hash string
+
+	env_version : str  --- version string of Adobe AIR, else navigator.userAgent
+	args        : array of str --- array of command line arguments 0=command, 1=first
+	cpu_kind           --- either CPU_ARM or CPU_INTEL
+	full_screen : yesno --- Y if fullscreen, N if windowed environment
+	hardware_id      --- a unique static hardware ID for this machine (not available in browser)
+
+	os_kind          --- OS_OSX, OS_WIN, OS_AND, OS_IOS, OS_WEB
+	os_language		 --- language OS is running in: LANG_ENG, etc
+	os_version  : str  --- a string like "Windows 10" or "Mac OS 10.14.6"
+
+	screen_dpi       --- dots per inch of primary screen
+	screen_horz      --- screen total size (in windowed environment, use window_size)
+	screen_vert      --- screen total size (in windowed environment, use window_size)
+	pixel_ratio      --- window.devicePixelRatio as reported by browser
+
+	//  on mobile devices window_horz as reported by browser can be impacted
+	//  by a zooming viewport. on Desktop window will be smaller usually
+	window_horz      --- pixels we have available for drawing inside our window
+	window_vert      --- pixels we have available for drawing inside our window
+	touch_kind       --- kind of touchscreen we have: TOUCH_FINGER, TOUCH_STYLUS, TOUCH_OTHER, TOUCH_NONE
+
+	//  fields that can change during execution:
+	os_modal          --- nesting level of an operating system modal window 0=not in modal
+	is_connected:yesno   --- Y if connected to internet, N if not, U if not polling
+	cursor_changed:yesno ---  Y if in this mouse EV_HOVER event cycle some code has specified a cursor
+	monitor_active:yesno ---  Y if the monitor program is up (monitor code can change this)
+	monitor_target:str   ---  name of monitored program
+	update_blocklist  ---  debug_blocklist is updated each refresh cycle (monitor code can change this), default N
+	ui_language        --- which language has the user selected for the UI (use set_ui_language to change)
+
+	//  some mobile devices have an annoying notch
+	notch_height      ---  number of pixels high
+	notch_width       ---  number of pixels wide (centered in middle of screen)
+
+	//  history of state changes
+	major_stepx  ---  current major step number. read only, use debug_jump() to change
+	major_firstx ---  major step index of the point in time after main_init is called
+
+	//  the first element of major_steps has evkind of EV_INIT for the call to the init function (if there is one)
+	//  the last element is of kind EV_STOP which marks the last slot in the array
+	//  one can just take the next step and subtract the raw history index to count how many steps
+	major_steps : array of a_event  --- array of augmented event records that happened in the past
+
+	//  when you call debug_get_micro(), this will be populated with micro steps
+	micro_steps : array of a_micro_step
+
+	//  for tracking code coverage
+	code_coverage : array of num  //  # of times call, indexed by function name
+
+	//  for determining which languages are available
+	//languages_avail : array of num //  which language tables we have avail to use
+	//dev_kind    : (DEV_TABLET, DEV_MOBILE, DEV_DESKTOP)
+
+	//  these are used by a blackbox file
+	debug_kind : str  // the general kind of dump
+	debug_note : str  // any notes for the dump
+
+var runtime notrack : a_runtime  --- information about the runtime environment
+var blackbox_runtime notrack : a_runtime  --- runtime read from blockbox file
+
+================================
+//  RTL functions for advanced usage 
+================================
+
+//  Introspection:
+//  each function and variable is described in the META array
+//  this allows reflection into a module's code
+//  for example, the str library function str_repeat would be encoded as follows.
+//  note that we combine category, subcategory and description into one string for compactness.
+//  
+//  example function:  calc str_repeat(ss:str, n:num):str 
+// 
+//  META["str"].mod_funcs["str_repeat"]
+//    .vv_funck: FK_CALC 
+//    .vv_typek: [1] TYPE_STR 
+//    .vv_cat: "Strings|Basic|repeat a string" 
+//    .vv_parms 
+// 	    [1] 
+//        .vv_parmk: PK_POS 
+// 	      .vv_parmn: "ss|string to repeat" 
+// 	      .vv_typek: [1] TYPE_STR
+// 	    [2] 
+//        .vv_parmk: PK_POS 
+// 	      .vv_parmn: "n|number of times to repeat" 
+// 	      .vv_typek: [1] TYPE_NUM 
+//     .vv_code : str  -- source code of this function
+
+enum   -- namekinds
+	NK_ASSET
+	NK_CONST
+	NK_COLOR
+	NK_ENUM
+	NK_FUNC
+	NK_GRAD
+	NK_RECORD
+	NK_TIMER
+	NK_UFAM
+	NK_UNIT
+	NK_VAR
+
+	-- function kinds
+	FK_CALC
+	FK_DERIVE
+	FK_DRAW
+	FK_MACHINE
+	FK_TRACK
+	
+	-- parm kinds
+	PK_POS
+	PK_NAMED
+	PK_REST -- ... variable length parm
+	//PK_RETURN  
+
+record a_meta_val  //  used for const and variables
+	//  type kind array, TYPE_REC, followed by record enum, and if defined in some other module, the module name is appended
+	vv_typek : array of any  --- data type array [TYPE_PTR, TYPE_ARRAY, TYPE_REC, F_a_xy, "modname"]
+
+	//  these fields are used by the IDE
+	vv_val : ptr ---  a pointer to the value of the variable
+	vv_data_xy : a_xy --- destination point in data window for flight-of-value trajectories
+
+record a_meta_fam  //  used for unit families
+	vv_canonical : str --- canonical unit family dimensions like len^2•mass^1
+	vv_units : array of str --- array[str] of str, where value is the abbreviation if present
+
+record a_meta_parm  //  used for function parameter
+	vv_parmn : str  //  for parms: parm name
+	vv_parmk : num  --- parameter position kind: PK_POS, PK_NAMED, PK_REST
+	vv_default : str  --- string form of default value if named parm
+	vv_typek : array of any  --- parm data type
+
+record a_meta_func  //--- used for function symbols
+	vv_funck : num  --- function kind, FK_CALC, etc.
+	vv_funcx : num  --- function index used for logging in setv
+	vv_parms : array of a_meta_parm --- array of parms, indexed by parameter order
+	vv_cat : str  --- for functions: category | subcategory | comment
+	vv_typek : array of any  --- func return data type, void functions have empty array
+	//--- these values only set if compiled as a monitored program
+	vv_code  : str  --- func source code (all lines in one big string, must split)
+	vv_line1 : num  --- starting line number of the func
+	vv_line2 : num  --- ending line number
+
+record a_meta_module  --- a module definition
+	//  these correspond to our categories
+	mod_funcs : array of a_meta_func  --- functions, indexed by name
+	mod_const : array of a_meta_val  --- constants, indexed by name
+	mod_vars  : array of a_meta_val  --- variables, indexed by name
+	mod_recs  : array^3 of any       --- records, indexed by [rec_enum, field_enum], array [1..N] of data types
+	mod_enums : array of str         --- enums, indexed by enum val, value is string form
+	mod_ufams : array of a_meta_fam  --- unit families, indexed by [name_str]
+	mod_eval  : object               --- raw pointer to the local eval function for this module
+
+var META : array of a_meta_module   --- indexed by [module name]
+
+================================
+//  Introspection 
+================================
+
+//  if it is a pointer to a subtree, it will return TYPE_TREE
+calc type_of_ptr (  ---  for introspection of a pointer to an unknown value type
+	val:ptr  --- pointer to value to inspect
+	):num --- TYPE_NUM, TYPE_STR, etc.
+
+//  if you pass it a value of type ptr, it will return TYPE_PTR
+//  use type_of_ptr instead to see what the path points to.
+calc type_of (  --- for introspection of a value of any type
+	val:any  --- value to inspect
+	):num --- TYPE_NUM, etc.
+
+//  this is a psuedo function that will compile to an eval() reference to the value
+//  this can only access symbols in the global scope, symbols might be not exported
+calc val_of (  --- for accessing a variable or constant via indirection
+	modn   : str  -- module name
+	name   : str  -- variable name expression (dynamic)
+	):any  -- data type is of the underlying thing
+
+// calc meta_merge(  --- merge a module into the INDX introspection array
+// 	symfile : str  --- file path to the symbol file
+// 	)
+
+@index ""  -- not indexed
+
+//  this is the function used by the compiler emitted code to set literals
+//  it is an efficient tree literal syntax, where the number of args could be in the 1000's.
+//  note that there are limits to the stack, so should not be used for over 10k items.
+//  you pass it a series of subscript ix1, ix2, VAL, "myval", and it sets the value at that coord
+//  does one POP after each VAL node. VNP doesn't pop after setting val
+calc merge_lit (
+	dest:tree //  tree being stored into
+	... args  //  array of subscripts and values
+	) location
+
+
+// const
+// 	// in a_event.hist_delta_str we code 20 microsteps in summary form as a string, each letter indicating what was done:
+// 	LOOM_OP_SETV   ⇐ 'S'
+// 	LOOM_OP_CLEAR  ⇐ 'C'
+// 	LOOM_OP_RENUM  ⇐ 'N'
+
+
+// calc val_ptr_set_box(  ---  remember the coordinates of where we drew a data value in the IDE
+// 	val_path : ptr --- path to value
+// 	val_box  : a_rect --- box we drew value inside
+// 	)
