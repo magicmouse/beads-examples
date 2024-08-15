@@ -1,0 +1,312 @@
+beads 1 program Snake title:"The Classic Snake Game"
+//  the classic snake game, with the ability to wrap around added
+//  written by edj 2019
+//  Copyright and related rights waived
+
+assets local:"./art/" remote:"art/"
+	file:"crunch.mp3" label:CRUNCH
+	file:"beep.mp3" label:BEEP
+	file:"apple.gif" label:APPLE
+
+const
+	FRAME_RATE ⇐ 6  --  our target frame rate for the snake to move
+	BLACKBOX = N   -- trigger a blackbox crash dump when snake eats apple
+
+var
+	snake   : array of a_xy  --  snake body; snake[1] is the head
+	queue   : array of a_xy  --  the pending movement queue
+	dir     : a_xy  --  snake XY movement speed, {x:+1, y:0} for eastward
+	apple   : a_xy  --  apple XY coordinate
+	maxlen  : num   -- how long snake can grow, each apple eaten adds 1 to this
+	longest : num   -- longest snake in history, user's high score
+	paused  : yesno -- have we have paused the game?
+
+	//  these values are set when the window size changes
+	spacing  : a_xy  --  cell spacing
+	cellsize : a_xy  --  cell size after subtracting border
+	ncells   : a_xy  --  number of cells in XY
+
+	//timerid  -- the timer that controls the movement
+
+====================
+calc main_init
+====================
+	//  called one time only at start of program before any drawing
+	{ x:2, y:2 } ===> snake[1]  --  start out with a single cell snake
+	{ x:6, y:6 } ===> apple  --  put down an apple
+	{ x:0, y:1 } ===> dir  --  head south at the start
+
+	longest ⇐ 1  --  reset high score 
+	maxlen ⇐ 5   --  allow snake to grow to 5 cells for starters
+	paused ⇐ N	 --  start in the moving state
+ 
+	//  since we want to be able to reanimate this program, which calls the main_init
+	//  long before we call main_draw, we wait until we get the first draw (which will preface with EV_RESIZE)
+	//  before starting up our timer
+	//  set up a callback to 'update_position' so that the snake moves 
+// 	if timerid == U
+// 		timerid = 
+	timer_start (update_position, delay:0.2 sec, rate:FRAME_RATE, reps:INFINITY)
+
+====================
+draw main_draw
+====================
+	//  any time the snake or apple changes, this function will automatically be called
+	const HALF = cellsize.x*0.5
+	const DIST = HALF*0.60
+	const SEP  = cellsize.x*0.3
+	const DIAM = cellsize.x*0.20
+	var x1
+	var y1
+	var x2
+	var y2
+	var color : color
+	var box : a_rect
+	
+	draw_rect(fill:BLACK)  -- board background
+
+	//  draw snake as an array of boxes
+	//log "main_draw, cellsize={cellsize.x},{cellsize.y}"
+	loop across:snake index:i
+		//log "  snake[{i}]={snake[i].x},{snake[i].y}"
+		box <=== solve_rect(left:snake[i].x*spacing.x, top:snake[i].y*spacing.y, width:cellsize.x, height:cellsize.y)
+
+		//  alternate colors on the snake so it is easier to detect movement
+		color ⇐ LIME_GREEN if is_odd(i) else LAWN_GREEN
+
+		if i == 1  
+			//  head of the snake has a border, and is rounded more 
+			draw_rect(box:box, fill:color, corner:cellsize.x*0.25, color:DARK_GREEN, thick:cellsize.x*0.10)
+
+			//   draw eyes
+			if dir.x <> 0
+				//  horz movement
+				x1 = HALF + dir.x*DIST
+				x2 = x1
+				y1 = HALF - SEP
+				y2 = HALF + SEP
+			else
+				//  vert movement
+				y1 = HALF + dir.y*DIST
+				y2 = y1
+				x1 = HALF - SEP
+				x2 = HALF + SEP
+
+			draw_circle(x:box.left+x1, y:box.top+y1, diam:DIAM, fill:BLACK, opacity:0.8)
+			draw_circle(x:box.left+x2, y:box.top+y2, diam:DIAM, fill:BLACK, opacity:0.8)
+		else
+			//  body snake cells have no border, only slightly rounded
+			draw_rect(box:box, fill:color, corner:cellsize.x*0.10)
+	//..end snake loop
+
+	//  draw the apple
+	box <=== solve_rect(left:apple.x*spacing.x, top:apple.y*spacing.y, width:cellsize.x, height:cellsize.y)
+	draw_image(APPLE, box:box)
+	//draw_oval (box:box, fill:CRIMSON)
+
+	//  draw the current and high score
+	var boxheight ⇐ min(b.box.height, b.box.width)/8
+	var ss : str ⇐ "{maxlen}     high:{longest}"
+	box <=== solve_rect(basis:b.box, pin:TOP_CENTER, height:boxheight)
+	draw_str (ss, box:box, size:boxheight*0.85, opacity:0.4, bold:Y, color:WHITE)
+
+	//  if this is a full_screen device, draw the soft keyboard
+	if runtime.full_screen
+		//  a fullscreen device like a cellphone likely won't have a physical keyboard
+		//  so in order to control the snake draw a soft keyboard
+		box <=== solve_rect(basis:b.box, pin:BOT_CENTER, height:b.box.width*0.7)  --  area at bottom of screen
+		layer area:box opacity:0.25 soft_keyboard  -- overlay the soft keyboard
+--------------------
+track EV_KEYBOARD
+	//  a track block has an implied record e containing event data
+	do_key(e.keycode)
+--------------------
+track EV_RESIZE
+	//  called at startup after main_init, before main_draw is called
+
+	//  also called if user resizes the window
+	//  if we can we would like 10 cells, but don't make them larger than 42 pt
+	var targsize ⇐ min(min(b.box.width, b.box.height)/10, 42 pt)
+
+	ncells.x ⇐ round_down(b.box.width  / targsize)
+	ncells.y ⇐ round_down(b.box.height / targsize)
+
+	//  now calculate a cellsize so that the entire screen is used up
+	//  this will result in fractional pixel cell sizes, but that is okay
+	spacing.x ⇐ b.box.width  / ncells.x
+	spacing.y ⇐ b.box.height / ncells.y
+
+	//  calculate the net size after subtracting a border
+	cellsize.x ⇐ spacing.x*0.85
+	cellsize.y ⇐ spacing.y*0.85
+
+	//  since a resize event could happen mid-game, 
+	//  we may have just shrunk the playing field, we must move any snake cells outside range
+	//  note that snake cell coordinates are 0-based to make it easier to draw
+	var limitx ⇐ ncells.x-1
+	var limity ⇐ ncells.y-1
+	loop across:snake index:i
+		snake[i].x ⇐ min(snake[i].x, limitx)
+		snake[i].y ⇐ min(snake[i].y, limity)
+
+	//  also check the apple
+	apple.x ⇐ min(apple.x, limitx)
+	apple.y ⇐ min(apple.y, limity)
+
+====================
+grid soft_keyboard
+====================
+	//  set up a 3x3 grid, we only draw into 5 slots
+	horz slice
+		skip 20 al
+		add 80 al 
+		skip 10 al
+		add 80 al 
+		skip 10 al
+		add 80 al 
+		skip 20 al
+	vert slice
+		skip 20 al
+		add 80 al 
+		skip 10 al
+		add 80 al 
+		skip 10 al
+		add 80 al 
+		skip 20 al
+	cell
+		//  implied vars: b.box, b.cell_seq, b.cell.x/y, b.cell_id.x/y
+		//  the default sequence ordering is LRTB
+		var cc ⇐ ""
+		var size ⇐ b.box.height*0.7  -- default size for buttons
+		case b.cell_seq
+		| 2  
+			cc ⇐ "\u25B2" --  upward triangle
+		| 4
+			cc ⇐ "\u25C0" --  left triangle
+		| 5
+			cc ⇐ "PAUSE"
+			size ⇐ b.box.height*0.3 --  make pause text smaller
+		| 6
+			cc ⇐ "\u25B6"  --  right triangle
+		| 8
+			cc ⇐ "\u25BC" --  down triangle
+		if cc <> ""
+			draw_rect(fill:#714900, corner:b.box.width*0.2)  --  was color 684300
+			draw_str(cc, color:BLACK, size:size)
+-----------------------
+track EV_TAP
+	//  if we tap on a cell that is active simulate a keyboard command
+	case b.cell_seq
+	| 2 
+		do_key(KEYCODE_UP)
+	| 4
+		do_key(KEYCODE_LEFT)
+	| 5
+		do_key(KEYCODE_SPACE)
+	| 6
+		do_key(KEYCODE_RIGHT)
+	| 8
+		do_key(KEYCODE_DOWN)
+	//  ignore other cell clicks
+
+====================
+calc do_key (
+	code : num -- the keycode to process
+	) 
+====================
+	case code
+	| KEYCODE_LEFT
+		//  go west
+		append { x:-1, y:0 } ===> queue 
+		paused ⇐ N  --  resume game
+
+	| KEYCODE_RIGHT
+		// go east
+		append { x:+1, y:0 } ===> queue 
+		paused ⇐ N  --  resume game
+
+	| KEYCODE_UP
+		//  go north
+		append { x:0, y:-1 } ===> queue 
+		paused ⇐ N  --  resume game
+
+	| KEYCODE_DOWN
+		//  go south
+		append { x:0, y:+1 } ===> queue 
+		paused ⇐ N  --  resume game
+
+	| KEYCODE_SPACE
+		toggle paused
+
+====================
+calc update_position
+====================
+	//  called at the current framerate
+	var pending : a_xy
+
+	//  this function is called by a timer. if we are paused, don't update our position
+	if paused
+		return
+
+	//  look at the pending events, and use them up until we find a valid move.
+	loop across:queue index:qx
+		queue[qx] ===> pending
+		clear queue[qx]
+
+		//  if the new direction is different than current dir, and not the opposite we have a new dir
+		if (abs(pending.x) <> abs(dir.x)) or (abs(pending.y) <> abs(dir.y))
+			pending ===> dir  -- accept the change
+			exit
+
+	//  take the current dir and calculate the new position of the snake head
+	var newx ⇐ mod(snake[1].x + dir.x, ncells.x)
+	var newy ⇐ mod(snake[1].y + dir.y, ncells.y)
+
+	//  if the snake crosses over its tail, then penalize
+	loop across:snake index:i
+		//  future optimize:   if newpos == snake[i]
+		if (newx == snake[i].x) and (newy == snake[i].y)
+			//  we stepped on our tail, truncate to that length-1
+			sound_play(BEEP)
+			maxlen ⇐ i - 1
+			limit_length
+			exit
+
+	//  snake gets longer by inserting a new element at the head, renumbering later ones
+	//log "about to insert at {newx},{newy}, snake len is {count(snake)}"
+	insert { x:newx y:newy } ===> snake[1]
+
+	//  if the new position of the head matches the apple increase the limit 
+	if (newx == apple.x) and (newy == apple.y)
+		//  eat the apple and let the snake grow one cell
+		sound_play(CRUNCH)
+		inc maxlen
+		longest ⇐ max(maxlen, longest)  -- update our high score
+		random_apple  --  move the apple
+
+		if BLACKBOX
+			//  save the state in a 'blackbox' file and halt
+			debug_blackbox_write("snake_dump.bbox", kind:"Poison Apple", note:"Boy, that apple tasted bad!")
+			halt("--- CRASH SIMULATION ---")		
+
+	else
+		//  if the snake did not hit the apple, then it may have grown past our limit
+		limit_length
+
+====================
+calc random_apple -- find a random spot for the apple
+====================
+	// note that we might pick a spot inside the snake, but it only counts as eaten if the head moves onto the apple
+	//  but don't pick a spot that is on top of the snake head
+	loop until: apple.x <> snake[1].x or apple.y <> snake[1].y  
+		apple.x ⇐ random_int(0, ncells.x - 1)
+		apple.y ⇐ random_int(0, ncells.y - 1) 
+
+====================
+calc limit_length -- shorten the snake if necessary to stay within limit of maxlen
+====================
+	loop while:count(snake) > maxlen
+		//  drop the last cell in the snake
+		//log "limit length, count={count(snake)}, maxlen={maxlen}, hi={tree_hi(snake)}"
+		clear snake[tree_hi(snake)]
+		//log "after clear count={count(snake)}"

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="color-scheme" content="light dark">
+<title>perlin</title>
+<link rel="shortcut icon" href="data:,">
+<style>
+/*  the above empty icon shuts the favicon stuff up.
+	put stmt above style if you want favicon: <link rel="shortcut icon" href="favicon.ico" />
+    this disables the annoying double click highlighting of DIV blocks 
+	see more meta options at https://matt.might.net/articles/how-to-native-iphone-ipad-apps-in-javascript/  
+*/
+::placeholder {  /* sets color for input placeholder text  */
+  color: #E3CED7; font-style:italic;
+  opacity: 1; /* Firefox */
+}
+div { margin:0; padding:0; outline-style:none; scrollbar-gutter:stable;}
+div:hover { cursor:inherit; }
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover { background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0; position:fixed;">
+<script type="module">
+// beads ver 0.56 compiled Sun Mar 24 22:46:58 GMT-0700 2024
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_056/beads_std.js';
+import * as std from '../../runtime_056/beads_std.js';
+import * as str from '../../runtime_056/beads_str.js';
+export const CODE_HASH = 0x3617c9e7;
+const _M = std.MODULES.push("perlin")-1;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
+//------- enums
+//-------  func const for perlin
+const render_canvas_F = new std.a_function(_M, "render_canvas", render_canvas);
+std.FUNCS[render_canvas_F.hash]=render_canvas_F;
+const do_tick_F = new std.a_function(_M, "do_tick", do_tick);
+std.FUNCS[do_tick_F.hash]=do_tick_F;
+//-------  top nodes
+const CANVAS_H = 600;
+const CANVAS_V = 600;
+const LINEW = 99;
+var mycanvas = new std.a_tree(_M,"mycanvas", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var t = 0;
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+  var area = new std.a_tree(_M,"area", 0, std.solve_rect({ basis:adr(b.extra, std.F_box), pin:std.MID_CENTER, width:CANVAS_H, height:CANVAS_V, round:Y }));
+  var b241=std.k_layer(b, null, { canvas:std.adr(mycanvas), area:area });
+std.k_leave(b);
+}
+
+
+//====================
+//   render_canvas :CANVAS
+//====================
+function render_canvas(b) {
+  std.draw_rect(b, { fill:std.BEIGE });
+  var x = std.div(CANVAS_H, 2);
+  var y = std.div(CANVAS_V, 2);
+  var color = U;
+  t = std.add(t, 1);
+  var loop1022 = new std.a_loop({ from:0, to_:x, rev:Y });
+  while (loop1022.next()) {
+  var i = loop1022.index;
+    var heading = std.meas(std.mul(std.perlin_noise(std.div(std.add(t, i), 168), {}), 16), std.N_radian, std.Y_Angle);
+    var ang = std.add(heading, std.meas(90, std.N_deg, std.Y_Angle));
+    var dx = std.mul(std.cos(ang), LINEW);
+    var dy = std.mul(std.sin(ang), LINEW);
+    var thick = std.eq2(std.mod(i, 9, {}), 0) ? 3 : 1;
+    std.draw_line(b, { x1:std.add(x, dx), y1:std.add(y, dy), x2:std.sub(x, dx), y2:std.sub(y, dy), thick:thick });
+    x = std.add(x, std.mul(6, std.cos(heading)));
+    y = std.add(y, std.mul(6, std.sin(heading)));
+    var case1023 = std.mod(i, 3, {});
+    if (case1023 === 0) {
+      color = std.rgb(50, 0, 0, {});
+    } else if (case1023 === 1) {
+      color = std.rgb(150, 50, 50, {});
+    } else {
+      color = std.rgb(200, 100, 100, {});
+    }
+    std.draw_circle(b, { x:x, y:y, diam:28, fill:color });
+  }
+}
+
+
+//====================
+//   do_tick
+//====================
+function do_tick() {
+  render_canvas(std.canvb(std.adr(mycanvas)));
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.timer_start(do_tick_F, { delay:std.meas(0.1, std.N_sec, std.Y_Time), rate:24, reps:20000 });
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "perlin");
+main_init();
+std.rebuild_all();
+
+
+//  uncomment this to prevent accidental reload, useful for web apps that store input
+//   window.onbeforeunload = (event) => {
+// 	  const e = event || window.event;
+// 	  // Cancel the event
+// 	  e.preventDefault();
+// 	  if (e) {
+// 		e.returnValue = ''; // Legacy method for cross browser support
+// 	  }
+// 	  return ''; // Legacy method for cross browser support
+// 	}
+
+</script>
+</body>
+</html>
+

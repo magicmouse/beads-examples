@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="color-scheme" content="light dark">
+<title>bearsweeper</title>
+<link rel="shortcut icon" href="data:,">
+<style>
+/*  the above empty icon shuts the favicon stuff up.
+	put stmt above style if you want favicon: <link rel="shortcut icon" href="favicon.ico" />
+    this disables the annoying double click highlighting of DIV blocks 
+	see more meta options at https://matt.might.net/articles/how-to-native-iphone-ipad-apps-in-javascript/  
+*/
+::placeholder {  /* sets color for input placeholder text  */
+  color: #E3CED7; font-style:italic;
+  opacity: 1; /* Firefox */
+}
+div { margin:0; padding:0; outline-style:none; scrollbar-gutter:stable;}
+div:hover { cursor:inherit; }
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover { background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0; position:fixed;">
+<script type="module">
+// beads ver 0.56 compiled Sun Mar 24 20:15:01 GMT-0700 2024
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_056/beads_std.js';
+import * as std from '../../runtime_056/beads_std.js';
+import * as str from '../../runtime_056/beads_str.js';
+export const CODE_HASH = 0xc0c810e4;
+const _M = std.MODULES.push("bearsweeper")-1;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
+//------- enums
+const PHASE_DIFFICULTY=9007192635471218; std.ENUMS[9007192635471218]="PHASE_DIFFICULTY";
+const F_sq=9007193631730328; std.ENUMS[9007193631730328]="sq"; std.FIELDS[F_sq]=!0;
+const PHASE_ABOUT=9007191625182368; std.ENUMS[9007191625182368]="PHASE_ABOUT";
+const GAME_WON=9007193995190418; std.ENUMS[9007193995190418]="GAME_WON";
+const F_result=9007191138283529; std.ENUMS[9007191138283529]="result"; std.FIELDS[F_result]=!0;
+const F_hint=9007190752509673; std.ENUMS[9007190752509673]="hint"; std.FIELDS[F_hint]=!0;
+const F_is_mine=9007193940567446; std.ENUMS[9007193940567446]="is_mine"; std.FIELDS[F_is_mine]=!0;
+const F_congrats_active=9007191164270736; std.ENUMS[9007191164270736]="congrats_active"; std.FIELDS[F_congrats_active]=!0;
+const GAME_LOST=9007194041844360; std.ENUMS[9007194041844360]="GAME_LOST";
+const F_phase=9007191668180263; std.ENUMS[9007191668180263]="phase"; std.FIELDS[F_phase]=!0;
+const F_help_active=9007190350404342; std.ENUMS[9007190350404342]="help_active"; std.FIELDS[F_help_active]=!0;
+const F_clock_used=9007194046573082; std.ENUMS[9007194046573082]="clock_used"; std.FIELDS[F_clock_used]=!0;
+const F_nmines=9007190169605222; std.ENUMS[9007190169605222]="nmines"; std.FIELDS[F_nmines]=!0;
+const R_a_state=9007192953576597; std.ENUMS[9007192953576597]="a_state";
+const F_is_flagged=9007190225504625; std.ENUMS[9007190225504625]="is_flagged"; std.FIELDS[F_is_flagged]=!0;
+const F_flags_avail=9007190791936683; std.ENUMS[9007190791936683]="flags_avail"; std.FIELDS[F_flags_avail]=!0;
+const F_is_swept=9007193877004346; std.ENUMS[9007193877004346]="is_swept"; std.FIELDS[F_is_swept]=!0;
+const PHASE_END=9007191267744416; std.ENUMS[9007191267744416]="PHASE_END";
+const CLOCK=9007191950066231; std.ENUMS[9007191950066231]="CLOCK";
+const F_clock_running=9007193393375066; std.ENUMS[9007193393375066]="clock_running"; std.FIELDS[F_clock_running]=!0;
+const F_nc=9007193938111707; std.ENUMS[9007193938111707]="nc"; std.FIELDS[F_nc]=!0;
+const PHASE_OPENING=9007191547909369; std.ENUMS[9007191547909369]="PHASE_OPENING";
+const F_n_unswept=9007191230229369; std.ENUMS[9007191230229369]="n_unswept"; std.FIELDS[F_n_unswept]=!0;
+const R_a_square=9007192556043839; std.ENUMS[9007192556043839]="a_square";
+const PHASE_GAME=9007190290788353; std.ENUMS[9007190290788353]="PHASE_GAME";
+//-------  func const for bearsweeper
+const d_butt_help_F = new std.a_function(_M, "d_butt_help", d_butt_help, d_butt_help_track);
+std.FUNCS[d_butt_help_F.hash]=d_butt_help_F;
+const d_difficulty_234_F = new std.a_function(_M, "d_difficulty_234", d_difficulty_234);
+std.FUNCS[d_difficulty_234_F.hash]=d_difficulty_234_F;
+const do_tick_F = new std.a_function(_M, "do_tick", do_tick);
+std.FUNCS[do_tick_F.hash]=do_tick_F;
+const d_difficulty_F = new std.a_function(_M, "d_difficulty", d_difficulty);
+std.FUNCS[d_difficulty_F.hash]=d_difficulty_F;
+const d_status_F = new std.a_function(_M, "d_status", d_status);
+std.FUNCS[d_status_F.hash]=d_status_F;
+const d_game_280_F = new std.a_function(_M, "d_game_280", d_game_280);
+std.FUNCS[d_game_280_F.hash]=d_game_280_F;
+const butt_difficulty_F = new std.a_function(_M, "butt_difficulty", butt_difficulty, butt_difficulty_track);
+std.FUNCS[butt_difficulty_F.hash]=butt_difficulty_F;
+const d_butt_hint_F = new std.a_function(_M, "d_butt_hint", d_butt_hint, d_butt_hint_track);
+std.FUNCS[d_butt_hint_F.hash]=d_butt_hint_F;
+const d_face_F = new std.a_function(_M, "d_face", d_face, d_face_track);
+std.FUNCS[d_face_F.hash]=d_face_F;
+const d_bear_F = new std.a_function(_M, "d_bear", d_bear);
+std.FUNCS[d_bear_F.hash]=d_bear_F;
+const d_board_F = new std.a_function(_M, "d_board", d_board);
+std.FUNCS[d_board_F.hash]=d_board_F;
+const butt_start_F = new std.a_function(_M, "butt_start", butt_start, butt_start_track);
+std.FUNCS[butt_start_F.hash]=butt_start_F;
+const butt_about_F = new std.a_function(_M, "butt_about", butt_about, butt_about_track);
+std.FUNCS[butt_about_F.hash]=butt_about_F;
+const d_status2_F = new std.a_function(_M, "d_status2", d_status2);
+std.FUNCS[d_status2_F.hash]=d_status2_F;
+const d_flagcount_F = new std.a_function(_M, "d_flagcount", d_flagcount);
+std.FUNCS[d_flagcount_F.hash]=d_flagcount_F;
+const d_about_224_F = new std.a_function(_M, "d_about_224", d_about_224);
+std.FUNCS[d_about_224_F.hash]=d_about_224_F;
+const d_help_F = new std.a_function(_M, "d_help", d_help, d_help_track);
+std.FUNCS[d_help_F.hash]=d_help_F;
+const d_board2_F = new std.a_function(_M, "d_board2", d_board2, d_board2_track);
+std.FUNCS[d_board2_F.hash]=d_board2_F;
+const d_clock_F = new std.a_function(_M, "d_clock", d_clock);
+std.FUNCS[d_clock_F.hash]=d_clock_F;
+const d_about_218_F = new std.a_function(_M, "d_about_218", d_about_218);
+std.FUNCS[d_about_218_F.hash]=d_about_218_F;
+const d_about_215_F = new std.a_function(_M, "d_about_215", d_about_215);
+std.FUNCS[d_about_215_F.hash]=d_about_215_F;
+const butt_back_F = new std.a_function(_M, "butt_back", butt_back, butt_back_track);
+std.FUNCS[butt_back_F.hash]=butt_back_F;
+const d_opening_F = new std.a_function(_M, "d_opening", d_opening);
+std.FUNCS[d_opening_F.hash]=d_opening_F;
+const d_about_F = new std.a_function(_M, "d_about", d_about);
+std.FUNCS[d_about_F.hash]=d_about_F;
+const d_opening_163_F = new std.a_function(_M, "d_opening_163", d_opening_163);
+std.FUNCS[d_opening_163_F.hash]=d_opening_163_F;
+const d_congrats_F = new std.a_function(_M, "d_congrats", d_congrats, d_congrats_track);
+std.FUNCS[d_congrats_F.hash]=d_congrats_F;
+const fresh_game_F = new std.a_function(_M, "fresh_game", fresh_game);
+std.FUNCS[fresh_game_F.hash]=fresh_game_F;
+const d_game_F = new std.a_function(_M, "d_game", d_game);
+std.FUNCS[d_game_F.hash]=d_game_F;
+const d_about_221_F = new std.a_function(_M, "d_about_221", d_about_221);
+std.FUNCS[d_about_221_F.hash]=d_about_221_F;
+//-------  top nodes
+const BEAR = new std.a_image("art/bear.png","BEAR",false);
+const BEAR2 = new std.a_image("art/bear2.jpeg","BEAR2",false);
+const BEEP = new std.a_sound("art/snd_beep.mp3");
+const SOUND_LOST = new std.a_sound("art/snd_bear.mp3");
+const SOUND_WON = new std.a_sound("art/snd_ta_da.mp3");
+
+const TRACE = N;
+const FORCE_GAME_PHASE = N;
+const SCAFFOLDING = N;
+const C_BUTT_FORE = 0xB0CAED;
+const C_DIFF_FORE = 0xFAA5BA;
+const C_PUKE = 0xBAEC97;
+const C_SWEPT_BACK = 0xB2CFFB;
+const C_TABLE = new std.a_tree(_M,"C_TABLE", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 24, 1, VAL, std.BLUE, 2, VAL, std.GREEN, 3, VAL, std.RED, 4, VAL, std.CYAN, 5, VAL, 
+std.BLACK, 6, VAL, std.GRAY, 7, VAL, std.BLACK, 8, VAL, std.BLACK));
+
+var g = new std.a_tree(_M,"g", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+
+//====================
+//   butt_about
+//====================
+function butt_about(b) {
+std.k_enter(b);
+  var r = new std.a_tree(_M,"r", 0, std.solve_rect({ basis:adr(b.extra, std.F_box), pin:std.MID_CENTER, width:std.mul(b.bounds.height, 2.2) }));
+  std.draw_rect(b, { box:std.adr(r), color:C_BUTT_FORE, thick:std.pt_to_dots(b, 1.5), corner:std.pt_to_dots(b, 5) });
+  std.draw_str(b, "About", { box:std.adr(r), size:0.35, color:C_BUTT_FORE });
+std.k_leave(b);
+}
+
+
+//====================
+//   butt_about_track
+//====================
+function butt_about_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 260192, std.adr(g, F_phase), PHASE_ABOUT);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   butt_back
+//====================
+function butt_back(b) {
+std.k_enter(b);
+  var fore = std.eq2(getn(g, F_phase), PHASE_GAME) ? std.BLACK : std.WHITE;
+  std.draw_str(b, "⬅ Back", { size:0.7, indent:std.pt_to_dots(b, 12), just:std.LEFT, color:fore });
+std.k_leave(b);
+}
+
+
+//====================
+//   butt_back_track
+//====================
+function butt_back_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    var case814 = getn(g, F_phase);
+    if (case814 === PHASE_ABOUT || case814 === PHASE_DIFFICULTY) {
+      std.path_setv(_M, 190203, std.adr(g, F_phase), PHASE_OPENING);
+    } else {
+      std.path_setv(_M, 190205, std.adr(g, F_phase), PHASE_DIFFICULTY);
+      clock_run(N);
+    }
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   butt_difficulty
+//====================
+function butt_difficulty(b, prompt, ncells, nmines) {
+std.k_enter(b);
+  var r = new std.a_tree(_M,"r", 0, std.solve_rect({ basis:adr(b.extra, std.F_box), pin:std.MID_CENTER, width:std.mul(b.bounds.height, 2.2) }));
+  std.draw_rect(b, { box:std.adr(r), color:C_DIFF_FORE, thick:std.pt_to_dots(b, 2), corner:std.pt_to_dots(b, 5) });
+  std.draw_str(b, prompt, { box:std.adr(r), size:std.mul(getn(r, std.F_height), 0.4), color:C_DIFF_FORE });
+std.k_leave(b);
+}
+
+
+//====================
+//   butt_difficulty_track
+//====================
+function butt_difficulty_track(b, e, prompt, ncells, nmines) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 430254, std.adr(g, F_nc), ncells);
+    std.path_setv(_M, 430255, std.adr(g, F_nmines), nmines);
+    std.path_setv(_M, 430256, std.adr(g, F_phase), PHASE_GAME);
+    fresh_game();
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   butt_start
+//====================
+function butt_start(b) {
+std.k_enter(b);
+  var r = new std.a_tree(_M,"r", 0, std.solve_rect({ basis:adr(b.extra, std.F_box), pin:std.MID_CENTER, width:std.mul(b.bounds.height, 2.2) }));
+  std.draw_rect(b, { box:std.adr(r), color:C_BUTT_FORE, thick:std.pt_to_dots(b, 1.5), corner:std.pt_to_dots(b, 5) });
+  std.draw_str(b, "Start", { box:std.adr(r), size:0.35, color:C_BUTT_FORE });
+std.k_leave(b);
+}
+
+
+//====================
+//   butt_start_track
+//====================
+function butt_start_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 240183, std.adr(g, F_phase), PHASE_DIFFICULTY);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_about
+//====================
+function d_about(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 1, 8, std.al, U, U);
+  std.div_add(b, U, 1, 11, std.al, U, U, butt_back_F, 0);
+  std.div_spa(b, 1, 40, std.al, U, U);
+  std.div_add(b, U, 1, 11, std.al, U, U, d_about_215_F, 0);
+  std.div_spa(b, 1, 4, std.al, U, U);
+  std.div_add(b, U, 1, 60, std.al, U, U, d_about_218_F, 0);
+  std.div_spa(b, 1, 4, std.al, U, U);
+  std.div_add(b, U, 1, 11, std.al, U, U, d_about_221_F, 0);
+  std.div_spa(b, 1, 50, std.al, U, U);
+  std.div_add(b, U, 1, 7, std.al, U, U, d_about_224_F, 0);
+  std.div_spa(b, 1, 8, std.al, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_bear
+//====================
+function d_bear(b) {
+std.k_enter(b);
+  std.draw_image(b, BEAR, { aspect:Y });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_board
+//====================
+function d_board(b, boardh) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 0, 10, std.al, U, U);
+  std.div_add(b, U, 0, boardh, std.px, U, U, d_board2_F, 0);
+  std.div_spa(b, 0, 10, std.al, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_board2
+//====================
+function d_board2(b) {
+std.k_enter(b);
+std.div_begin(b, new std.a_function(_M, "d_board2_cell", d_board2_cell, null), false, false, false);
+  var loop815 = new std.a_loop({ reps:getn(g, F_nc) });
+  while (loop815.next()) {
+  var ix = loop815.count;
+    if (std.gt2(ix, 1)) {
+      std.div_spa(b, 0, 3, std.al, U, U);
+    }
+    std.div_add(b, U, 0, 35, std.al, U, U, null, 0);
+  }
+  var loop816 = new std.a_loop({ reps:getn(g, F_nc) });
+  while (loop816.next()) {
+  var ix = loop816.count;
+    if (std.gt2(ix, 1)) {
+      std.div_spa(b, 1, 3, std.al, U, U);
+    }
+    std.div_add(b, U, 1, 35, std.al, U, U, null, 0);
+  }
+  std.div_end(b);
+  std.draw_grid(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_board2_cell
+//====================
+function d_board2_cell(b) {
+  std.k_enter(b);
+  var square = std.adr(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y));
+  if ((getn(square, F_is_swept) === Y && getn(square, F_is_mine) === Y)) {
+    std.draw_rect(b, { fill:0xAC0B4F, corner:std.div(b.bounds.height, 11) });
+    std.draw_image(b, BEAR, { aspect:Y, indent:std.div(b.bounds.height, 10) });
+  } else if (getn(square, F_is_swept) === Y) {
+    std.draw_rect(b, { fill:C_SWEPT_BACK, corner:std.div(b.bounds.height, 11) });
+    if (std.gt2(getn(square, F_nmines), 0)) {
+      std.draw_str(b, getn(square, F_nmines), { size:0.6, color:getn(C_TABLE, getn(square, F_nmines)) });
+    }
+  } else {
+    std.draw_rect(b, { fill:C_PUKE, corner:std.div(b.bounds.height, 11) });
+  }
+  if (getn(square, F_is_flagged) === Y) {
+    std.draw_str(b, "⛳", { size:0.8 });
+  }
+  if ((std.eq2(getn(b.extra, std.F_cell, std.F_x),getn(g, F_hint, std.F_x)) && std.eq2(getn(b.extra, std.F_cell, std.F_y),getn(g, F_hint, std.F_y)))) {
+    std.draw_str(b, "HINT", { size:0.5, opacity:0.5, indent:std.pt_to_dots(b, 4) });
+  }
+  std.k_leave(b);
+}
+
+//====================
+//   d_board2_track
+//====================
+function d_board2_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    if ((getn(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_flagged) === Y || getn(g, F_result) !== U)) {
+      std.sound_play(BEEP, {});
+      return Y;
+    }
+    if (getn(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_mine) === Y) {
+      std.path_setv(_M, 110458, std.adr(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_swept), Y);
+      std.path_setv(_M, 110460, std.adr(g, F_result), GAME_LOST);
+      clock_run(N);
+      std.trunc_tree(_M, 110462, std.adr(g, F_hint));
+      std.sound_play(SOUND_LOST, {});
+    } else {
+      sweep(adr(b.extra, std.F_cell));
+      clock_run(Y);
+      if (std.eq2(getn(g, F_n_unswept), 0)) {
+        std.path_setv(_M, 110476, std.adr(g, F_result), GAME_WON);
+        std.path_setv(_M, 110477, std.adr(g, F_congrats_active), Y);
+        clock_run(N);
+        std.sound_play(SOUND_WON, {});
+      }
+    }
+  return Y;
+  } else 
+  //---------------
+  //   on EV_ALT_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_ALT_TAP) {
+    clock_run(Y);
+    if (getn(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_swept) === Y) {
+      std.sound_play(BEEP, {});
+    } else if (getn(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_flagged) === Y) {
+      std.path_setv(_M, 110490, std.adr(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_flagged), N);
+      std.tree_add(_M, 110491, 1, std.adr(g, F_flags_avail));
+    } else if (std.gt2(getn(g, F_flags_avail), 0)) {
+      std.path_setv(_M, 110494, std.adr(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_flagged), Y);
+      std.tree_sub(_M, 110495, 1, std.adr(g, F_flags_avail));
+    } else {
+      std.sound_play(BEEP, {});
+    }
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_butt_help
+//====================
+function d_butt_help(b) {
+std.k_enter(b);
+  std.draw_rect(b, { color:C_PUKE, thick:std.pt_to_dots(b, 2), corner:std.div(b.bounds.height, 7), pos:0 });
+  std.draw_str(b, "ℹ\ufe0f", { size:0.7, color:std.BLACK, vert:0.8 });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_butt_help_track
+//====================
+function d_butt_help_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 50361, std.adr(g, F_help_active), Y);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_butt_hint
+//====================
+function d_butt_hint(b) {
+std.k_enter(b);
+  std.draw_rect(b, { color:C_PUKE, thick:std.pt_to_dots(b, 2), corner:std.div(b.bounds.height, 7), pos:0 });
+  std.draw_str(b, "💡", { size:0.7, color:std.BLACK, vert:0.8 });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_butt_hint_track
+//====================
+function d_butt_hint_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    var hintlist = new std.a_tree(_M,"hintlist", 0);
+    var loop817 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
+    while (loop817.next()) {
+    var col = loop817.index;
+      var loop818 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
+      while (loop818.next()) {
+      var row = loop818.index;
+        if ((getn(g, F_sq, col, row, F_is_swept) === N && getn(g, F_sq, col, row, F_is_mine) !== Y)) {
+          std.append_tree(_M, 270383, std.tree_lit(_M, 270383, std.F_x, VAL, col, std.F_y, VAL, row), std.adr(hintlist));
+        }
+      }
+    }
+    std.copy_tree(_M, 270386, std.adr(hintlist, std.random_int(1, std.count(std.adr(hintlist)))), std.adr(g, F_hint));
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_clock
+//====================
+function d_clock(b) {
+std.k_enter(b);
+  std.draw_str(b, str.time_to_str("[iso time]", { time:getn(g, F_clock_used), city:std.TIMEZONE_GMT }), { font:"_typewriter", size:0.7, color:std.BLACK });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_congrats
+//====================
+function d_congrats(b) {
+std.k_enter(b);
+  std.k_back(b, {fill:std.WHITE, opacity:0.8});
+  var boxw = std.min(std.mul(b.bounds.width, 0.5), std.pt_to_dots(b, 280));
+  var r = new std.a_tree(_M,"r", 0, std.solve_rect({ basis:adr(b.extra, std.F_box), pin:std.MID_CENTER, width:boxw, height:std.mul(boxw, 0.6) }));
+  std.draw_rect(b, { box:std.adr(r), fill:std.WHITE, color:std.GRAY, thick:std.pt_to_dots(b, 2), corner:std.pt_to_dots(b, 2) });
+  std.draw_str(b, std.cat("Congratulations\n\nYou've won the game in just ", str.to_str(getn(g, F_clock_used), {dig:2}), " seconds!\nTo start again, click the emoji face"), 
+  { box:std.adr(r), indent:std.pt_to_dots(b, 10), vert:0.2, size:std.div(getn(r, std.F_height), 9) });
+  var r2 = new std.a_tree(_M,"r2", 0, std.solve_rect({ basis:std.adr(r), pin:std.BOT_CENTER, dy:std.mul(std.negate(getn(r, std.F_height)), 0.15), width:std.div(getn(r, std.F_width
+  ), 4), height:std.div(getn(r, std.F_height), 6) }));
+  std.draw_rect(b, { box:std.adr(r2), color:std.CRIMSON, thick:std.pt_to_dots(b, 2) });
+  std.draw_str(b, "OK", { box:std.adr(r2), size:std.mul(getn(r2, std.F_height), 0.5), color:std.CRIMSON });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_congrats_track
+//====================
+function d_congrats_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 380301, std.adr(g, F_congrats_active), N);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_difficulty
+//====================
+function d_difficulty(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 1, 8, std.al, U, U);
+  std.div_add(b, U, 1, 9, std.al, U, U, butt_back_F, 0);
+  std.div_spa(b, 1, 51, std.al, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, d_difficulty_234_F, 0);
+  std.div_spa(b, 1, 4, std.al, U, U);
+  std.div_add(b, U, 1, 17, std.al, U, U, std.freeze(butt_difficulty_F, ["Easy", 8, 5]), 0);
+  std.div_spa(b, 1, 4, std.al, U, U);
+  std.div_add(b, U, 1, 17, std.al, U, U, std.freeze(butt_difficulty_F, ["Medium", 12, 15]), 0);
+  std.div_spa(b, 1, 4, std.al, U, U);
+  std.div_add(b, U, 1, 17, std.al, U, U, std.freeze(butt_difficulty_F, ["Hard", 16, 30]), 0);
+  std.div_spa(b, 1, 63, std.al, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_face
+//====================
+function d_face(b) {
+std.k_enter(b);
+  var ss = function(x_){switch(x_){ case GAME_WON: return "😍";
+   case GAME_LOST: return "😭";
+   default: return "😏" }}(getn(g, F_result));
+  std.draw_str(b, ss, { size:0.9, color:std.BLACK, vert:0.7 });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_face_track
+//====================
+function d_face_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    fresh_game();
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_flagcount
+//====================
+function d_flagcount(b) {
+std.k_enter(b);
+  std.draw_str(b, std.cat("", str.to_str(getn(g, F_flags_avail), {dig:2}), "/", str.to_str(getn(g, F_nmines), {dig:2}), " flags"), { font:"_typewriter", size:0.7, color:std.BLACK
+   });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_game
+//====================
+function d_game(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.k_back(b, {fill:0xFEFB9E});
+  var board_size = std.mul(std.min(b.bounds.height, b.bounds.width), 0.8);
+  var status_v = std.min(std.pt_to_dots(b, 60), std.mul(b.bounds.height, 0.2));
+  var butt_v = std.min(std.pt_to_dots(b, 60), std.mul(b.bounds.height, 14));
+  var status_h = std.lt2(b.bounds.width, std.mul(status_v, 20)) ? std.mul(b.bounds.width, 0.9) : board_size;
+  std.div_spa(b, 1, 4, std.al, U, U);
+  std.div_add(b, U, 1, butt_v, std.px, U, U, butt_back_F, 0);
+  std.div_spa(b, 1, 10, std.al, U, U);
+  std.div_add(b, U, 1, status_v, std.px, U, U, std.freeze(d_status_F, [status_h]), 0);
+  std.div_spa(b, 1, 10, std.al, U, U);
+  std.div_add(b, U, 1, board_size, std.px, U, U, std.freeze(d_board_F, [board_size]), 0);
+  std.div_spa(b, 1, 25, std.al, U, U);
+  if (std.rect_is_portrait(adr(b.extra, std.F_box)) === Y) {
+    std.div_add(b, U, 1, 18, std.al, U, U, d_game_280_F, 0);
+  }
+  std.div_spa(b, 1, 5, std.al, U, U);
+  std.div_spa(b, 1, 8, std.pt, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_help
+//====================
+function d_help(b) {
+std.k_enter(b);
+  std.k_back(b, {fill:std.WHITE, opacity:0.8});
+  var boxw = std.min(std.mul(b.bounds.width, 0.5), std.pt_to_dots(b, 320));
+  var r = new std.a_tree(_M,"r", 0, std.solve_rect({ basis:adr(b.extra, std.F_box), pin:std.MID_CENTER, width:boxw, height:std.mul(boxw, 0.6) }));
+  std.draw_rect(b, { box:std.adr(r), fill:std.WHITE, color:std.GRAY, thick:std.pt_to_dots(b, 2), corner:std.pt_to_dots(b, 2) });
+  std.draw_str(b, "Instructions\n\n- Click any tile to start game\n- Right click a tile to flag/unflag\n- Click the hint icon to safely reveal tile\n- To restart game, press the emoji face"
+  , { box:std.adr(r), indent:std.pt_to_dots(b, 14), vert:0.2, size:std.div(getn(r, std.F_height), 13) });
+  var r2 = new std.a_tree(_M,"r2", 0, std.solve_rect({ basis:std.adr(r), pin:std.BOT_CENTER, dy:std.mul(std.negate(getn(r, std.F_height)), 0.15), width:std.div(getn(r, std.F_width
+  ), 4), height:std.div(getn(r, std.F_height), 6) }));
+  std.draw_rect(b, { box:std.adr(r2), color:std.CRIMSON, thick:std.pt_to_dots(b, 2) });
+  std.draw_str(b, "OK", { box:std.adr(r2), size:std.mul(getn(r2, std.F_height), 0.5), color:std.CRIMSON });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_help_track
+//====================
+function d_help_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 410325, std.adr(g, F_help_active), N);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_opening
+//====================
+function d_opening(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 1, 40, std.al, U, U);
+  std.div_add(b, U, 1, 80, std.al, U, U, d_bear_F, 0);
+  std.div_spa(b, 1, 4, std.al, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, d_opening_163_F, 0);
+  std.div_spa(b, 1, 4, std.al, U, U);
+  std.div_add(b, U, 1, 16, std.al, U, U, butt_start_F, 0);
+  std.div_spa(b, 1, 4, std.al, U, U);
+  std.div_add(b, U, 1, 16, std.al, U, U, butt_about_F, 0);
+  std.div_spa(b, 1, 30, std.al, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_status
+//====================
+function d_status(b, boardh) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 0, 10, std.al, U, U);
+  std.div_add(b, U, 0, boardh, std.px, U, U, d_status2_F, 0);
+  std.div_spa(b, 0, 10, std.al, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_status2
+//====================
+function d_status2(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  var vv = b.bounds.height;
+  std.div_add(b, U, 0, vv, std.px, U, U, d_butt_help_F, 0);
+  std.div_spa(b, 0, 10, std.pt, U, U);
+  std.div_add(b, U, 0, 82, std.al, U, U, d_clock_F, 0);
+  std.div_spa(b, 0, 10, std.pt, U, U);
+  std.div_add(b, U, 0, vv, std.px, U, U, d_face_F, 0);
+  std.div_spa(b, 0, 10, std.pt, U, U);
+  std.div_add(b, U, 0, 82, std.al, U, U, d_flagcount_F, 0);
+  std.div_spa(b, 0, 10, std.pt, U, U);
+  if ((getn(g, F_result) === U && getn(g, F_hint, std.F_x) === U)) {
+    std.div_add(b, U, 0, vv, std.px, U, U, d_butt_hint_F, 0);
+  } else {
+    std.div_spa(b, 0, vv, std.px, U, U);
+  }
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+  std.k_back(b, {fill:0x282D33});
+  var case819 = getn(g, F_phase);
+  if (case819 === PHASE_OPENING) {
+    d_opening(b);
+  } else if (case819 === PHASE_ABOUT) {
+    d_about(b);
+  } else if (case819 === PHASE_DIFFICULTY) {
+    d_difficulty(b);
+  } else if (case819 === PHASE_GAME) {
+    d_game(b);
+    if (getn(g, F_help_active) === Y) {
+      std.k_isolate(b, b.bounds, "d_help", d_help_F);
+    }
+    if (getn(g, F_congrats_active) === Y) {
+      std.k_isolate(b, b.bounds, "d_congrats", d_congrats_F);
+    }
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   clock_run
+//====================
+function clock_run(target) {
+  if (std.ne2(getn(g, F_clock_running), target)) {
+    if (target === Y) {
+      std.timer_start(do_tick_F, { delay:std.meas(1, std.N_sec, std.Y_Time), interval:std.meas(1, std.N_sec, std.Y_Time), interval_mon:std.meas(30, std.N_sec, std.Y_Time), reps:
+      std.INFINITY, group:CLOCK });
+    } else {
+      std.timer_clear({ group:CLOCK });
+    }
+    std.path_setv(_M, 90099, std.adr(g, F_clock_running), target);
+  }
+}
+
+
+//====================
+//   do_tick
+//====================
+function do_tick() {
+  std.tree_add(_M, 30104, 1, std.adr(g, F_clock_used));
+}
+
+
+//====================
+//   fresh_game
+//====================
+function fresh_game() {
+  std.path_setv(_M, 440111, std.adr(g, F_result), U);
+  std.path_setv(_M, 440112, std.adr(g, F_n_unswept), std.sub(std.exp(getn(g, F_nc), 2, 1), getn(g, F_nmines)));
+  std.path_setv(_M, 440113, std.adr(g, F_flags_avail), getn(g, F_nmines));
+  std.path_setv(_M, 440114, std.adr(g, F_help_active), N);
+  std.path_setv(_M, 440115, std.adr(g, F_congrats_active), N);
+  std.trunc_tree(_M, 440116, std.adr(g, F_hint));
+  std.path_setv(_M, 440117, std.adr(g, F_clock_used), 0);
+  clock_run(N);
+  std.trunc_tree(_M, 440121, std.adr(g, F_sq));
+  var loop820 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
+  while (loop820.next()) {
+  var col = loop820.index;
+    var loop821 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
+    while (loop821.next()) {
+    var row = loop821.index;
+      std.path_setv(_M, 440124, std.adr(g, F_sq, col, row, F_is_swept), N);
+      std.path_setv(_M, 440125, std.adr(g, F_sq, col, row, F_nmines), 0);
+    }
+  }
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.path_setv(_M, 370059, std.adr(g, F_phase), PHASE_OPENING);
+  if (FORCE_GAME_PHASE === Y) {
+    std.path_setv(_M, 370062, std.adr(g, F_phase), PHASE_GAME);
+    std.path_setv(_M, 370063, std.adr(g, F_nc), 4);
+    std.path_setv(_M, 370064, std.adr(g, F_nmines), 4);
+    fresh_game();
+  }
+  if (SCAFFOLDING === Y) {
+    std.path_setv(_M, 370069, std.adr(g, F_sq, 1, 1, F_is_swept), Y);
+    std.path_setv(_M, 370070, std.adr(g, F_sq, 1, 1, F_nmines), 1);
+    std.path_setv(_M, 370071, std.adr(g, F_sq, 1, 2, F_is_flagged), Y);
+    std.path_setv(_M, 370072, std.adr(g, F_sq, 1, 2, F_nmines), 1);
+    std.path_setv(_M, 370073, std.adr(g, F_sq, 2, 2, F_is_swept), Y);
+    std.path_setv(_M, 370074, std.adr(g, F_sq, 2, 2, F_nmines), 2);
+    std.path_setv(_M, 370075, std.adr(g, F_sq, 3, 3, F_is_swept), Y);
+    std.path_setv(_M, 370076, std.adr(g, F_sq, 3, 3, F_nmines), 3);
+    std.path_setv(_M, 370077, std.adr(g, F_sq, 4, 4, F_is_swept), Y);
+    std.path_setv(_M, 370078, std.adr(g, F_sq, 4, 4, F_nmines), 4);
+    std.tree_sub(_M, 370079, 1, std.adr(g, F_flags_avail));
+    std.path_setv(_M, 370080, std.adr(g, F_clock_used), 62);
+    std.path_setv(_M, 370081, std.adr(g, F_hint, std.F_x), 3);
+    std.path_setv(_M, 370082, std.adr(g, F_hint, std.F_y), 1);
+  }
+}
+
+
+//====================
+//   place_mines
+//====================
+function place_mines(avoid) {
+  var nplanted = 0;
+  var loop822 = new std.a_loop({  });
+  while (loop822.next()) {
+    var try_ = new std.a_tree(_M,"try_", 0, std.tree_lit(_M, 420542, std.F_x, VAL, std.random_int(1, getn(g, F_nc)), std.F_y, VAL, std.random_int(1, getn(g, F_nc))));
+    if ((getn(g, F_sq, getn(try_, std.F_x), getn(try_, std.F_y), F_is_mine) !== Y && (std.ne2(getn(try_, std.F_x),getn(avoid, std.F_x)) || std.ne2(getn(try_, std.F_y),getn(avoid
+    , std.F_y))))) {
+      std.path_setv(_M, 420545, std.adr(g, F_sq, getn(try_, std.F_x), getn(try_, std.F_y), F_is_mine), Y);
+      update_count(std.adr(try_));
+      nplanted = std.add(nplanted, 1);
+    }
+  if (std.eq4(nplanted, getn(g, F_nmines)) !== N)
+    break;
+  }
+}
+
+
+//====================
+//   reveal_all_mines
+//====================
+function reveal_all_mines() {
+  var loop823 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
+  while (loop823.next()) {
+  var col = loop823.index;
+    var loop824 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
+    while (loop824.next()) {
+    var row = loop824.index;
+      if (getn(g, F_sq, col, row, F_is_mine) === Y) {
+        std.path_setv(_M, 230569, std.adr(g, F_sq, col, row, F_is_swept), Y);
+      }
+    }
+  }
+}
+
+
+//====================
+//   sweep
+//====================
+function sweep(cell) {
+  if (std.eq2(getn(g, F_n_unswept), std.sub(std.exp(getn(g, F_nc), 2, 1), getn(g, F_nmines)))) {
+    place_mines(cell);
+  }
+  std.path_setv(_M, 70512, std.adr(g, F_sq, getn(cell, std.F_x), getn(cell, std.F_y), F_is_swept), Y);
+  std.tree_sub(_M, 70513, 1, std.adr(g, F_n_unswept));
+  std.trunc_tree(_M, 70514, std.adr(g, F_hint));
+  if (std.eq2(getn(g, F_sq, getn(cell, std.F_x), getn(cell, std.F_y), F_nmines), 0)) {
+    var neighbor = new std.a_tree(_M,"neighbor", 0);
+    var loop825 = new std.a_loop({ from:-1, to_:1 });
+    while (loop825.next()) {
+    var dx = loop825.index;
+      var loop826 = new std.a_loop({ from:-1, to_:1 });
+      while (loop826.next()) {
+      var dy = loop826.index;
+        std.path_setv(_M, 70525, std.adr(neighbor, std.F_x), std.add(getn(cell, std.F_x), dx));
+        std.path_setv(_M, 70526, std.adr(neighbor, std.F_y), std.add(getn(cell, std.F_y), dy));
+        if ((getn(g, F_sq, getn(neighbor, std.F_x), getn(neighbor, std.F_y), F_is_swept) === N && getn(g, F_sq, getn(neighbor, std.F_x), getn(neighbor, std.F_y), F_is_mine) !== Y)
+        ) {
+          sweep(std.adr(neighbor));
+        }
+      }
+    }
+  }
+}
+
+
+//====================
+//   update_count
+//====================
+function update_count(mine) {
+  var loop827 = new std.a_loop({ from:std.sub(getn(mine, std.F_x), 1), to_:std.add(getn(mine, std.F_x), 1) });
+  while (loop827.next()) {
+  var dx = loop827.index;
+    var loop828 = new std.a_loop({ from:std.sub(getn(mine, std.F_y), 1), to_:std.add(getn(mine, std.F_y), 1) });
+    while (loop828.next()) {
+    var dy = loop828.index;
+      if (getn(g, F_sq, dx, dy, F_is_swept) === N) {
+        std.tree_add(_M, 180560, 1, std.adr(g, F_sq, dx, dy, F_nmines));
+      }
+    }
+  }
+}
+
+
+//====================
+//   d_about_215
+//====================
+function d_about_215(b) {
+std.k_enter(b);
+  std.draw_str(b, "BearSweeper was originally written by Carol Chiew in Malaysia", { indent:std.pt_to_dots(b, 10), size:0.7, color:std.WHITE });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_about_218
+//====================
+function d_about_218(b) {
+std.k_enter(b);
+  std.draw_image(b, BEAR2, { aspect:Y });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_about_221
+//====================
+function d_about_221(b) {
+std.k_enter(b);
+  std.draw_str(b, "and it is now cloned in Beads", { indent:std.pt_to_dots(b, 10), size:0.7, color:std.WHITE });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_about_224
+//====================
+function d_about_224(b) {
+std.k_enter(b);
+  std.draw_str(b, "© 2019 edj", { size:0.7, color:std.WHITE });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_difficulty_234
+//====================
+function d_difficulty_234(b) {
+std.k_enter(b);
+  std.draw_str(b, "Choose your difficulty", { size:0.7, color:std.WHITE });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_game_280
+//====================
+function d_game_280(b) {
+std.k_enter(b);
+  std.draw_str(b, "Enjoy BearSweeper!", { size:std.min(std.pt_to_dots(b, 50), std.mul(b.bounds.height, 0.7)), color:std.BLACK });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_opening_163
+//====================
+function d_opening_163(b) {
+std.k_enter(b);
+  std.draw_str(b, "Bear Sweeper", { size:0.7, color:std.WHITE });
+std.k_leave(b);
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "bearsweeper");
+main_init();
+std.rebuild_all();
+
+
+//  uncomment this to prevent accidental reload, useful for web apps that store input
+//   window.onbeforeunload = (event) => {
+// 	  const e = event || window.event;
+// 	  // Cancel the event
+// 	  e.preventDefault();
+// 	  if (e) {
+// 		e.returnValue = ''; // Legacy method for cross browser support
+// 	  }
+// 	  return ''; // Legacy method for cross browser support
+// 	}
+
+</script>
+</body>
+</html>
+

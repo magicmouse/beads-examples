@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="color-scheme" content="light dark">
+<title>Color Picker</title>
+<link rel="shortcut icon" href="data:,">
+<style>
+/*  the above empty icon shuts the favicon stuff up.
+	put stmt above style if you want favicon: <link rel="shortcut icon" href="favicon.ico" />
+    this disables the annoying double click highlighting of DIV blocks 
+	see more meta options at https://matt.might.net/articles/how-to-native-iphone-ipad-apps-in-javascript/  
+*/
+::placeholder {  /* sets color for input placeholder text  */
+  color: #E3CED7; font-style:italic;
+  opacity: 1; /* Firefox */
+}
+div { margin:0; padding:0; outline-style:none; scrollbar-gutter:stable;}
+div:hover { cursor:inherit; }
+
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover { background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0; position:fixed;">
+<script type="module">
+// beads ver 0.57 compiled Tue Jul 30 23:55:20 GMT-0700 2024
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_057/beads_std.js';
+import * as std from '../../runtime_057/beads_std.js';
+import * as str from '../../runtime_057/beads_str.js';
+export const CODE_HASH = 0x6ce0c9c4;
+const _M = std.MODULES.push("color_chart")-1;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw, main_draw_track);
+//------- enums
+const F_name=9007190800402099; std.ENUMS[9007190800402099]="name"; std.FIELDS[F_name]=!0;
+const R_a_slot=9007193235264524; std.ENUMS[9007193235264524]="a_slot";
+const F_selx_ptr=9007193212826961; std.ENUMS[9007193212826961]="selx_ptr"; std.FIELDS[F_selx_ptr]=!0;
+const FORMAT_HEX=9007193301062174; std.ENUMS[9007193301062174]="FORMAT_HEX";
+const F_sel_color=9007192691030632; std.ENUMS[9007192691030632]="sel_color"; std.FIELDS[F_sel_color]=!0;
+const F_label_func=9007191941311145; std.ENUMS[9007191941311145]="label_func"; std.FIELDS[F_label_func]=!0;
+const F_key3=9007192047265844; std.ENUMS[9007192047265844]="key3"; std.FIELDS[F_key3]=!0;
+const F_enabled=9007190189270801; std.ENUMS[9007190189270801]="enabled"; std.FIELDS[F_enabled]=!0;
+const F_prior_color=9007191861560316; std.ENUMS[9007191861560316]="prior_color"; std.FIELDS[F_prior_color]=!0;
+const F_format=9007190044619795; std.ENUMS[9007190044619795]="format"; std.FIELDS[F_format]=!0;
+const F_prior2_color=9007192941679678; std.ENUMS[9007192941679678]="prior2_color"; std.FIELDS[F_prior2_color]=!0;
+const FORMAT_VEC3=9007191809797126; std.ENUMS[9007191809797126]="FORMAT_VEC3";
+const F_is_open=9007191493292457; std.ENUMS[9007191493292457]="is_open"; std.FIELDS[F_is_open]=!0;
+const F_sizing=9007191915790290; std.ENUMS[9007191915790290]="sizing"; std.FIELDS[F_sizing]=!0;
+const F_ferrari_selx=9007192062281798; std.ENUMS[9007192062281798]="ferrari_selx"; std.FIELDS[F_ferrari_selx]=!0;
+const F_choice_func=9007193838393466; std.ENUMS[9007193838393466]="choice_func"; std.FIELDS[F_choice_func]=!0;
+const FORMAT_HTML=9007191751459116; std.ENUMS[9007191751459116]="FORMAT_HTML";
+const R_a_state=9007192953576597; std.ENUMS[9007192953576597]="a_state";
+const F_label_list=9007191676280395; std.ENUMS[9007191676280395]="label_list"; std.FIELDS[F_label_list]=!0;
+const F_input_field=9007192745597275; std.ENUMS[9007192745597275]="input_field"; std.FIELDS[F_input_field]=!0;
+const R_a_tabset=9007191267514725; std.ENUMS[9007191267514725]="a_tabset";
+const F_show_dpi=9007193225917213; std.ENUMS[9007193225917213]="show_dpi"; std.FIELDS[F_show_dpi]=!0;
+const F_key2=9007192064043463; std.ENUMS[9007192064043463]="key2"; std.FIELDS[F_key2]=!0;
+const F_mode_grid=9007193027891124; std.ENUMS[9007193027891124]="mode_grid"; std.FIELDS[F_mode_grid]=!0;
+const FORMAT_HSL=9007193571181364; std.ENUMS[9007193571181364]="FORMAT_HSL";
+const F_hilite=9007193844704215; std.ENUMS[9007193844704215]="hilite"; std.FIELDS[F_hilite]=!0;
+const R_a_choice_set=9007193148669828; std.ENUMS[9007193148669828]="a_choice_set";
+const FULL_SIZE=9007192426333106; std.ENUMS[9007192426333106]="FULL_SIZE";
+const F_nrows=9007194105500079; std.ENUMS[9007194105500079]="nrows"; std.FIELDS[F_nrows]=!0;
+const FORMAT_RGB=9007190492816928; std.ENUMS[9007190492816928]="FORMAT_RGB";
+const F_val_list=9007192993813256; std.ENUMS[9007192993813256]="val_list"; std.FIELDS[F_val_list]=!0;
+const F_key1=9007192080821082; std.ENUMS[9007192080821082]="key1"; std.FIELDS[F_key1]=!0;
+const F_clipboard_ss=9007190154157081; std.ENUMS[9007190154157081]="clipboard_ss"; std.FIELDS[F_clipboard_ss]=!0;
+const F_selx=9007192042983600; std.ENUMS[9007192042983600]="selx"; std.FIELDS[F_selx]=!0;
+const FORMAT_BEADS=9007193714185134; std.ENUMS[9007193714185134]="FORMAT_BEADS";
+const F_action=9007192789918218; std.ENUMS[9007192789918218]="action"; std.FIELDS[F_action]=!0;
+const F_htmlchip_selx=9007190490148256; std.ENUMS[9007190490148256]="htmlchip_selx"; std.FIELDS[F_htmlchip_selx]=!0;
+const F_sounds=9007192635542244; std.ENUMS[9007192635542244]="sounds"; std.FIELDS[F_sounds]=!0;
+const FORMAT_C=9007193229773678; std.ENUMS[9007193229773678]="FORMAT_C";
+const COMPACT_SIZE=9007192111913864; std.ENUMS[9007192111913864]="COMPACT_SIZE";
+const F_netc=9007190269801736; std.ENUMS[9007190269801736]="netc"; std.FIELDS[F_netc]=!0;
+const R_a_hex_cell=9007192139196942; std.ENUMS[9007192139196942]="a_hex_cell";
+//-------  func const for color_chart
+const d_checkbox_F = new std.a_function(_M, "d_checkbox", d_checkbox, d_checkbox_track);
+std.FUNCS[d_checkbox_F.hash]=d_checkbox_F;
+const ferr_first_ramp_1321_F = new std.a_function(_M, "ferr_first_ramp_1321", ferr_first_ramp_1321);
+std.FUNCS[ferr_first_ramp_1321_F.hash]=ferr_first_ramp_1321_F;
+const ferr_first_ramp_1323_F = new std.a_function(_M, "ferr_first_ramp_1323", ferr_first_ramp_1323);
+std.FUNCS[ferr_first_ramp_1323_F.hash]=ferr_first_ramp_1323_F;
+const d_color_name_F = new std.a_function(_M, "d_color_name", d_color_name);
+std.FUNCS[d_color_name_F.hash]=d_color_name_F;
+const build_clipboard_F = new std.a_function(_M, "build_clipboard", build_clipboard);
+std.FUNCS[build_clipboard_F.hash]=build_clipboard_F;
+const d_sound_checkbox_591_F = new std.a_function(_M, "d_sound_checkbox_591", d_sound_checkbox_591);
+std.FUNCS[d_sound_checkbox_591_F.hash]=d_sound_checkbox_591_F;
+const ferr_first_ramp_F = new std.a_function(_M, "ferr_first_ramp", ferr_first_ramp);
+std.FUNCS[ferr_first_ramp_F.hash]=ferr_first_ramp_F;
+const draw_choice_grid_F = new std.a_function(_M, "draw_choice_grid", draw_choice_grid, draw_choice_grid_track);
+std.FUNCS[draw_choice_grid_F.hash]=draw_choice_grid_F;
+const d_ferrari_palette_F = new std.a_function(_M, "d_ferrari_palette", d_ferrari_palette);
+std.FUNCS[d_ferrari_palette_F.hash]=d_ferrari_palette_F;
+const d_recent_876_F = new std.a_function(_M, "d_recent_876", d_recent_876);
+std.FUNCS[d_recent_876_F.hash]=d_recent_876_F;
+const draw_tabs2_F = new std.a_function(_M, "draw_tabs2", draw_tabs2, draw_tabs2_track);
+std.FUNCS[draw_tabs2_F.hash]=draw_tabs2_F;
+const d_sound_checkbox_F = new std.a_function(_M, "d_sound_checkbox", d_sound_checkbox, d_sound_checkbox_track);
+std.FUNCS[d_sound_checkbox_F.hash]=d_sound_checkbox_F;
+const d_bottom_col2_F = new std.a_function(_M, "d_bottom_col2", d_bottom_col2);
+std.FUNCS[d_bottom_col2_F.hash]=d_bottom_col2_F;
+const validate_color_F = new std.a_function(_M, "validate_color", validate_color);
+std.FUNCS[validate_color_F.hash]=validate_color_F;
+const d_choice_F = new std.a_function(_M, "d_choice", d_choice, d_choice_track);
+std.FUNCS[d_choice_F.hash]=d_choice_F;
+const d_recent_879_F = new std.a_function(_M, "d_recent_879", d_recent_879);
+std.FUNCS[d_recent_879_F.hash]=d_recent_879_F;
+const d_bottom_bar_F = new std.a_function(_M, "d_bottom_bar", d_bottom_bar);
+std.FUNCS[d_bottom_bar_F.hash]=d_bottom_bar_F;
+const d_html_palette_F = new std.a_function(_M, "d_html_palette", d_html_palette, d_html_palette_track);
+std.FUNCS[d_html_palette_F.hash]=d_html_palette_F;
+const d_ferrari_grid_F = new std.a_function(_M, "d_ferrari_grid", d_ferrari_grid);
+std.FUNCS[d_ferrari_grid_F.hash]=d_ferrari_grid_F;
+const d_input_box_F = new std.a_function(_M, "d_input_box", d_input_box);
+std.FUNCS[d_input_box_F.hash]=d_input_box_F;
+const d_version_F = new std.a_function(_M, "d_version", d_version, d_version_track);
+std.FUNCS[d_version_F.hash]=d_version_F;
+const d_recent_F = new std.a_function(_M, "d_recent", d_recent, d_recent_track);
+std.FUNCS[d_recent_F.hash]=d_recent_F;
+const main_draw_F = new std.a_function(_M, "main_draw", main_draw, main_draw_track);
+std.FUNCS[main_draw_F.hash]=main_draw_F;
+const d_chip_color_F = new std.a_function(_M, "d_chip_color", d_chip_color);
+std.FUNCS[d_chip_color_F.hash]=d_chip_color_F;
+const ferr_ramp_chip_F = new std.a_function(_M, "ferr_ramp_chip", ferr_ramp_chip, ferr_ramp_chip_track);
+std.FUNCS[ferr_ramp_chip_F.hash]=ferr_ramp_chip_F;
+const d_grad_designer_F = new std.a_function(_M, "d_grad_designer", d_grad_designer);
+std.FUNCS[d_grad_designer_F.hash]=d_grad_designer_F;
+const d_far_right_F = new std.a_function(_M, "d_far_right", d_far_right);
+std.FUNCS[d_far_right_F.hash]=d_far_right_F;
+const d_nearby_F = new std.a_function(_M, "d_nearby", d_nearby, d_nearby_track);
+std.FUNCS[d_nearby_F.hash]=d_nearby_F;
+const d_color_format_F = new std.a_function(_M, "d_color_format", d_color_format);
+std.FUNCS[d_color_format_F.hash]=d_color_format_F;
+const d_made_with_F = new std.a_function(_M, "d_made_with", d_made_with, d_made_with_track);
+std.FUNCS[d_made_with_F.hash]=d_made_with_F;
+//-------  top nodes
+const CLICK = new std.a_sound("./art/click.mp3");
+const BEEP = new std.a_sound("./art/beep.mp3");
+const CHECKBOX_OFF = new std.a_image("./art/checkbox_off.png","CHECKBOX_OFF",true,0,0);
+const CHECKBOX_ON = new std.a_image("./art/checkbox_on.png","CHECKBOX_ON",true,0,0);
+
+const TRACE_COLORS = N;
+const TRACE_FUDGE = N;
+const TRACE_SIZING = N;
+const TRACE_PALETTE = N;
+const TRACE_ENTRY = N;
+const TRACE_TWEAK = N;
+const TRACE_TAP = N;
+const SET2 = new std.a_tree(_M,"SET2", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 170, 1, F_name, VAL, "GRAY1", std.F_color, VAL, std.GRAY1, POP, 2, F_name, VAL, "GRAY2"
+, std.F_color, VAL, std.GRAY2, POP, 3, F_name, VAL, "GRAY3", std.F_color, VAL, std.GRAY3, POP, 4, F_name, VAL, "GRAY4", std.F_color, VAL, std.GRAY4, POP, 5, F_name, VAL, "GRAY5"
+, std.F_color, VAL, std.GRAY5, POP, 6, F_name, VAL, "GRAY6", std.F_color, VAL, std.GRAY6, POP, 7, F_name, VAL, "GRAY7", std.F_color, VAL, std.GRAY7, POP, 8, F_name, VAL, "GRAY8"
+, std.F_color, VAL, std.GRAY8, POP, 9, F_name, VAL, "GRAY9", std.F_color, VAL, std.GRAY9, POP, 10, F_name, VAL, "BLACK", std.F_color, VAL, std.BLACK, POP, 11, F_name, VAL, 
+"WHITE", std.F_color, VAL, std.WHITE, POP));
+const hue_fudge = 150;
+const AREA_THRESHOLD = 140000;
+const TARG_WIDTH = 100;
+const BARV = 150;
+const C_DEAD = std.DARK_SLATE_GRAY;
+const C_TEXT = std.SNOW;
+const MODE_COLORS = 1;
+const MODE_GRADS = 2;
+const DIMMED = 0.3;
+const C_CHOICE_HI_BACK = std.TOMATO;
+const C_CHOICE_HI_TEXT = std.BLACK;
+const C_CHOICE_LO_BACK = 0x244022;
+const C_CHOICE_LO_TEXT = std.LINEN;
+const C_CHOICE_BORD = std.GRAY5;
+const TAB_LO_BACK = 0x7F6B6B;
+const TAB_LO_BORD = 0x54056;
+const TAB_LO_TEXT = 0xF0F0EA;
+const TAB_HI_BACK = 0xF6F7CA;
+const TAB_HI_BORD = 0x54056;
+const TAB_HI_TEXT = 0x2B2927;
+const BUTT_LO_BACK = TAB_LO_BACK;
+const BUTT_LO_BORD = TAB_LO_BORD;
+const BUTT_LO_TEXT = TAB_LO_TEXT;
+const BUTT_HI_BACK = TAB_HI_BACK;
+const BUTT_HI_BORD = TAB_HI_BORD;
+const BUTT_HI_TEXT = TAB_HI_TEXT;
+const BUTT_HI_FILL = 0x8AC8DC;
+const A_WEB_COLOR = /^#?[0-9a-fA-F]{6}$/g;
+const FERRARI = new std.a_tree(_M,"FERRARI", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 1137, 1, VAL, 0x0, 2, VAL, 0xFFFFFF, 3, VAL, 0x290000, 4, VAL, 0x330000, 5, VAL, 
+0x420000, 6, VAL, 0x560000, 7, VAL, 0x6F0001, 8, VAL, 0x8B0001, 9, VAL, 0xA70001, 10, VAL, 0xC10100, 11, VAL, 0xDB0101, 12, VAL, 0xEF0101, 13, VAL, 0xFE0101, 14, VAL, 0xFE1111
+, 15, VAL, 0xFF2626, 16, VAL, 0xFE403F, 17, VAL, 0xFE5C5C, 18, VAL, 0xFF7A7A, 19, VAL, 0xFE9999, 20, VAL, 0xFFB6B5, 21, VAL, 0xFFCFCF, 22, VAL, 0xFFE5E4, 23, VAL, 0xFFF4F4
+, 24, VAL, 0x330F00, 25, VAL, 0x401300, 26, VAL, 0x521800, 27, VAL, 0x671E01, 28, VAL, 0x802600, 29, VAL, 0x992D00, 30, VAL, 0xB23400, 31, VAL, 0xC93B01, 32, VAL, 0xDF4101
+, 33, VAL, 0xF14601, 34, VAL, 0xFE4A01, 35, VAL, 0xFE5511, 36, VAL, 0xFE6526, 37, VAL, 0xFE7740, 38, VAL, 0xFF8B5C, 39, VAL, 0xFFA07A, 40, VAL, 0xFFB699, 41, VAL, 0xFFCAB5
+, 42, VAL, 0xFFDCCF, 43, VAL, 0xFFECE5, 44, VAL, 0xFFF7F4, 45, VAL, 0x331900, 46, VAL, 0x402800, 47, VAL, 0x513100, 48, VAL, 0x673A00, 49, VAL, 0x7F4500, 50, VAL, 0x984F01
+, 51, VAL, 0xB25A01, 52, VAL, 0xCA6601, 53, VAL, 0xDF6E01, 54, VAL, 0xF17602, 55, VAL, 0xFE7C02, 56, VAL, 0xFE8411, 57, VAL, 0xFE8F27, 58, VAL, 0xFE9C41, 59, VAL, 0xFEAB5D
+, 60, VAL, 0xFFBB7B, 61, VAL, 0xFFCA99, 62, VAL, 0xFFD9B6, 63, VAL, 0xFFE6CF, 64, VAL, 0xFFF1E4, 65, VAL, 0xFFF9F4, 66, VAL, 0x332300, 67, VAL, 0x402B00, 68, VAL, 0x523600
+, 69, VAL, 0x674400, 70, VAL, 0x805401, 71, VAL, 0x996301, 72, VAL, 0xB27301, 73, VAL, 0xC98201, 74, VAL, 0xDF9001, 75, VAL, 0xF19B02, 76, VAL, 0xFEA302, 77, VAL, 0xFFA912
+, 78, VAL, 0xFEB027, 79, VAL, 0xFEBA40, 80, VAL, 0xFEC45D, 81, VAL, 0xFFCF7B, 82, VAL, 0xFEDA99, 83, VAL, 0xFEE4B6, 84, VAL, 0xFFEED0, 85, VAL, 0xFFF5E5, 86, VAL, 0xFFFBF4
+, 87, VAL, 0x332A00, 88, VAL, 0x403C00, 89, VAL, 0x524A01, 90, VAL, 0x685C01, 91, VAL, 0x7F7001, 92, VAL, 0x998501, 93, VAL, 0xB29901, 94, VAL, 0xCAAD02, 95, VAL, 0xDFBF02
+, 96, VAL, 0xF1CD02, 97, VAL, 0xFED802, 98, VAL, 0xFEDA12, 99, VAL, 0xFEDD27, 100, VAL, 0xFEE241, 101, VAL, 0xFFE65D, 102, VAL, 0xFEEA7B, 103, VAL, 0xFFEF99, 104, VAL, 0xFFF4B6
+, 105, VAL, 0xFFF7CF, 106, VAL, 0xFFFBE4, 107, VAL, 0xFFFDF4, 108, VAL, 0x333100, 109, VAL, 0x403E00, 110, VAL, 0x525001, 111, VAL, 0x686600, 112, VAL, 0x807E01, 113, VAL, 
+0x989801, 114, VAL, 0xB1B101, 115, VAL, 0xCAC902, 116, VAL, 0xDFDF01, 117, VAL, 0xF1F002, 118, VAL, 0xFEFE02, 119, VAL, 0xFEFE12, 120, VAL, 0xFEFE27, 121, VAL, 0xFEFE40, 122
+, VAL, 0xFEFE5D, 123, VAL, 0xFEFE7B, 124, VAL, 0xFEFF99, 125, VAL, 0xFFFFB5, 126, VAL, 0xFEFFCF, 127, VAL, 0xFFFFE4, 128, VAL, 0xFFFFF4, 129, VAL, 0x2A3200, 130, VAL, 0x353F01
+, 131, VAL, 0x435100, 132, VAL, 0x556601, 133, VAL, 0x687E02, 134, VAL, 0x7C9702, 135, VAL, 0x91B003, 136, VAL, 0xA4C803, 137, VAL, 0xB6DD04, 138, VAL, 0xC4EF03, 139, VAL, 
+0xCFFC04, 140, VAL, 0xD2FC13, 141, VAL, 0xD6FC28, 142, VAL, 0xDBFC42, 143, VAL, 0xE0FD5E, 144, VAL, 0xE6FD7C, 145, VAL, 0xEBFE9A, 146, VAL, 0xF2FEB6, 147, VAL, 0xF6FED0, 148
+, VAL, 0xFAFFE5, 149, VAL, 0xFDFFF4, 150, VAL, 0x1A3400, 151, VAL, 0x204100, 152, VAL, 0x2A5300, 153, VAL, 0x356801, 154, VAL, 0x427F01, 155, VAL, 0x4F9801, 156, VAL, 0x5CB202
+, 157, VAL, 0x68C903, 158, VAL, 0x74DF03, 159, VAL, 0x7DF003, 160, VAL, 0x84FD03, 161, VAL, 0x94FD24, 162, VAL, 0x9FFE3A, 163, VAL, 0xACFE54, 164, VAL, 0xB9FE6F, 165, VAL, 
+0xC6FE8B, 166, VAL, 0xD4FEA6, 167, VAL, 0xE0FFBF, 168, VAL, 0xEBFFD6, 169, VAL, 0xF5FEE9, 170, VAL, 0xFBFFF7, 171, VAL, 0x33500, 172, VAL, 0x34200, 173, VAL, 0x55401, 174, VAL, 
+0x56800, 175, VAL, 0x78001, 176, VAL, 0x99801, 177, VAL, 0xAB101, 178, VAL, 0xBC801, 179, VAL, 0xDDD02, 180, VAL, 0xDEF02, 181, VAL, 0xEFB02, 182, VAL, 0x2EFC23, 183, VAL, 
+0x43FC39, 184, VAL, 0x5CFC53, 185, VAL, 0x75FD6F, 186, VAL, 0x90FD8B, 187, VAL, 0xAAFEA6, 188, VAL, 0xC2FEBF, 189, VAL, 0xD8FED6, 190, VAL, 0xEAFFE9, 191, VAL, 0xF7FFF7, 192
+, VAL, 0x360F, 193, VAL, 0x360F, 194, VAL, 0x4513, 195, VAL, 0x5819, 196, VAL, 0x17121, 197, VAL, 0x18C29, 198, VAL, 0x1A630, 199, VAL, 0x1C138, 200, VAL, 0x2D940, 201, VAL, 
+0x2ED46, 202, VAL, 0x2FC4A, 203, VAL, 0x23FC62, 204, VAL, 0x39FC72, 205, VAL, 0x53FD85, 206, VAL, 0x6FFD98, 207, VAL, 0x8BFEAC, 208, VAL, 0xA6FEBF, 209, VAL, 0xBFFED1, 210
+, VAL, 0xD6FFE1, 211, VAL, 0xE9FFEF, 212, VAL, 0xF7FFF9, 213, VAL, 0x3425, 214, VAL, 0x3526, 215, VAL, 0x14430, 216, VAL, 0x583F, 217, VAL, 0x17051, 218, VAL, 0x28C63, 219
+, VAL, 0x3A677, 220, VAL, 0x3C189, 221, VAL, 0x3D99B, 222, VAL, 0x4ECA9, 223, VAL, 0x4FBB3, 224, VAL, 0x25FBBD, 225, VAL, 0x3BFCC4, 226, VAL, 0x55FDCC, 227, VAL, 0x70FDD4, 
+228, VAL, 0x8BFDDD, 229, VAL, 0xA7FEE5, 230, VAL, 0xC0FEEC, 231, VAL, 0xD6FFF3, 232, VAL, 0xE9FEF9, 233, VAL, 0xF7FFFD, 234, VAL, 0x3333, 235, VAL, 0x3333, 236, VAL, 0x4242
+, 237, VAL, 0x15656, 238, VAL, 0x16E6E, 239, VAL, 0x18A8A, 240, VAL, 0x1A5A5, 241, VAL, 0x3C0C0, 242, VAL, 0x3D8D8, 243, VAL, 0x3EDEC, 244, VAL, 0x3FBFB, 245, VAL, 0x24FCFC
+, 246, VAL, 0x3BFCFC, 247, VAL, 0x54FDFC, 248, VAL, 0x6FFDFD, 249, VAL, 0x8BFEFD, 250, VAL, 0xA6FDFE, 251, VAL, 0xC0FEFE, 252, VAL, 0xD6FFFF, 253, VAL, 0xE9FFFE, 254, VAL, 
+0xF7FFFF, 255, VAL, 0x12633, 256, VAL, 0x12633, 257, VAL, 0x23142, 258, VAL, 0x24056, 259, VAL, 0x1536F, 260, VAL, 0x2688A, 261, VAL, 0x27DA6, 262, VAL, 0x292C2, 263, VAL, 
+0x3A4DA, 264, VAL, 0x3B4EE, 265, VAL, 0x3BFFD, 266, VAL, 0x12C3FD, 267, VAL, 0x28C9FD, 268, VAL, 0x42CFFD, 269, VAL, 0x5FD6FE, 270, VAL, 0x7DDEFE, 271, VAL, 0x9CE6FE, 272, VAL, 
+0xB8EDFE, 273, VAL, 0xD2F4FF, 274, VAL, 0xE8F9FF, 275, VAL, 0xF7FDFF, 276, VAL, 0x1633, 277, VAL, 0x1633, 278, VAL, 0x1C41, 279, VAL, 0x2556, 280, VAL, 0x1306F, 281, VAL, 
+0x13B8A, 282, VAL, 0x147A6, 283, VAL, 0x253C1, 284, VAL, 0x25DDA, 285, VAL, 0x266EF, 286, VAL, 0x26CFD, 287, VAL, 0x1175FD, 288, VAL, 0x2781FD, 289, VAL, 0x4291FE, 290, VAL, 
+0x5EA2FE, 291, VAL, 0x7CB3FE, 292, VAL, 0x9BC4FE, 293, VAL, 0xB7D5FE, 294, VAL, 0xD2E5FF, 295, VAL, 0xE7F1FF, 296, VAL, 0xF7FAFF, 297, VAL, 0x233, 298, VAL, 0x240, 299, VAL, 
+0x10352, 300, VAL, 0x10468, 301, VAL, 0x10580, 302, VAL, 0x10599, 303, VAL, 0x106B3, 304, VAL, 0x207CB, 305, VAL, 0x207E0, 306, VAL, 0x208F2, 307, VAL, 0x208FF, 308, VAL, 
+0x1118FF, 309, VAL, 0x272DFF, 310, VAL, 0x4146FF, 311, VAL, 0x5E62FF, 312, VAL, 0x7C7FFF, 313, VAL, 0x9B9DFF, 314, VAL, 0xB8B9FF, 315, VAL, 0xD2D3FF, 316, VAL, 0xE7E7FF, 317
+, VAL, 0xF7F7FF, 318, VAL, 0xE0034, 319, VAL, 0x120141, 320, VAL, 0x170052, 321, VAL, 0x1D0068, 322, VAL, 0x240180, 323, VAL, 0x2B0199, 324, VAL, 0x3301B2, 325, VAL, 0x3A01CA
+, 326, VAL, 0x4002DF, 327, VAL, 0x4502F1, 328, VAL, 0x4902FE, 329, VAL, 0x5412FE, 330, VAL, 0x6427FE, 331, VAL, 0x7741FF, 332, VAL, 0x8B5EFE, 333, VAL, 0xA17CFE, 334, VAL, 
+0xB79BFF, 335, VAL, 0xCCB7FE, 336, VAL, 0xDED2FF, 337, VAL, 0xEEE7FE, 338, VAL, 0xF9F7FF, 339, VAL, 0x240034, 340, VAL, 0x240034, 341, VAL, 0x2E0043, 342, VAL, 0x3D0157, 343
+, VAL, 0x4F0170, 344, VAL, 0x62018B, 345, VAL, 0x7602A6, 346, VAL, 0x8902C2, 347, VAL, 0x9B02DA, 348, VAL, 0xA903EF, 349, VAL, 0xB403FD, 350, VAL, 0xB913FD, 351, VAL, 0xBF29FD
+, 352, VAL, 0xC742FE, 353, VAL, 0xD05FFD, 354, VAL, 0xD87DFE, 355, VAL, 0xE29CFE, 356, VAL, 0xEAB8FE, 357, VAL, 0xF2D2FF, 358, VAL, 0xF8E8FF, 359, VAL, 0xFDF7FF, 360, VAL, 
+0x330032, 361, VAL, 0x40003F, 362, VAL, 0x520051, 363, VAL, 0x680066, 364, VAL, 0x7F017E, 365, VAL, 0x990197, 366, VAL, 0xB201B0, 367, VAL, 0xCB02C8, 368, VAL, 0xE002DD, 369
+, VAL, 0xF202EF, 370, VAL, 0xFF02FC, 371, VAL, 0xFF23FD, 372, VAL, 0xFF3AFC, 373, VAL, 0xFF53FD, 374, VAL, 0xFF6EFE, 375, VAL, 0xFF8AFE, 376, VAL, 0xFFA6FE, 377, VAL, 0xFFC0FE
+, 378, VAL, 0xFFD7FE, 379, VAL, 0xFFE9FF, 380, VAL, 0xFFF7FF, 381, VAL, 0x330023, 382, VAL, 0x330023, 383, VAL, 0x42002D, 384, VAL, 0x57013B, 385, VAL, 0x70004D, 386, VAL, 
+0x8A0160, 387, VAL, 0xA70173, 388, VAL, 0xC20186, 389, VAL, 0xDC0297, 390, VAL, 0xF002A6, 391, VAL, 0xFF02B0, 392, VAL, 0xFF23BA, 393, VAL, 0xFF39C1, 394, VAL, 0xFF53C9, 395
+, VAL, 0xFF6FD2, 396, VAL, 0xFF8ADB, 397, VAL, 0xFFA6E3, 398, VAL, 0xFFBFEB, 399, VAL, 0xFFD6F2, 400, VAL, 0xFFE9F8, 401, VAL, 0xFFF7FD, 402, VAL, 0x330014, 403, VAL, 0x400019
+, 404, VAL, 0x520020, 405, VAL, 0x670029, 406, VAL, 0x800131, 407, VAL, 0x99013C, 408, VAL, 0xB20245, 409, VAL, 0xCB024E, 410, VAL, 0xE00257, 411, VAL, 0xF2025E, 412, VAL, 
+0xFF0263, 413, VAL, 0xFF126D, 414, VAL, 0xFF277A, 415, VAL, 0xFF418A, 416, VAL, 0xFF5F9C, 417, VAL, 0xFF7CAF, 418, VAL, 0xFF9BC2, 419, VAL, 0xFFB8D3, 420, VAL, 0xFFD2E3, 421
+, VAL, 0xFFE7F1, 422, VAL, 0xFFF7FA, 423, VAL, 0x211212, 424, VAL, 0x2A1717, 425, VAL, 0x331C1C, 426, VAL, 0x3F2322, 427, VAL, 0x4F2B2B, 428, VAL, 0x5F3333, 429, VAL, 0x703D3C
+, 430, VAL, 0x804646, 431, VAL, 0x904D4E, 432, VAL, 0x9C5455, 433, VAL, 0xA55959, 434, VAL, 0xAA6363, 435, VAL, 0xB27171, 436, VAL, 0xBA8281, 437, VAL, 0xC49494, 438, VAL, 
+0xCFA8A8, 439, VAL, 0xD9BCBB, 440, VAL, 0xE3CFCF, 441, VAL, 0xEDDFDF, 442, VAL, 0xF4EDED, 443, VAL, 0xF9F7F7, 444, VAL, 0x211612, 445, VAL, 0x2A1D17, 446, VAL, 0x33231B, 447
+, VAL, 0x402C23, 448, VAL, 0x4F362B, 449, VAL, 0x5F4034, 450, VAL, 0x714C3C, 451, VAL, 0x815745, 452, VAL, 0x90614E, 453, VAL, 0x9D6A55, 454, VAL, 0xA56F59, 455, VAL, 0xAB7863
+, 456, VAL, 0xB28471, 457, VAL, 0xBB9282, 458, VAL, 0xC5A295, 459, VAL, 0xCFB3A8, 460, VAL, 0xDAC4BC, 461, VAL, 0xE3D4CE, 462, VAL, 0xECE3DF, 463, VAL, 0xF4EFED, 464, VAL, 
+0xF9F8F7, 465, VAL, 0x211912, 466, VAL, 0x2B2017, 467, VAL, 0x34271C, 468, VAL, 0x403123, 469, VAL, 0x503D2B, 470, VAL, 0x604A34, 471, VAL, 0x72573D, 472, VAL, 0x826547, 473
+, VAL, 0x91704E, 474, VAL, 0x9E7956, 475, VAL, 0xA67F5A, 476, VAL, 0xAB8764, 477, VAL, 0xB39172, 478, VAL, 0xBC9E82, 479, VAL, 0xC5AD95, 480, VAL, 0xD0BBA9, 481, VAL, 0xDACBBC
+, 482, VAL, 0xE4D9CF, 483, VAL, 0xECE6DF, 484, VAL, 0xF4F1ED, 485, VAL, 0xF9F8F7, 486, VAL, 0x211C12, 487, VAL, 0x2B2417, 488, VAL, 0x342C1B, 489, VAL, 0x413723, 490, VAL, 
+0x4F432B, 491, VAL, 0x605134, 492, VAL, 0x71613D, 493, VAL, 0x826E47, 494, VAL, 0x917A4E, 495, VAL, 0x9E8456, 496, VAL, 0xA68A5A, 497, VAL, 0xAB9164, 498, VAL, 0xB39A72, 499
+, VAL, 0xBCA782, 500, VAL, 0xC5B495, 501, VAL, 0xD0C1A9, 502, VAL, 0xDACFBC, 503, VAL, 0xE3DBCE, 504, VAL, 0xEDE7DF, 505, VAL, 0xF3F1ED, 506, VAL, 0xF9F8F7, 507, VAL, 0x211F12
+, 508, VAL, 0x2B2817, 509, VAL, 0x34311B, 510, VAL, 0x403C23, 511, VAL, 0x504C2B, 512, VAL, 0x605C34, 513, VAL, 0x726D3E, 514, VAL, 0x837C46, 515, VAL, 0x91894F, 516, VAL, 
+0x9E9456, 517, VAL, 0xA69A5A, 518, VAL, 0xACA064, 519, VAL, 0xB3A872, 520, VAL, 0xBBB382, 521, VAL, 0xC5BE95, 522, VAL, 0xD0CAA9, 523, VAL, 0xDAD5BC, 524, VAL, 0xE3E0CF, 525
+, VAL, 0xECEADF, 526, VAL, 0xF4F3ED, 527, VAL, 0xF9F9F7, 528, VAL, 0x212112, 529, VAL, 0x2A2B17, 530, VAL, 0x33341C, 531, VAL, 0x404123, 532, VAL, 0x4E4F2B, 533, VAL, 0x606033
+, 534, VAL, 0x71713D, 535, VAL, 0x818147, 536, VAL, 0x90914E, 537, VAL, 0x9D9D55, 538, VAL, 0xA6A65A, 539, VAL, 0xABAC64, 540, VAL, 0xB3B372, 541, VAL, 0xBBBB83, 542, VAL, 
+0xC6C595, 543, VAL, 0xD0CFA9, 544, VAL, 0xDADABC, 545, VAL, 0xE4E3CE, 546, VAL, 0xEDEDDF, 547, VAL, 0xF4F4ED, 548, VAL, 0xF9F9F7, 549, VAL, 0x1E2112, 550, VAL, 0x272A17, 551
+, VAL, 0x2F331C, 552, VAL, 0x3A3F23, 553, VAL, 0x484E2B, 554, VAL, 0x585F34, 555, VAL, 0x66703E, 556, VAL, 0x758146, 557, VAL, 0x83904E, 558, VAL, 0x8F9C55, 559, VAL, 0x97A55A
+, 560, VAL, 0x9EAA64, 561, VAL, 0xA6B271, 562, VAL, 0xB0BB82, 563, VAL, 0xBCC495, 564, VAL, 0xC8CFA9, 565, VAL, 0xD4DABC, 566, VAL, 0xDFE4CF, 567, VAL, 0xEAECE0, 568, VAL, 
+0xF2F4ED, 569, VAL, 0xF9F9F7, 570, VAL, 0x1A2112, 571, VAL, 0x212B17, 572, VAL, 0x28341C, 573, VAL, 0x324022, 574, VAL, 0x3D4F2B, 575, VAL, 0x4A6034, 576, VAL, 0x58713D, 577
+, VAL, 0x658147, 578, VAL, 0x70904E, 579, VAL, 0x7A9C55, 580, VAL, 0x81A55A, 581, VAL, 0x89AA64, 582, VAL, 0x93B271, 583, VAL, 0x9FBA82, 584, VAL, 0xADC595, 585, VAL, 0xBCCFA8
+, 586, VAL, 0xCBD9BC, 587, VAL, 0xD9E4CF, 588, VAL, 0xE6ECDF, 589, VAL, 0xF1F4ED, 590, VAL, 0xF8F9F7, 591, VAL, 0x132112, 592, VAL, 0x182B17, 593, VAL, 0x1D341C, 594, VAL, 
+0x244022, 595, VAL, 0x2C4F2B, 596, VAL, 0x365F33, 597, VAL, 0x3F703D, 598, VAL, 0x488045, 599, VAL, 0x518F4D, 600, VAL, 0x589B54, 601, VAL, 0x5DA459, 602, VAL, 0x67A963, 603
+, VAL, 0x74B171, 604, VAL, 0x85BA82, 605, VAL, 0x97C494, 606, VAL, 0xAACEA8, 607, VAL, 0xBDD9BC, 608, VAL, 0xCFE3CE, 609, VAL, 0xDFECDF, 610, VAL, 0xEDF3ED, 611, VAL, 0xF7F9F7
+, 612, VAL, 0x122116, 613, VAL, 0x172A1D, 614, VAL, 0x1C3323, 615, VAL, 0x223F2B, 616, VAL, 0x2B4E35, 617, VAL, 0x345F40, 618, VAL, 0x3D6F4B, 619, VAL, 0x468056, 620, VAL, 
+0x4D8F60, 621, VAL, 0x549B69, 622, VAL, 0x59A46E, 623, VAL, 0x63AA77, 624, VAL, 0x71B183, 625, VAL, 0x82BA92, 626, VAL, 0x94C4A2, 627, VAL, 0xA8CEB3, 628, VAL, 0xBCD9C4, 629
+, VAL, 0xCEE3D5, 630, VAL, 0xDFECE3, 631, VAL, 0xEDF3EF, 632, VAL, 0xF7F9F8, 633, VAL, 0x12211C, 634, VAL, 0x172B24, 635, VAL, 0x1C342C, 636, VAL, 0x224037, 637, VAL, 0x2B4F43
+, 638, VAL, 0x335F51, 639, VAL, 0x3D6F60, 640, VAL, 0x47806E, 641, VAL, 0x4E8F7B, 642, VAL, 0x559B86, 643, VAL, 0x5AA48E, 644, VAL, 0x64AA95, 645, VAL, 0x71B19E, 646, VAL, 
+0x83BAAA, 647, VAL, 0x95C4B5, 648, VAL, 0xA9CFC3, 649, VAL, 0xBCD9D0, 650, VAL, 0xCFE3DC, 651, VAL, 0xDFECE7, 652, VAL, 0xEDF4F1, 653, VAL, 0xF7F9F8, 654, VAL, 0x122121, 655
+, VAL, 0x172B2B, 656, VAL, 0x1C3434, 657, VAL, 0x224140, 658, VAL, 0x2B4F4E, 659, VAL, 0x33605F, 660, VAL, 0x3C7070, 661, VAL, 0x468080, 662, VAL, 0x4E8F8F, 663, VAL, 0x549B9B
+, 664, VAL, 0x59A4A4, 665, VAL, 0x63AAAA, 666, VAL, 0x71B1B1, 667, VAL, 0x82BABA, 668, VAL, 0x95C4C4, 669, VAL, 0xA8CECF, 670, VAL, 0xBBD9D9, 671, VAL, 0xCEE3E3, 672, VAL, 
+0xDFECEC, 673, VAL, 0xECF4F4, 674, VAL, 0xF7F9F9, 675, VAL, 0x121D21, 676, VAL, 0x17252B, 677, VAL, 0x1C2D34, 678, VAL, 0x233840, 679, VAL, 0x2B454F, 680, VAL, 0x33545F, 681
+, VAL, 0x3D6370, 682, VAL, 0x467181, 683, VAL, 0x4E7F90, 684, VAL, 0x558A9C, 685, VAL, 0x5A92A5, 686, VAL, 0x6498AB, 687, VAL, 0x72A1B2, 688, VAL, 0x82ACBA, 689, VAL, 0x95B8C4
+, 690, VAL, 0xA8C5CF, 691, VAL, 0xBCD2D9, 692, VAL, 0xCFDEE3, 693, VAL, 0xDFE8EC, 694, VAL, 0xEDF2F3, 695, VAL, 0xF7F8F9, 696, VAL, 0x121821, 697, VAL, 0x171F2B, 698, VAL, 
+0x1C2634, 699, VAL, 0x232F40, 700, VAL, 0x2B3A4F, 701, VAL, 0x34465F, 702, VAL, 0x3D5371, 703, VAL, 0x465F81, 704, VAL, 0x4F6B90, 705, VAL, 0x55739C, 706, VAL, 0x5A7AA5, 707
+, VAL, 0x6483AB, 708, VAL, 0x728DB2, 709, VAL, 0x839BBB, 710, VAL, 0x95AAC5, 711, VAL, 0xA9B9CF, 712, VAL, 0xBCC9D9, 713, VAL, 0xCFD7E3, 714, VAL, 0xDFE5EC, 715, VAL, 0xEDF0F3
+, 716, VAL, 0xF7F8F9, 717, VAL, 0x121221, 718, VAL, 0x17172B, 719, VAL, 0x1C1C34, 720, VAL, 0x232341, 721, VAL, 0x2B2B4F, 722, VAL, 0x343560, 723, VAL, 0x3D3E71, 724, VAL, 
+0x464881, 725, VAL, 0x4F5090, 726, VAL, 0x55579D, 727, VAL, 0x5A5CA6, 728, VAL, 0x6466AB, 729, VAL, 0x7273B3, 730, VAL, 0x8284BB, 731, VAL, 0x9596C5, 732, VAL, 0xA8AACF, 733
+, VAL, 0xBCBDDA, 734, VAL, 0xCFCFE4, 735, VAL, 0xDFE0ED, 736, VAL, 0xEDEDF4, 737, VAL, 0xF7F7F9, 738, VAL, 0x161221, 739, VAL, 0x1D172B, 740, VAL, 0x231C34, 741, VAL, 0x2B2340
+, 742, VAL, 0x352B50, 743, VAL, 0x403460, 744, VAL, 0x4B3D71, 745, VAL, 0x574682, 746, VAL, 0x614E90, 747, VAL, 0x69569D, 748, VAL, 0x6F5AA6, 749, VAL, 0x7864AC, 750, VAL, 
+0x8472B3, 751, VAL, 0x9283BB, 752, VAL, 0xA395C6, 753, VAL, 0xB3A9D0, 754, VAL, 0xC5BCD9, 755, VAL, 0xD5CFE4, 756, VAL, 0xE4DFEC, 757, VAL, 0xEFEDF4, 758, VAL, 0xF8F7F9, 759
+, VAL, 0x1D1221, 760, VAL, 0x26172B, 761, VAL, 0x2E1C34, 762, VAL, 0x382340, 763, VAL, 0x452B4F, 764, VAL, 0x543460, 765, VAL, 0x623D71, 766, VAL, 0x704681, 767, VAL, 0x7C4E90
+, 768, VAL, 0x87559D, 769, VAL, 0x8F5AA5, 770, VAL, 0x9664AB, 771, VAL, 0x9F72B2, 772, VAL, 0xAA82BB, 773, VAL, 0xB795C5, 774, VAL, 0xC4A8CF, 775, VAL, 0xD0BCDA, 776, VAL, 
+0xDDCFE4, 777, VAL, 0xE8DFEC, 778, VAL, 0xF1EDF4, 779, VAL, 0xF8F7F9, 780, VAL, 0x29162A, 781, VAL, 0x351D35, 782, VAL, 0x3E223D, 783, VAL, 0x492749, 784, VAL, 0x562F56, 785
+, VAL, 0x663865, 786, VAL, 0x764075, 787, VAL, 0x844884, 788, VAL, 0x924F91, 789, VAL, 0x9D569D, 790, VAL, 0xA65AA5, 791, VAL, 0xAC64AA, 792, VAL, 0xB372B2, 793, VAL, 0xBB83BB
+, 794, VAL, 0xC595C5, 795, VAL, 0xD0A8CF, 796, VAL, 0xD9BCDA, 797, VAL, 0xE4CEE3, 798, VAL, 0xECDFEC, 799, VAL, 0xF4EDF3, 800, VAL, 0xF9F7F9, 801, VAL, 0x21121C, 802, VAL, 
+0x2A1724, 803, VAL, 0x331C2C, 804, VAL, 0x402236, 805, VAL, 0x4F2B43, 806, VAL, 0x5F3452, 807, VAL, 0x713D60, 808, VAL, 0x81466E, 809, VAL, 0x904F7B, 810, VAL, 0x9D5686, 811
+, VAL, 0xA65A8E, 812, VAL, 0xAB6495, 813, VAL, 0xB3729E, 814, VAL, 0xBC82AA, 815, VAL, 0xC595B6, 816, VAL, 0xD0A8C3, 817, VAL, 0xDABCD0, 818, VAL, 0xE3CFDD, 819, VAL, 0xECDFE8
+, 820, VAL, 0xF4EDF1, 821, VAL, 0xF9F7F8, 822, VAL, 0x211218, 823, VAL, 0x2B171F, 824, VAL, 0x341C26, 825, VAL, 0x40222F, 826, VAL, 0x502B39, 827, VAL, 0x603445, 828, VAL, 
+0x713D51, 829, VAL, 0x82465D, 830, VAL, 0x914E68, 831, VAL, 0x9D5571, 832, VAL, 0xA65A77, 833, VAL, 0xAC647F, 834, VAL, 0xB3728A, 835, VAL, 0xBB8298, 836, VAL, 0xC595A8, 837
+, VAL, 0xD0A8B7, 838, VAL, 0xDABCC7, 839, VAL, 0xE3CED7, 840, VAL, 0xECE0E4, 841, VAL, 0xF4EDF0, 842, VAL, 0xF9F7F8, 843, VAL, 0x0, 844, VAL, 0x70706, 845, VAL, 0xF0F0F, 846
+, VAL, 0x191918, 847, VAL, 0x232424, 848, VAL, 0x2F3030, 849, VAL, 0x3C3D3C, 850, VAL, 0x494949, 851, VAL, 0x585858, 852, VAL, 0x676666, 853, VAL, 0x757575, 854, VAL, 0x848484
+, 855, VAL, 0x939393, 856, VAL, 0xA1A1A1, 857, VAL, 0xAFAFAF, 858, VAL, 0xBDBDBD, 859, VAL, 0xCACAC9, 860, VAL, 0xD5D6D6, 861, VAL, 0xE0E0E1, 862, VAL, 0xEAEAEA, 863, VAL, 
+0xF2F2F2));
+const FERR_NROW = 7;
+const FERR_NCOL = 6;
+const FERR_NRAMPS = 42;
+const CHIPS_PER_RAMP = 21;
+const CHIPS_PER_ROW = std.mul(FERR_NCOL, CHIPS_PER_RAMP);
+
+var SET1 = new std.a_tree(_M,"SET1", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED, std.tree_lit(_M, 30, 1, F_name, VAL, "ALICE_BLUE", std.F_color, VAL, std.ALICE_BLUE, POP
+, 2, F_name, VAL, "ANTIQUE_WHITE", std.F_color, VAL, std.ANTIQUE_WHITE, POP, 3, F_name, VAL, "AQUA", std.F_color, VAL, std.AQUA, POP, 4, F_name, VAL, "AQUAMARINE", std.F_color
+, VAL, std.AQUAMARINE, POP, 5, F_name, VAL, "AZURE", std.F_color, VAL, std.AZURE, POP, 6, F_name, VAL, "BEIGE", std.F_color, VAL, std.BEIGE, POP, 7, F_name, VAL, "BISQUE", 
+std.F_color, VAL, std.BISQUE, POP, 8, F_name, VAL, "BLANCHED_ALMOND", std.F_color, VAL, std.BLANCHED_ALMOND, POP, 9, F_name, VAL, "BLUE", std.F_color, VAL, std.BLUE, POP, 
+10, F_name, VAL, "BLUE_VIOLET", std.F_color, VAL, std.BLUE_VIOLET, POP, 11, F_name, VAL, "BROWN", std.F_color, VAL, std.BROWN, POP, 12, F_name, VAL, "BURLY_WOOD", std.F_color
+, VAL, std.BURLY_WOOD, POP, 13, F_name, VAL, "CADET_BLUE", std.F_color, VAL, std.CADET_BLUE, POP, 14, F_name, VAL, "CHARTREUSE", std.F_color, VAL, std.CHARTREUSE, POP, 15, 
+F_name, VAL, "CHOCOLATE", std.F_color, VAL, std.CHOCOLATE, POP, 16, F_name, VAL, "CORAL", std.F_color, VAL, std.CORAL, POP, 17, F_name, VAL, "CORNFLOWER_BLUE", std.F_color
+, VAL, std.CORNFLOWER_BLUE, POP, 18, F_name, VAL, "CORNSILK", std.F_color, VAL, std.CORNSILK, POP, 19, F_name, VAL, "CRIMSON", std.F_color, VAL, std.CRIMSON, POP, 20, F_name
+, VAL, "CYAN", std.F_color, VAL, std.CYAN, POP, 21, F_name, VAL, "DARK_BLUE", std.F_color, VAL, std.DARK_BLUE, POP, 22, F_name, VAL, "DARK_CYAN", std.F_color, VAL, std.DARK_CYAN
+, POP, 23, F_name, VAL, "DARK_GOLDENROD", std.F_color, VAL, std.DARK_GOLDENROD, POP, 24, F_name, VAL, "DARK_GRAY", std.F_color, VAL, std.DARK_GRAY, POP, 25, F_name, VAL, "DARK_GREEN"
+, std.F_color, VAL, std.DARK_GREEN, POP, 26, F_name, VAL, "DARK_KHAKI", std.F_color, VAL, std.DARK_KHAKI, POP, 27, F_name, VAL, "DARK_MAGENTA", std.F_color, VAL, std.DARK_MAGENTA
+, POP, 28, F_name, VAL, "DARK_OLIVE_GREEN", std.F_color, VAL, std.DARK_OLIVE_GREEN, POP, 29, F_name, VAL, "DARK_ORANGE", std.F_color, VAL, std.DARK_ORANGE, POP, 30, F_name
+, VAL, "DARK_ORCHID", std.F_color, VAL, std.DARK_ORCHID, POP, 31, F_name, VAL, "DARK_RED", std.F_color, VAL, std.DARK_RED, POP, 32, F_name, VAL, "DARK_SALMON", std.F_color
+, VAL, std.DARK_SALMON, POP, 33, F_name, VAL, "DARK_SEA_GREEN", std.F_color, VAL, std.DARK_SEA_GREEN, POP, 34, F_name, VAL, "DARK_SLATE_BLUE", std.F_color, VAL, std.DARK_SLATE_BLUE
+, POP, 35, F_name, VAL, "DARK_SLATE_GRAY", std.F_color, VAL, std.DARK_SLATE_GRAY, POP, 36, F_name, VAL, "DARK_TURQUOISE", std.F_color, VAL, std.DARK_TURQUOISE, POP, 37, F_name
+, VAL, "DARK_VIOLET", std.F_color, VAL, std.DARK_VIOLET, POP, 38, F_name, VAL, "DEEP_PINK", std.F_color, VAL, std.DEEP_PINK, POP, 39, F_name, VAL, "DEEP_SKY_BLUE", std.F_color
+, VAL, std.DEEP_SKY_BLUE, POP, 40, F_name, VAL, "DIM_GRAY", std.F_color, VAL, std.DIM_GRAY, POP, 41, F_name, VAL, "DODGER_BLUE", std.F_color, VAL, std.DODGER_BLUE, POP, 42
+, F_name, VAL, "FIREBRICK", std.F_color, VAL, std.FIREBRICK, POP, 43, F_name, VAL, "FLORAL_WHITE", std.F_color, VAL, std.FLORAL_WHITE, POP, 44, F_name, VAL, "FOREST_GREEN"
+, std.F_color, VAL, std.FOREST_GREEN, POP, 45, F_name, VAL, "GAINSBORO", std.F_color, VAL, std.GAINSBORO, POP, 46, F_name, VAL, "GHOST_WHITE", std.F_color, VAL, std.GHOST_WHITE
+, POP, 47, F_name, VAL, "GOLD", std.F_color, VAL, std.GOLD, POP, 48, F_name, VAL, "GOLDENROD", std.F_color, VAL, std.GOLDENROD, POP, 49, F_name, VAL, "GRAY", std.F_color, 
+VAL, std.GRAY, POP, 50, F_name, VAL, "GREEN", std.F_color, VAL, std.GREEN, POP, 51, F_name, VAL, "GREEN_YELLOW", std.F_color, VAL, std.GREEN_YELLOW, POP, 52, F_name, VAL, 
+"HONEYDEW", std.F_color, VAL, std.HONEYDEW, POP, 53, F_name, VAL, "HOT_PINK", std.F_color, VAL, std.HOT_PINK, POP, 54, F_name, VAL, "INDIAN_RED", std.F_color, VAL, std.INDIAN_RED
+, POP, 55, F_name, VAL, "INDIGO", std.F_color, VAL, std.INDIGO, POP, 56, F_name, VAL, "IVORY", std.F_color, VAL, std.IVORY, POP, 57, F_name, VAL, "KHAKI", std.F_color, VAL
+, std.KHAKI, POP, 58, F_name, VAL, "LAVENDER", std.F_color, VAL, std.LAVENDER, POP, 59, F_name, VAL, "LAVENDER_BLUSH", std.F_color, VAL, std.LAVENDER_BLUSH, POP, 60, F_name
+, VAL, "LAWN_GREEN", std.F_color, VAL, std.LAWN_GREEN, POP, 61, F_name, VAL, "LEMON_CHIFFON", std.F_color, VAL, std.LEMON_CHIFFON, POP, 62, F_name, VAL, "LIGHT_BLUE", std.F_color
+, VAL, std.LIGHT_BLUE, POP, 63, F_name, VAL, "LIGHT_CORAL", std.F_color, VAL, std.LIGHT_CORAL, POP, 64, F_name, VAL, "LIGHT_CYAN", std.F_color, VAL, std.LIGHT_CYAN, POP, 65
+, F_name, VAL, "LIGHT_GOLDENROD", std.F_color, VAL, std.LIGHT_GOLDENROD, POP, 66, F_name, VAL, "LIGHT_GREEN", std.F_color, VAL, std.LIGHT_GREEN, POP, 67, F_name, VAL, "LIGHT_GREY"
+, std.F_color, VAL, std.LIGHT_GREY, POP, 68, F_name, VAL, "LIGHT_PINK", std.F_color, VAL, std.LIGHT_PINK, POP, 69, F_name, VAL, "LIGHT_SALMON", std.F_color, VAL, std.LIGHT_SALMON
+, POP, 70, F_name, VAL, "LIGHT_SEA_GREEN", std.F_color, VAL, std.LIGHT_SEA_GREEN, POP, 71, F_name, VAL, "LIGHT_SKY_BLUE", std.F_color, VAL, std.LIGHT_SKY_BLUE, POP, 72, F_name
+, VAL, "LIGHT_SLATE_GRAY", std.F_color, VAL, std.LIGHT_SLATE_GRAY, POP, 73, F_name, VAL, "LIGHT_STEEL_BLUE", std.F_color, VAL, std.LIGHT_STEEL_BLUE, POP, 74, F_name, VAL, 
+"LIGHT_YELLOW", std.F_color, VAL, std.LIGHT_YELLOW, POP, 75, F_name, VAL, "LIME", std.F_color, VAL, std.LIME, POP, 76, F_name, VAL, "LIME_GREEN", std.F_color, VAL, std.LIME_GREEN
+, POP, 77, F_name, VAL, "LINEN", std.F_color, VAL, std.LINEN, POP, 78, F_name, VAL, "MAGENTA", std.F_color, VAL, std.MAGENTA, POP, 79, F_name, VAL, "MAROON", std.F_color, 
+VAL, std.MAROON, POP, 80, F_name, VAL, "MEDIUM_AQUAMARINE", std.F_color, VAL, std.MEDIUM_AQUAMARINE, POP, 81, F_name, VAL, "MEDIUM_BLUE", std.F_color, VAL, std.MEDIUM_BLUE
+, POP, 82, F_name, VAL, "MEDIUM_ORCHID", std.F_color, VAL, std.MEDIUM_ORCHID, POP, 83, F_name, VAL, "MEDIUM_PURPLE", std.F_color, VAL, std.MEDIUM_PURPLE, POP, 84, F_name, 
+VAL, "MEDIUM_SEA_GREEN", std.F_color, VAL, std.MEDIUM_SEA_GREEN, POP, 85, F_name, VAL, "MEDIUM_SLATE_BLUE", std.F_color, VAL, std.MEDIUM_SLATE_BLUE, POP, 86, F_name, VAL, 
+"MEDIUM_SPRING_GREEN", std.F_color, VAL, std.MEDIUM_SPRING_GREEN, POP, 87, F_name, VAL, "MEDIUM_TURQUOISE", std.F_color, VAL, std.MEDIUM_TURQUOISE, POP, 88, F_name, VAL, "MEDIUM_VIOLET_RED"
+, std.F_color, VAL, std.MEDIUM_VIOLET_RED, POP, 89, F_name, VAL, "MIDNIGHT_BLUE", std.F_color, VAL, std.MIDNIGHT_BLUE, POP, 90, F_name, VAL, "MINT_CREAM", std.F_color, VAL
+, std.MINT_CREAM, POP, 91, F_name, VAL, "MISTY_ROSE", std.F_color, VAL, std.MISTY_ROSE, POP, 92, F_name, VAL, "MOCCASIN", std.F_color, VAL, std.MOCCASIN, POP, 93, F_name, 
+VAL, "NAVAJO_WHITE", std.F_color, VAL, std.NAVAJO_WHITE, POP, 94, F_name, VAL, "NAVY", std.F_color, VAL, std.NAVY, POP, 95, F_name, VAL, "OLD_LACE", std.F_color, VAL, std.OLD_LACE
+, POP, 96, F_name, VAL, "OLIVE", std.F_color, VAL, std.OLIVE, POP, 97, F_name, VAL, "OLIVE_DRAB", std.F_color, VAL, std.OLIVE_DRAB, POP, 98, F_name, VAL, "ORANGE", std.F_color
+, VAL, std.ORANGE, POP, 99, F_name, VAL, "ORANGE_RED", std.F_color, VAL, std.ORANGE_RED, POP, 100, F_name, VAL, "ORCHID", std.F_color, VAL, std.ORCHID, POP, 101, F_name, VAL
+, "PALE_GOLDENROD", std.F_color, VAL, std.PALE_GOLDENROD, POP, 102, F_name, VAL, "PALE_GREEN", std.F_color, VAL, std.PALE_GREEN, POP, 103, F_name, VAL, "PALE_TURQUOISE", std.F_color
+, VAL, std.PALE_TURQUOISE, POP, 104, F_name, VAL, "PALE_VIOLET_RED", std.F_color, VAL, std.PALE_VIOLET_RED, POP, 105, F_name, VAL, "PAPAYA_WHIP", std.F_color, VAL, std.PAPAYA_WHIP
+, POP, 106, F_name, VAL, "PEACH_PUFF", std.F_color, VAL, std.PEACH_PUFF, POP, 107, F_name, VAL, "PERU", std.F_color, VAL, std.PERU, POP, 108, F_name, VAL, "PINK", std.F_color
+, VAL, std.PINK, POP, 109, F_name, VAL, "PLUM", std.F_color, VAL, std.PLUM, POP, 110, F_name, VAL, "POWDER_BLUE", std.F_color, VAL, std.POWDER_BLUE, POP, 111, F_name, VAL, 
+"PURPLE", std.F_color, VAL, std.PURPLE, POP, 112, F_name, VAL, "REBECCA_PURPLE", std.F_color, VAL, std.REBECCA_PURPLE, POP, 113, F_name, VAL, "RED", std.F_color, VAL, std.RED
+, POP, 114, F_name, VAL, "ROSY_BROWN", std.F_color, VAL, std.ROSY_BROWN, POP, 115, F_name, VAL, "ROYAL_BLUE", std.F_color, VAL, std.ROYAL_BLUE, POP, 116, F_name, VAL, "SADDLE_BROWN"
+, std.F_color, VAL, std.SADDLE_BROWN, POP, 117, F_name, VAL, "SALMON", std.F_color, VAL, std.SALMON, POP, 118, F_name, VAL, "SANDY_BROWN", std.F_color, VAL, std.SANDY_BROWN
+, POP, 119, F_name, VAL, "SEA_GREEN", std.F_color, VAL, std.SEA_GREEN, POP, 120, F_name, VAL, "SEASHELL", std.F_color, VAL, std.SEASHELL, POP, 121, F_name, VAL, "SIENNA", 
+std.F_color, VAL, std.SIENNA, POP, 122, F_name, VAL, "SILVER", std.F_color, VAL, std.SILVER, POP, 123, F_name, VAL, "SKY_BLUE", std.F_color, VAL, std.SKY_BLUE, POP, 124, F_name
+, VAL, "SLATE_BLUE", std.F_color, VAL, std.SLATE_BLUE, POP, 125, F_name, VAL, "SLATE_GRAY", std.F_color, VAL, std.SLATE_GRAY, POP, 126, F_name, VAL, "SNOW", std.F_color, VAL
+, std.SNOW, POP, 127, F_name, VAL, "SPRING_GREEN", std.F_color, VAL, std.SPRING_GREEN, POP, 128, F_name, VAL, "STEEL_BLUE", std.F_color, VAL, std.STEEL_BLUE, POP, 129, F_name
+, VAL, "TAN", std.F_color, VAL, std.TAN, POP, 130, F_name, VAL, "TEAL", std.F_color, VAL, std.TEAL, POP, 131, F_name, VAL, "THISTLE", std.F_color, VAL, std.THISTLE, POP, 132
+, F_name, VAL, "TOMATO", std.F_color, VAL, std.TOMATO, POP, 133, F_name, VAL, "TURQUOISE", std.F_color, VAL, std.TURQUOISE, POP, 134, F_name, VAL, "VIOLET", std.F_color, VAL
+, std.VIOLET, POP, 135, F_name, VAL, "WHEAT", std.F_color, VAL, std.WHEAT, POP, 136, F_name, VAL, "WHITE_SMOKE", std.F_color, VAL, std.WHITE_SMOKE, POP, 137, F_name, VAL, 
+"YELLOW", std.F_color, VAL, std.YELLOW, POP, 138, F_name, VAL, "YELLOW_GREEN", std.F_color, VAL, std.YELLOW_GREEN, POP));
+var NCOLS = U;
+var NROWS = U;
+var NCELLS = U;
+var slotlist = new std.a_tree(_M,"slotlist", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var g = new std.a_tree(_M,"g", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var GRID_NPARTS = U;
+var GRID_NROWS = U;
+var GRID_NCOLS = U;
+var HEX_CENTER = new std.a_tree(_M,"HEX_CENTER", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var HEX_H = U;
+var HEX_V = U;
+var HEX_HALF_H = U;
+var HEX_HALF_V = U;
+var HEX_HAT_V = U;
+var ROW_SPACING = U;
+var tweak_map = new std.a_tree(_M,"tweak_map", std.NF_TOPLEVEL|std.NF_LOGGED);
+var chip_h = U;
+
+//====================
+//   d_bottom_bar
+//====================
+function d_bottom_bar(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 0, 6, std.pt, U, U);
+  std.div_add(b, U, 0, 100, std.pt, U, U, d_color_format_F, 0);
+  std.div_spa(b, 0, 15, std.pt, U, U);
+  std.div_add(b, U, 0, 140, std.pt, U, U, d_bottom_col2_F, 0);
+  std.div_spa(b, 0, 30, std.pt, U, U);
+  std.div_add(b, U, 0, 40, std.al, U, U, d_nearby_F, 0);
+  std.div_add(b, U, 0, 80, std.pt, U, U, d_far_right_F, 0);
+  std.div_spa(b, 0, 10, std.pt, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_bottom_col2
+//====================
+function d_bottom_col2(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 1, 22, std.pt, U, U, d_input_box_F, 0);
+  std.div_spa(b, 1, 8, std.pt, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, std.freeze(d_recent_F, ["Current", getn(g, F_sel_color)]), 0);
+  std.div_spa(b, 1, 2, std.pt, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, std.freeze(d_recent_F, ["Prev", getn(g, F_prior_color)]), 0);
+  std.div_spa(b, 1, 2, std.pt, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, std.freeze(d_recent_F, ["Prev 2", getn(g, F_prior2_color)]), 0);
+  std.div_spa(b, 1, 8, std.pt, U, U);
+  std.div_add(b, U, 1, 18, std.pt, U, U, d_made_with_F, 0);
+  std.div_spa(b, 1, 4, std.pt, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_cell
+//====================
+function d_cell(b, myslot, slotx) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 50, std.al, U, U, std.freeze(d_chip_color_F, [myslot, slotx]), 0);
+  if (std.eq2(getn(g, F_sizing), FULL_SIZE)) {
+    std.div_add(b, U, 0, 140, std.al, U, U, std.freeze(d_color_name_F, [myslot, slotx]), 0);
+  }
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_checkbox
+//====================
+function d_checkbox(b, flag) {
+std.k_enter(b);
+  var w = std.mul(b.bounds.height, 0.68);
+  var r = new std.a_tree(_M,"r", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:5, width:w, height:w }));
+  std.draw_image(b, getn(flag) === Y ? CHECKBOX_ON : CHECKBOX_OFF, { box:std.adr(r) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_checkbox_track
+//====================
+function d_checkbox_track(b, e, flag) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.toggle(_M, 590606, flag);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_chip_color
+//====================
+function d_chip_color(b, myslot, slotx) {
+std.k_enter(b);
+  std.draw_rect(b, { fill:getn(myslot, std.F_color), corner:std.pt_to_dots(b, 3) });
+  if (getn(myslot, F_hilite) === Y) {
+    std.draw_rect(b, { color:std.FIREBRICK, thick:std.pt_to_dots(b, 4), corner:std.pt_to_dots(b, 3) });
+  } else {
+    std.draw_rect(b, { color:std.BLACK, thick:std.pt_to_dots(b, 1), corner:std.pt_to_dots(b, 3) });
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   d_choice
+//====================
+function d_choice(b, formx, long_label, short_label) {
+std.k_enter(b);
+  var fill = std.eq2(formx, getn(g, F_format)) ? C_CHOICE_HI_BACK : C_CHOICE_LO_BACK;
+  var label = std.gt2(b.bounds.width, std.pt_to_dots(b, 70)) ? long_label : short_label;
+  std.draw_rect(b, { fill:fill, thick:std.pt_to_dots(b, 1), color:C_CHOICE_BORD });
+  if (std.eq2(formx, getn(g, F_format))) {
+    std.draw_str(b, "▶", { size:0.6, just:std.LEFT, color:std.MAROON });
+    std.draw_str(b, label, { size:0.6, indent:std.pt_to_dots(b, 3), color:C_CHOICE_HI_TEXT });
+  } else {
+    std.draw_str(b, label, { size:0.6, indent:std.pt_to_dots(b, 3), color:C_CHOICE_LO_TEXT });
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   d_choice_track
+//====================
+function d_choice_track(b, e, formx, long_label, short_label) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 280923, std.adr(g, F_format), formx);
+    build_clipboard();
+  return Y;
+  } else 
+  //---------------
+  //   on EV_HOVER
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_HOVER) {
+    std.cursor_set(std.CURS_FINGER);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_color_format
+//====================
+function d_color_format(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 1, 1, std.al, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, std.freeze(d_choice_F, [FORMAT_BEADS, "Beads format", "Beads"]), 0);
+  std.div_spa(b, 1, 1, std.al, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, std.freeze(d_choice_F, [FORMAT_HTML, "HTML format", "HTML"]), 0);
+  std.div_spa(b, 1, 1, std.al, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, std.freeze(d_choice_F, [FORMAT_HEX, "Plain Hex", "Hex"]), 0);
+  std.div_spa(b, 1, 1, std.al, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, std.freeze(d_choice_F, [FORMAT_C, "C Hex", "C"]), 0);
+  std.div_spa(b, 1, 1, std.al, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, std.freeze(d_choice_F, [FORMAT_RGB, "rgb(...)", "rgb()"]), 0);
+  std.div_spa(b, 1, 1, std.al, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, std.freeze(d_choice_F, [FORMAT_HSL, "hsl(...)", "hsl()"]), 0);
+  std.div_spa(b, 1, 1, std.al, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, std.freeze(d_choice_F, [FORMAT_VEC3, "vec3(...)", "vec3()"]), 0);
+  std.div_spa(b, 1, 2, std.al, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_color_name
+//====================
+function d_color_name(b, myslot, slotx) {
+std.k_enter(b);
+  if (getn(myslot, F_hilite) === Y) {
+    var radius = std.div(b.bounds.height, 6);
+    std.draw_rect(b, { fill:std.MEDIUM_VIOLET_RED, corner:std.tree_lit(_M, 71110, 1, VAL, 0, 2, VAL, radius, 3, VAL, radius, 4, VAL, 0) });
+  }
+  var ss = calc_slot_str(myslot);
+  if (std.eq2(getn(g, F_format), FORMAT_HTML)) {
+    std.draw_str(b, ss, { just:std.LEFT, indent:std.pt_to_dots(b, 4), size:std.min(b.bounds.height, std.div(b.bounds.width, 8)), color:C_TEXT });
+  } else {
+    std.draw_str(b, ss, { just:std.LEFT, indent:std.pt_to_dots(b, 4), size:std.min(b.bounds.height, std.div(b.bounds.width, 11)), color:C_TEXT });
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   d_far_right
+//====================
+function d_far_right(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 1, 10, std.al, U, U);
+  std.div_add(b, U, 1, 24, std.pt, U, U, d_sound_checkbox_F, 0);
+  std.div_spa(b, 1, 12, std.pt, U, U);
+  std.div_add(b, U, 1, 18, std.pt, U, U, d_version_F, 0);
+  std.div_spa(b, 1, 6, std.pt, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_ferrari_grid
+//====================
+function d_ferrari_grid(b) {
+std.k_enter(b);
+std.div_begin(b, new std.a_function(_M, "d_ferrari_grid_cell", d_ferrari_grid_cell, null), true, false, false);
+  var loop896 = new std.a_loop({ reps:FERR_NCOL });
+  while (loop896.next()) {
+    std.div_add(b, U, 0, 10, std.al, U, U, null, 0);
+  }
+  var loop897 = new std.a_loop({ reps:FERR_NROW });
+  while (loop897.next()) {
+    std.div_add(b, U, 1, 10, std.al, U, U, null, 0);
+    std.div_spa(b, 1, 3, std.px, U, U);
+  }
+  std.div_end(b);
+  std.draw_grid(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_ferrari_grid_cell
+//====================
+function d_ferrari_grid_cell(b) {
+  std.k_enter(b);
+  if (std.eq2(getn(b.extra, std.F_cell_seq), 1)) {
+    ferr_first_ramp(b);
+  } else {
+    ferr_ramp(b, getn(b.extra, std.F_cell_seq));
+  }
+  std.k_leave(b);
+}
+
+//====================
+//   d_ferrari_palette
+//====================
+function d_ferrari_palette(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  chip_h = std.round_down(std.div(b.bounds.width, CHIPS_PER_ROW), {});
+  var used = std.mul(chip_h, CHIPS_PER_ROW);
+  var leftover = std.sub(b.bounds.width, used);
+  var gap = std.mul(leftover, 0.5);
+  std.div_spa(b, 0, gap, std.px, U, U);
+  std.div_add(b, U, 0, used, std.px, U, U, d_ferrari_grid_F, 0);
+  std.div_spa(b, 0, gap, std.px, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_grad_designer
+//====================
+function d_grad_designer(b) {
+std.k_enter(b);
+  std.draw_rect(b, { fill:std.OLIVE_DRAB });
+  std.draw_str(b, "not yet", { size:std.pt_to_dots(b, 40), color:C_TEXT });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_html_palette
+//====================
+function d_html_palette(b) {
+std.k_enter(b);
+std.div_begin(b, new std.a_function(_M, "d_html_palette_cell", d_html_palette_cell, null), true, false, false);
+  std.div_spa(b, 0, 10, std.al, U, U);
+  var loop898 = new std.a_loop({ reps:NCOLS });
+  while (loop898.next()) {
+  var col = loop898.count;
+    if ((std.gt2(col, 1) && std.eq2(getn(g, F_sizing), FULL_SIZE))) {
+      std.div_spa(b, 0, 10, std.al, U, U);
+    }
+    std.div_add(b, U, 0, 250, std.al, U, U, null, 0);
+  }
+  std.div_spa(b, 0, 10, std.al, U, U);
+  std.div_spa(b, 1, 5, std.al, U, U);
+  var loop899 = new std.a_loop({ reps:NROWS });
+  while (loop899.next()) {
+  var row = loop899.count;
+    if ((std.gt2(row, 1) && std.eq2(getn(g, F_sizing), FULL_SIZE))) {
+      std.div_spa(b, 1, 5, std.al, U, U);
+    }
+    std.div_add(b, U, 1, 80, std.al, U, U, null, 0);
+  }
+  std.div_spa(b, 1, 5, std.al, U, U);
+  std.div_spa(b, 1, 1, std.px, U, U);
+  std.div_end(b);
+  std.draw_grid(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_html_palette_cell
+//====================
+function d_html_palette_cell(b) {
+  std.k_enter(b);
+  if (std.le2(getn(b.extra, std.F_cell_seq), NCELLS)) {
+    var slotx = getn(b.extra, std.F_cell_seq);
+    d_cell(b, std.get_ptr(slotlist, slotx), slotx);
+  }
+  std.k_leave(b);
+}
+
+//====================
+//   d_html_palette_track
+//====================
+function d_html_palette_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    if ((getn(b.extra, std.F_cell_seq) === U || std.gt2(getn(b.extra, std.F_cell_seq), NCELLS))) {
+      if (getn(g, F_sounds) === Y) {
+        std.sound_play(BEEP, {});
+      }
+      std.path_setv(_M, 230976, std.adr(g, F_htmlchip_selx), U);
+    } else {
+      if (getn(g, F_htmlchip_selx) !== U) {
+        std.path_setv(_M, 230981, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), N);
+      }
+      std.path_setv(_M, 230982, std.adr(g, F_htmlchip_selx), getn(b.extra, std.F_cell_seq));
+      std.path_setv(_M, 230983, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), Y);
+      var newsel = getn(slotlist, getn(g, F_htmlchip_selx), std.FOL, std.F_color);
+      select_new_color(newsel);
+      std.path_setv(_M, 230989, std.adr(g, F_ferrari_selx), find_closest_ferrari(getn(g, F_sel_color)));
+    }
+  return Y;
+  } else 
+  //---------------
+  //   on EV_HOVER
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_HOVER) {
+    if (std.le2(getn(b.extra, std.F_cell_seq), NCELLS)) {
+      std.cursor_set(std.CURS_FINGER);
+    } else {
+      std.cursor_set(std.CURS_ARROW);
+    }
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_input_box
+//====================
+function d_input_box(b) {
+std.k_enter(b);
+  std.draw_input(b, std.adr(g, F_input_field), { indent:std.pt_to_dots(b, 3), color:std.BLACK, border:std.pt_to_dots(b, 1), size:0.55, font:std.MONOSPACE, border_color:std.LIGHT_SLATE_GRAY
+  , fill:std.GHOST_WHITE, caret:std.BLACK, corner:std.pt_to_dots(b, 2) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_made_with
+//====================
+function d_made_with(b) {
+std.k_enter(b);
+  std.draw_rect(b, { fill:std.STEEL_BLUE, corner:std.pt_to_dots(b, 4) });
+  std.draw_str(b, "written in Beads", { size:std.mul(b.bounds.height, 0.65), color:C_TEXT });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_made_with_track
+//====================
+function d_made_with_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.browser_redirect("https://github.com/magicmouse/beads-examples/tree/master/Example%20-%20Color%20Chart", { newtab:Y });
+  return Y;
+  } else 
+  //---------------
+  //   on EV_HOVER
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_HOVER) {
+    std.cursor_set(std.CURS_FINGER);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_nearby
+//====================
+function d_nearby(b) {
+std.k_enter(b);
+  HEX_H = std.pt_to_dots(b, 25);
+  HEX_HALF_H = std.div(HEX_H, 2);
+  HEX_HAT_V = std.pt_to_dots(b, 4);
+  const HEX_SMALL_V = std.pt_to_dots(b, 7);
+  HEX_HALF_V = std.div(HEX_SMALL_V, 2);
+  ROW_SPACING = std.mul(HEX_SMALL_V, 1.68);
+  const NH = std.round_down(std.div(std.mul(b.bounds.width, 0.5), HEX_H), {});
+  const NV = std.round_down(std.div(std.mul(b.bounds.height, 0.48), ROW_SPACING), {});
+  var cx = U;
+  var cy = U;
+  var c = U;
+  var lo = U;
+  var offsetx = U;
+  var offsetcell = U;
+  var tcol = U;
+  var trow = U;
+  var theta = null;
+  std.copy_tree(_M, 600669, std.solve_point({ basis:std.adr(b.extra, std.F_box), pin:std.MID_CENTER }), std.adr(HEX_CENTER));
+  std.trunc_tree(_M, 600671, std.adr(tweak_map));
+  var loop900 = new std.a_loop({ from:std.negate(NV), to_:NV });
+  while (loop900.next()) {
+  var row = loop900.index;
+    if (std.is_odd(row) === Y) {
+      lo = std.negate(std.sub(NH, 1));
+      offsetx = std.negate(HEX_HALF_H);
+      offsetcell = -1;
+    } else {
+      lo = std.negate(NH);
+      offsetx = 0;
+      offsetcell = 0;
+    }
+    var loop901 = new std.a_loop({ from:lo, to_:NH });
+    while (loop901.next()) {
+    var col = loop901.index;
+      cx = std.add(std.mul(col, HEX_H), offsetx);
+      cy = std.mul(row, ROW_SPACING);
+      theta = std.arc_tan2(std.negate(cy), cx);
+      cx = std.add(cx, getn(HEX_CENTER, std.F_x));
+      cy = std.add(cy, getn(HEX_CENTER, std.F_y));
+      tcol = std.add(std.mul(col, 2), offsetcell);
+      trow = std.negate(row);
+      c = tweak_color(getn(g, F_sel_color), theta, tcol, trow);
+      std.append_tree(_M, 600700, std.tree_lit(_M, 600700, std.F_x, VAL, cx, std.F_y, VAL, cy, F_netc, VAL, c), std.adr(tweak_map));
+      draw_hexagon(b, tcol, trow, cx, cy, c);
+    }
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   d_nearby_track
+//====================
+function d_nearby_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    var tweakp = null;
+    var best_dist = std.INFINITY;
+    var distance = U;
+    var dx = U;
+    var dy = U;
+    var best_color = U;
+    var loop902 = new std.a_loop({ across:std.adr(tweak_map) });
+    while (loop902.next()) {
+    tweakp = loop902.path.clone();
+      dx = std.sub(getn(e, std.F_x), getn(tweakp, std.F_x));
+      dy = std.sub(getn(e, std.F_y), getn(tweakp, std.F_y));
+      distance = std.add(std.mul(dx, dx), std.mul(dy, dy));
+      if (std.lt2(distance, best_dist)) {
+        best_dist = distance;
+        best_color = getn(tweakp, F_netc);
+      }
+    }
+    select_new_color(best_color);
+    std.path_setv(_M, 260726, std.adr(g, F_ferrari_selx), find_closest_ferrari(getn(g, F_sel_color)));
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_recent
+//====================
+function d_recent(b, label, clr) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 14, std.al, U, U, std.freeze(d_recent_876_F, [label, clr]), 0);
+  std.div_spa(b, 0, 2, std.pt, U, U);
+  std.div_add(b, U, 0, 20, std.al, U, U, std.freeze(d_recent_879_F, [label, clr]), 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_recent_track
+//====================
+function d_recent_track(b, e, label, clr) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    select_new_color(clr);
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_sound_checkbox
+//====================
+function d_sound_checkbox(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 0, 12, std.pt, U, U);
+  std.div_add(b, U, 0, 24, std.pt, U, U, std.freeze(d_checkbox_F, [std.adr(g, F_sounds)]), 0);
+  std.div_spa(b, 0, 1, std.pt, U, U);
+  std.div_add(b, U, 0, 10, std.al, U, U, d_sound_checkbox_591_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_sound_checkbox_track
+//====================
+function d_sound_checkbox_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.toggle(_M, 520594, std.adr(g, F_sounds));
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_version
+//====================
+function d_version(b) {
+std.k_enter(b);
+  if (getn(g, F_show_dpi) === Y) {
+    std.draw_str(b, std.cat("dpi ", str.to_str(getn(std.runtime, std.F_screen_dpi), {dig:2})), { size:std.pt_to_dots(b, 12), color:C_TEXT, just:std.RIGHT, vert:0.85 });
+  } else {
+    std.draw_str(b, std.cat("version ", gets(std.runtime, std.F_app_version)), { size:std.pt_to_dots(b, 12), color:C_TEXT, just:std.RIGHT, vert:0.85 });
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   d_version_track
+//====================
+function d_version_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.toggle(_M, 310581, std.adr(g, F_show_dpi));
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   draw_choice_grid
+//====================
+function draw_choice_grid(b, o, textsize) {
+std.k_enter(b);
+std.div_begin(b, new std.a_function(_M, "draw_choice_grid_cell", draw_choice_grid_cell, null, [o, textsize]), false, false, false);
+  GRID_NPARTS = std.count(std.adr(o, F_label_list));
+  GRID_NROWS = getn(o, F_nrows) !== U ? getn(o, F_nrows) : 1;
+  GRID_NCOLS = std.div(GRID_NPARTS, GRID_NROWS);
+  var loop903 = new std.a_loop({ reps:GRID_NCOLS });
+  while (loop903.next()) {
+    std.div_add(b, U, 0, 12, std.al, U, U, null, 0);
+  }
+  var loop904 = new std.a_loop({ reps:GRID_NROWS });
+  while (loop904.next()) {
+    std.div_add(b, U, 1, 12, std.al, U, U, null, 0);
+  }
+  std.div_end(b);
+  std.draw_grid(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   draw_choice_grid_cell
+//====================
+function draw_choice_grid_cell(b, o, textsize) {
+  std.k_enter(b);
+  const CHOICE_CORNER = 4;
+  const BUTT_THICK = 1.5;
+  var opacity = getn(o, F_enabled) === N ? DIMMED : 1;
+  var back = U;
+  var bord = U;
+  var text = U;
+  var tl = 0;
+  var tr = 0;
+  var bl = 0;
+  var br = 0;
+  if (std.eq2(getn(b.extra, std.F_cell_seq), choice_get_selx(o))) {
+    back = C_CHOICE_HI_BACK;
+    bord = C_CHOICE_BORD;
+    text = C_CHOICE_HI_TEXT;
+  } else {
+    back = C_CHOICE_LO_BACK;
+    bord = C_CHOICE_BORD;
+    text = C_CHOICE_LO_TEXT;
+  }
+  if (std.eq2(getn(b.extra, std.F_cell, std.F_x), 1)) {
+    if (std.eq2(getn(b.extra, std.F_cell, std.F_y), 1)) {
+      tl = std.pt_to_dots(b, CHOICE_CORNER);
+    }
+    if (std.eq2(getn(b.extra, std.F_cell, std.F_y), GRID_NROWS)) {
+      bl = std.pt_to_dots(b, CHOICE_CORNER);
+    }
+  }
+  if (std.eq2(getn(b.extra, std.F_cell, std.F_x), GRID_NCOLS)) {
+    if (std.eq2(getn(b.extra, std.F_cell, std.F_y), 1)) {
+      tr = std.pt_to_dots(b, CHOICE_CORNER);
+    }
+    if (std.eq2(getn(b.extra, std.F_cell, std.F_y), GRID_NROWS)) {
+      br = std.pt_to_dots(b, CHOICE_CORNER);
+    }
+  }
+  std.draw_rect(b, { fill:back, color:bord, thick:std.pt_to_dots(b, BUTT_THICK), pos:0, corner:std.tree_lit(_M, 120349, 1, VAL, tl, 2, VAL, tr, 3, VAL, bl, 4, VAL, br), opacity
+  :opacity });
+  var f = std.get_func(o, F_label_func, getn(b.extra, std.F_cell_seq));
+  if (f !== null) {
+    f.code(b, std.adr(b.extra, std.F_box));
+  } else {
+    std.draw_str(b, gets(o, F_label_list, getn(b.extra, std.F_cell_seq)), { color:text, indent:std.pt_to_dots(b, 1.5), size:textsize, opacity:opacity });
+  }
+  std.k_leave(b);
+}
+
+//====================
+//   draw_choice_grid_track
+//====================
+function draw_choice_grid_track(b, e, o, textsize) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    choice_set_selx(o, getn(b.extra, std.F_cell_seq));
+    if (std.get_func(o, F_choice_func) !== null) {
+      std.get_func(o, F_choice_func).code();
+    }
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   draw_hexagon
+//====================
+function draw_hexagon(b, col, row, cx, cy, clr) {
+std.k_enter(b);
+  var steps = new std.a_tree(_M,"steps", 0);
+  const COVERAGE = 0.93;
+  const HALF_H = std.mul(HEX_HALF_H, COVERAGE);
+  const HALF_V = std.mul(HEX_HALF_V, COVERAGE);
+  const HAT_V = std.mul(HEX_HAT_V, COVERAGE);
+  std.copy_tree(_M, 540744, std.tree_lit(_M, 540744, std.F_x, VAL, std.sub(cx, HALF_H), std.F_y, VAL, std.sub(cy, HALF_V)), std.adr(steps, 1));
+  std.copy_tree(_M, 540745, std.tree_lit(_M, 540745, std.F_x, VAL, cx, std.F_y, VAL, std.sub(std.sub(cy, HALF_V), HAT_V)), std.adr(steps, 2));
+  std.copy_tree(_M, 540746, std.tree_lit(_M, 540746, std.F_x, VAL, std.add(cx, HALF_H), std.F_y, VAL, std.sub(cy, HALF_V)), std.adr(steps, 3));
+  std.copy_tree(_M, 540747, std.tree_lit(_M, 540747, std.F_x, VAL, std.add(cx, HALF_H), std.F_y, VAL, std.add(cy, HALF_V)), std.adr(steps, 4));
+  std.copy_tree(_M, 540748, std.tree_lit(_M, 540748, std.F_x, VAL, cx, std.F_y, VAL, std.add(std.add(cy, HALF_V), HAT_V)), std.adr(steps, 5));
+  std.copy_tree(_M, 540749, std.tree_lit(_M, 540749, std.F_x, VAL, std.sub(cx, HALF_H), std.F_y, VAL, std.add(cy, HALF_V)), std.adr(steps, 6));
+  var thick = (std.eq2(col, 0) && std.eq2(row, 0)) ? std.pt_to_dots(b, 2) : 0;
+  std.draw_polygon(b, std.adr(steps), { fill:clr, color:std.CRIMSON, thick:thick });
+std.k_leave(b);
+}
+
+
+//====================
+//   draw_tabs
+//====================
+function draw_tabs(b, tabs, deadspace) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  const tabw = std.div(std.sub(100, deadspace), std.count(tabs));
+  const skip_per_side = std.div(deadspace, 2);
+  std.div_spa(b, 0, skip_per_side, std.al, U, U);
+  var loop905 = new std.a_loop({ across:std.adr(tabs, F_label_list) });
+  while (loop905.next()) {
+  var ix = loop905.index;
+    std.div_add(b, U, 0, tabw, std.al, U, U, std.freeze(draw_tabs2_F, [tabs, ix]), 0);
+  }
+  std.div_spa(b, 0, skip_per_side, std.al, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   draw_tabs2
+//====================
+function draw_tabs2(b, tabs, ix) {
+std.k_enter(b);
+  const TAB_BORD = 1.5;
+  const TAB_CORNER = 10;
+  var back = U;
+  var text = U;
+  var bord = U;
+  if (std.eq2(getn(tabs, F_selx), ix)) {
+    back = TAB_HI_BACK;
+    bord = TAB_HI_BORD;
+    text = TAB_HI_TEXT;
+  } else {
+    back = TAB_LO_BACK;
+    bord = TAB_LO_BORD;
+    text = TAB_LO_TEXT;
+  }
+  std.draw_rect(b, { fill:back, color:bord, thick:std.pt_to_dots(b, TAB_BORD), corner:std.tree_lit(_M, 190401, 1, VAL, std.pt_to_dots(b, TAB_CORNER), 2, VAL, std.pt_to_dots(
+  b, TAB_CORNER)) });
+  std.draw_str(b, gets(tabs, F_label_list, ix), { indent:std.pt_to_dots(b, 1.5), size:0.6, color:text });
+std.k_leave(b);
+}
+
+
+//====================
+//   draw_tabs2_track
+//====================
+function draw_tabs2_track(b, e, tabs, ix) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    if (std.ne2(ix, getn(tabs, F_selx))) {
+      std.path_setv(_M, 390407, std.adr(tabs, F_selx), ix);
+      if (std.get_func(tabs, F_action) !== null) {
+        std.get_func(tabs, F_action).code();
+      }
+    }
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   ferr_first_ramp
+//====================
+function ferr_first_ramp(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 10, std.al, U, U, ferr_first_ramp_1321_F, 0);
+  std.div_add(b, U, 0, 10, std.al, U, U, ferr_first_ramp_1323_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   ferr_hilite_chip
+//====================
+function ferr_hilite_chip(b, box) {
+std.k_enter(b);
+  std.draw_rect(b, { thick:4, pos:0, color:std.BLACK });
+  std.draw_rect(b, { thick:2, pos:0, color:std.RED });
+std.k_leave(b);
+}
+
+
+//====================
+//   ferr_ramp
+//====================
+function ferr_ramp(b, rampx) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  var loop906 = new std.a_loop({ reps:CHIPS_PER_RAMP });
+  while (loop906.next()) {
+  var chipx = loop906.count;
+    var colorx = std.add(std.add(2, std.mul(std.sub(rampx, 2), CHIPS_PER_RAMP)), chipx);
+    std.div_add(b, U, 0, 10, std.al, U, U, std.freeze(ferr_ramp_chip_F, [colorx]), 0);
+  }
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   ferr_ramp_chip
+//====================
+function ferr_ramp_chip(b, colorx) {
+std.k_enter(b);
+  std.draw_rect(b, { fill:getn(FERRARI, colorx) });
+  if (std.eq2(getn(g, F_ferrari_selx), colorx)) {
+    ferr_hilite_chip(b, std.adr(b.extra, std.F_box));
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   ferr_ramp_chip_track
+//====================
+function ferr_ramp_chip_track(b, e, colorx) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.path_setv(_M, 431345, std.adr(g, F_ferrari_selx), colorx);
+    if (getn(g, F_htmlchip_selx) !== U) {
+      std.path_setv(_M, 431349, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), N);
+      std.path_setv(_M, 431350, std.adr(g, F_htmlchip_selx), U);
+    }
+    select_new_color(getn(FERRARI, colorx));
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.k_back(b, {fill:C_DEAD});
+  std.div_spa(b, 1, 6, std.pt, U, U);
+  var case907 = getn(g, F_mode_grid, F_selx);
+  if (case907 === MODE_COLORS) {
+    if (std.gt2(b.bounds.height, std.pt_to_dots(b, 320))) {
+      std.div_add(b, U, 1, 16, std.al, U, U, d_html_palette_F, 0);
+      std.div_spa(b, 1, 6, std.pt, U, U);
+    }
+    std.div_add(b, U, 1, 10, std.al, U, U, d_ferrari_palette_F, 0);
+  } else if (case907 === MODE_GRADS) {
+    std.div_add(b, U, 1, 10, std.al, U, U, d_grad_designer_F, 0);
+  }
+  std.div_spa(b, 1, 6, std.pt, U, U);
+  std.div_add(b, U, 1, BARV, std.pt, U, U, d_bottom_bar_F, 0);
+  std.div_spa(b, 1, 6, std.pt, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   main_draw_track
+//====================
+export function main_draw_track(b, e) {
+  //---------------
+  //   on EV_RESIZE
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_RESIZE) {
+    var h_pts = std.dots_to_pt(b, b.bounds.width);
+    var v_pts = std.dots_to_pt(b, std.sub(b.bounds.height, BARV));
+    var area = std.mul(h_pts, v_pts);
+    if (std.ge2(area, AREA_THRESHOLD)) {
+      std.path_setv(_M, 320530, std.adr(g, F_sizing), FULL_SIZE);
+      NCOLS = std.round_down(std.div(h_pts, TARG_WIDTH), {});
+    } else {
+      std.path_setv(_M, 320534, std.adr(g, F_sizing), COMPACT_SIZE);
+      var cell_area = std.round_down(std.div(area, NCELLS), {});
+      var cell_height = std.sqrt(std.div(cell_area, 3));
+      var cell_width = std.div(cell_area, cell_height);
+      NCOLS = std.round(std.div(h_pts, cell_width), {});
+    }
+    NROWS = std.round_up(std.div(NCELLS, NCOLS), {});
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   beads_to_html
+//====================
+function beads_to_html(beadsname) {
+  var result = "";
+  var words = new std.a_tree(_M,"words", 0);
+  var word = null;
+  str.split_words(_M, 131485, str.to_lower(beadsname), std.adr(words), { delim:"_" });
+  var loop908 = new std.a_loop({ across:std.adr(words) });
+  while (loop908.next()) {
+  word = loop908.val;
+    result = std.cat(result, str.to_upper(str.subset(word, {from:1, len:1})), str.subset(word, { from:2 }));
+  }
+  return result;
+}
+
+
+//====================
+//   build_clipboard
+//====================
+function build_clipboard() {
+  var beads_name = null;
+  var ss = null;
+  var newcolor = getn(g, F_sel_color);
+  var case909 = getn(g, F_format);
+  if (case909 === FORMAT_BEADS) {
+    beads_name = find_exact_beads(newcolor);
+    if (beads_name === null) {
+      ss = str.color_to_hex(newcolor);
+    } else {
+      ss = beads_name;
+    }
+  } else if (case909 === FORMAT_HTML) {
+    beads_name = find_exact_beads(newcolor);
+    if (beads_name === null) {
+      ss = str.color_to_hex(newcolor);
+    } else {
+      ss = beads_to_html(beads_name);
+    }
+  } else if (case909 === FORMAT_HEX) {
+    ss = str.subset(str.color_to_hex(newcolor), { from:2 });
+  } else if (case909 === FORMAT_C) {
+    ss = std.cat("0x", str.subset(str.color_to_hex(newcolor), { from:2 }));
+  } else if (case909 === FORMAT_RGB) {
+    ss = to_rgb_str(newcolor);
+  } else if (case909 === FORMAT_HSL) {
+    ss = to_hsl_str(newcolor);
+  } else if (case909 === FORMAT_VEC3) {
+    ss = to_vec3_str(newcolor);
+  }
+  std.path_setv(_M, 81072, std.adr(g, F_clipboard_ss), ss);
+  std.os_clipboard_copy(ss);
+  std.input_set_value(_M, 81076, std.adr(g, F_input_field), ss);
+  std.path_setv(_M, 81077, std.adr(g, F_input_field, std.F_in_ok), Y);
+}
+
+
+//====================
+//   calc_slot_str
+//====================
+function calc_slot_str(slot) {
+  var case910 = getn(g, F_format);
+  if (case910 === FORMAT_HTML) {
+    return beads_to_html(gets(slot, F_name));
+  } else {
+    return gets(slot, F_name);
+  }
+}
+
+
+//====================
+//   choice_get_selx
+//====================
+function choice_get_selx(c) {
+  if (std.get_ptr(c, F_selx_ptr) !== null) {
+    return getn(c, F_selx_ptr, std.FOL);
+  } else {
+    return getn(c, F_selx);
+  }
+}
+
+
+//====================
+//   choice_set_selx
+//====================
+function choice_set_selx(c, newval) {
+  if (std.get_ptr(c, F_selx_ptr) !== null) {
+    std.path_setv(_M, 140286, std.adr(c, F_selx_ptr, std.FOL), newval);
+  } else {
+    std.path_setv(_M, 140289, std.adr(c, F_selx), newval);
+  }
+}
+
+
+//====================
+//   color_difference
+//====================
+function color_difference(c1, c2) {
+  var r1 = std.r255(c1);
+  var g1 = std.g255(c1);
+  var b1 = std.b255(c1);
+  var r2 = std.r255(c2);
+  var g2 = std.g255(c2);
+  var b2 = std.b255(c2);
+  var dr = std.sub(r1, r2);
+  var dg = std.sub(g1, g2);
+  var db = std.sub(b1, b2);
+  return std.sqrt(std.add(std.add(std.mul(dr, dr), std.mul(dg, dg)), std.mul(db, db)));
+}
+
+
+//====================
+//   color_difference2
+//====================
+function color_difference2(c1, c2) {
+  var hsv1 = new std.a_tree(_M,"hsv1", 0, std.color_to_hsv(c1));
+  var hsv2 = new std.a_tree(_M,"hsv2", 0, std.color_to_hsv(c2));
+  var dh = std.sub(getn(hsv1, std.F_hsv_h), getn(hsv2, std.F_hsv_h));
+  var ds = std.sub(getn(hsv1, std.F_hsv_s), getn(hsv2, std.F_hsv_s));
+  var dv = std.sub(getn(hsv1, std.F_hsv_v), getn(hsv2, std.F_hsv_v));
+  return std.sqrt(std.add(std.add(std.mul(dh, dh), std.mul(ds, ds)), std.mul(dv, dv)));
+}
+
+
+//====================
+//   compare_slots
+//====================
+function compare_slots(a, b) {
+  if (std.lt2(getn(a, F_key1), getn(b, F_key1))) {
+    return -1;
+  } else if (std.gt2(getn(a, F_key1), getn(b, F_key1))) {
+    return 1;
+  }
+  if (std.lt2(getn(a, F_key2), getn(b, F_key2))) {
+    return -1;
+  } else if (std.gt2(getn(a, F_key2), getn(b, F_key2))) {
+    return 1;
+  }
+  if (std.lt2(getn(a, F_key3), getn(b, F_key3))) {
+    return -1;
+  } else if (std.gt2(getn(a, F_key3), getn(b, F_key3))) {
+    return 1;
+  }
+  return 0;
+}
+
+
+//====================
+//   ferr_closest_chip
+//====================
+function ferr_closest_chip(targcolor) {
+  var targ_r = std.r255(targcolor);
+  var targ_g = std.g255(targcolor);
+  var targ_b = std.b255(targcolor);
+  var dx = U;
+  var badness = U;
+  var lowest = U;
+  var lowestx = U;
+  var testcolor = U;
+  lowest = std.INFINITY;
+  var loop911 = new std.a_loop({ across:std.adr(FERRARI) });
+  while (loop911.next()) {
+  var ix = loop911.index;
+  testcolor = loop911.val;
+    dx = std.sub(targ_r, std.r255(testcolor));
+    badness = std.mul(dx, dx);
+    dx = std.sub(targ_g, std.g255(testcolor));
+    badness = std.add(badness, std.mul(dx, dx));
+    dx = std.sub(targ_b, std.b255(testcolor));
+    badness = std.add(badness, std.mul(dx, dx));
+    if (std.eq2(badness, 0)) {
+      return ix;
+    }
+    if (std.lt2(badness, lowest)) {
+      lowest = badness;
+      lowest = ix;
+    }
+  }
+  return lowestx;
+}
+
+
+//====================
+//   find_closest_ferrari
+//====================
+function find_closest_ferrari(targ) {
+  var best_ix = 0;
+  var best_score = std.INFINITY;
+  var score = U;
+  var c = U;
+  var loop912 = new std.a_loop({ across:std.adr(FERRARI) });
+  while (loop912.next()) {
+  var ix = loop912.index;
+  c = loop912.val;
+    score = color_difference(targ, c);
+    if (std.lt2(score, best_score)) {
+      best_score = score;
+      best_ix = ix;
+    }
+  }
+  return best_ix;
+}
+
+
+//====================
+//   find_exact_beads
+//====================
+function find_exact_beads(targ) {
+  var p = null;
+  var loop913 = new std.a_loop({ across:std.adr(slotlist) });
+  while (loop913.next()) {
+  p = loop913.val;
+    if (std.eq2(getn(p, std.F_color), targ)) {
+      return gets(p, F_name);
+    }
+  }
+  return null;
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  var hsv = new std.a_tree(_M,"hsv", 0);
+  var loop914 = new std.a_loop({ across:std.adr(SET1) });
+  while (loop914.next()) {
+  var ix = loop914.index;
+  var p = loop914.path.clone();
+    std.copy_tree(_M, 110421, std.color_to_hsv(getn(p, std.F_color)), std.adr(hsv));
+    var hue2 = std.mod(std.add(getn(hsv, std.F_hsv_h), hue_fudge), 360, {});
+    if (std.le2(getn(hsv, std.F_hsv_s), 10)) {
+      std.path_setv(_M, 110429, std.adr(p, F_key1), 90);
+      std.path_setv(_M, 110430, std.adr(p, F_key2), hue2);
+      std.path_setv(_M, 110431, std.adr(p, F_key3), getn(hsv, std.F_hsv_v));
+    } else if (std.ge2(getn(hsv, std.F_hsv_s), 90)) {
+      std.path_setv(_M, 110433, std.adr(p, F_key1), 10);
+      std.path_setv(_M, 110434, std.adr(p, F_key2), hue2);
+      std.path_setv(_M, 110435, std.adr(p, F_key3), getn(hsv, std.F_hsv_v));
+    } else {
+      std.path_setv(_M, 110438, std.adr(p, F_key1), 50);
+      std.path_setv(_M, 110439, std.adr(p, F_key2), hue2);
+      std.path_setv(_M, 110440, std.adr(p, F_key3), getn(hsv, std.F_hsv_s));
+    }
+  }
+  var loop915 = new std.a_loop({ across:std.adr(SET1), sort_mode:5, sort_func:compare_slots });
+  while (loop915.next()) {
+  var cx = loop915.count;
+  var ix = loop915.index;
+  var p = loop915.path.clone();
+    std.append_val(_M, 110447, p, std.adr(slotlist));
+  }
+  var loop916 = new std.a_loop({ across:std.adr(SET2) });
+  while (loop916.next()) {
+  var p = loop916.path.clone();
+    std.append_val(_M, 110452, p, std.adr(slotlist));
+  }
+  if (TRACE_COLORS === Y) {
+    log(lgp("----- after sort ------"));
+    var loop917 = new std.a_loop({ across:std.adr(slotlist) });
+    while (loop917.next()) {
+    var ix = loop917.index;
+    var p = loop917.val;
+      log(lgp(std.cat("", str.to_str(ix, {dig:2}), ": ", gets(p, F_name), ", keys=[", str.to_str(getn(p, F_key1), {dig:2}), ",", str.to_str(getn(p, F_key2), {dig:2}), ",", str.to_str(
+      getn(p, F_key3), {dig:2}), "], color=", str.color_to_hex(getn(p, std.F_color)))));
+    }
+  }
+  std.path_setv(_M, 110459, std.adr(g, F_mode_grid, F_selx), MODE_COLORS);
+  std.copy_tree(_M, 110460, std.tree_lit(_M, 110460, 1, VAL, "Colors", 2, VAL, "Gradients"), std.adr(g, F_mode_grid, F_label_list));
+  std.path_setv(_M, 110463, std.adr(g, F_input_field, std.F_in_label), "ColorName");
+  std.path_setv(_M, 110464, std.adr(g, F_input_field, std.F_in_name), "ColorName");
+  std.path_setv(_M, 110465, std.adr(g, F_input_field, std.F_in_validator), validate_color_F);
+  std.input_start(_M, 110466, std.adr(g, F_input_field));
+  std.path_setv(_M, 110468, std.adr(g, F_sounds), Y);
+  std.path_setv(_M, 110469, std.adr(g, F_format), FORMAT_BEADS);
+  NCELLS = std.count(std.adr(slotlist));
+  std.path_setv(_M, 110471, std.adr(g, F_show_dpi), N);
+  select_new_color(std.CORNFLOWER_BLUE);
+}
+
+
+//====================
+//   select_new_color
+//====================
+function select_new_color(newcolor) {
+  if (getn(g, F_sounds) === Y) {
+    std.sound_play(CLICK, {});
+  }
+  if (std.eq2(newcolor, getn(g, F_sel_color))) {
+    return;
+  }
+  std.path_setv(_M, 301022, std.adr(g, F_prior2_color), getn(g, F_prior_color));
+  std.path_setv(_M, 301023, std.adr(g, F_prior_color), getn(g, F_sel_color));
+  std.path_setv(_M, 301024, std.adr(g, F_sel_color), newcolor);
+  build_clipboard();
+}
+
+
+//====================
+//   to_hsl_str
+//====================
+function to_hsl_str(color) {
+  var hsl = new std.a_tree(_M,"hsl", 0, std.color_to_hsl(color));
+  return std.cat("hsl(", str.to_str(getn(hsl, std.F_hsl_h), {dig:2}), ",", str.to_str(getn(hsl, std.F_hsl_s), {dig:2}), "%,", str.to_str(getn(hsl, std.F_hsl_l), {dig:2}), "%)"
+  );
+}
+
+
+//====================
+//   to_rgb_str
+//====================
+function to_rgb_str(color) {
+  return std.cat("rgb(", str.to_str(std.r255(color), {dig:2}), ",", str.to_str(std.g255(color), {dig:2}), ",", str.to_str(std.b255(color), {dig:2}), ")");
+}
+
+
+//====================
+//   to_vec3_str
+//====================
+function to_vec3_str(color) {
+  var hsl = new std.a_tree(_M,"hsl", 0, std.color_to_hsl(color));
+  return std.cat("vec3(", v3(std.r1(color)), ",", v3(std.g1(color)), ",", v3(std.b1(color)), ")");
+}
+
+
+//====================
+//   tweak_color
+//====================
+function tweak_color(base, theta, dx, dy) {
+  if ((std.eq2(dx, 0) && std.eq2(dy, 0))) {
+    return base;
+  }
+  var alpha = 0;
+  var beta = 0;
+  var gamma = 0;
+  var side = U;
+  var posx = U;
+  var posy = U;
+  var adx = std.abs(dx);
+  var ady = std.abs(dy);
+  if (std.le2(theta, std.meas(30, std.N_deg, std.Y_Angle))) {
+    beta = dy;
+    alpha = std.sub(adx, beta);
+  } else if (std.le2(theta, std.meas(60, std.N_deg, std.Y_Angle))) {
+    alpha = std.div(std.sub(adx, ady), 2);
+    beta = dy;
+  } else if (std.le2(theta, std.meas(90, std.N_deg, std.Y_Angle))) {
+    gamma = std.div(std.sub(ady, adx), 2);
+    beta = std.sub(dy, gamma);
+  } else if (std.le2(theta, std.meas(120, std.N_deg, std.Y_Angle))) {
+    beta = std.div(std.sub(ady, adx), 2);
+    gamma = std.sub(dy, beta);
+  } else if (std.le2(theta, std.meas(150, std.N_deg, std.Y_Angle))) {
+    alpha = std.div(std.sub(ady, adx), 2);
+    gamma = dy;
+  } else if (std.le2(theta, std.meas(180, std.N_deg, std.Y_Angle))) {
+    gamma = dy;
+    alpha = std.add(dx, ady);
+  } else if (std.le2(theta, std.meas(210, std.N_deg, std.Y_Angle))) {
+    beta = dy;
+    alpha = std.add(dx, ady);
+  } else if (std.le2(theta, std.meas(240, std.N_deg, std.Y_Angle))) {
+    alpha = std.div(std.sub(ady, adx), 2);
+    beta = dy;
+  } else if (std.le2(theta, std.meas(270, std.N_deg, std.Y_Angle))) {
+    gamma = std.div(std.sub(adx, ady), 2);
+    beta = std.sub(dy, gamma);
+  } else if (std.le2(theta, std.meas(300, std.N_deg, std.Y_Angle))) {
+    beta = std.div(std.sub(adx, ady), 2);
+    gamma = std.sub(dy, beta);
+  } else if (std.le2(theta, std.meas(330, std.N_deg, std.Y_Angle))) {
+    gamma = dy;
+    alpha = std.div(std.sub(adx, ady), 2);
+  } else {
+    gamma = dy;
+    alpha = std.sub(adx, ady);
+  }
+  var r = std.r255(base);
+  var g = std.g255(base);
+  var b = std.b255(base);
+  const SCALE = 6;
+  r = std.add(r, std.mul(2, alpha));
+  g = std.add(g, std.mul(SCALE, beta));
+  b = std.add(b, std.mul(SCALE, gamma));
+  return std.rgb(r, g, b, {});
+}
+
+
+//====================
+//   v3
+//====================
+function v3(val) {
+  if (std.eq2(val, 0)) {
+    return "0.";
+  } else if (std.eq2(val, 1)) {
+    return "1.";
+  } else {
+    return str.subset(str.to_str(val, { dig:3 }), { from:2 });
+  }
+}
+
+
+//====================
+//   validate_color
+//====================
+function validate_color(field) {
+  var list = new std.a_tree(_M,"list", 0);
+  var newcolor = U;
+  var ss = gets(field, std.F_in_value);
+  str.str_find(_M, 240489, ss, A_WEB_COLOR, std.adr(list), {});
+  if (std.gt2(std.count(std.adr(list)), 0)) {
+    newcolor = str.hex_to_color(ss);
+    select_new_color(newcolor);
+    return Y;
+  }
+  return N;
+}
+
+
+//====================
+//   d_recent_876
+//====================
+function d_recent_876(b, label, clr) {
+std.k_enter(b);
+  std.draw_str(b, label, { size:0.55, just:std.LEFT, color:std.WHITE });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_recent_879
+//====================
+function d_recent_879(b, label, clr) {
+std.k_enter(b);
+  std.draw_rect(b, { fill:clr, corner:std.pt_to_dots(b, 3) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_sound_checkbox_591
+//====================
+function d_sound_checkbox_591(b) {
+std.k_enter(b);
+  std.draw_str(b, "Sounds", { just:std.LEFT, size:0.7, color:C_TEXT });
+std.k_leave(b);
+}
+
+
+//====================
+//   ferr_first_ramp_1321
+//====================
+function ferr_first_ramp_1321(b) {
+std.k_enter(b);
+  std.k_isolate(b, b.bounds, "ferr_ramp_chip", std.freeze(ferr_ramp_chip_F, [1]));
+std.k_leave(b);
+}
+
+
+//====================
+//   ferr_first_ramp_1323
+//====================
+function ferr_first_ramp_1323(b) {
+std.k_enter(b);
+  std.k_isolate(b, b.bounds, "ferr_ramp_chip", std.freeze(ferr_ramp_chip_F, [2]));
+std.k_leave(b);
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "color_chart");
+std.setv(_M, 0, std.runtime, std.F_app_version, "7");
+main_init();
+std.rebuild_all();
+
+
+//  uncomment this to prevent accidental reload, useful for web apps that store input
+//   window.onbeforeunload = (event) => {
+// 	  const e = event || window.event;
+// 	  // Cancel the event
+// 	  e.preventDefault();
+// 	  if (e) {
+// 		e.returnValue = ''; // Legacy method for cross browser support
+// 	  }
+// 	  return ''; // Legacy method for cross browser support
+// 	}
+
+</script>
+</body>
+</html>
+

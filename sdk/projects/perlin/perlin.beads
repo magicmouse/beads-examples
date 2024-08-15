@@ -1,0 +1,77 @@
+beads 1 program perlin  //  shows wiggling centipede shape based on Perlin noise
+
+const
+	CANVAS_H = 600
+	CANVAS_V = 600
+	LINEW = 99
+
+var
+	mycanvas : a_canvas  -- our canvas bitmap that we draw into
+	t = 0
+
+==================
+calc main_init
+	//  let the main refresh happen but start the refresh loop
+	timer_start(do_tick, delay:0.1 sec, rate:24, reps:20000)
+
+==================
+calc do_tick
+	render_canvas in mycanvas
+	
+==================
+draw main_draw
+	//  create a subwindow for our canvas bitmap
+	var area : a_rect <=== solve_rect(basis:b.box, pin:MID_CENTER, width:CANVAS_H, height:CANVAS_V, round:Y)
+	layer area:area canvas:mycanvas
+
+==================
+canvas render_canvas
+	//log "{to_str(elapsed, dig:3, zero_drop:N)}: render"
+	draw_rect(fill:BEIGE)
+
+	var x = CANVAS_H/2
+	var y = CANVAS_V/2	
+	var color : color
+	
+	//  each time we render the canvas move one step forward in the perlin data stream
+	inc t
+
+	loop from:0 to:x rev:Y index:i
+		// angle of the heading in radians
+		var heading : Angle = perlin_noise((t+i)/168)*16 radian //  noise is 0..1, so this max is 16 rad, which equals 2.5 rev
+
+		//  calculate the angle of the line, which is 90 deg opposite heading
+		var ang : Angle = heading + (90 deg)
+		var dx = cos(ang)*LINEW
+		var dy = sin(ang)*LINEW
+
+		//  draw a thick line centered at x,y every 9th line. 
+		var thick = 3 if mod(i, 9) == 0 else 1
+		draw_line(x1:x+dx, y1:y+dy, x2:x-dx, y2:y-dy, thick:thick)
+	
+		//  move along the heading 6 pixels
+		6*cos(heading) +=> x
+		6*sin(heading) +=> y
+
+		//  calculate the circle color, as a grayscale
+		case mod(i, 3)
+		| 0
+			color = rgb(50,0,0)
+		| 1
+			color = rgb(150,50,50) 
+		else
+			color = rgb(200,100,100) 
+		
+		//  draw the circle
+		draw_circle(x:x, y:y, diam:28, fill:color)
+
+
+/*....
+//  original JS code, assumes P5.js library
+t=0,draw=_=>{t++;createCanvas(w=720,w);x=y=w/2
+for(i=w;i--;){d=noise((t+i)/168)*16
+strokeWeight(i%9?1:3)
+line(x+(c=cos(r=d+PI/2)*99),y+(s=sin(r)*99),x-c,y-s)
+fill(i**6%3?0:w)
+ellipse(x+=cos(d)*6,y+=sin(d)*6,28)}}
+.....*/

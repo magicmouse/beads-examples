@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="color-scheme" content="light dark">
+<title>chess</title>
+<link rel="shortcut icon" href="data:,">
+<style>
+/*  the above empty icon shuts the favicon stuff up.
+	put stmt above style if you want favicon: <link rel="shortcut icon" href="favicon.ico" />
+    this disables the annoying double click highlighting of DIV blocks 
+	see more meta options at https://matt.might.net/articles/how-to-native-iphone-ipad-apps-in-javascript/  
+*/
+::placeholder {  /* sets color for input placeholder text  */
+  color: #E3CED7; font-style:italic;
+  opacity: 1; /* Firefox */
+}
+div { margin:0; padding:0; outline-style:none; scrollbar-gutter:stable;}
+div:hover { cursor:inherit; }
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover { background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0; position:fixed;">
+<script type="module">
+// beads ver 0.56 compiled Sun Mar 24 22:21:41 GMT-0700 2024
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_056/beads_std.js';
+import * as std from '../../runtime_056/beads_std.js';
+import * as str from '../../runtime_056/beads_str.js';
+export const CODE_HASH = 0xbd58a3eb;
+const _M = std.MODULES.push("chess")-1;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
+//------- enums
+const R_a_game=9007190716200546; std.ENUMS[9007190716200546]="a_game";
+const F_side=9007192069310235; std.ENUMS[9007192069310235]="side"; std.FIELDS[F_side]=!0;
+const F_is_castling_k=9007191344979212; std.ENUMS[9007191344979212]="is_castling_k"; std.FIELDS[F_is_castling_k]=!0;
+const R_a_move=9007192846493197; std.ENUMS[9007192846493197]="a_move";
+const B=9007191677908995; std.ENUMS[9007191677908995]="B";
+const GAME_OVER=9007190135020664; std.ENUMS[9007190135020664]="GAME_OVER";
+const F_king_pos=9007193206471994; std.ENUMS[9007193206471994]="king_pos"; std.FIELDS[F_king_pos]=!0;
+const QUEEN=9007193600579847; std.ENUMS[9007193600579847]="QUEEN";
+const F_opponent=9007191408263605; std.ENUMS[9007191408263605]="opponent"; std.FIELDS[F_opponent]=!0;
+const F_selected=9007191098033561; std.ENUMS[9007191098033561]="selected"; std.FIELDS[F_selected]=!0;
+const PICK_PIECE=9007190466906075; std.ENUMS[9007190466906075]="PICK_PIECE";
+const F_moved=9007193910351675; std.ENUMS[9007193910351675]="moved"; std.FIELDS[F_moved]=!0;
+const EMPTY=9007192271558432; std.ENUMS[9007192271558432]="EMPTY";
+const R_a_history=9007190367727608; std.ENUMS[9007190367727608]="a_history";
+const F_passant_col=9007192657216527; std.ENUMS[9007192657216527]="passant_col"; std.FIELDS[F_passant_col]=!0;
+const KNIGHT=9007190562284686; std.ENUMS[9007190562284686]="KNIGHT";
+const F_from_sq=9007192287792145; std.ENUMS[9007192287792145]="from_sq"; std.FIELDS[F_from_sq]=!0;
+const F_piece=9007192302261642; std.ENUMS[9007192302261642]="piece"; std.FIELDS[F_piece]=!0;
+const F_is_checkmate=9007191087922298; std.ENUMS[9007191087922298]="is_checkmate"; std.FIELDS[F_is_checkmate]=!0;
+const F_history=9007191038263624; std.ENUMS[9007191038263624]="history"; std.FIELDS[F_history]=!0;
+const F_is_capturing=9007193560989298; std.ENUMS[9007193560989298]="is_capturing"; std.FIELDS[F_is_capturing]=!0;
+const F_takey=9007191046358030; std.ENUMS[9007191046358030]="takey"; std.FIELDS[F_takey]=!0;
+const F_can_move=9007193500244734; std.ENUMS[9007193500244734]="can_move"; std.FIELDS[F_can_move]=!0;
+const KING=9007190409778848; std.ENUMS[9007190409778848]="KING";
+const F_p_turn=9007193601766962; std.ENUMS[9007193601766962]="p_turn"; std.FIELDS[F_p_turn]=!0;
+const F_is_castling_q=9007191781197306; std.ENUMS[9007191781197306]="is_castling_q"; std.FIELDS[F_is_castling_q]=!0;
+const F_is_stalemate=9007192375727379; std.ENUMS[9007192375727379]="is_stalemate"; std.FIELDS[F_is_stalemate]=!0;
+const F_is_check=9007191600294823; std.ENUMS[9007191600294823]="is_check"; std.FIELDS[F_is_check]=!0;
+const F_board=9007192136647888; std.ENUMS[9007192136647888]="board"; std.FIELDS[F_board]=!0;
+const ROOK=9007192126099518; std.ENUMS[9007192126099518]="ROOK";
+const PICK_DEST=9007191936544799; std.ENUMS[9007191936544799]="PICK_DEST";
+const PAWN=9007194147558937; std.ENUMS[9007194147558937]="PAWN";
+const F_phase=9007191668180263; std.ENUMS[9007191668180263]="phase"; std.FIELDS[F_phase]=!0;
+const R_a_square=9007192556043839; std.ENUMS[9007192556043839]="a_square";
+const F_moves=9007193725797866; std.ENUMS[9007193725797866]="moves"; std.FIELDS[F_moves]=!0;
+const F_to_sq=9007192842865222; std.ENUMS[9007192842865222]="to_sq"; std.FIELDS[F_to_sq]=!0;
+const BISHOP=9007194133209794; std.ENUMS[9007194133209794]="BISHOP";
+const W=9007191459799948; std.ENUMS[9007191459799948]="W";
+//-------  func const for chess
+const move_history_F = new std.a_function(_M, "move_history", move_history);
+std.FUNCS[move_history_F.hash]=move_history_F;
+const chessboard_F = new std.a_function(_M, "chessboard", chessboard, chessboard_track);
+std.FUNCS[chessboard_F.hash]=chessboard_F;
+const square_board_F = new std.a_function(_M, "square_board", square_board);
+std.FUNCS[square_board_F.hash]=square_board_F;
+const button_and_history_F = new std.a_function(_M, "button_and_history", button_and_history);
+std.FUNCS[button_and_history_F.hash]=button_and_history_F;
+const square_layout_F = new std.a_function(_M, "square_layout", square_layout);
+std.FUNCS[square_layout_F.hash]=square_layout_F;
+const landscape_layout_F = new std.a_function(_M, "landscape_layout", landscape_layout);
+std.FUNCS[landscape_layout_F.hash]=landscape_layout_F;
+const main_init_F = new std.a_function(_M, "main_init", main_init);
+std.FUNCS[main_init_F.hash]=main_init_F;
+const portrait_layout_F = new std.a_function(_M, "portrait_layout", portrait_layout);
+std.FUNCS[portrait_layout_F.hash]=portrait_layout_F;
+const newgame_button_F = new std.a_function(_M, "newgame_button", newgame_button, newgame_button_track);
+std.FUNCS[newgame_button_F.hash]=newgame_button_F;
+const move_history2_F = new std.a_function(_M, "move_history2", move_history2);
+std.FUNCS[move_history2_F.hash]=move_history2_F;
+//-------  top nodes
+const CHROME_BUG_WORKAROUND = N;
+const CHECK_SOUND = new std.a_sound("../../projects/chess/art/check.mp3");
+const BEEP = new std.a_sound("../../projects/chess/art/beep.mp3");
+const CHECKMATE_SOUND = new std.a_sound("../../projects/chess/art/checkmate.mp3");
+const STALEMATE_SOUND = new std.a_sound("../../projects/chess/art/stalemate.mp3");
+
+const DARK_SQUARE = 0x835931;
+const LIGHT_SQUARE = 0xCDB075;
+const BORDER = 0x402C17;
+const HILITE_CURR = 0x8670C5;
+const HILITE_MOVE = 0x89C294;
+const B_FILL = 0x494040;
+const B_STROKE = 0x1C1818;
+const W_FILL = 0xEBD3BC;
+const W_STROKE = B_FILL;
+const PIECE_SS = new std.a_tree(_M,"PIECE_SS", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 89, KING, VAL, "♚", QUEEN, VAL, "♛", ROOK, VAL, "♜", BISHOP, VAL, "♝", KNIGHT
+, VAL, "♞", PAWN, VAL, "♟"));
+const PIECE_TO_ABBREV = new std.a_tree(_M,"PIECE_TO_ABBREV", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 91, KING, VAL, "K", QUEEN, VAL, "Q", ROOK, VAL, "R", BISHOP, VAL
+, "B", KNIGHT, VAL, "N", PAWN, VAL, ""));
+const PAWN_DIRECTION = new std.a_tree(_M,"PAWN_DIRECTION", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 94, W, VAL, -1, B, VAL, 1));
+const PASSANT_ROW = new std.a_tree(_M,"PASSANT_ROW", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 95, W, VAL, 4, B, VAL, 5));
+const EDGE = 6;
+
+var game = new std.a_tree(_M,"game", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+
+//====================
+//   algebraic_form
+//====================
+function algebraic_form(b, box, histx) {
+std.k_enter(b);
+  var ss = null;
+  if (std.gt2(histx, std.count(std.adr(game, F_history)))) {
+    std.k_leave(b);
+    return;
+  }
+  if ((std.eq2(getn(game, F_history, histx, F_piece), KING) && std.eq2(std.abs(std.sub(getn(game, F_history, histx, F_from_sq, std.F_x), getn(game, F_history, histx, F_to_sq
+  , std.F_x))), 2))) {
+    if (std.eq2(getn(game, F_history, histx, F_to_sq, std.F_x), 7)) {
+      ss = "0—0";
+    } else {
+      ss = "0—0—0";
+    }
+  } else {
+    ss = std.cat(gets(PIECE_TO_ABBREV, getn(game, F_history, histx, F_piece)), square_to_str(std.adr(game, F_history, histx, F_from_sq)));
+    if (getn(game, F_history, histx, F_is_capturing) === Y) {
+      ss = std.cat(ss, " × ");
+    } else {
+      ss = std.cat(ss, " — ");
+    }
+    ss = std.cat(ss, square_to_str(std.adr(game, F_history, histx, F_to_sq)));
+    if (getn(game, F_history, histx, F_is_check) === Y) {
+      ss = std.cat(ss, "+");
+    } else if (getn(game, F_history, histx, F_is_checkmate) === Y) {
+      ss = std.cat(ss, "++");
+    } else if (getn(game, F_history, histx, F_is_stalemate) === Y) {
+      ss = std.cat(ss, " stalemate");
+    }
+  }
+  std.draw_str(b, ss, { box:box, size:0.7, just:std.LEFT });
+std.k_leave(b);
+}
+
+
+//====================
+//   button_and_history
+//====================
+function button_and_history(b) {
+std.k_enter(b);
+//--under
+std.draw_rect(b, { fill:0xBAC3CB });
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 1, 22, std.pt, U, U, newgame_button_F, 0);
+  std.div_add(b, U, 1, 10, std.al, U, U, move_history_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   chessboard
+//====================
+function chessboard(b) {
+std.k_enter(b);
+//--under
+std.draw_rect(b, { fill:BORDER });
+std.div_begin(b, new std.a_function(_M, "chessboard_cell", chessboard_cell, null), false, false, false);
+  std.div_spa(b, 0, EDGE, std.al, U, U);
+  var loop887 = new std.a_loop({ reps:8 });
+  while (loop887.next()) {
+    std.div_add(b, U, 0, 60, std.al, U, U, null, 0);
+  }
+  std.div_spa(b, 0, EDGE, std.al, U, U);
+  std.div_spa(b, 1, EDGE, std.al, U, U);
+  var loop888 = new std.a_loop({ reps:8 });
+  while (loop888.next()) {
+    std.div_add(b, U, 1, 60, std.al, U, U, null, 0);
+  }
+  std.div_spa(b, 1, EDGE, std.al, U, U);
+  std.div_end(b);
+  std.draw_grid(b);
+  //--over
+  std.draw_rect(b, { thick:std.pt_to_dots(b, 1) });
+std.k_leave(b);
+}
+
+
+//====================
+//   chessboard_cell
+//====================
+function chessboard_cell(b) {
+  std.k_enter(b);
+  var fill = U;
+  var stroke = U;
+  var box = new std.a_tree(_M,"box", 0);
+  if (std.is_even(std.add(getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y))) === Y) {
+    fill = LIGHT_SQUARE;
+  } else {
+    fill = DARK_SQUARE;
+  }
+  std.draw_rect(b, { fill:fill });
+  if (std.ne2(std.count(std.adr(game, F_history)), 0)) {
+    var prevx = std.tree_hi(std.adr(game, F_history));
+    if (((std.eq2(getn(b.extra, std.F_cell, std.F_x),getn(game, F_history, prevx, F_from_sq, std.F_x)) && std.eq2(getn(b.extra, std.F_cell, std.F_y),getn(game, F_history, prevx
+    , F_from_sq, std.F_y))) || (std.eq2(getn(b.extra, std.F_cell, std.F_x),getn(game, F_history, prevx, F_to_sq, std.F_x)) && std.eq2(getn(b.extra, std.F_cell, std.F_y),getn(game
+    , F_history, prevx, F_to_sq, std.F_y))))) {
+      std.draw_rect(b, { fill:std.WHITE, opacity:0.3 });
+    }
+  }
+  if ((std.eq2(getn(b.extra, std.F_cell, std.F_x),getn(game, F_selected, std.F_x)) && std.eq2(getn(b.extra, std.F_cell, std.F_y),getn(game, F_selected, std.F_y)))) {
+    std.copy_tree(_M, 40315, std.solve_rect({ basis:std.adr(b.extra, std.F_box), inset:std.pt_to_dots(b, 1) }), std.adr(box));
+    std.draw_rect(b, { box:std.adr(box), thick:std.mul(b.bounds.width, 0.09), color:HILITE_CURR, pos:0, corner:std.pt_to_dots(b, 3) });
+  }
+  if (getn(game, F_moves, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_can_move) === Y) {
+    std.copy_tree(_M, 40323, std.solve_rect({ basis:std.adr(b.extra, std.F_box), inset:std.mul(b.bounds.width, 0.3) }), std.adr(box));
+    std.draw_oval(b, { box:std.adr(box), fill:HILITE_MOVE });
+  }
+  if (std.ne2(getn(game, F_board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_piece), EMPTY)) {
+    if (std.eq2(getn(game, F_board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_side), B)) {
+      fill = B_FILL;
+      stroke = B_STROKE;
+    } else {
+      fill = W_FILL;
+      stroke = W_STROKE;
+    }
+    var icon = gets(PIECE_SS, getn(game, F_board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_piece));
+    if ((CHROME_BUG_WORKAROUND === Y && std.eq2(getn(game, F_board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_piece), PAWN))) {
+      icon = str.to_char(std.sub(str.from_char(icon), 6));
+      if (std.eq2(fill, W_FILL)) {
+        var delta = std.div(b.bounds.height, 20);
+        var shadowbox = new std.a_tree(_M,"shadowbox", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), dx:delta, dy:delta }));
+        std.draw_str(b, icon, { box:std.adr(shadowbox), size:0.8, color:std.GRAY7, opacity:0.8 });
+      }
+      std.draw_str(b, icon, { size:0.8, color:fill });
+    } else {
+      std.draw_str(b, std.cat(icon, "\ufe0e"), { size:0.8, color:fill });
+      icon = str.to_char(std.sub(str.from_char(icon), 6));
+      std.draw_str(b, std.cat(icon, "\ufe0e"), { size:0.8, color:stroke });
+    }
+  }
+  std.k_leave(b);
+}
+
+//====================
+//   chessboard_track
+//====================
+function chessboard_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    var case889 = getn(game, F_phase);
+    if (case889 === GAME_OVER) {
+      main_init();
+    } else if (case889 === PICK_PIECE) {
+      if (std.eq2(getn(game, F_board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_side), getn(game, F_p_turn))) {
+        std.copy_tree(_M, 30383, adr(b.extra, std.F_cell), std.adr(game, F_selected));
+        std.trunc_tree(_M, 30384, std.adr(game, F_moves));
+        gen_possible_moves(adr(b.extra, std.F_cell));
+        std.path_setv(_M, 30387, std.adr(game, F_phase), PICK_DEST);
+      } else {
+        std.sound_play(BEEP, {});
+      }
+    } else if (case889 === PICK_DEST) {
+      if ((std.eq2(getn(b.extra, std.F_cell, std.F_x),getn(game, F_selected, std.F_x)) && std.eq2(getn(b.extra, std.F_cell, std.F_y),getn(game, F_selected, std.F_y)))) {
+        std.trunc_tree(_M, 30397, std.adr(game, F_moves));
+        std.trunc_tree(_M, 30398, std.adr(game, F_selected));
+        std.path_setv(_M, 30399, std.adr(game, F_phase), PICK_PIECE);
+      } else if (std.eq2(getn(game, F_board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_side), getn(game, F_p_turn))) {
+        std.copy_tree(_M, 30404, adr(b.extra, std.F_cell), std.adr(game, F_selected));
+        std.trunc_tree(_M, 30405, std.adr(game, F_moves));
+        gen_possible_moves(adr(b.extra, std.F_cell));
+      } else if (getn(game, F_moves, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_can_move) === Y) {
+        exec_move(adr(b.extra, std.F_cell));
+      } else {
+        std.sound_play(BEEP, {});
+      }
+    }
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   landscape_layout
+//====================
+function landscape_layout(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, b.bounds.height, std.px, U, U, chessboard_F, 0);
+  std.div_add(b, U, 0, 10, std.al, U, U, button_and_history_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+  if (std.gt2(std.div(b.bounds.width, b.bounds.height), 1.25)) {
+    landscape_layout(b);
+  } else if (std.gt2(std.div(b.bounds.height, b.bounds.width), 1.25)) {
+    portrait_layout(b);
+  } else {
+    square_layout(b);
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   move_history
+//====================
+function move_history(b) {
+std.k_enter(b);
+  move_history2(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   move_history2
+//====================
+function move_history2(b) {
+std.k_enter(b);
+std.div_begin(b, new std.a_function(_M, "move_history2_cell", move_history2_cell, null), false, false, false);
+  var box_pt = std.dots_to_pt(b, b.bounds.width);
+  var ncol = std.max(2, std.round_down(std.div(box_pt, 150), {}));
+  var loop890 = new std.a_loop({ reps:ncol });
+  while (loop890.next()) {
+    std.div_add(b, U, 0, 12, std.al, U, U, null, 0);
+    std.div_spa(b, 0, 2, std.al, U, U);
+    std.div_add(b, U, 0, 40, std.al, U, U, null, 0);
+    std.div_spa(b, 0, 2, std.al, U, U);
+    std.div_add(b, U, 0, 40, std.al, U, U, null, 0);
+  }
+  var nrow = std.max(10, std.round_down(std.div(b.bounds.height, std.pt_to_dots(b, 16)), {}));
+  var loop891 = new std.a_loop({ reps:nrow });
+  while (loop891.next()) {
+    std.div_add(b, U, 1, 10, std.al, U, U, null, 0);
+  }
+  std.div_end(b);
+  std.draw_grid(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   move_history2_cell
+//====================
+function move_history2_cell(b) {
+  std.k_enter(b);
+  var clump = std.idiv(getn(b.extra, std.F_cell, std.F_x), 3, { one:Y });
+  var complete_movex = std.add(getn(b.extra, std.F_cell, std.F_y), std.mul(std.sub(clump, 1), getn(b.extra, std.F_ncells, std.F_y)));
+  var histx = std.sub(std.mul(complete_movex, 2), 1);
+  if (std.gt2(histx, std.count(std.adr(game, F_history)))) {
+    std.k_leave(b);
+    return;
+  }
+  var case892 = std.mod(getn(b.extra, std.F_cell, std.F_x), 3, { one:Y });
+  if (case892 === 1) {
+    std.draw_str(b, std.cat("", str.to_str(complete_movex, {dig:2}), "."), { size:0.7, just:std.RIGHT });
+  } else if (case892 === 2) {
+    algebraic_form(b, std.adr(b.extra, std.F_box), histx);
+  } else if (case892 === 3) {
+    algebraic_form(b, std.adr(b.extra, std.F_box), std.add(histx, 1));
+  }
+  std.k_leave(b);
+}
+
+//====================
+//   newgame_button
+//====================
+function newgame_button(b) {
+std.k_enter(b);
+  var ww = std.min(std.mul(b.bounds.width, 0.4), std.pt_to_dots(b, 250));
+  var r = new std.a_tree(_M,"r", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:std.TOP_RIGHT, width:ww, inset_e:std.pt_to_dots(b, 2), inset_y:std.pt_to_dots(b, 
+  4) }));
+  std.draw_rect(b, { box:std.adr(r), fill:DARK_SQUARE, corner:std.mul(getn(r, std.F_height), 0.3), color:LIGHT_SQUARE, thick:std.pt_to_dots(b, 1.5) });
+  std.draw_str(b, "New Game", { box:std.adr(r), size:std.mul(getn(r, std.F_height), 0.6), indent:std.pt_to_dots(b, 4), color:LIGHT_SQUARE });
+std.k_leave(b);
+}
+
+
+//====================
+//   newgame_button_track
+//====================
+function newgame_button_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    main_init();
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   portrait_layout
+//====================
+function portrait_layout(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 1, 10, std.al, U, U, button_and_history_F, 0);
+  std.div_add(b, U, 1, b.bounds.width, std.px, U, U, chessboard_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   square_board
+//====================
+function square_board(b) {
+std.k_enter(b);
+  std.k_back(b, {fill:0x232F40});
+  var b221=std.k_layer(b, chessboard_F, { area:std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:std.MID_CENTER, aspect:1 }) });
+  chessboard(b221);
+std.k_leave(b);
+}
+
+
+//====================
+//   square_layout
+//====================
+function square_layout(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 30, std.al, U, U, square_board_F, 0);
+  std.div_add(b, U, 0, 10, std.al, U, U, button_and_history_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   add_if_empty
+//====================
+function add_if_empty(source, dest) {
+  var result = std.eq4(getn(game, F_board, getn(dest, std.F_x), getn(dest, std.F_y), F_piece), EMPTY);
+  if (result === Y) {
+    add_move(source, dest, {});
+  }
+  return result;
+}
+
+
+//====================
+//   add_move
+//====================
+function add_move(source, dest, _o=null) {
+var passanty = U; if ((_o != null) && _o.hasOwnProperty("passanty")) passanty = _o.passanty;
+  if (is_legal_move(source, dest) === Y) {
+    std.path_setv(_M, 250786, std.adr(game, F_moves, getn(dest, std.F_x), getn(dest, std.F_y), F_can_move), Y);
+    std.path_setv(_M, 250787, std.adr(game, F_moves, getn(dest, std.F_x), getn(dest, std.F_y), F_takey), passanty);
+  }
+}
+
+
+//====================
+//   check_rel
+//====================
+function check_rel(curr, dx, dy) {
+  if ((std.eq2(dx, 0) && std.eq2(dy, 0))) {
+    return N;
+  }
+  var dest = new std.a_tree(_M,"dest", 0, std.tree_lit(_M, 220750, std.F_x, VAL, std.add(getn(curr, std.F_x), dx), std.F_y, VAL, std.add(getn(curr, std.F_y), dy)));
+  if (std.eq2(getn(game, F_board, getn(dest, std.F_x), getn(dest, std.F_y), F_piece), EMPTY)) {
+    add_move(curr, std.adr(dest), {});
+    return Y;
+  }
+  if (std.eq2(getn(game, F_board, getn(dest, std.F_x), getn(dest, std.F_y), F_side), getn(game, F_opponent))) {
+    add_move(curr, std.adr(dest), {});
+    return N;
+  }
+  return N;
+}
+
+
+//====================
+//   clear_square
+//====================
+function clear_square(x, y) {
+  std.path_setv(_M, 200825, std.adr(game, F_board, x, y, F_piece), EMPTY);
+  std.path_setv(_M, 200826, std.adr(game, F_board, x, y, F_side), U);
+}
+
+
+//====================
+//   exec_move
+//====================
+function exec_move(dest) {
+  var mymove = new std.a_tree(_M,"mymove", 0);
+  std.path_setv(_M, 180611, std.adr(game, F_passant_col), U);
+  std.path_setv(_M, 180612, std.adr(game, F_board, getn(game, F_selected, std.F_x), getn(game, F_selected, std.F_y), F_moved), Y);
+  var case893 = getn(game, F_board, getn(game, F_selected, std.F_x), getn(game, F_selected, std.F_y), F_piece);
+  if (case893 === PAWN) {
+    if (getn(game, F_moves, getn(dest, std.F_x), getn(dest, std.F_y), F_takey) !== U) {
+      clear_square(getn(dest, std.F_x), getn(game, F_moves, getn(dest, std.F_x), getn(dest, std.F_y), F_takey));
+    }
+    if (std.eq2(std.abs(std.sub(getn(game, F_selected, std.F_y), getn(dest, std.F_y))), 2)) {
+      std.path_setv(_M, 180628, std.adr(game, F_passant_col), getn(dest, std.F_x));
+    }
+  } else if (case893 === KING) {
+    std.copy_tree(_M, 180633, dest, std.adr(game, F_king_pos, getn(game, F_p_turn)));
+    if (std.eq2(std.abs(std.sub(getn(game, F_selected, std.F_x), getn(dest, std.F_x))), 2)) {
+      var castle_from = U;
+      var castle_to = U;
+      if (std.eq2(getn(dest, std.F_x), 7)) {
+        castle_from = 8;
+        castle_to = 6;
+      } else {
+        castle_from = 1;
+        castle_to = 4;
+      }
+      std.copy_tree(_M, 180651, std.adr(game, F_board, castle_from, getn(dest, std.F_y)), std.adr(game, F_board, castle_to, getn(dest, std.F_y)));
+      clear_square(castle_from, getn(dest, std.F_y));
+    }
+  }
+  std.path_setv(_M, 180658, std.adr(mymove, F_piece), getn(game, F_board, getn(game, F_selected, std.F_x), getn(game, F_selected, std.F_y), F_piece));
+  std.copy_tree(_M, 180659, std.adr(game, F_selected), std.adr(mymove, F_from_sq));
+  std.copy_tree(_M, 180660, dest, std.adr(mymove, F_to_sq));
+  if ((std.ne2(getn(game, F_board, getn(dest, std.F_x), getn(dest, std.F_y), F_piece), EMPTY) || getn(game, F_moves, getn(dest, std.F_x), getn(dest, std.F_y), F_takey) !== U
+  )) {
+    std.path_setv(_M, 180662, std.adr(mymove, F_is_capturing), Y);
+  }
+  std.copy_tree(_M, 180667, std.adr(game, F_board, getn(game, F_selected, std.F_x), getn(game, F_selected, std.F_y)), std.adr(game, F_board, getn(dest, std.F_x), getn(dest, 
+  std.F_y)));
+  clear_square(getn(game, F_selected, std.F_x), getn(game, F_selected, std.F_y));
+  if (std.eq2(getn(game, F_board, getn(dest, std.F_x), getn(dest, std.F_y), F_piece), PAWN)) {
+    if ((std.eq2(getn(dest, std.F_y), 1) || std.eq2(getn(dest, std.F_y), 8))) {
+      std.path_setv(_M, 180678, std.adr(game, F_board, getn(dest, std.F_x), getn(dest, std.F_y), F_piece), QUEEN);
+    }
+  }
+  var temp_894 = getn(game, F_p_turn);
+  setv(_M, 180685, std.adr(game, F_p_turn), getn(game, F_opponent));
+  setv(_M, 180685, std.adr(game, F_opponent), temp_894);
+  std.trunc_tree(_M, 180688, std.adr(game, F_moves));
+  std.trunc_tree(_M, 180689, std.adr(game, F_selected));
+  std.path_setv(_M, 180690, std.adr(game, F_phase), PICK_PIECE);
+  var stuck = has_no_moves();
+  if (is_threatened(getn(game, F_king_pos, getn(game, F_p_turn), std.F_x), getn(game, F_king_pos, getn(game, F_p_turn), std.F_y)) === Y) {
+    if (stuck === Y) {
+      std.path_setv(_M, 180701, std.adr(mymove, F_is_checkmate), Y);
+      std.sound_play(CHECKMATE_SOUND, {});
+      std.path_setv(_M, 180703, std.adr(game, F_phase), GAME_OVER);
+    } else {
+      std.path_setv(_M, 180706, std.adr(mymove, F_is_check), Y);
+      std.sound_play(CHECK_SOUND, {});
+    }
+  } else if (stuck === Y) {
+    std.path_setv(_M, 180710, std.adr(mymove, F_is_stalemate), Y);
+    std.sound_play(STALEMATE_SOUND, {});
+    std.path_setv(_M, 180712, std.adr(game, F_phase), GAME_OVER);
+  }
+  std.trunc_tree(_M, 180715, std.adr(game, F_moves));
+  std.append_tree(_M, 180718, std.adr(mymove), std.adr(game, F_history));
+}
+
+
+//====================
+//   gen_possible_moves
+//====================
+function gen_possible_moves(curr) {
+  var dest = new std.a_tree(_M,"dest", 0);
+  var y = getn(curr, std.F_y);
+  var case895 = getn(game, F_board, getn(curr, std.F_x), getn(curr, std.F_y), F_piece);
+  if (case895 === KING) {
+    var loop896 = new std.a_loop({ from:-1, to_:1 });
+    while (loop896.next()) {
+    var dx = loop896.index;
+      var loop897 = new std.a_loop({ from:-1, to_:1 });
+      while (loop897.next()) {
+      var dy = loop897.index;
+        check_rel(curr, dx, dy);
+      }
+    }
+    if (getn(game, F_board, getn(curr, std.F_x), getn(curr, std.F_y), F_moved) !== Y) {
+      if ((getn(game, F_board, 1, y, F_moved) !== Y && (std.eq2(getn(game, F_board, 2, y, F_piece), EMPTY) && (std.eq2(getn(game, F_board, 3, y, F_piece), EMPTY) && (std.eq2(getn(
+      game, F_board, 4, y, F_piece), EMPTY) && (is_threatened(3, y) === N && is_threatened(4, y) === N)))))) {
+        add_move(curr, std.tree_lit(_M, 70515, std.F_x, VAL, 3, std.F_y, VAL, y), {});
+      }
+      if ((getn(game, F_board, 8, y, F_moved) !== Y && (std.eq2(getn(game, F_board, 7, y, F_piece), EMPTY) && (std.eq2(getn(game, F_board, 6, y, F_piece), EMPTY) && (is_threatened
+      (7, y) === N && is_threatened(6, y) === N))))) {
+        add_move(curr, std.tree_lit(_M, 70524, std.F_x, VAL, 7, std.F_y, VAL, y), {});
+      }
+    }
+  } else if (case895 === QUEEN) {
+    var loop898 = new std.a_loop({ from:-1, to_:1 });
+    while (loop898.next()) {
+    var dirx = loop898.index;
+      var loop899 = new std.a_loop({ from:-1, to_:1 });
+      while (loop899.next()) {
+      var diry = loop899.index;
+        var loop900 = new std.a_loop({ from:1, to_:7 });
+        while (loop900.next()) {
+        var delta = loop900.index;
+          if (check_rel(curr, std.mul(delta, dirx), std.mul(delta, diry)) === N) {
+            break;
+          }
+        }
+      }
+    }
+  } else if (case895 === ROOK) {
+    var loop901 = new std.a_loop({ across:std.tree_lit(_M, 70542, 1, VAL, -1, 2, VAL, 1) });
+    while (loop901.next()) {
+    var dir = loop901.val;
+      var loop902 = new std.a_loop({ from:1, to_:7 });
+      while (loop902.next()) {
+      var delta = loop902.index;
+        if (check_rel(curr, std.mul(delta, dir), 0) === N) {
+          break;
+        }
+      }
+      var loop903 = new std.a_loop({ from:1, to_:7 });
+      while (loop903.next()) {
+      var delta = loop903.index;
+        if (check_rel(curr, 0, std.mul(delta, dir)) === N) {
+          break;
+        }
+      }
+    }
+  } else if (case895 === BISHOP) {
+    var loop904 = new std.a_loop({ across:std.tree_lit(_M, 70556, 1, VAL, -1, 2, VAL, 1) });
+    while (loop904.next()) {
+    var dirx = loop904.val;
+      var loop905 = new std.a_loop({ across:std.tree_lit(_M, 70557, 1, VAL, -1, 2, VAL, 1) });
+      while (loop905.next()) {
+      var diry = loop905.val;
+        var loop906 = new std.a_loop({ from:1, to_:7 });
+        while (loop906.next()) {
+        var delta = loop906.index;
+          if (check_rel(curr, std.mul(delta, dirx), std.mul(delta, diry)) === N) {
+            break;
+          }
+        }
+      }
+    }
+  } else if (case895 === KNIGHT) {
+    check_rel(curr, 1, 2);
+    check_rel(curr, -1, 2);
+    check_rel(curr, 1, -2);
+    check_rel(curr, -1, -2);
+    check_rel(curr, 2, 1);
+    check_rel(curr, -2, 1);
+    check_rel(curr, 2, -1);
+    check_rel(curr, -2, -1);
+  } else if (case895 === PAWN) {
+    std.path_setv(_M, 70580, std.adr(dest, std.F_x), getn(curr, std.F_x));
+    std.path_setv(_M, 70581, std.adr(dest, std.F_y), std.add(y, getn(PAWN_DIRECTION, getn(game, F_p_turn))));
+    if (add_if_empty(curr, std.adr(dest)) === Y) {
+      if (getn(game, F_board, getn(curr, std.F_x), getn(curr, std.F_y), F_moved) !== Y) {
+        add_if_empty(curr, std.tree_lit(_M, 70585, std.F_x, VAL, getn(curr, std.F_x), std.F_y, VAL, std.add(getn(dest, std.F_y), getn(PAWN_DIRECTION, getn(game, F_p_turn)))));
+      }
+    }
+    std.path_setv(_M, 70588, std.adr(dest, std.F_x), std.sub(getn(curr, std.F_x), 1));
+    if (std.eq2(getn(game, F_board, getn(dest, std.F_x), getn(dest, std.F_y), F_side), getn(game, F_opponent))) {
+      add_move(curr, std.adr(dest), {});
+    } else if ((std.eq2(y, getn(PASSANT_ROW, getn(game, F_p_turn))) && std.eq2(getn(dest, std.F_x), getn(game, F_passant_col)))) {
+      add_move(curr, std.adr(dest), { passanty:getn(PASSANT_ROW, getn(game, F_p_turn)) });
+    }
+    std.path_setv(_M, 70595, std.adr(dest, std.F_x), std.add(getn(curr, std.F_x), 1));
+    if (std.eq2(getn(game, F_board, getn(dest, std.F_x), getn(dest, std.F_y), F_side), getn(game, F_opponent))) {
+      add_move(curr, std.adr(dest), {});
+    } else if ((std.eq2(y, getn(PASSANT_ROW, getn(game, F_p_turn))) && std.eq2(getn(dest, std.F_x), getn(game, F_passant_col)))) {
+      add_move(curr, std.adr(dest), { passanty:getn(PASSANT_ROW, getn(game, F_p_turn)) });
+    }
+  }
+}
+
+
+//====================
+//   has_no_moves
+//====================
+function has_no_moves() {
+  std.trunc_tree(_M, 130725, std.adr(game, F_moves));
+  var loop907 = new std.a_loop({ from:1, to_:8 });
+  while (loop907.next()) {
+  var col = loop907.index;
+    var loop908 = new std.a_loop({ from:1, to_:8 });
+    while (loop908.next()) {
+    var row = loop908.index;
+      var coord = new std.a_tree(_M,"coord", 0, std.tree_lit(_M, 130728, std.F_x, VAL, col, std.F_y, VAL, row));
+      if (std.eq2(getn(game, F_board, getn(coord, std.F_x), getn(coord, std.F_y), F_side), getn(game, F_p_turn))) {
+        gen_possible_moves(std.adr(coord));
+        if (std.ne2(std.count(std.adr(game, F_moves)), 0)) {
+          return N;
+        }
+      }
+    }
+  }
+  return Y;
+}
+
+
+//====================
+//   is_legal_move
+//====================
+function is_legal_move(source, dest) {
+  var in_check = U;
+  var save_from = new std.a_tree(_M,"save_from", 0, adr(game, F_board, getn(source, std.F_x), getn(source, std.F_y)));
+  var save_to = new std.a_tree(_M,"save_to", 0, adr(game, F_board, getn(dest, std.F_x), getn(dest, std.F_y)));
+  std.copy_tree(_M, 90802, std.adr(game, F_board, getn(source, std.F_x), getn(source, std.F_y)), std.adr(game, F_board, getn(dest, std.F_x), getn(dest, std.F_y)));
+  clear_square(getn(source, std.F_x), getn(source, std.F_y));
+  if (std.eq2(getn(game, F_board, getn(dest, std.F_x), getn(dest, std.F_y), F_piece), KING)) {
+    in_check = is_threatened(getn(dest, std.F_x), getn(dest, std.F_y));
+  } else {
+    in_check = is_threatened(getn(game, F_king_pos, getn(game, F_p_turn), std.F_x), getn(game, F_king_pos, getn(game, F_p_turn), std.F_y));
+  }
+  std.copy_tree(_M, 90813, std.adr(save_from), std.adr(game, F_board, getn(source, std.F_x), getn(source, std.F_y)));
+  std.copy_tree(_M, 90814, std.adr(save_to), std.adr(game, F_board, getn(dest, std.F_x), getn(dest, std.F_y)));
+  return std.not4(in_check);
+}
+
+
+//====================
+//   is_opposing_piece
+//====================
+function is_opposing_piece(targpiece, x, y) {
+  return std.and4(std.eq4(getn(game, F_board, x, y, F_piece), targpiece), std.eq4(getn(game, F_board, x, y, F_side), getn(game, F_opponent)));
+}
+
+
+//====================
+//   is_threatened
+//====================
+function is_threatened(x, y) {
+  var netx = U;
+  var nety = U;
+  var loop909 = new std.a_loop({ across:std.tree_lit(_M, 110428, 1, VAL, -1, 2, VAL, 1) });
+  while (loop909.next()) {
+  var dir = loop909.val;
+    var loop910 = new std.a_loop({ from:1, to_:7 });
+    while (loop910.next()) {
+    var delta = loop910.index;
+      netx = std.add(x, std.mul(delta, dir));
+      if ((is_opposing_piece(ROOK, netx, y) === Y || is_opposing_piece(QUEEN, netx, y) === Y)) {
+        return Y;
+      }
+      if (std.ne2(getn(game, F_board, netx, y, F_piece), EMPTY)) {
+        break;
+      }
+    }
+    var loop911 = new std.a_loop({ from:1, to_:7 });
+    while (loop911.next()) {
+    var delta = loop911.index;
+      nety = std.add(y, std.mul(delta, dir));
+      if ((is_opposing_piece(ROOK, x, nety) === Y || is_opposing_piece(QUEEN, x, nety) === Y)) {
+        return Y;
+      }
+      if (std.ne2(getn(game, F_board, x, nety, F_piece), EMPTY)) {
+        break;
+      }
+    }
+  }
+  var loop912 = new std.a_loop({ across:std.tree_lit(_M, 110448, 1, VAL, -1, 2, VAL, 1) });
+  while (loop912.next()) {
+  var dx = loop912.val;
+    var loop913 = new std.a_loop({ across:std.tree_lit(_M, 110449, 1, VAL, -1, 2, VAL, 1) });
+    while (loop913.next()) {
+    var dy = loop913.val;
+      var loop914 = new std.a_loop({ from:1, to_:7 });
+      while (loop914.next()) {
+      var delta = loop914.index;
+        netx = std.add(x, std.mul(delta, dx));
+        nety = std.add(y, std.mul(delta, dy));
+        if ((is_opposing_piece(BISHOP, netx, nety) === Y || is_opposing_piece(QUEEN, netx, nety) === Y)) {
+          return Y;
+        }
+        if (std.ne2(getn(game, F_board, netx, nety, F_piece), EMPTY)) {
+          break;
+        }
+      }
+    }
+  }
+  if ((is_opposing_piece(KNIGHT, std.sub(x, 1), std.sub(y, 2)) === Y || (is_opposing_piece(KNIGHT, std.sub(x, 1), std.add(y, 2)) === Y || (is_opposing_piece(KNIGHT, std.add(
+  x, 1), std.sub(y, 2)) === Y || (is_opposing_piece(KNIGHT, std.add(x, 1), std.add(y, 2)) === Y || (is_opposing_piece(KNIGHT, std.sub(x, 2), std.sub(y, 1)) === Y || (is_opposing_piece
+  (KNIGHT, std.sub(x, 2), std.add(y, 1)) === Y || (is_opposing_piece(KNIGHT, std.add(x, 2), std.sub(y, 1)) === Y || is_opposing_piece(KNIGHT, std.add(x, 2), std.add(y, 1)) === Y
+  )))))))) {
+    return Y;
+  }
+  if ((is_opposing_piece(PAWN, std.sub(x, 1), std.add(y, getn(PAWN_DIRECTION, getn(game, F_p_turn)))) === Y || is_opposing_piece(PAWN, std.add(x, 1), std.add(y, getn(PAWN_DIRECTION
+  , getn(game, F_p_turn)))) === Y)) {
+    return Y;
+  }
+  if ((std.le2(std.abs(std.sub(getn(game, F_king_pos, getn(game, F_opponent), std.F_x), x)), 1) && std.le2(std.abs(std.sub(getn(game, F_king_pos, getn(game, F_opponent), std.F_y
+  ), y)), 1))) {
+    return Y;
+  }
+  return N;
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.trunc_tree(_M, 190099, std.adr(game));
+  std.path_setv(_M, 190100, std.adr(game, F_p_turn), W);
+  std.path_setv(_M, 190101, std.adr(game, F_opponent), B);
+  std.path_setv(_M, 190102, std.adr(game, F_phase), PICK_PIECE);
+  var myside = U;
+  var loop915 = new std.a_loop({ across:std.tree_lit(_M, 190123, 1, VAL, 1, 2, VAL, 8) });
+  while (loop915.next()) {
+  var row = loop915.val;
+    myside = std.eq2(row, 1) ? B : W;
+    std.copy_tree(_M, 190125, std.tree_lit(_M, 190125, F_side, VAL, myside, F_piece, VAL, ROOK), std.adr(game, F_board, 1, row));
+    std.copy_tree(_M, 190126, std.tree_lit(_M, 190126, F_side, VAL, myside, F_piece, VAL, KNIGHT), std.adr(game, F_board, 2, row));
+    std.copy_tree(_M, 190127, std.tree_lit(_M, 190127, F_side, VAL, myside, F_piece, VAL, BISHOP), std.adr(game, F_board, 3, row));
+    std.copy_tree(_M, 190128, std.tree_lit(_M, 190128, F_side, VAL, myside, F_piece, VAL, QUEEN), std.adr(game, F_board, 4, row));
+    std.copy_tree(_M, 190129, std.tree_lit(_M, 190129, F_side, VAL, myside, F_piece, VAL, KING), std.adr(game, F_board, 5, row));
+    std.copy_tree(_M, 190130, std.tree_lit(_M, 190130, F_side, VAL, myside, F_piece, VAL, BISHOP), std.adr(game, F_board, 6, row));
+    std.copy_tree(_M, 190131, std.tree_lit(_M, 190131, F_side, VAL, myside, F_piece, VAL, KNIGHT), std.adr(game, F_board, 7, row));
+    std.copy_tree(_M, 190132, std.tree_lit(_M, 190132, F_side, VAL, myside, F_piece, VAL, ROOK), std.adr(game, F_board, 8, row));
+    std.copy_tree(_M, 190133, std.tree_lit(_M, 190133, std.F_x, VAL, 5, std.F_y, VAL, row), std.adr(game, F_king_pos, myside));
+  }
+  var loop916 = new std.a_loop({ from:1, to_:8 });
+  while (loop916.next()) {
+  var col = loop916.index;
+    std.copy_tree(_M, 190137, std.tree_lit(_M, 190137, F_side, VAL, B, F_piece, VAL, PAWN), std.adr(game, F_board, col, 2));
+    std.copy_tree(_M, 190138, std.tree_lit(_M, 190138, F_side, VAL, W, F_piece, VAL, PAWN), std.adr(game, F_board, col, 7));
+  }
+  var loop917 = new std.a_loop({ from:3, to_:6 });
+  while (loop917.next()) {
+  var row2 = loop917.index;
+    var loop918 = new std.a_loop({ from:1, to_:8 });
+    while (loop918.next()) {
+    var col2 = loop918.index;
+      std.path_setv(_M, 190144, std.adr(game, F_board, col2, row2, F_piece), EMPTY);
+    }
+  }
+}
+
+
+//====================
+//   square_to_str
+//====================
+function square_to_str(square) {
+  return std.cat(str.to_char(std.sub(std.add(str.from_char("a"), getn(square, std.F_x)), 1)), str.to_str(std.sub(9, getn(square, std.F_y)), {}));
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "chess");
+main_init();
+std.rebuild_all();
+
+
+//  uncomment this to prevent accidental reload, useful for web apps that store input
+//   window.onbeforeunload = (event) => {
+// 	  const e = event || window.event;
+// 	  // Cancel the event
+// 	  e.preventDefault();
+// 	  if (e) {
+// 		e.returnValue = ''; // Legacy method for cross browser support
+// 	  }
+// 	  return ''; // Legacy method for cross browser support
+// 	}
+
+</script>
+</body>
+</html>
+

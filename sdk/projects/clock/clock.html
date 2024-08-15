@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="color-scheme" content="light dark">
+<title>clock</title>
+<link rel="shortcut icon" href="data:,">
+<style>
+/*  the above empty icon shuts the favicon stuff up.
+	put stmt above style if you want favicon: <link rel="shortcut icon" href="favicon.ico" />
+    this disables the annoying double click highlighting of DIV blocks 
+	see more meta options at https://matt.might.net/articles/how-to-native-iphone-ipad-apps-in-javascript/  
+*/
+::placeholder {  /* sets color for input placeholder text  */
+  color: #E3CED7; font-style:italic;
+  opacity: 1; /* Firefox */
+}
+div { margin:0; padding:0; outline-style:none; scrollbar-gutter:stable;}
+div:hover { cursor:inherit; }
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover { background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0; position:fixed;">
+<script type="module">
+// beads ver 0.56 compiled Sun Mar 24 22:23:12 GMT-0700 2024
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_056/beads_std.js';
+import * as std from '../../runtime_056/beads_std.js';
+import * as str from '../../runtime_056/beads_str.js';
+export const CODE_HASH = 0xe5e57eaf;
+const _M = std.MODULES.push("clock")-1;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
+//------- enums
+const F_nseconds=9007191173019919; std.ENUMS[9007191173019919]="nseconds"; std.FIELDS[F_nseconds]=!0;
+const F_id=9007194054819565; std.ENUMS[9007194054819565]="id"; std.FIELDS[F_id]=!0;
+const R_record_21=9007193998792859; std.ENUMS[9007193998792859]="record_21";
+const BLACKBOX_ID=9007193535846421; std.ENUMS[9007193535846421]="BLACKBOX_ID";
+//-------  func const for clock
+const d_clock_F = new std.a_function(_M, "d_clock", d_clock, d_clock_track);
+std.FUNCS[d_clock_F.hash]=d_clock_F;
+const do_countdown_F = new std.a_function(_M, "do_countdown", do_countdown);
+std.FUNCS[do_countdown_F.hash]=do_countdown_F;
+const do_tick_F = new std.a_function(_M, "do_tick", do_tick);
+std.FUNCS[do_tick_F.hash]=do_tick_F;
+//-------  top nodes
+const ENABLE_DUMP = Y;
+const BLACKBOX_PORT = 3333;
+const GRAD1 = new std.a_tree(_M,"GRAD1", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 10, std.F_grad_shape, VAL, std.LINEAR_GRADIENT, std.F_grad_angle, VAL, std.GRAD_TO_BOTTOM
+, std.F_grad_stops, 1, std.F_stop_pos, VAL, 0, std.F_stop_color, VAL, std.CHOCOLATE, POP, 2, std.F_stop_pos, VAL, 48, std.F_stop_color, VAL, std.BEIGE, POP, 3, std.F_stop_pos
+, VAL, 52, std.F_stop_color, VAL, std.BEIGE, POP, 4, std.F_stop_pos, VAL, 100, std.F_stop_color, VAL, std.CHOCOLATE, POP, POP));
+var g = new std.a_tree(_M,"g", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var is_paused = N;
+var g_alarm = new std.a_tree(_M,"g_alarm", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+
+//====================
+//   d_clock
+//====================
+function d_clock(b, diameter) {
+std.k_enter(b);
+  std.draw_circle(b, { x:0, y:0, fill:std.GREEN, diam:diameter, color:std.DARK_GREEN, thick:std.idiv(diameter, 40), pos:0 });
+  std.draw_line(b, { x1:0, y1:0, color:std.BROWN, angle:std.meas(std.sub(std.mul(std.add(getn(g, std.F_dt_hour), std.div(getn(g, std.F_dt_minute), 60)), 30), 90), std.N_deg, 
+  std.Y_Angle), len:std.mul(diameter, 0.3), thick:std.idiv(diameter, 20) });
+  std.draw_line(b, { x1:0, y1:0, color:std.ORANGE, angle:std.meas(std.sub(std.mul(std.add(getn(g, std.F_dt_minute), std.div(getn(g, std.F_dt_second), 60)), 6), 90), std.N_deg
+  , std.Y_Angle), len:std.mul(diameter, 0.4), thick:std.idiv(diameter, 24) });
+  std.draw_line(b, { x1:0, y1:0, color:std.BLUE, angle:std.meas(std.sub(std.mul(getn(g, std.F_dt_second), 6), 90), std.N_deg, std.Y_Angle), len:std.mul(diameter, 0.45), thick
+  :std.idiv(diameter, 30) });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_clock_track
+//====================
+function d_clock_track(b, e, diameter) {
+  //---------------
+  //   on EV_KEYBOARD
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_KEYBOARD) {
+    if (std.eq2(getn(e, std.F_keycode), std.KEYCODE_SPACE)) {
+      if (ENABLE_DUMP === Y) {
+        if (getn(e, std.F_is_shift) === Y) {
+          std.debug_blackbox_send("ws://127.0.0.1", BLACKBOX_PORT, BLACKBOX_ID, "Clock", {});
+        } else {
+          var datess = str.time_to_str("[year]-[month2]-[day2]@[hour][minute]-[second]", {});
+          std.debug_blackbox_write(std.cat("Clock-", datess), { kind:"Dump file" });
+        }
+      }
+      is_paused = std.tog(is_paused);
+      if (is_paused === Y) {
+        std.set_clock_scale(0);
+      } else {
+        std.set_clock_scale(1);
+      }
+      return Y;
+    } else if (std.eq2(gets(e, std.F_unicode), "a")) {
+      std.path_setv(_M, 50093, std.adr(g_alarm, F_nseconds), 4);
+      log(lgp("--- starting countdown"));
+      std.path_setv(_M, 50095, std.adr(g_alarm, F_id), std.timer_start(do_countdown_F, { delay:std.meas(1, std.N_sec, std.Y_Time), interval:std.meas(1, std.N_sec, std.Y_Time), reps
+      :4 }));
+      return Y;
+    }
+    return N;
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+  std.draw_rect(b, { grad:std.adr(GRAD1) });
+  var diameter = std.mul(0.8, std.min(b.bounds.width, b.bounds.height));
+  var area = new std.a_tree(_M,"area", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:std.MID_CENTER, width:diameter, height:diameter, round:Y }));
+  var b222=std.k_layer(b, std.freeze(d_clock_F, [diameter]), { area:area, pin:5 });
+  d_clock(b222, diameter);
+  if (std.gt2(getn(g_alarm, F_nseconds), 0)) {
+    var foot = new std.a_tree(_M,"foot", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:std.BOT_CENTER, height:std.div(b.bounds.height, 14) }));
+    std.draw_str(b, getn(g_alarm, F_nseconds), { box:std.adr(foot), size:0.6, color:std.PURPLE });
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   do_countdown
+//====================
+function do_countdown() {
+  log(lgp(std.cat("--- countdown ", str.to_str(getn(g_alarm, F_nseconds), {dig:2}))));
+  std.tree_sub(_M, 30102, 1, std.adr(g_alarm, F_nseconds));
+}
+
+
+//====================
+//   do_tick
+//====================
+function do_tick() {
+  std.merge_tree(_M, 60034, std.seconds_to_date(std.now, {}), std.adr(g));
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.timer_start(do_tick_F, { delay:std.meas(0, std.N_sec, std.Y_Time), interval:std.meas(1, std.N_sec, std.Y_Time), reps:std.INFINITY });
+  std.path_setv(_M, 40029, std.adr(g_alarm, F_nseconds), 0);
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "clock");
+main_init();
+std.rebuild_all();
+
+
+//  uncomment this to prevent accidental reload, useful for web apps that store input
+//   window.onbeforeunload = (event) => {
+// 	  const e = event || window.event;
+// 	  // Cancel the event
+// 	  e.preventDefault();
+// 	  if (e) {
+// 		e.returnValue = ''; // Legacy method for cross browser support
+// 	  }
+// 	  return ''; // Legacy method for cross browser support
+// 	}
+
+</script>
+</body>
+</html>
+

@@ -1,0 +1,1489 @@
+beads 1 program color_chart ver:[7] title:"Color Picker"
+//  © edj October 2019 - July 2022
+//  lets you pick a HTML color, copies the name or hex value to the clipboard
+//  complexity rating: 1400 lines
+
+assets local:"./art/" 
+	file:"click.mp3" label:CLICK
+	file:"beep.mp3" label:BEEP
+	file:"checkbox_off.png" label:CHECKBOX_OFF preload
+	file:"checkbox_on.png" label:CHECKBOX_ON preload
+
+const
+	TRACE_COLORS = N
+	TRACE_FUDGE = N
+	TRACE_SIZING = N
+	TRACE_PALETTE = N
+	TRACE_ENTRY = N
+	TRACE_TWEAK = N
+	TRACE_TAP = N
+
+record a_slot
+	name  : str   //  color name
+	color : color //  rgb color 
+	//  the sort key
+	key1  // color category  1:color band  98:low sat, 99:gray ramp
+	key2  // value band
+	key3  //  hue
+	hilite : yesno
+
+var SET1 : array of a_slot <=== [ {name:"ALICE_BLUE", color:ALICE_BLUE}, 
+	{name:"ANTIQUE_WHITE", color:ANTIQUE_WHITE},
+	{name:"AQUA", color:AQUA},
+	{name:"AQUAMARINE", color:AQUAMARINE},
+	{name:"AZURE", color:AZURE}, 
+	{name:"BEIGE", color:BEIGE},
+	{name:"BISQUE", color:BISQUE},
+	{name:"BLANCHED_ALMOND", color:BLANCHED_ALMOND},
+	{name:"BLUE", color:BLUE},
+	{name:"BLUE_VIOLET", color:BLUE_VIOLET}, 
+	{name:"BROWN", color:BROWN},
+	{name:"BURLY_WOOD", color:BURLY_WOOD},
+	{name:"CADET_BLUE", color:CADET_BLUE},
+	{name:"CHARTREUSE", color:CHARTREUSE},
+	{name:"CHOCOLATE", color:CHOCOLATE}, 
+	{name:"CORAL", color:CORAL},
+	{name:"CORNFLOWER_BLUE", color:CORNFLOWER_BLUE},
+	{name:"CORNSILK", color:CORNSILK},
+	{name:"CRIMSON", color:CRIMSON},
+	{name:"CYAN", color:CYAN}, 
+	{name:"DARK_BLUE", color:DARK_BLUE},
+	{name:"DARK_CYAN", color:DARK_CYAN},
+	{name:"DARK_GOLDENROD", color:DARK_GOLDENROD},
+	{name:"DARK_GRAY", color:DARK_GRAY},
+	{name:"DARK_GREEN", color:DARK_GREEN}, 
+	{name:"DARK_KHAKI", color:DARK_KHAKI},
+	{name:"DARK_MAGENTA", color:DARK_MAGENTA},
+	{name:"DARK_OLIVE_GREEN", color:DARK_OLIVE_GREEN},
+	{name:"DARK_ORANGE", color:DARK_ORANGE},
+	{name:"DARK_ORCHID", color:DARK_ORCHID}, 
+	{name:"DARK_RED", color:DARK_RED},
+	{name:"DARK_SALMON", color:DARK_SALMON},
+	{name:"DARK_SEA_GREEN", color:DARK_SEA_GREEN},
+	{name:"DARK_SLATE_BLUE", color:DARK_SLATE_BLUE},
+	{name:"DARK_SLATE_GRAY", color:DARK_SLATE_GRAY}, 
+	{name:"DARK_TURQUOISE", color:DARK_TURQUOISE},
+	{name:"DARK_VIOLET", color:DARK_VIOLET},
+	{name:"DEEP_PINK", color:DEEP_PINK},
+	{name:"DEEP_SKY_BLUE", color:DEEP_SKY_BLUE},
+	{name:"DIM_GRAY", color:DIM_GRAY}, 
+	{name:"DODGER_BLUE", color:DODGER_BLUE},
+	{name:"FIREBRICK", color:FIREBRICK},
+	{name:"FLORAL_WHITE", color:FLORAL_WHITE},
+	{name:"FOREST_GREEN", color:FOREST_GREEN},
+	//{name:"FUCHSIA", color:FUCHSIA},  // a duplicate of magenta
+	{name:"GAINSBORO", color:GAINSBORO},
+	{name:"GHOST_WHITE", color:GHOST_WHITE},
+	{name:"GOLD", color:GOLD},
+	{name:"GOLDENROD", color:GOLDENROD},
+	{name:"GRAY", color:GRAY}, 
+	{name:"GREEN", color:GREEN},
+	{name:"GREEN_YELLOW", color:GREEN_YELLOW},
+	{name:"HONEYDEW", color:HONEYDEW},
+	{name:"HOT_PINK", color:HOT_PINK},
+	{name:"INDIAN_RED", color:INDIAN_RED}, 
+	{name:"INDIGO", color:INDIGO},
+	{name:"IVORY", color:IVORY},
+	{name:"KHAKI", color:KHAKI},
+	{name:"LAVENDER", color:LAVENDER},
+	{name:"LAVENDER_BLUSH", color:LAVENDER_BLUSH}, 
+	{name:"LAWN_GREEN", color:LAWN_GREEN},
+	{name:"LEMON_CHIFFON", color:LEMON_CHIFFON},
+	{name:"LIGHT_BLUE", color:LIGHT_BLUE},
+	{name:"LIGHT_CORAL", color:LIGHT_CORAL},
+	{name:"LIGHT_CYAN", color:LIGHT_CYAN}, 
+	{name:"LIGHT_GOLDENROD", color:LIGHT_GOLDENROD},
+	{name:"LIGHT_GREEN", color:LIGHT_GREEN},
+	{name:"LIGHT_GREY", color:LIGHT_GREY},
+	{name:"LIGHT_PINK", color:LIGHT_PINK},
+	{name:"LIGHT_SALMON", color:LIGHT_SALMON}, 
+	{name:"LIGHT_SEA_GREEN", color:LIGHT_SEA_GREEN},
+	{name:"LIGHT_SKY_BLUE", color:LIGHT_SKY_BLUE},
+	{name:"LIGHT_SLATE_GRAY", color:LIGHT_SLATE_GRAY},
+	{name:"LIGHT_STEEL_BLUE", color:LIGHT_STEEL_BLUE},
+	{name:"LIGHT_YELLOW", color:LIGHT_YELLOW}, 
+	{name:"LIME", color:LIME},
+	{name:"LIME_GREEN", color:LIME_GREEN},
+	{name:"LINEN", color:LINEN},
+	{name:"MAGENTA", color:MAGENTA},
+	{name:"MAROON", color:MAROON}, 
+	{name:"MEDIUM_AQUAMARINE", color:MEDIUM_AQUAMARINE},
+	{name:"MEDIUM_BLUE", color:MEDIUM_BLUE},
+	{name:"MEDIUM_ORCHID", color:MEDIUM_ORCHID},
+	{name:"MEDIUM_PURPLE", color:MEDIUM_PURPLE},
+	{name:"MEDIUM_SEA_GREEN", color:MEDIUM_SEA_GREEN}, 
+	{name:"MEDIUM_SLATE_BLUE", color:MEDIUM_SLATE_BLUE},
+	{name:"MEDIUM_SPRING_GREEN", color:MEDIUM_SPRING_GREEN},
+	{name:"MEDIUM_TURQUOISE", color:MEDIUM_TURQUOISE},
+	{name:"MEDIUM_VIOLET_RED", color:MEDIUM_VIOLET_RED},
+	{name:"MIDNIGHT_BLUE", color:MIDNIGHT_BLUE}, 
+	{name:"MINT_CREAM", color:MINT_CREAM},
+	{name:"MISTY_ROSE", color:MISTY_ROSE},
+	{name:"MOCCASIN", color:MOCCASIN},
+	{name:"NAVAJO_WHITE", color:NAVAJO_WHITE},
+	{name:"NAVY", color:NAVY}, 
+	{name:"OLD_LACE", color:OLD_LACE},
+	{name:"OLIVE", color:OLIVE},
+	{name:"OLIVE_DRAB", color:OLIVE_DRAB},
+	{name:"ORANGE", color:ORANGE},
+	{name:"ORANGE_RED", color:ORANGE_RED}, 
+	{name:"ORCHID", color:ORCHID},
+	{name:"PALE_GOLDENROD", color:PALE_GOLDENROD},
+	{name:"PALE_GREEN", color:PALE_GREEN},
+	{name:"PALE_TURQUOISE", color:PALE_TURQUOISE},
+	{name:"PALE_VIOLET_RED", color:PALE_VIOLET_RED}, 
+	{name:"PAPAYA_WHIP", color:PAPAYA_WHIP},
+	{name:"PEACH_PUFF", color:PEACH_PUFF},
+	{name:"PERU", color:PERU},
+	{name:"PINK", color:PINK},
+	{name:"PLUM", color:PLUM}, 
+	{name:"POWDER_BLUE", color:POWDER_BLUE},
+	{name:"PURPLE", color:PURPLE},
+	{name:"REBECCA_PURPLE", color:REBECCA_PURPLE},
+	{name:"RED", color:RED},
+	{name:"ROSY_BROWN", color:ROSY_BROWN}, 
+	{name:"ROYAL_BLUE", color:ROYAL_BLUE},
+	{name:"SADDLE_BROWN", color:SADDLE_BROWN},
+	{name:"SALMON", color:SALMON},
+	{name:"SANDY_BROWN", color:SANDY_BROWN},
+	{name:"SEA_GREEN", color:SEA_GREEN}, 
+	{name:"SEASHELL", color:SEASHELL},
+	{name:"SIENNA", color:SIENNA},
+	{name:"SILVER", color:SILVER},
+	{name:"SKY_BLUE", color:SKY_BLUE},
+	{name:"SLATE_BLUE", color:SLATE_BLUE}, 
+	{name:"SLATE_GRAY", color:SLATE_GRAY},
+	{name:"SNOW", color:SNOW},
+	{name:"SPRING_GREEN", color:SPRING_GREEN},
+	{name:"STEEL_BLUE", color:STEEL_BLUE},
+	{name:"TAN", color:TAN}, 
+	{name:"TEAL", color:TEAL},
+	{name:"THISTLE", color:THISTLE},
+	{name:"TOMATO", color:TOMATO},
+	{name:"TURQUOISE", color:TURQUOISE},
+	{name:"VIOLET", color:VIOLET}, 
+	{name:"WHEAT", color:WHEAT},
+	{name:"WHITE_SMOKE", color:WHITE_SMOKE},
+	{name:"YELLOW", color:YELLOW},
+	{name:"YELLOW_GREEN", color:YELLOW_GREEN}]
+
+const SET2 : array of a_slot <=== [ {name:"GRAY1", color:GRAY1},
+	{name:"GRAY2", color:GRAY2},
+	{name:"GRAY3", color:GRAY3},
+	{name:"GRAY4", color:GRAY4},
+	{name:"GRAY5", color:GRAY5}, 
+	{name:"GRAY6", color:GRAY6},
+	{name:"GRAY7", color:GRAY7},
+	{name:"GRAY8", color:GRAY8},
+	{name:"GRAY9", color:GRAY9},
+	{name:"BLACK", color:BLACK},
+	{name:"WHITE", color:WHITE}]
+
+const hue_fudge = 150  // break the HSV wheel not at 0/359 which is in the middle of red
+const AREA_THRESHOLD = 140000  // below this screen area in points we switch to compact form
+const TARG_WIDTH = 100
+const BARV = 150  //  bottom bar section
+
+//  these functions as constants after the resize event is processed, which calculates basic geometry
+var NCOLS
+var NROWS
+var NCELLS
+
+var slotlist : array of ptr to a_slot  //  our sorted array of pointers
+
+const
+	C_DEAD = DARK_SLATE_GRAY
+	C_TEXT = SNOW
+
+	MODE_COLORS = 1
+	MODE_GRADS = 2
+
+record a_choice_set  //  mutually exclusive choice control
+	enabled  : yesno  //  if N then hide
+	is_open  : yesno  //  used by pulldown menu
+	selx_ptr : ptr to num  //  if present, use a pointer instead of a value
+	selx 	  // which item we selected 1=first
+	nrows	  // number of rows, U means 1
+	label_list : array of str
+	label_func : array of draw(a_rect)
+	val_list   : array of num
+	choice_func : calc () //  function to call after selection has changed
+
+record a_tabset  //  a set of tabs
+	selx 
+	label_list : array of str
+	action : calc()
+
+record a_state
+	htmlchip_selx  // which color slot is currently selected
+	ferrari_selx  //  which chip is selected in the ferrari palette
+	sel_color : color
+	prior_color : color
+	prior2_color : color
+	clipboard_ss : str
+	input_field : a_input_field
+	sounds : yesno
+	show_dpi : yesno
+
+	format  : (FORMAT_BEADS, FORMAT_HTML, FORMAT_HEX, FORMAT_C, FORMAT_RGB, FORMAT_HSL, FORMAT_VEC3)
+	sizing  : (COMPACT_SIZE, FULL_SIZE)
+	mode_grid : a_choice_set
+
+var g : a_state  //  our tracked mutable state
+
+//==LIBRARY
+const
+	DIMMED = 0.3
+
+	C_CHOICE_HI_BACK = TOMATO
+	C_CHOICE_HI_TEXT = BLACK
+	C_CHOICE_LO_BACK = #244022
+	C_CHOICE_LO_TEXT = LINEN
+	C_CHOICE_BORD = GRAY5
+
+	TAB_LO_BACK = #7F6B6B
+	TAB_LO_BORD = #054056 
+	TAB_LO_TEXT = #F0F0EA
+
+	TAB_HI_BACK = #F6F7CA
+	TAB_HI_BORD = #054056
+	TAB_HI_TEXT = #2B2927
+
+	BUTT_LO_BACK = TAB_LO_BACK 
+	BUTT_LO_BORD = TAB_LO_BORD 
+	BUTT_LO_TEXT = TAB_LO_TEXT
+
+	BUTT_HI_BACK = TAB_HI_BACK
+	BUTT_HI_BORD = TAB_HI_BORD  //  purple: 986395
+	BUTT_HI_TEXT = TAB_HI_TEXT
+	BUTT_HI_FILL = #8AC8DC  //  used for interior of polygons
+
+var
+	GRID_NPARTS
+	GRID_NROWS
+	GRID_NCOLS
+
+//==LIBRARY
+--------------------
+calc choice_get_selx(
+	c : a_choice_set
+	) : num
+	if c.selx_ptr <> U
+		//  use pointer form
+		return c.selx_ptr^^
+	else
+		//  use value form
+		return c.selx
+
+//==LIBRARY
+--------------------
+calc choice_set_selx(
+	c : a_choice_set
+	newval : num
+	) 
+	if c.selx_ptr <> U
+		//  use pointer form
+		c.selx_ptr^^ = newval
+	else
+		//  use value form
+		c.selx = newval
+
+//==LIBRARY
+-------------------------
+grid draw_choice_grid(
+-------------------------
+	o : a_choice_set
+	textsize : num
+	)
+	horz slice
+		GRID_NPARTS = count(o.label_list)
+		GRID_NROWS = o.nrows if o.nrows <> U else 1
+		GRID_NCOLS = GRID_NPARTS/GRID_NROWS
+
+		loop reps:GRID_NCOLS
+			add 12 al 
+
+	vert slice
+		loop reps:GRID_NROWS
+			add 12 al
+
+	cell
+		//  this compiles to a separate function so we used global vars above
+		const CHOICE_CORNER = 4
+		const BUTT_THICK = 1.5 //  thickness of stroke
+
+		var opacity = DIMMED if o.enabled == N else 1
+		var back:color
+		var bord:color
+		var text:color
+		var tl = 0
+		var tr = 0
+		var bl = 0
+		var br = 0
+
+		if b.cell_seq == choice_get_selx(o)
+			// selected item
+			back = C_CHOICE_HI_BACK
+			bord = C_CHOICE_BORD
+			text = C_CHOICE_HI_TEXT
+		else
+			//  regular item
+			back = C_CHOICE_LO_BACK
+			bord = C_CHOICE_BORD
+			text = C_CHOICE_LO_TEXT
+			
+		//  calculate the corners
+		if b.cell.x == 1
+			if b.cell.y == 1
+				tl = CHOICE_CORNER pt
+			if b.cell.y == GRID_NROWS
+				bl = CHOICE_CORNER pt
+		if b.cell.x == GRID_NCOLS
+			if b.cell.y == 1
+				tr = CHOICE_CORNER pt
+			if b.cell.y == GRID_NROWS
+				br = CHOICE_CORNER pt
+		
+		//  draw the background for this cell
+		draw_rect(fill:back, color:bord, thick:BUTT_THICK pt, pos:0, 
+			corner:[tl, tr, bl, br], opacity:opacity)
+
+		//  if the cell has a drawing function, use that
+		var f : draw(a_rect) = o.label_func[b.cell_seq]
+		if f <> U
+			//  has a drawing function
+			f(bb)
+		else
+			//  has no custom drawing function, draw the text
+			draw_str(o.label_list[b.cell_seq], color:text, indent:1.5 pt, size:textsize, opacity:opacity)
+----------------------
+track EV_TAP
+	choice_set_selx(o, b.cell_seq)
+	//  if this choice grid has a delta func call it
+	if o.choice_func <> U
+		o.choice_func()
+
+//==LIBRARY
+--------------------
+horz slice draw_tabs(
+	tabs : a_tabset
+	deadspace : num  --- out of 100 aliquots, how much to devote to dead space on each side
+	) ------------
+	const tabw = (100 - deadspace) / count(tabs)
+	const skip_per_side = deadspace / 2
+
+	skip skip_per_side al
+	loop across:tabs.label_list index:ix
+		add tabw al draw_tabs2(tabs, ix)
+	skip skip_per_side al
+
+//==LIBRARY
+--------------------
+draw draw_tabs2(
+	tabs : inout a_tabset
+	ix : num
+	) --------
+	const TAB_BORD = 1.5
+	const TAB_CORNER = 10
+
+	var back : color
+	var text : color
+	var bord : color
+
+	if tabs.selx == ix
+		back = TAB_HI_BACK
+		bord = TAB_HI_BORD
+		text = TAB_HI_TEXT
+	else	
+		back = TAB_LO_BACK
+		bord = TAB_LO_BORD
+		text = TAB_LO_TEXT
+	draw_rect(fill:back, color:bord, thick:TAB_BORD pt, corner:[TAB_CORNER pt, TAB_CORNER pt])
+	draw_str(tabs.label_list[ix], indent:1.5 pt, size:0.6, color:text)
+---------------------------
+track EV_TAP
+	if ix <> tabs.selx
+		//  user is changing which tab is selected
+		tabs.selx = ix
+		//  not all tabs have an action function
+		if tabs.action <> U
+			tabs.action()
+
+=================================
+calc main_init
+=================================
+	//  pass 1 - compute the sort keys for the colors
+	log "-- rebuilding with fudge {hue_fudge}" on:TRACE_FUDGE
+
+	var hsv:a_hsv
+	loop across:SET1 ptr:p index:ix
+		//  hue 0..360, saturation 0..100, value 0..100
+		hsv <=== color_to_hsv(p.color)
+
+		//  fudge the hue because splitting inside red is very bad
+		//  a mistake in the design of HSV
+		var hue2 = mod(hsv.hsv_h + hue_fudge, 360)
+
+		if hsv.hsv_s <= 10
+			//  low saturation color, sort at end
+			p.key1 = 90  //  low saturation, sort near end
+			p.key2 = hue2
+			p.key3 = hsv.hsv_v
+		elif hsv.hsv_s >= 90
+			p.key1 = 10  //  high saturation, first band
+			p.key2 = hue2
+			p.key3 = hsv.hsv_v
+		else
+			//  a regular color, not faint or bold
+			p.key1 = 50  //  medium saturation
+			p.key2 = hue2 // round_down(hsv.hsv_v/100*NRAMPS)
+			p.key3 = hsv.hsv_s // // hsv.hsv_h
+		//log "{ix}: {p.name}, keys=[{p.key1},{p.key2},{p.key3}], rgb=[{color_r(p.color)},{color_g(p.color)},{color_b(p.color)}], hsv=[{hsv.hsv_h},{hsv.hsv_s},{hsv.hsv_v}]" on:TRACE_COLORS
+	//..end loop
+
+	//  pass 2 - now loop through the set in sort order
+	//           and build an array of pointers to these values
+	loop across:SET1 ptr:p sort:func compare_slots index:ix count:cx
+		append p => slotlist
+		log "  {cx}: sorted traversal ix={ix}, name={p.name}" on:TRACE_COLORS
+
+	//  add the grays, which are already sorted in the order we want
+	loop across:SET2 ptr:p
+		append p => slotlist
+
+	if TRACE_COLORS
+		log "----- after sort ------"
+		loop across:slotlist val:p index:ix
+			log "{ix}: {p.name}, keys=[{p.key1},{p.key2},{p.key3}], color={p.color}"
+
+	g.mode_grid.selx = MODE_COLORS
+	g.mode_grid.label_list <=== ["Colors", "Gradients"]
+	//g.mode_grid.val_list <=== [MODE_COLORS, MODE_GRADS]
+
+	g.input_field.in_label = "ColorName"  //  DOM ID
+	g.input_field.in_name  = "ColorName" 
+	g.input_field.in_validator = validate_color
+	input_start(g.input_field)
+
+	g.sounds = Y
+	g.format = FORMAT_BEADS
+	NCELLS = count(slotlist)
+	g.show_dpi = N
+
+	select_new_color(CORNFLOWER_BLUE)
+
+=================================
+regexp A_WEB_COLOR starts ends -- regular expression for a hex color
+	optional '#'
+	6 hexdigit
+
+=================================
+calc validate_color (  //  see if the input field is a color value
+	field : a_input_field
+	):yesno --  return true if valid
+
+	var list : array of a_find
+	var newcolor : color
+	var ss = field.in_value
+
+	str_find(ss, A_WEB_COLOR, list)
+	if count(list) > 0
+		//  once we hit a valid color jump to that value
+		newcolor = hex_to_color(ss)
+		select_new_color(newcolor)
+		log "valid color of {ss}" on:TRACE_ENTRY
+		return Y  -- is a valid color value
+
+	log "ignoring non-numeric color {ss}" on:TRACE_ENTRY
+	return N
+
+=================================
+vert slice main_draw
+=================================
+	block fill:C_DEAD
+	skip 6 pt
+	case g.mode_grid.selx 
+	| MODE_COLORS
+		//log "total height is {dots_to_pt(bb.height)}"
+		if bb.height > 320 pt
+			add 16 al d_html_palette
+			skip 6 pt
+		//  since the ferrari palette is in 7 rows make it a nice multiple of 7 pixels
+		//var v = round(bb.height*10/24, multiple:7)
+		add 10 al d_ferrari_palette
+	| MODE_GRADS
+		add 10 al d_grad_designer
+	skip 6 pt
+	add BARV pt d_bottom_bar
+	skip 6 pt
+-------
+track EV_RESIZE  //  this sets global BARV, NCOLS, NROWS
+	//  when we resize (or before first draw) this event is sent
+	var h_pts = dots_to_pt(bb.width)
+	var v_pts = dots_to_pt(bb.height-BARV)
+	var area = h_pts * v_pts
+	log "-- resize, h={h_pts}, v={v_pts}, area={area}, thresh={AREA_THRESHOLD}" on:TRACE_SIZING
+
+	if area >= AREA_THRESHOLD
+		log "-- full size mode" on:TRACE_SIZING
+		//  full size mode, show name
+		g.sizing = FULL_SIZE
+		NCOLS = round_down(h_pts/TARG_WIDTH)
+	else
+		log "-- compact mode" on:TRACE_SIZING
+		g.sizing = COMPACT_SIZE
+		//  calculate the approx. area per cell we are going to have
+		var cell_area = round_down(area / NCELLS)
+		
+		//  now calculate the size so we have a 3:1 aspect ratio
+		var cell_height = sqrt(cell_area/3)
+		var cell_width = cell_area/cell_height
+		NCOLS = round(h_pts/cell_width)
+		
+	NROWS = round_up(NCELLS/NCOLS)
+	log "-- end resize, NCELLS={NCELLS}, NCOLS={NCOLS}, NROWS={NROWS}, BARV={BARV}" on:TRACE_SIZING
+
+	
+=================================
+draw d_grad_designer
+=================================
+	draw_rect(fill:OLIVE_DRAB)
+	draw_str("not yet", size:40 pt, color:C_TEXT)
+
+=================================
+horz slice d_bottom_bar
+=================================
+	skip 6 pt
+	add 100 pt d_color_format
+	skip 15 pt
+	add 140 pt d_bottom_col2
+	skip 30 pt // reserved space
+	add 40 al d_nearby
+	add 80 pt d_far_right
+	skip 10 pt
+
+=================================
+vert slice d_far_right
+	skip 10 al
+	add 24 pt d_sound_checkbox
+	skip 12 pt
+	add 18 pt d_version //  stuff this in the right hand corner
+	skip 6 pt
+
+=================================
+draw d_version
+	if g.show_dpi
+		draw_str("dpi {runtime.screen_dpi}", size:12 pt, color:C_TEXT, just:RIGHT, vert:0.85)
+	else
+		draw_str("version {runtime.app_version}", size:12 pt, color:C_TEXT, just:RIGHT, vert:0.85)
+----
+track EV_TAP
+	toggle g.show_dpi
+
+=================================
+horz slice d_sound_checkbox
+// 	under
+// 		draw_rect(fill:STEEL_BLUE, corner:4 pt)
+	skip 12 pt
+	add 24 pt d_checkbox(adr g.sounds)
+	skip 1 pt
+	add 10 al 
+		draw_str("Sounds", just:LEFT, size:0.70, color:C_TEXT)
+-----
+track EV_TAP
+	toggle g.sounds
+
+==================
+draw d_checkbox (
+	flag : ptr to yesno
+	)
+	var w = bb.height*0.68
+	var r <=== solve_rect(basis:bb, pin:5, width:w, height:w)
+	draw_image(CHECKBOX_ON if flag^^ else CHECKBOX_OFF, box:r)
+--------
+track EV_TAP
+	//  toggle the value
+	toggle flag
+
+=================================
+vert slice d_bottom_col2
+	add 22 pt d_input_box
+	skip 8 pt
+	add 10 al d_recent("Current", g.sel_color)
+	skip 2 pt
+	add 10 al d_recent("Prev", g.prior_color)
+	skip 2 pt
+	add 10 al d_recent("Prev 2", g.prior2_color)
+	skip 8 pt
+	add 18 pt d_made_with
+	skip 4 pt
+
+=================================
+draw d_input_box
+	draw_input(g.input_field, indent:3 pt, color:BLACK, border:1 pt, size:0.55, font:MONOSPACE,
+		border_color:LIGHT_SLATE_GRAY, fill:GHOST_WHITE, caret:BLACK, corner:2 pt)
+	//draw_rect(fill:IVORY, corner:2 pt)
+	//draw_str(g.clipboard_ss, size:0.6, color:BLACK)
+------
+//  transient values needed by tracking
+record a_hex_cell
+	x
+	y
+	netc : color
+
+var HEX_CENTER : a_xy
+var HEX_H
+var HEX_V
+var HEX_HALF_H
+var HEX_HALF_V
+var HEX_HAT_V
+var ROW_SPACING 
+var tweak_map notrack : array of a_hex_cell  -- indexed by col & row to get the net color
+
+=================================
+draw d_nearby // clip
+	// for formulae see https://calcresource.com/geom-hexagon.html
+
+	HEX_H = 25 pt
+	HEX_HALF_H = HEX_H/2
+	HEX_HAT_V = 4 pt  // height above main section
+	const HEX_SMALL_V = 7 pt
+	HEX_HALF_V = HEX_SMALL_V/2
+	ROW_SPACING = HEX_SMALL_V * 1.68 // slightly bigger than HEX_V
+	
+	const NH = round_down(bb.width*0.5 / HEX_H)
+	const NV = round_down(bb.height*0.48 / ROW_SPACING)
+	var cx
+	var cy
+	var c : color
+	var lo
+	var offsetx
+	var offsetcell
+	var tcol
+	var trow
+	var theta : Angle
+
+	//draw_rect(fill:GRAY4)
+
+	//  transient values we need during tracking
+	HEX_CENTER <=== solve_point(basis:bb, pin:MID_CENTER)
+
+	trunc tweak_map
+
+	loop from:-NV to:NV index:row
+		if is_odd(row)
+			lo = -(NH-1)
+			offsetx = -HEX_HALF_H
+			offsetcell = -1
+		else
+			lo = -NH
+			offsetx = 0
+			offsetcell = 0
+
+		loop from:lo to:NH index:col
+			//  index and row are offsets from center
+			cx = col*HEX_H + offsetx
+			cy = row*ROW_SPACING
+			theta = arc_tan2(-cy, cx)  // actual true angle as drawn, flipped on the Y
+			HEX_CENTER.x +=> cx
+			HEX_CENTER.y +=> cy
+			
+			//  calculate the tweak col and row, which go down as we move downward
+			//  so that darker colors will be at the bottom which is more natural
+			tcol = col*2 + offsetcell
+			trow = -row
+
+			//  calculate the adjusted color
+			c = tweak_color(g.sel_color, theta, tcol, trow) 
+
+			//  save the xy coordinate and the final color so we can recover it at tracking time
+			append { x:cx, y:cy, netc:c } ===> tweak_map
+
+			draw_hexagon(tcol, trow, cx, cy, c)
+			//draw_circle(x:cx, y:cy, diam:HEX_DIAM*0.8, fill:random_color())
+-----
+track EV_TAP
+	//  find the closest cell we picked
+	var tweakp : ptr to a_hex_cell
+	var best_dist = INFINITY
+	var distance
+	var dx
+	var dy
+	var best_color : color
+
+	loop across:tweak_map ptr:tweakp
+		dx = e.x - tweakp.x
+		dy = e.y - tweakp.y
+		distance =  dx*dx + dy*dy  -- leave it squared
+		if distance < best_dist
+			best_dist = distance
+			best_color = tweakp.netc
+
+	//  closest cell has been found
+	log "tap in nearby at {e.x},{e.y} best color {best_color}" on:TRACE_TAP
+	select_new_color(best_color)
+	//  update the ferrari palette
+	g.ferrari_selx = find_closest_ferrari(g.sel_color)
+
+=================================
+draw draw_hexagon (  -- draw a hexagon given a center point and radius
+	col
+	row
+	cx 
+	cy
+	clr : color
+	)
+	//   first build the raw steps
+	var steps : array of a_xy
+
+	const COVERAGE = 0.93  // lower value creates a bigger gap between cells
+	const HALF_H = HEX_HALF_H*COVERAGE
+	const HALF_V = HEX_HALF_V*COVERAGE
+	const HAT_V = HEX_HAT_V*COVERAGE
+
+	steps[1] <=== { x:cx - HALF_H, y:cy - HALF_V }
+	steps[2] <=== { x:cx, y:cy - HALF_V - HAT_V }
+	steps[3] <=== { x:cx + HALF_H, y:cy - HALF_V }
+	steps[4] <=== { x:cx + HALF_H, y:cy + HALF_V }
+	steps[5] <=== { x:cx , y:cy + HALF_V + HAT_V }
+	steps[6] <=== { x:cx - HALF_H, y:cy + HALF_V }
+
+	var thick = 2 pt if col == 0 and row == 0 else 0
+
+	draw_polygon(steps, fill:clr, color:CRIMSON, thick:thick)
+	//draw_str("{col},{row}", x:cx, y:cy-8, color:WHITE)  // tracing
+
+=================================
+calc tweak_color (  --  tweak a color
+	base : color
+	theta : Angle
+	dx  -- from origin, going left: 0,0;  -2,0;  -4,0;
+	dy  -- from origin cell upper left cell is -1,+1; -2,+2
+	) : color
+
+	//   handle case where no tweaking will happen
+	if dx == 0 and dy == 0
+		return base
+		
+	//  we have 3 dimensions in color tweak, alpha/beta/gamma
+	var alpha = 0
+	var beta = 0
+	var gamma = 0
+	var side
+	var posx
+	var posy
+	var adx = abs(dx)
+	var ady = abs(dy)
+
+	//  there are 12 different regions we go in the color space
+	//  basically the 6 triangles of the hexagon, cut in half
+	//  we will only change 2 of the dimensions at a time
+	//  by following the closest of the 3 angle lines of a hex grid at 0, 60, 120
+	if theta <= 30 deg
+		//  past 0 degree line, +alpha then +beta
+		beta = dy  // side mvt +
+		alpha = adx - beta
+
+	elif theta <= 60 deg
+		//  approaching 60 degree line +beta, then +alpha
+		alpha = (adx - ady)/2  // side mvt +
+		beta = dy
+		
+	elif theta <= 90 deg
+		//  past 60 degree line +beta, then +gamma
+		gamma = (ady - adx)/2  // side mvt +
+		beta = dy - gamma
+		
+	elif theta <= 120 deg
+		//  approaching 120 +gamma, then +beta
+		beta = (ady - adx)/2  // side mvt +
+		gamma = dy - beta
+		
+	elif theta <= 150 deg
+		//  past 120  +gamma, then -alpha
+		alpha = (ady - adx)/2   // side mvt -
+		gamma = dy
+
+	elif theta <= 180 deg
+		//a pproaching 180 -alpha, then +gamma
+		gamma = dy   // side mvt +
+		alpha = dx + ady
+
+	elif theta <= 210 deg
+		//  past 180, -alpha, then -beta
+		beta = dy  //  side mvt -
+		alpha = dx + ady
+
+	elif theta <= 240 deg
+		//  approaching 240, -beta then -alpha
+		alpha = (ady - adx)/2  // side mvt
+		beta = dy
+		
+	elif theta <= 270 deg
+		//  past 240, -beta, then -gamma
+		gamma = (adx - ady)/2  // side mvt
+		beta = dy - gamma
+
+	elif theta <= 300 deg
+		//  approaching 300, -gamma, then -beta
+		beta = (adx - ady)/2  // side mvt -
+		gamma = dy - beta
+		
+	elif theta <= 330 deg
+		//  past 300,  -gamma, then +alpha
+		gamma = dy
+		alpha = (adx - ady)/2   //  side mvt +
+
+	else
+		//  approaching 360, +alpha, then -gamma
+		gamma = dy  // side mvt -
+		alpha = adx - ady
+
+	log "tweak dx={dx}, dy={dy}, angle={to_unit(theta, enum deg)} adjustment [{alpha},{beta},{gamma}]" on:TRACE_TWEAK
+
+	// RGB tweak method
+	//------------------------
+	// extract color components
+	var r = r255(base)
+	var g = g255(base)
+	var b = b255(base)
+
+	const SCALE = 6
+
+	//  tweak the color based on the alpha/beta/gamma adjustments
+	2*alpha +=> r
+	SCALE*beta +=> g
+	SCALE*gamma +=> b
+	return rgb(r,g,b)
+
+/*....
+	//  HSL tweak method
+	//  alpha=lightness, beta=sat, gamma=hue
+	var hsl : a_hsl
+	color_to_hsl(base) ===> hsl
+	1*gamma +=> hsl.hsl_h
+	1*alpha +=> hsl.hsl_l
+	1*beta  +=> hsl.hsl_s
+	return hsl_to_color(hsl)
+...*/
+	
+=================================
+horz slice d_recent (
+	label : str
+	clr : color
+	)
+	add 14 al
+		draw_str(label, size:0.55, just:LEFT, color:WHITE)
+	skip 2 pt
+	add 20 al
+		draw_rect(fill:clr, corner:3 pt)
+------
+track EV_TAP
+	//  select this color again
+	select_new_color(clr)
+
+//	draw_str(" rgb {r255(g.sel_color)}, {g255(g.sel_color)}, {b255(g.sel_color)}", size:0.7, indent:14 pt, color:C_TEXT)
+
+=================================
+vert slice d_color_format  //  show the color format selector (mutually exclusive button)
+=================================
+	skip 1 al
+	add 10 al d_choice(FORMAT_BEADS, "Beads format", "Beads")
+	skip 1 al
+	add 10 al d_choice(FORMAT_HTML, "HTML format", "HTML")
+	skip 1 al
+	add 10 al d_choice(FORMAT_HEX, "Plain Hex", "Hex")
+	skip 1 al
+	add 10 al d_choice(FORMAT_C, "C Hex", "C")
+	skip 1 al
+	add 10 al d_choice(FORMAT_RGB, "rgb(...)", "rgb()")
+	skip 1 al
+	add 10 al d_choice(FORMAT_HSL, "hsl(...)", "hsl()")
+	skip 1 al
+	add 10 al d_choice(FORMAT_VEC3, "vec3(...)", "vec3()")
+	skip 2 al
+
+=================================
+draw d_choice(  //  show a format choice button
+=================================
+	formx : num
+	long_label : str
+	short_label : str
+	) -------
+	var fill:color = C_CHOICE_HI_BACK if formx == g.format else C_CHOICE_LO_BACK
+	var label:str = long_label if bb.width > 70 pt else short_label
+
+	draw_rect(fill:fill, thick:1 pt, color:C_CHOICE_BORD)
+	if formx == g.format
+		draw_str("▶", size:0.6, just:LEFT, color:MAROON)
+		draw_str(label, size:0.60, indent:3 pt, color:C_CHOICE_HI_TEXT)
+	else
+		draw_str(label, size:0.60, indent:3 pt, color:C_CHOICE_LO_TEXT)
+track EV_TAP
+	g.format = formx
+	build_clipboard
+track EV_HOVER
+	cursor_set(CURS_FINGER)
+
+=================================
+draw d_made_with  //  show the "made with" button
+=================================
+	draw_rect(fill:STEEL_BLUE, corner:4 pt)
+	draw_str("written in Beads", size:bb.height*0.65, color:C_TEXT)
+track EV_TAP
+	//  go to the beads home page
+	browser_redirect("https://github.com/magicmouse/beads-examples/tree/master/Example%20-%20Color%20Chart", newtab:Y)
+track EV_HOVER
+	cursor_set(CURS_FINGER)
+
+=================================
+grid d_html_palette order:TBLR
+=================================
+	horz slice
+		skip 10 al
+		loop reps:NCOLS count:col
+			if col > 1 and g.sizing == FULL_SIZE
+				skip 10 al
+			add 250 al
+		skip 10 al		
+
+	vert slice
+		skip 5 al
+		loop reps:NROWS count:row
+			if row > 1 and g.sizing == FULL_SIZE
+				skip 5 al
+			add 80 al
+		skip 5 al
+		skip 1 px
+	cell
+		// inside: bb, b.cell_seq, b.cell.x/y, b.cell_id.x/y
+		if b.cell_seq <= NCELLS
+			var slotx = b.cell_seq
+			d_cell(slotlist[slotx], slotx)
+		//  ignore cells at the end due to partial last row fill
+// 	over
+// 		//  draw the sizing square in the corner
+// 		var r : a_rect <=== solve_rect(basis:bb, pin:BOT_RIGHT, width:12 pt, height:12 pt)
+// 		draw_rect(box:r, fill:PINK, corner[4 pt 0])
+// 		draw_str("\u2921", box:r, size: 10 pt)  //  NW-SE arrow
+-----------------------
+track EV_TAP  // user is tapping in HTML palette
+	//  make a sound effect 
+	if b.cell_seq == U or b.cell_seq > NCELLS
+		//  bad selection, clicked on dead space, a gap or past end of list
+		if g.sounds
+			sound_play(BEEP)
+		g.htmlchip_selx = U  // deselect
+	else
+		//  color choice
+		//  move the value of the slot hilite flag to the new one
+		if g.htmlchip_selx <> U
+			slotlist[g.htmlchip_selx].hilite = N
+		g.htmlchip_selx = b.cell_seq
+		slotlist[g.htmlchip_selx].hilite = Y
+
+		var newsel:color = slotlist[g.htmlchip_selx].color
+		select_new_color(newsel)
+
+		//  now find closest ferrari color
+		g.ferrari_selx = find_closest_ferrari(g.sel_color)
+-------
+track EV_HOVER
+	//  if we are on a clickable thing, show the finger cursor
+	if b.cell_seq <= NCELLS
+		//  this will be false if cell_seq is U (which it will be if on dead space)
+		cursor_set(CURS_FINGER)
+	else
+		cursor_set(CURS_ARROW)
+-------
+// track EV_KEYBOARD
+// 	//  allow the fudge amount to be tweaked
+// 	case e.keycode
+// 	| KEYCODE_UP, KEYCODE_DOWN
+// 		if e.keycode == KEYCODE_UP
+// 			10 +=> hue_fudge
+// 		else
+// 			10 -=> hue_fudge
+// 		main_init
+// 		return Y
+// 	return N
+
+=================================
+calc select_new_color (  //  user has picked a new color
+	newcolor : color
+	)
+	if g.sounds
+		sound_play(CLICK)
+	
+	if newcolor == g.sel_color
+		//  ignore duplicate clicks
+		return
+	
+	g.prior2_color = g.prior_color
+	g.prior_color = g.sel_color
+	g.sel_color = newcolor
+	
+	build_clipboard
+
+=================================
+calc build_clipboard  //  regenerate what is on the clipboard
+	var beads_name:str
+	var ss : str
+	var newcolor = g.sel_color
+
+	case g.format
+	| FORMAT_BEADS
+		beads_name = find_exact_beads(newcolor)
+		if beads_name == U
+			ss = color_to_hex(newcolor)
+		else
+			ss = beads_name
+
+	| FORMAT_HTML
+		//  use HTML name if we can, otherwise use hex
+		beads_name = find_exact_beads(newcolor)
+		if beads_name == U
+			ss = color_to_hex(newcolor)
+		else
+			//  convert the beads name to an html name (convert caps, strip underscore)
+			ss = beads_to_html(beads_name)
+
+	| FORMAT_HEX
+		//  plain hex color, no # sign.
+		ss = subset(color_to_hex(newcolor), from:2)  // strip #
+
+	| FORMAT_C
+		// always in 0xAABBCC format
+		ss = "0x" & subset(color_to_hex(newcolor), from:2)
+
+	| FORMAT_RGB
+		//  as in rgb(1,2,3)
+		ss = to_rgb_str(newcolor)
+
+	| FORMAT_HSL
+		//  as in hsl(1,2,3)
+		ss = to_hsl_str(newcolor)
+
+	| FORMAT_VEC3
+		//  as in vec3(0.,1.,0.222)
+		ss = to_vec3_str(newcolor)
+
+	log "posting {ss}" on:TRACE_TAP
+	g.clipboard_ss = ss
+	os_clipboard_copy(ss)
+
+	//  update the input field value
+	input_set_value(g.input_field, ss)
+	g.input_field.in_ok = Y  // turn off the warning sign
+
+=================================
+calc find_exact_beads (  // try to find a beads name slot that exactly matches
+	targ : color
+	) :str  -- beads name if found
+	var p : ptr to a_slot
+	loop across:slotlist val:p
+		if p.color == targ
+			return p.name
+	return U // not found
+
+=================================
+horz slice d_cell(  //  inside each cell we draw the color and the name
+=================================
+	myslot : a_slot
+	slotx
+	)
+	add 50 al d_chip_color(myslot, slotx)
+	if g.sizing == FULL_SIZE
+		//  add the name or hex value
+		add 140 al d_color_name(myslot, slotx)
+
+=================================
+draw d_color_name ditto
+	//  in order to keep all the name blocks from being redrawn on change
+	//  in current selection, we avoid referencing g.htmlchip_selx
+// 	if slotx < 10
+// 		log "d_color_name {slotx}"
+	if myslot.hilite
+		//  this is the currently selected HTML color
+		var radius = bb.height/6
+		//  put corners on the top and bottom right side
+		draw_rect(fill:MEDIUM_VIOLET_RED /*C_CHOICE_HI_BACK*/, corner:[0 radius radius 0])
+
+	//  if this is a hex format, we can make it 1/8th the width, else 1/12th
+	var ss : str = calc_slot_str(myslot)
+	if g.format == FORMAT_HTML
+		//  draw slightly larger as HTML names are all lower case
+		draw_str(ss, just:LEFT, indent:4 pt, size:min(bb.height, bb.width/8), color:C_TEXT)
+	else
+		draw_str(ss, just:LEFT, indent:4 pt, size:min(bb.height, bb.width/11), color:C_TEXT)
+
+=================================
+draw d_chip_color ditto
+// 	if slotx < 10
+// 		log "d_chip_color {slotx}"
+	draw_rect(fill:myslot.color, corner:3 pt)
+	//if myslot.frame
+	if myslot.hilite
+		draw_rect(color:FIREBRICK, thick:4 pt, corner:3 pt)
+	else
+		draw_rect(color:BLACK, thick:1 pt, corner:3 pt)
+
+-------------------------
+//   Ferrari palette
+
+//  we had 7 custom color
+//  #FF0000, #00FF00, #0000FF, #FFFF00, #8080FF, #FFFF00, #8080FF, 
+
+const FERRARI : array of color <=== [ #000000, #FFFFFF,  //  first 2: black, white
+	#290000, #330000, #420000, #560000, #6F0001, #8B0001, #A70001, #C10100, #DB0101, #EF0101, #FE0101,
+	#FE1111, #FF2626, #FE403F, #FE5C5C, #FF7A7A, #FE9999, #FFB6B5, #FFCFCF, #FFE5E4, #FFF4F4,
+	#330F00, #401300, #521800, #671E01, #802600, #992D00, #B23400, #C93B01, #DF4101, #F14601,
+	#FE4A01, #FE5511, #FE6526, #FE7740, #FF8B5C, #FFA07A, #FFB699, #FFCAB5, #FFDCCF, #FFECE5,
+	#FFF7F4, #331900, #402800, #513100, #673A00, #7F4500, #984F01, #B25A01, #CA6601, #DF6E01,
+	#F17602, #FE7C02, #FE8411, #FE8F27, #FE9C41, #FEAB5D, #FFBB7B, #FFCA99, #FFD9B6, #FFE6CF,
+	#FFF1E4, #FFF9F4, #332300, #402B00, #523600, #674400, #805401, #996301, #B27301, #C98201,
+	#DF9001, #F19B02, #FEA302, #FFA912, #FEB027, #FEBA40, #FEC45D, #FFCF7B, #FEDA99, #FEE4B6,
+	#FFEED0, #FFF5E5, #FFFBF4, #332A00, #403C00, #524A01, #685C01, #7F7001, #998501, #B29901,
+	#CAAD02, #DFBF02, #F1CD02, #FED802, #FEDA12, #FEDD27, #FEE241, #FFE65D, #FEEA7B, #FFEF99,
+	#FFF4B6, #FFF7CF, #FFFBE4, #FFFDF4, #333100, #403E00, #525001, #686600, #807E01, #989801,
+	#B1B101, #CAC902, #DFDF01, #F1F002, #FEFE02, #FEFE12, #FEFE27, #FEFE40, #FEFE5D, #FEFE7B,
+	#FEFF99, #FFFFB5, #FEFFCF, #FFFFE4, #FFFFF4, #2A3200, #353F01, #435100, #556601, #687E02,
+	#7C9702, #91B003, #A4C803, #B6DD04, #C4EF03, #CFFC04, #D2FC13, #D6FC28, #DBFC42, #E0FD5E,
+	#E6FD7C, #EBFE9A, #F2FEB6, #F6FED0, #FAFFE5, #FDFFF4, #1A3400, #204100, #2A5300, #356801,
+	#427F01, #4F9801, #5CB202, #68C903, #74DF03, #7DF003, #84FD03, #94FD24, #9FFE3A, #ACFE54,
+	#B9FE6F, #C6FE8B, #D4FEA6, #E0FFBF, #EBFFD6, #F5FEE9, #FBFFF7, #033500, #034200, #055401,
+	#056800, #078001, #099801, #0AB101, #0BC801, #0DDD02, #0DEF02, #0EFB02, #2EFC23, #43FC39,
+	#5CFC53, #75FD6F, #90FD8B, #AAFEA6, #C2FEBF, #D8FED6, #EAFFE9, #F7FFF7, #00360F, #00360F,
+	#004513, #005819, #017121, #018C29, #01A630, #01C138, #02D940, #02ED46, #02FC4A, #23FC62,
+	#39FC72, #53FD85, #6FFD98, #8BFEAC, #A6FEBF, #BFFED1, #D6FFE1, #E9FFEF, #F7FFF9, #003425,
+	#003526, #014430, #00583F, #017051, #028C63, #03A677, #03C189, #03D99B, #04ECA9, #04FBB3,
+	#25FBBD, #3BFCC4, #55FDCC, #70FDD4, #8BFDDD, #A7FEE5, #C0FEEC, #D6FFF3, #E9FEF9, #F7FFFD,
+	#003333, #003333, #004242, #015656, #016E6E, #018A8A, #01A5A5, #03C0C0, #03D8D8, #03EDEC,
+	#03FBFB, #24FCFC, #3BFCFC, #54FDFC, #6FFDFD, #8BFEFD, #A6FDFE, #C0FEFE, #D6FFFF, #E9FFFE,
+	#F7FFFF, #012633, #012633, #023142, #024056, #01536F, #02688A, #027DA6, #0292C2, #03A4DA,
+	#03B4EE, #03BFFD, #12C3FD, #28C9FD, #42CFFD, #5FD6FE, #7DDEFE, #9CE6FE, #B8EDFE, #D2F4FF,
+	#E8F9FF, #F7FDFF, #001633, #001633, #001C41, #002556, #01306F, #013B8A, #0147A6, #0253C1,
+	#025DDA, #0266EF, #026CFD, #1175FD, #2781FD, #4291FE, #5EA2FE, #7CB3FE, #9BC4FE, #B7D5FE,
+	#D2E5FF, #E7F1FF, #F7FAFF, #000233, #000240, #010352, #010468, #010580, #010599, #0106B3,
+	#0207CB, #0207E0, #0208F2, #0208FF, #1118FF, #272DFF, #4146FF, #5E62FF, #7C7FFF, #9B9DFF,
+	#B8B9FF, #D2D3FF, #E7E7FF, #F7F7FF, #0E0034, #120141, #170052, #1D0068, #240180, #2B0199,
+	#3301B2, #3A01CA, #4002DF, #4502F1, #4902FE, #5412FE, #6427FE, #7741FF, #8B5EFE, #A17CFE,
+	#B79BFF, #CCB7FE, #DED2FF, #EEE7FE, #F9F7FF, #240034, #240034, #2E0043, #3D0157, #4F0170,
+	#62018B, #7602A6, #8902C2, #9B02DA, #A903EF, #B403FD, #B913FD, #BF29FD, #C742FE, #D05FFD,
+	#D87DFE, #E29CFE, #EAB8FE, #F2D2FF, #F8E8FF, #FDF7FF, #330032, #40003F, #520051, #680066,
+	#7F017E, #990197, #B201B0, #CB02C8, #E002DD, #F202EF, #FF02FC, #FF23FD, #FF3AFC, #FF53FD,
+	#FF6EFE, #FF8AFE, #FFA6FE, #FFC0FE, #FFD7FE, #FFE9FF, #FFF7FF, #330023, #330023, #42002D,
+	#57013B, #70004D, #8A0160, #A70173, #C20186, #DC0297, #F002A6, #FF02B0, #FF23BA, #FF39C1,
+	#FF53C9, #FF6FD2, #FF8ADB, #FFA6E3, #FFBFEB, #FFD6F2, #FFE9F8, #FFF7FD, #330014, #400019,
+	#520020, #670029, #800131, #99013C, #B20245, #CB024E, #E00257, #F2025E, #FF0263, #FF126D,
+	#FF277A, #FF418A, #FF5F9C, #FF7CAF, #FF9BC2, #FFB8D3, #FFD2E3, #FFE7F1, #FFF7FA, #211212,
+	#2A1717, #331C1C, #3F2322, #4F2B2B, #5F3333, #703D3C, #804646, #904D4E, #9C5455, #A55959,
+	#AA6363, #B27171, #BA8281, #C49494, #CFA8A8, #D9BCBB, #E3CFCF, #EDDFDF, #F4EDED, #F9F7F7,
+	#211612, #2A1D17, #33231B, #402C23, #4F362B, #5F4034, #714C3C, #815745, #90614E, #9D6A55,
+	#A56F59, #AB7863, #B28471, #BB9282, #C5A295, #CFB3A8, #DAC4BC, #E3D4CE, #ECE3DF, #F4EFED,
+	#F9F8F7, #211912, #2B2017, #34271C, #403123, #503D2B, #604A34, #72573D, #826547, #91704E,
+	#9E7956, #A67F5A, #AB8764, #B39172, #BC9E82, #C5AD95, #D0BBA9, #DACBBC, #E4D9CF, #ECE6DF,
+	#F4F1ED, #F9F8F7, #211C12, #2B2417, #342C1B, #413723, #4F432B, #605134, #71613D, #826E47,
+	#917A4E, #9E8456, #A68A5A, #AB9164, #B39A72, #BCA782, #C5B495, #D0C1A9, #DACFBC, #E3DBCE,
+	#EDE7DF, #F3F1ED, #F9F8F7, #211F12, #2B2817, #34311B, #403C23, #504C2B, #605C34, #726D3E,
+	#837C46, #91894F, #9E9456, #A69A5A, #ACA064, #B3A872, #BBB382, #C5BE95, #D0CAA9, #DAD5BC,
+	#E3E0CF, #ECEADF, #F4F3ED, #F9F9F7, #212112, #2A2B17, #33341C, #404123, #4E4F2B, #606033,
+	#71713D, #818147, #90914E, #9D9D55, #A6A65A, #ABAC64, #B3B372, #BBBB83, #C6C595, #D0CFA9,
+	#DADABC, #E4E3CE, #EDEDDF, #F4F4ED, #F9F9F7, #1E2112, #272A17, #2F331C, #3A3F23, #484E2B,
+	#585F34, #66703E, #758146, #83904E, #8F9C55, #97A55A, #9EAA64, #A6B271, #B0BB82, #BCC495,
+	#C8CFA9, #D4DABC, #DFE4CF, #EAECE0, #F2F4ED, #F9F9F7, #1A2112, #212B17, #28341C, #324022,
+	#3D4F2B, #4A6034, #58713D, #658147, #70904E, #7A9C55, #81A55A, #89AA64, #93B271, #9FBA82,
+	#ADC595, #BCCFA8, #CBD9BC, #D9E4CF, #E6ECDF, #F1F4ED, #F8F9F7, #132112, #182B17, #1D341C,
+	#244022, #2C4F2B, #365F33, #3F703D, #488045, #518F4D, #589B54, #5DA459, #67A963, #74B171,
+	#85BA82, #97C494, #AACEA8, #BDD9BC, #CFE3CE, #DFECDF, #EDF3ED, #F7F9F7, #122116, #172A1D,
+	#1C3323, #223F2B, #2B4E35, #345F40, #3D6F4B, #468056, #4D8F60, #549B69, #59A46E, #63AA77,
+	#71B183, #82BA92, #94C4A2, #A8CEB3, #BCD9C4, #CEE3D5, #DFECE3, #EDF3EF, #F7F9F8, #12211C,
+	#172B24, #1C342C, #224037, #2B4F43, #335F51, #3D6F60, #47806E, #4E8F7B, #559B86, #5AA48E,
+	#64AA95, #71B19E, #83BAAA, #95C4B5, #A9CFC3, #BCD9D0, #CFE3DC, #DFECE7, #EDF4F1, #F7F9F8,
+	#122121, #172B2B, #1C3434, #224140, #2B4F4E, #33605F, #3C7070, #468080, #4E8F8F, #549B9B,
+	#59A4A4, #63AAAA, #71B1B1, #82BABA, #95C4C4, #A8CECF, #BBD9D9, #CEE3E3, #DFECEC, #ECF4F4,
+	#F7F9F9, #121D21, #17252B, #1C2D34, #233840, #2B454F, #33545F, #3D6370, #467181, #4E7F90,
+	#558A9C, #5A92A5, #6498AB, #72A1B2, #82ACBA, #95B8C4, #A8C5CF, #BCD2D9, #CFDEE3, #DFE8EC,
+	#EDF2F3, #F7F8F9, #121821, #171F2B, #1C2634, #232F40, #2B3A4F, #34465F, #3D5371, #465F81,
+	#4F6B90, #55739C, #5A7AA5, #6483AB, #728DB2, #839BBB, #95AAC5, #A9B9CF, #BCC9D9, #CFD7E3,
+	#DFE5EC, #EDF0F3, #F7F8F9, #121221, #17172B, #1C1C34, #232341, #2B2B4F, #343560, #3D3E71,
+	#464881, #4F5090, #55579D, #5A5CA6, #6466AB, #7273B3, #8284BB, #9596C5, #A8AACF, #BCBDDA,
+	#CFCFE4, #DFE0ED, #EDEDF4, #F7F7F9, #161221, #1D172B, #231C34, #2B2340, #352B50, #403460,
+	#4B3D71, #574682, #614E90, #69569D, #6F5AA6, #7864AC, #8472B3, #9283BB, #A395C6, #B3A9D0,
+	#C5BCD9, #D5CFE4, #E4DFEC, #EFEDF4, #F8F7F9, #1D1221, #26172B, #2E1C34, #382340, #452B4F,
+	#543460, #623D71, #704681, #7C4E90, #87559D, #8F5AA5, #9664AB, #9F72B2, #AA82BB, #B795C5,
+	#C4A8CF, #D0BCDA, #DDCFE4, #E8DFEC, #F1EDF4, #F8F7F9, #29162A, #351D35, #3E223D, #492749,
+	#562F56, #663865, #764075, #844884, #924F91, #9D569D, #A65AA5, #AC64AA, #B372B2, #BB83BB,
+	#C595C5, #D0A8CF, #D9BCDA, #E4CEE3, #ECDFEC, #F4EDF3, #F9F7F9, #21121C, #2A1724, #331C2C,
+	#402236, #4F2B43, #5F3452, #713D60, #81466E, #904F7B, #9D5686, #A65A8E, #AB6495, #B3729E,
+	#BC82AA, #C595B6, #D0A8C3, #DABCD0, #E3CFDD, #ECDFE8, #F4EDF1, #F9F7F8, #211218, #2B171F,
+	#341C26, #40222F, #502B39, #603445, #713D51, #82465D, #914E68, #9D5571, #A65A77, #AC647F,
+	#B3728A, #BB8298, #C595A8, #D0A8B7, #DABCC7, #E3CED7, #ECE0E4, #F4EDF0, #F9F7F8, #000000,
+	#070706, #0F0F0F, #191918, #232424, #2F3030, #3C3D3C, #494949, #585858, #676666, #757575,
+	#848484, #939393, #A1A1A1, #AFAFAF, #BDBDBD, #CACAC9, #D5D6D6, #E0E0E1, #EAEAEA, #F2F2F2 ]
+
+const 
+	FERR_NROW = 7
+	FERR_NCOL = 6
+	FERR_NRAMPS = 42
+	CHIPS_PER_RAMP = 21  //  first ramp is special, shows black and white
+	CHIPS_PER_ROW = FERR_NCOL * CHIPS_PER_RAMP
+
+var
+	chip_h : num
+
+=================================
+calc find_closest_ferrari (
+	targ : color
+	) : num  // return index of closest color
+
+	var best_ix = 0
+	var best_score = INFINITY
+	var score
+	var c : color
+
+	loop across:FERRARI val:c index:ix
+		score = color_difference(targ, c)
+		if score < best_score
+			best_score = score
+			best_ix = ix
+	return best_ix
+
+=================================
+calc color_difference2 (
+	c1 : color
+	c2 : color
+	) : num
+	var hsv1 : a_hsv <=== color_to_hsv(c1)
+	var hsv2 : a_hsv <=== color_to_hsv(c2)
+	//  this will weight hue much more closely than sat and value
+	var dh = hsv1.hsv_h - hsv2.hsv_h
+	var ds = hsv1.hsv_s - hsv2.hsv_s
+	var dv = hsv1.hsv_v - hsv2.hsv_v
+	return sqrt(dh*dh + ds*ds + dv*dv)
+
+calc color_difference (
+	c1 : color
+	c2 : color
+	) : num
+	var r1 = r255(c1)
+	var g1 = g255(c1)
+	var b1 = b255(c1)
+	var r2 = r255(c2)
+	var g2 = g255(c2)
+	var b2 = b255(c2)
+	var dr = r1-r2
+	var dg = g1-g2
+	var db = b1-b2
+	return sqrt(dr*dr + dg*dg + db*db)
+
+=================================
+horz slice d_ferrari_palette
+	//  calculate so that the chips are even in width
+	chip_h = round_down(bb.width / CHIPS_PER_ROW)
+	var used = chip_h*CHIPS_PER_ROW
+	var leftover = bb.width - used
+	var gap = leftover*0.5
+
+	//  we want perfect pixel alignment for this
+// 	var leftover = bb.width - used
+// 	var leftover1 = round_down(leftover/2)
+// 	var leftover2 = leftover - leftover1
+// 	log "used={used}, leftover={leftover}, l1={leftover1}, l2={leftover2}"
+	//skip leftover1 px
+	skip gap px
+	add used px d_ferrari_grid
+	skip gap px
+
+=================================
+grid d_ferrari_grid  order:TBLR
+	//  calculate the size of the palette box
+	//  we want 7 even height rows
+	//  and 42 ramps of 21 chips
+	horz slice
+		loop reps:FERR_NCOL
+			add 10 al
+
+	vert slice
+		loop reps:FERR_NROW
+			add 10 al
+			skip 3 px
+	cell
+		//  draw this ramp
+		if b.cell_seq == 1
+			ferr_first_ramp
+		else
+			ferr_ramp(b.cell_seq)
+
+=================================
+horz slice ferr_first_ramp  //  ferrari palette - black and white chips
+	add 10 al
+		ferr_ramp_chip(1)
+	add 10 al
+		ferr_ramp_chip(2)
+
+=================================
+horz slice ferr_ramp(  //  ferrari palette - regular ramp
+	rampx : num
+	) -----
+	loop reps:CHIPS_PER_RAMP count:chipx
+		var colorx = 2 + (rampx-2)*CHIPS_PER_RAMP + chipx
+		add 10 al ferr_ramp_chip(colorx)
+
+=================================
+draw ferr_ramp_chip(  //  ferrari palette - chip in ramp
+	colorx
+	) ----
+	draw_rect(fill:FERRARI[colorx])
+	if g.ferrari_selx == colorx
+		ferr_hilite_chip(bb)
+--------------
+track EV_TAP
+	log "ferrari tap, colorx={colorx}" on:TRACE_PALETTE
+
+	//  user is selecting a color chip
+	g.ferrari_selx = colorx
+
+	//  unselect the prior html chip if we had one
+	if g.htmlchip_selx <> U
+		slotlist[g.htmlchip_selx].hilite = N
+		g.htmlchip_selx = U
+
+	//color_ctl_setv(g.palette_targ_ptr^^, FERRARI[colorx])
+	select_new_color(FERRARI[colorx])
+
+=================================
+draw ferr_hilite_chip(  //  ferrari palette - hilite color chip
+	box : a_rect
+	) ------
+	draw_rect(thick:4 px, pos:0, color:BLACK)
+	draw_rect(thick:2 px, pos:0, color:RED)
+
+=================================
+calc ferr_closest_chip (  //  ferrari palette - find closest color match
+	targcolor : color
+	) : num  --- index that is the closest match
+	var targ_r : num = r255(targcolor)
+	var targ_g : num = g255(targcolor)
+	var targ_b : num = b255(targcolor)
+	var dx
+	var badness
+	var lowest  //  lowest badness so far
+	var lowestx
+	var testcolor : color
+
+	lowest = INFINITY
+	loop across:FERRARI val:testcolor index:ix
+		dx = targ_r - r255(testcolor)
+		dx*dx => badness
+
+		dx = targ_g - g255(testcolor)
+		dx*dx +=> badness
+
+		dx = targ_b - b255(testcolor)
+		dx*dx +=> badness
+
+		//  if we find an exact match stop immediately
+		if badness == 0
+			return ix
+
+		if badness < lowest
+			lowest = badness
+			lowest = ix
+	
+	//  loop is over. this will return closest match 
+	return lowestx		
+
+=================================
+calc compare_slots(  -- compare sort keys of the color records, in ascending order
+=================================
+	a : a_slot  //  ptr to a_slot
+	b : a_slot  //  ptr to a_slot
+	) : num  // -1, a less than b
+
+	//  implement a simple 3 level sort key
+	if a.key1 < b.key1
+		return -1
+	elif a.key1 > b.key1
+		return +1
+
+	if a.key2 < b.key2
+		return -1
+	elif a.key2 > b.key2
+		return +1
+
+	if a.key3 < b.key3
+		return -1
+	elif a.key3 > b.key3
+		return +1
+
+	return 0  // slots are equal 
+
+======================
+calc calc_slot_str ( -- calculate the string for the color slot
+======================
+	slot : a_slot  -- index in our color chart
+	) : str
+	case g.format
+	| FORMAT_HTML
+		return beads_to_html(slot.name)
+	else
+		return slot.name
+
+// 	| FORMAT_HEX
+// 		return color_to_hex(slot.color)
+// 	| FORMAT_C
+// 		return "0x" & subset(color_to_hex(slot.color), from:2)
+// 	| FORMAT_RGB
+// 		return to_rgb_str(slot.color)
+// 	| FORMAT_HSL
+// 		return to_hsl_str(slot.color)
+
+======================
+calc to_rgb_str (
+	color : color
+	) : str
+	return "rgb({r255(color)},{g255(color)},{b255(color)})"
+
+======================
+calc to_hsl_str (
+	color : color
+	) : str
+	//  convert the rgb color to hsl
+	var hsl : a_hsl <=== color_to_hsl(color)
+	return "hsl({hsl.hsl_h},{hsl.hsl_s}%,{hsl.hsl_l}%)"
+
+======================
+calc to_vec3_str (  // a color like vec3(0.392,0.584,0.929)
+	color : color
+	) : str
+	//  convert the rgb color to vec3
+
+	var hsl : a_hsl <=== color_to_hsl(color)
+	return "vec3({v3(r1(color))},{v3(g1(color))},{v3(b1(color))})"
+
+======================
+calc v3 (  //  color value 0 .. 1 as a string. must have decimal point
+	val   -- value 0..1
+	) : str
+	if val == 0
+		return "0."
+	elif val == 1
+		return "1."
+	else
+		return subset(to_str(val, dig:3), from:2)  // skip leading 0
+
+======================
+calc beads_to_html ( -- convert a color name like LIGHT_PINK to LightPink
+======================
+	beadsname : str  -- Beads color name
+	) : str  -- html form of the same name
+
+	var result : str = ""
+	var words : array of str
+	var word  : str
+	split_words(to_lower(beadsname), words, delim:"_")
+	loop across:words val:word
+		to_upper(word[1]) & subset(word, from:2) &=> result
+	//log "name from {beadsname} to {result}"
+	return result

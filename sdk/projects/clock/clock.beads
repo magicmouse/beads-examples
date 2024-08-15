@@ -1,0 +1,103 @@
+beads 1 program clock  --  a simple analog clock, drawn with lines
+//  a simple analog clock
+//  written by edj 2019
+//  Copyright and related rights waived
+
+const ENABLE_DUMP = Y  //  if Y, then spacebar emits dump file
+enum BLACKBOX_ID
+const BLACKBOX_PORT = 3333
+
+const GRAD1 : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM, 
+		grad_stops:[ { stop_pos:0, stop_color:CHOCOLATE },
+				     { stop_pos:48, stop_color:BEIGE },
+					 { stop_pos:52, stop_color:BEIGE },
+					 { stop_pos:100, stop_color:CHOCOLATE }] }
+
+var g : a_date	--  the current calendar date, this record defined in std library
+
+var is_paused = N
+
+var g_alarm : record
+	nseconds
+	id
+
+===================
+calc main_init
+
+	//  set up a never ending callback to 'do_tick' every second, starting immediately
+	timer_start(do_tick, delay:0 sec, interval:1 sec, reps:INFINITY)
+	g_alarm.nseconds = 0
+
+===================
+calc do_tick -- is called once a second
+	//  set our state variable g which will cause redraw to happen automatically
+	merge seconds_to_date(now) ===> g  --  take our local clock in epoch seconds and convert to the date/time in our local city
+
+===================
+draw main_draw
+	//  fill the screen with a background color
+	draw_rect(grad:GRAD1)
+
+	//  to allow rewind before init, ignore draw if hour is U
+	//if g.dt_hour == U
+	//	return
+
+	//  calculate the size of the clock box, by taking 80% of the smaller of the total width and height
+	var diameter ⇐ 0.8*min(bb.width, bb.height)
+
+	//  calculate a square centered on the screen
+	var area : a_rect <=== solve_rect(basis:bb, pin:MID_CENTER, width:diameter, height:diameter, round:Y)
+	
+	//  indent from the total screen size, set coordinate origin at the middle of the box
+	layer area:area, origin:5 d_clock(diameter)
+
+	if g_alarm.nseconds > 0
+		var foot <=== solve_rect(basis:bb, pin:BOT_CENTER, height:bb.height/14)
+		draw_str(g_alarm.nseconds, box:foot, size:0.6, color:PURPLE)
+
+===================
+draw d_clock(
+	diameter
+	) -----
+	//log "draw clock sec={g.dt_second}, first={runtime.major_firstx}, step={runtime.major_stepx}"
+	draw_circle( x:0, y:0, fill:GREEN, diam:diameter, color:DARK_GREEN, thick:diameter /. 40, pos:0)
+
+	//  sweep hour hand
+	draw_line( x1:0, y1:0, color:BROWN, angle:(g.dt_hour + g.dt_minute/60)*30 - 90 deg, len:diameter*0.30, thick:diameter/.20)
+
+	//  sweep minute hand
+	draw_line( x1:0, y1:0, color:ORANGE, angle:(g.dt_minute + g.dt_second/60)*6 - 90 deg, len:diameter*0.40, thick:diameter/.24)
+
+	//  second hand (will jump because we only update once per second)
+	draw_line( x1:0, y1:0, color:BLUE, angle:g.dt_second*6 - 90 deg, len:diameter*0.45, thick:diameter/.30)
+----------------------
+track EV_KEYBOARD
+	//  spacebar will toggle stopping time
+	if e.keycode == KEYCODE_SPACE
+		if ENABLE_DUMP
+			if e.is_shift
+				//  shift-space sends the bbox file
+				debug_blackbox_send('ws://127.0.0.1', BLACKBOX_PORT, BLACKBOX_ID, "Clock")
+			else
+				//  just save locally
+				var datess = time_to_str("[year]-[month2]-[day2]@[hour][minute]-[second]")
+				debug_blackbox_write("Clock-{datess}", kind:"Dump file") 
+		toggle is_paused
+		if is_paused
+			set_clock_scale(0)
+		else
+			set_clock_scale(1)
+		return Y
+	elif e.unicode == "a"
+		//  set alarm
+		g_alarm.nseconds = 4
+		log "--- starting countdown"
+		g_alarm.id = timer_start(do_countdown, delay:1 sec, interval:1 sec, reps:4)
+		return Y
+	return N // we don't use this key, let the debugger have it
+
+===================
+calc do_countdown
+	log "--- countdown {g_alarm.nseconds}"
+	dec g_alarm.nseconds
+

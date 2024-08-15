@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="color-scheme" content="light dark">
+<title>The Classic Snake Game</title>
+<link rel="shortcut icon" href="data:,">
+<style>
+/*  the above empty icon shuts the favicon stuff up.
+	put stmt above style if you want favicon: <link rel="shortcut icon" href="favicon.ico" />
+    this disables the annoying double click highlighting of DIV blocks 
+	see more meta options at https://matt.might.net/articles/how-to-native-iphone-ipad-apps-in-javascript/  
+*/
+div { outline-style:none; scrollbar-gutter:stable;}
+div:hover { cursor:inherit; }
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover { background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0;position:fixed;">
+<script type="module">
+// beads ver 0.56 compiled Sat Oct 21 16:18:48 GMT-0700 2023
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_056/beads_std.js';
+import * as std from '../../runtime_056/beads_std.js';
+import * as str from '../../runtime_056/beads_str.js';
+export const CODE_HASH = 0x8d7acfcc;
+const _M = std.MODULES.push("Snake")-1;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw, main_draw_track);
+//------- enums
+//-------  func const for Snake
+const main_draw_F = new std.a_function(_M, "main_draw", main_draw, main_draw_track);
+std.FUNCS[main_draw_F.hash]=main_draw_F;
+const random_apple_F = new std.a_function(_M, "random_apple", random_apple);
+std.FUNCS[random_apple_F.hash]=random_apple_F;
+const update_position_F = new std.a_function(_M, "update_position", update_position);
+std.FUNCS[update_position_F.hash]=update_position_F;
+const limit_length_F = new std.a_function(_M, "limit_length", limit_length);
+std.FUNCS[limit_length_F.hash]=limit_length_F;
+const soft_keyboard_F = new std.a_function(_M, "soft_keyboard", soft_keyboard, soft_keyboard_track);
+std.FUNCS[soft_keyboard_F.hash]=soft_keyboard_F;
+//-------  top nodes
+const CRUNCH = new std.a_sound("./art/crunch.mp3");
+const BEEP = new std.a_sound("./art/beep.mp3");
+const APPLE = new std.a_image("./art/apple.gif","APPLE",false);
+
+const FRAME_RATE = 6;
+const BLACKBOX = N;
+
+var snake = new std.a_tree(_M,"snake", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var queue = new std.a_tree(_M,"queue", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var dir = new std.a_tree(_M,"dir", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var apple = new std.a_tree(_M,"apple", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var maxlen = U;
+var longest = U;
+var paused = U;
+var spacing = new std.a_tree(_M,"spacing", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var cellsize = new std.a_tree(_M,"cellsize", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+var ncells = new std.a_tree(_M,"ncells", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+  const HALF = std.mul(getn(cellsize, std.F_x), 0.5);
+  const DIST = std.mul(HALF, 0.6);
+  const SEP = std.mul(getn(cellsize, std.F_x), 0.3);
+  const DIAM = std.mul(getn(cellsize, std.F_x), 0.2);
+  var x1 = U;
+  var y1 = U;
+  var x2 = U;
+  var y2 = U;
+  var color = U;
+  var box = new std.a_tree(_M,"box", 0);
+  std.draw_rect(b, { fill:std.BLACK });
+  var loop2 = new std.a_loop({ across:std.adr(snake) });
+  while (loop2.next()) {
+  var i = loop2.index;
+    std.copy_tree(_M, 30072, std.solve_rect({ left:std.mul(getn(snake, i, std.F_x), getn(spacing, std.F_x)), top:std.mul(getn(snake, i, std.F_y), getn(spacing, std.F_y)), width
+    :getn(cellsize, std.F_x), height:getn(cellsize, std.F_y) }), std.adr(box));
+    color = std.is_odd(i) === Y ? std.LIME_GREEN : std.LAWN_GREEN;
+    if (std.eq2(i, 1)) {
+      std.draw_rect(b, { box:std.adr(box), fill:color, corner:std.mul(getn(cellsize, std.F_x), 0.25), color:std.DARK_GREEN, thick:std.mul(getn(cellsize, std.F_x), 0.1) });
+      if (std.ne2(getn(dir, std.F_x), 0)) {
+        x1 = std.add(HALF, std.mul(getn(dir, std.F_x), DIST));
+        x2 = x1;
+        y1 = std.sub(HALF, SEP);
+        y2 = std.add(HALF, SEP);
+      } else {
+        y1 = std.add(HALF, std.mul(getn(dir, std.F_y), DIST));
+        y2 = y1;
+        x1 = std.sub(HALF, SEP);
+        x2 = std.add(HALF, SEP);
+      }
+      std.draw_circle(b, { x:std.add(getn(box, std.F_left), x1), y:std.add(getn(box, std.F_top), y1), diam:DIAM, fill:std.BLACK, opacity:0.8 });
+      std.draw_circle(b, { x:std.add(getn(box, std.F_left), x2), y:std.add(getn(box, std.F_top), y2), diam:DIAM, fill:std.BLACK, opacity:0.8 });
+    } else {
+      std.draw_rect(b, { box:std.adr(box), fill:color, corner:std.mul(getn(cellsize, std.F_x), 0.1) });
+    }
+  }
+  std.copy_tree(_M, 30103, std.solve_rect({ left:std.mul(getn(apple, std.F_x), getn(spacing, std.F_x)), top:std.mul(getn(apple, std.F_y), getn(spacing, std.F_y)), width:getn(
+  cellsize, std.F_x), height:getn(cellsize, std.F_y) }), std.adr(box));
+  std.draw_image(b, APPLE, { box:std.adr(box) });
+  var boxheight = std.div(std.min(b.bounds.height, b.bounds.width), 8);
+  var ss = std.cat("", str.to_str(maxlen, {dig:2}), "     high:", str.to_str(longest, {dig:2}));
+  std.copy_tree(_M, 30110, std.solve_rect({ basis:adr(b.extra, std.F_box), pin:std.TOP_CENTER, height:boxheight }), std.adr(box));
+  std.draw_str(b, ss, { box:std.adr(box), size:std.mul(boxheight, 0.85), opacity:0.4, bold:Y, color:std.WHITE });
+  if (getn(std.runtime, std.F_full_screen) === Y) {
+    std.copy_tree(_M, 30117, std.solve_rect({ basis:adr(b.extra, std.F_box), pin:std.BOT_CENTER, height:std.mul(b.bounds.width, 0.7) }), std.adr(box));
+    var b2=std.k_layer(b, soft_keyboard_F, { area:box, opacity:0.25 });
+    soft_keyboard(b2);
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   main_draw_track
+//====================
+export function main_draw_track(b, e) {
+  //---------------
+  //   on EV_KEYBOARD
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_KEYBOARD) {
+    do_key(getn(e, std.F_keycode));
+  return Y;
+  } else 
+  //---------------
+  //   on EV_RESIZE
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_RESIZE) {
+    var targsize = std.min(std.div(std.min(b.bounds.width, b.bounds.height), 10), std.pt_to_dots(b, 42));
+    std.path_setv(_M, 20131, std.adr(ncells, std.F_x), std.round_down(std.div(b.bounds.width, targsize), {}));
+    std.path_setv(_M, 20132, std.adr(ncells, std.F_y), std.round_down(std.div(b.bounds.height, targsize), {}));
+    std.path_setv(_M, 20136, std.adr(spacing, std.F_x), std.div(b.bounds.width, getn(ncells, std.F_x)));
+    std.path_setv(_M, 20137, std.adr(spacing, std.F_y), std.div(b.bounds.height, getn(ncells, std.F_y)));
+    std.path_setv(_M, 20140, std.adr(cellsize, std.F_x), std.mul(getn(spacing, std.F_x), 0.85));
+    std.path_setv(_M, 20141, std.adr(cellsize, std.F_y), std.mul(getn(spacing, std.F_y), 0.85));
+    var limitx = std.sub(getn(ncells, std.F_x), 1);
+    var limity = std.sub(getn(ncells, std.F_y), 1);
+    var loop3 = new std.a_loop({ across:std.adr(snake) });
+    while (loop3.next()) {
+    var i = loop3.index;
+      std.path_setv(_M, 20149, std.adr(snake, i, std.F_x), std.min(getn(snake, i, std.F_x), limitx));
+      std.path_setv(_M, 20150, std.adr(snake, i, std.F_y), std.min(getn(snake, i, std.F_y), limity));
+    }
+    std.path_setv(_M, 20153, std.adr(apple, std.F_x), std.min(getn(apple, std.F_x), limitx));
+    std.path_setv(_M, 20154, std.adr(apple, std.F_y), std.min(getn(apple, std.F_y), limity));
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   soft_keyboard
+//====================
+function soft_keyboard(b) {
+std.k_enter(b);
+std.div_begin(b, new std.a_function(_M, "soft_keyboard_cell", soft_keyboard_cell, null), false, false, false);
+  std.div_spa(b, 0, 20, std.al);
+  std.div_add(b, U, 0, 80, std.al, null, 0);
+  std.div_spa(b, 0, 10, std.al);
+  std.div_add(b, U, 0, 80, std.al, null, 0);
+  std.div_spa(b, 0, 10, std.al);
+  std.div_add(b, U, 0, 80, std.al, null, 0);
+  std.div_spa(b, 0, 20, std.al);
+  std.div_spa(b, 1, 20, std.al);
+  std.div_add(b, U, 1, 80, std.al, null, 0);
+  std.div_spa(b, 1, 10, std.al);
+  std.div_add(b, U, 1, 80, std.al, null, 0);
+  std.div_spa(b, 1, 10, std.al);
+  std.div_add(b, U, 1, 80, std.al, null, 0);
+  std.div_spa(b, 1, 20, std.al);
+  std.div_end(b);
+  std.draw_grid(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   soft_keyboard_cell
+//====================
+function soft_keyboard_cell(b) {
+  std.k_enter(b);
+  var cc = "";
+  var size = std.mul(b.bounds.height, 0.7);
+  var case4 = getn(b.extra, std.F_cell_seq);
+  if (case4 === 2) {
+    cc = "▲";
+  } else if (case4 === 4) {
+    cc = "◀";
+  } else if (case4 === 5) {
+    cc = "PAUSE";
+    size = std.mul(b.bounds.height, 0.3);
+  } else if (case4 === 6) {
+    cc = "▶";
+  } else if (case4 === 8) {
+    cc = "▼";
+  }
+  if (std.ne2(cc, "")) {
+    std.draw_rect(b, { fill:0x714900, corner:std.mul(b.bounds.width, 0.2) });
+    std.draw_str(b, cc, { color:std.BLACK, size:size });
+  }
+  std.k_leave(b);
+}
+
+//====================
+//   soft_keyboard_track
+//====================
+function soft_keyboard_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    var case5 = getn(b.extra, std.F_cell_seq);
+    if (case5 === 2) {
+      do_key(std.KEYCODE_UP);
+    } else if (case5 === 4) {
+      do_key(std.KEYCODE_LEFT);
+    } else if (case5 === 5) {
+      do_key(std.KEYCODE_SPACE);
+    } else if (case5 === 6) {
+      do_key(std.KEYCODE_RIGHT);
+    } else if (case5 === 8) {
+      do_key(std.KEYCODE_DOWN);
+    }
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   do_key
+//====================
+function do_key(code) {
+  var case6 = code;
+  if (case6 === std.KEYCODE_LEFT) {
+    std.append_tree(_M, 80220, std.tree_lit(_M, 80220, std.F_x, VAL, -1, std.F_y, VAL, 0), std.adr(queue));
+    paused = N;
+  } else if (case6 === std.KEYCODE_RIGHT) {
+    std.append_tree(_M, 80225, std.tree_lit(_M, 80225, std.F_x, VAL, 1, std.F_y, VAL, 0), std.adr(queue));
+    paused = N;
+  } else if (case6 === std.KEYCODE_UP) {
+    std.append_tree(_M, 80230, std.tree_lit(_M, 80230, std.F_x, VAL, 0, std.F_y, VAL, -1), std.adr(queue));
+    paused = N;
+  } else if (case6 === std.KEYCODE_DOWN) {
+    std.append_tree(_M, 80235, std.tree_lit(_M, 80235, std.F_x, VAL, 0, std.F_y, VAL, 1), std.adr(queue));
+    paused = N;
+  } else if (case6 === std.KEYCODE_SPACE) {
+    paused = std.tog(paused);
+  }
+}
+
+
+//====================
+//   limit_length
+//====================
+function limit_length() {
+  var loop7 = new std.a_loop({  });
+  while (loop7.next()) {
+    if (std.gt4(std.tree_count(std.adr(snake)), maxlen) !== Y)
+      break;
+    std.clear_tree(_M, 70311, std.adr(snake, std.tree_hi(std.adr(snake))));
+  }
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.copy_tree(_M, 40035, std.tree_lit(_M, 40035, std.F_x, VAL, 2, std.F_y, VAL, 2), std.adr(snake, 1));
+  std.copy_tree(_M, 40036, std.tree_lit(_M, 40036, std.F_x, VAL, 6, std.F_y, VAL, 6), std.adr(apple));
+  std.copy_tree(_M, 40037, std.tree_lit(_M, 40037, std.F_x, VAL, 0, std.F_y, VAL, 1), std.adr(dir));
+  longest = 1;
+  maxlen = 5;
+  paused = N;
+  std.loom_timer(update_position_F, { delay:std.meas(0.2, std.N_sec, std.Y_Time), rate:FRAME_RATE, reps:std.INFINITY });
+}
+
+
+//====================
+//   random_apple
+//====================
+function random_apple() {
+  var loop8 = new std.a_loop({  });
+  while (loop8.next()) {
+    std.path_setv(_M, 50302, std.adr(apple, std.F_x), std.random_int(0, std.sub(getn(ncells, std.F_x), 1)));
+    std.path_setv(_M, 50303, std.adr(apple, std.F_y), std.random_int(0, std.sub(getn(ncells, std.F_y), 1)));
+  if (std.or4(std.ne4(getn(apple, std.F_x), getn(snake, 1, std.F_x)), std.ne4(getn(apple, std.F_y), getn(snake, 1, std.F_y))) !== N)
+    break;
+  }
+}
+
+
+//====================
+//   update_position
+//====================
+function update_position() {
+  var pending = new std.a_tree(_M,"pending", 0);
+  if (paused === Y) {
+    return;
+  }
+  var loop9 = new std.a_loop({ across:std.adr(queue) });
+  while (loop9.next()) {
+  var qx = loop9.index;
+    std.copy_tree(_M, 60253, std.adr(queue, qx), std.adr(pending));
+    std.clear_tree(_M, 60254, std.adr(queue, qx));
+    if ((std.ne2(std.abs(getn(pending, std.F_x)), std.abs(getn(dir, std.F_x))) || std.ne2(std.abs(getn(pending, std.F_y)), std.abs(getn(dir, std.F_y))))) {
+      std.copy_tree(_M, 60258, std.adr(pending), std.adr(dir));
+      break;
+    }
+  }
+  var newx = std.mod(std.add(getn(snake, 1, std.F_x), getn(dir, std.F_x)), getn(ncells, std.F_x), {});
+  var newy = std.mod(std.add(getn(snake, 1, std.F_y), getn(dir, std.F_y)), getn(ncells, std.F_y), {});
+  var loop10 = new std.a_loop({ across:std.adr(snake) });
+  while (loop10.next()) {
+  var i = loop10.index;
+    if ((std.eq2(newx, getn(snake, i, std.F_x)) && std.eq2(newy, getn(snake, i, std.F_y)))) {
+      std.sound_play(BEEP, {});
+      maxlen = std.sub(i, 1);
+      limit_length();
+      break;
+    }
+  }
+  std.insert_tree(_M, 60277, std.tree_lit(_M, 60277, std.F_x, VAL, newx, std.F_y, VAL, newy), std.adr(snake, 1));
+  if ((std.eq2(newx, getn(apple, std.F_x)) && std.eq2(newy, getn(apple, std.F_y)))) {
+    std.sound_play(CRUNCH, {});
+    maxlen = std.add(maxlen, 1);
+    longest = std.max(maxlen, longest);
+    random_apple();
+    if (BLACKBOX === Y) {
+      std.debug_blackbox_write("snake_dump.bbox", { kind:"Poison Apple", note:"Boy, that apple tasted bad!" });
+      std.halt("--- CRASH SIMULATION ---");
+    }
+  } else {
+    limit_length();
+  }
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "Snake");
+main_init();
+std.rebuild_all();
+
+
+//  uncommend this to prevent accidental reload, useful for web apps that store input
+//   window.onbeforeunload = (event) => {
+// 	  const e = event || window.event;
+// 	  // Cancel the event
+// 	  e.preventDefault();
+// 	  if (e) {
+// 		e.returnValue = ''; // Legacy method for cross browser support
+// 	  }
+// 	  return ''; // Legacy method for cross browser support
+// 	}
+
+</script>
+</body>
+</html>
+

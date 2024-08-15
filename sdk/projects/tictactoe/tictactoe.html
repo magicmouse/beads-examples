@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="color-scheme" content="light dark">
+<title>TicTacToe</title>
+<link rel="shortcut icon" href="data:,">
+<style>
+/*  the above empty icon shuts the favicon stuff up.
+	put stmt above style if you want favicon: <link rel="shortcut icon" href="favicon.ico" />
+    this disables the annoying double click highlighting of DIV blocks 
+	see more meta options at https://matt.might.net/articles/how-to-native-iphone-ipad-apps-in-javascript/  
+*/
+::placeholder {  /* sets color for input placeholder text  */
+  color: #E3CED7; font-style:italic;
+  opacity: 1; /* Firefox */
+}
+div { margin:0; padding:0; outline-style:none; scrollbar-gutter:stable;}
+div:hover { cursor:inherit; }
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover { background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0; position:fixed;">
+<script type="module">
+// beads ver 0.56 compiled Sun Mar 24 22:51:50 GMT-0700 2024
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_056/beads_std.js';
+import * as std from '../../runtime_056/beads_std.js';
+import * as str from '../../runtime_056/beads_str.js';
+export const CODE_HASH = 0x3870f697;
+const _M = std.MODULES.push("TicTacToe")-1;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
+//------- enums
+const F_winner=9007193320334119; std.ENUMS[9007193320334119]="winner"; std.FIELDS[F_winner]=!0;
+const F_nmoves=9007192354872428; std.ENUMS[9007192354872428]="nmoves"; std.FIELDS[F_nmoves]=!0;
+const F_board=9007192136647888; std.ENUMS[9007192136647888]="board"; std.FIELDS[F_board]=!0;
+const F_tints=9007192825949714; std.ENUMS[9007192825949714]="tints"; std.FIELDS[F_tints]=!0;
+const R_a_state=9007192953576597; std.ENUMS[9007192953576597]="a_state";
+const F_player=9007192801635845; std.ENUMS[9007192801635845]="player"; std.FIELDS[F_player]=!0;
+//-------  func const for TicTacToe
+const square_board_F = new std.a_function(_M, "square_board", square_board);
+std.FUNCS[square_board_F.hash]=square_board_F;
+const portrait_layout_F = new std.a_function(_M, "portrait_layout", portrait_layout);
+std.FUNCS[portrait_layout_F.hash]=portrait_layout_F;
+const landscape_sidebar_F = new std.a_function(_M, "landscape_sidebar", landscape_sidebar);
+std.FUNCS[landscape_sidebar_F.hash]=landscape_sidebar_F;
+const d_status_F = new std.a_function(_M, "d_status", d_status);
+std.FUNCS[d_status_F.hash]=d_status_F;
+const square_layout_F = new std.a_function(_M, "square_layout", square_layout);
+std.FUNCS[square_layout_F.hash]=square_layout_F;
+const reset_board_F = new std.a_function(_M, "reset_board", reset_board);
+std.FUNCS[reset_board_F.hash]=reset_board_F;
+const d_board_F = new std.a_function(_M, "d_board", d_board, d_board_track);
+std.FUNCS[d_board_F.hash]=d_board_F;
+const d_newgame_F = new std.a_function(_M, "d_newgame", d_newgame, d_newgame_track);
+std.FUNCS[d_newgame_F.hash]=d_newgame_F;
+const landscape_layout_F = new std.a_function(_M, "landscape_layout", landscape_layout);
+std.FUNCS[landscape_layout_F.hash]=landscape_layout_F;
+//-------  top nodes
+const BEEP = new std.a_sound("./art/beep.mp3");
+
+const WINNING_WAYS = new std.a_tree(_M,"WINNING_WAYS", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 21, 1, 1, VAL, 1, 2, VAL, 2, 3, VAL, 3, POP, 2, 1, VAL, 4, 2, VAL, 5
+, 3, VAL, 6, POP, 3, 1, VAL, 7, 2, VAL, 8, 3, VAL, 9, POP, 4, 1, VAL, 1, 2, VAL, 4, 3, VAL, 7, POP, 5, 1, VAL, 2, 2, VAL, 5, 3, VAL, 8, POP, 6, 1, VAL, 3, 2, VAL, 6, 3, VAL, 
+9, POP, 7, 1, VAL, 1, 2, VAL, 5, 3, VAL, 9, POP, 8, 1, VAL, 3, 2, VAL, 5, 3, VAL, 7));
+const SCAFFOLDING = Y;
+
+var g = new std.a_tree(_M,"g", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+
+//====================
+//   d_board
+//====================
+function d_board(b) {
+std.k_enter(b);
+//--under
+std.draw_rect(b, { fill:0xBDF7FF });
+std.div_begin(b, new std.a_function(_M, "d_board_cell", d_board_cell, null), false, false, false);
+  std.div_add(b, U, 0, 100, std.al, U, U, null, 0);
+  std.div_spa(b, 0, 10, std.al, U, U);
+  std.div_add(b, U, 0, 100, std.al, U, U, null, 0);
+  std.div_spa(b, 0, 10, std.al, U, U);
+  std.div_add(b, U, 0, 100, std.al, U, U, null, 0);
+  std.div_add(b, U, 1, 100, std.al, U, U, null, 0);
+  std.div_spa(b, 1, 10, std.al, U, U);
+  std.div_add(b, U, 1, 100, std.al, U, U, null, 0);
+  std.div_spa(b, 1, 10, std.al, U, U);
+  std.div_add(b, U, 1, 100, std.al, U, U, null, 0);
+  std.div_end(b);
+  std.draw_grid(b);
+  //--over
+  var indent = std.div(b.bounds.width, 20);
+  var length = std.sub(std.sub(b.bounds.width, indent), indent);
+  var thickness = std.div(std.mul(b.bounds.width, 12), 320);
+  std.draw_line(b, { color:std.GRAY2, x1:indent, y1:std.div(std.mul(b.bounds.height, 1), 3), dx:length, dy:0, thick:thickness });
+  std.draw_line(b, { color:std.GRAY2, x1:indent, y1:std.div(std.mul(b.bounds.height, 2), 3), dx:length, dy:0, thick:thickness });
+  std.draw_line(b, { color:std.GRAY2, x1:std.div(std.mul(b.bounds.width, 1), 3), y1:indent, dy:length, dx:0, thick:thickness });
+  std.draw_line(b, { color:std.GRAY2, x1:std.div(std.mul(b.bounds.width, 2), 3), y1:indent, dy:length, dx:0, thick:thickness });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_board_cell
+//====================
+function d_board_cell(b) {
+  std.k_enter(b);
+  var color = getn(g, F_tints, getn(b.extra, std.F_cell_seq));
+  if (color !== U) {
+    std.draw_rect(b, { fill:color });
+  }
+  var player = gets(g, F_board, getn(b.extra, std.F_cell_seq));
+  if (player !== null) {
+    std.draw_str(b, player, { size:0.95, color:std.CRIMSON });
+  }
+  std.k_leave(b);
+}
+
+//====================
+//   d_board_track
+//====================
+function d_board_track(b, e) {
+  //---------------
+  //   on EV_DRAG_BEGIN
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_DRAG_BEGIN) {
+    std.sound_play(BEEP, {});
+  return Y;
+  } else 
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    if (gets(g, F_winner) !== null) {
+      reset_board();
+      return Y;
+    }
+    var cellx = getn(b.extra, std.F_cell_seq);
+    if ((cellx === U || gets(g, F_board, cellx) !== null)) {
+      std.sound_play(BEEP, {});
+      return Y;
+    }
+    std.path_setv(_M, 120193, std.adr(g, F_board, cellx), gets(g, F_player));
+    var won = N;
+    var loop1049 = new std.a_loop({ across:std.adr(WINNING_WAYS) });
+    while (loop1049.next()) {
+    var p = loop1049.path.clone();
+      if ((std.eq2(gets(g, F_board, std.get_generic(p, 1)), gets(g, F_player)) && (std.eq2(gets(g, F_board, std.get_generic(p, 2)), gets(g, F_player)) && std.eq2(gets(g, F_board
+      , std.get_generic(p, 3)), gets(g, F_player))))) {
+        var loop1050 = new std.a_loop({ from:1, to_:3 });
+        while (loop1050.next()) {
+        var ix = loop1050.index;
+          std.path_setv(_M, 120202, std.adr(g, F_tints, std.get_generic(p, ix)), std.LIGHT_PINK);
+        }
+        won = Y;
+      }
+    }
+    if (won === Y) {
+      std.path_setv(_M, 120209, std.adr(g, F_winner), gets(g, F_player));
+      return Y;
+    }
+    std.tree_add(_M, 120213, 1, std.adr(g, F_nmoves));
+    if (std.ge2(getn(g, F_nmoves), 9)) {
+      std.path_setv(_M, 120215, std.adr(g, F_winner), "Nobody");
+      return Y;
+    }
+    std.path_setv(_M, 120219, std.adr(g, F_player), std.eq2(gets(g, F_player), "X") ? "O" : "X");
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_newgame
+//====================
+function d_newgame(b) {
+std.k_enter(b);
+  var boxw = std.div(std.mul(b.bounds.width, 12), 14);
+  var tbox = new std.a_tree(_M,"tbox", 0, std.solve_rect({ basis:adr(b.extra, std.F_box), pin:std.MID_CENTER, width:boxw, height:std.mul(b.bounds.height, 0.8) }));
+  std.draw_rect(b, { box:std.adr(tbox), fill:std.LIGHT_GREEN, color:std.DARK_GREEN, corner:std.pt_to_dots(b, 8), thick:std.pt_to_dots(b, 2) });
+  std.draw_str(b, "NEW GAME", { box:std.adr(tbox), size:0.4, indent:std.div(getn(tbox, std.F_width), 14), color:std.DARK_GREEN });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_newgame_track
+//====================
+function d_newgame_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    reset_board();
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   d_status
+//====================
+function d_status(b) {
+std.k_enter(b);
+  if (gets(g, F_winner) === null) {
+    std.draw_str(b, std.cat("", gets(g, F_player), "’s turn"), { size:0.5, indent:std.div(b.bounds.width, 14) });
+  } else {
+    std.draw_str(b, std.cat("", gets(g, F_winner), " has won"), { size:0.5, indent:std.div(b.bounds.width, 14), color:std.CRIMSON });
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   landscape_layout
+//====================
+function landscape_layout(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, b.bounds.height, std.px, U, U, d_board_F, 0);
+  std.div_add(b, U, 0, 10, std.al, U, U, landscape_sidebar_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   landscape_sidebar
+//====================
+function landscape_sidebar(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 1, 10, std.al, U, U);
+  std.div_add(b, U, 1, 10, std.al, U, U, d_status_F, 0);
+  std.div_spa(b, 1, 10, std.al, U, U);
+  if (gets(g, F_winner) !== null) {
+    std.div_add(b, U, 1, 10, std.al, U, U, d_newgame_F, 0);
+  } else {
+    std.div_spa(b, 1, 10, std.al, U, U);
+  }
+  std.div_spa(b, 1, 10, std.al, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+  if (std.gt2(std.div(b.bounds.width, b.bounds.height), 1.25)) {
+    landscape_layout(b);
+  } else if (std.gt2(std.div(b.bounds.height, b.bounds.width), 1.25)) {
+    portrait_layout(b);
+  } else {
+    square_layout(b);
+  }
+std.k_leave(b);
+}
+
+
+//====================
+//   portrait_layout
+//====================
+function portrait_layout(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 1, 10, std.al, U, U, d_status_F, 0);
+  std.div_add(b, U, 1, b.bounds.width, std.px, U, U, d_board_F, 0);
+  if (gets(g, F_winner) !== null) {
+    std.div_add(b, U, 1, 10, std.al, U, U, d_newgame_F, 0);
+  } else {
+    std.div_spa(b, 1, 10, std.al, U, U);
+  }
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   square_board
+//====================
+function square_board(b) {
+std.k_enter(b);
+  var b253=std.k_layer(b, d_board_F, { area:std.solve_rect({ basis:adr(b.extra, std.F_box), pin:std.MID_CENTER, aspect:1 }) });
+  d_board(b253);
+std.k_leave(b);
+}
+
+
+//====================
+//   square_layout
+//====================
+function square_layout(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 0, 30, std.al, U, U, square_board_F, 0);
+  std.div_add(b, U, 0, 10, std.al, U, U, landscape_sidebar_F, 0);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  reset_board();
+  if (SCAFFOLDING === Y) {
+    std.path_setv(_M, 110030, std.adr(g, F_board, 1), "X");
+    std.path_setv(_M, 110031, std.adr(g, F_board, 2), "O");
+    std.path_setv(_M, 110032, std.adr(g, F_board, 3), "O");
+    std.path_setv(_M, 110033, std.adr(g, F_board, 5), "X");
+    std.path_setv(_M, 110034, std.adr(g, F_nmoves), 4);
+  }
+}
+
+
+//====================
+//   reset_board
+//====================
+function reset_board() {
+  std.path_setv(_M, 80039, std.adr(g, F_player), "X");
+  std.path_setv(_M, 80040, std.adr(g, F_winner), U);
+  std.path_setv(_M, 80041, std.adr(g, F_nmoves), 0);
+  std.trunc_tree(_M, 80042, std.adr(g, F_board));
+  std.trunc_tree(_M, 80043, std.adr(g, F_tints));
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "TicTacToe");
+main_init();
+std.rebuild_all();
+
+
+//  uncomment this to prevent accidental reload, useful for web apps that store input
+//   window.onbeforeunload = (event) => {
+// 	  const e = event || window.event;
+// 	  // Cancel the event
+// 	  e.preventDefault();
+// 	  if (e) {
+// 		e.returnValue = ''; // Legacy method for cross browser support
+// 	  }
+// 	  return ''; // Legacy method for cross browser support
+// 	}
+
+</script>
+</body>
+</html>
+

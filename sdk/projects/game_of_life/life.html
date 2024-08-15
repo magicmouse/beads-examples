@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="color-scheme" content="light dark">
+<title>Conway's game of life</title>
+<link rel="shortcut icon" href="data:,">
+<style>
+/*  the above empty icon shuts the favicon stuff up.
+	put stmt above style if you want favicon: <link rel="shortcut icon" href="favicon.ico" />
+    this disables the annoying double click highlighting of DIV blocks 
+	see more meta options at https://matt.might.net/articles/how-to-native-iphone-ipad-apps-in-javascript/  
+*/
+::placeholder {  /* sets color for input placeholder text  */
+  color: #E3CED7; font-style:italic;
+  opacity: 1; /* Firefox */
+}
+div { margin:0; padding:0; outline-style:none; scrollbar-gutter:stable;}
+div:hover { cursor:inherit; }
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: OliveDrab; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover { background: Olive; }
+</style>
+</head>
+<body style="margin:0; padding:0; position:fixed;">
+<script type="module">
+// beads ver 0.56 compiled Sun Mar 24 22:42:38 GMT-0700 2024
+import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_056/beads_std.js';
+import * as std from '../../runtime_056/beads_std.js';
+import * as str from '../../runtime_056/beads_str.js';
+export const CODE_HASH = 0xeab60478;
+const _M = std.MODULES.push("life")-1;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
+//------- enums
+const R_record_19=9007191717581128; std.ENUMS[9007191717581128]="record_19";
+const F_step=9007190441390546; std.ENUMS[9007190441390546]="step"; std.FIELDS[F_step]=!0;
+const F_timer=9007190505262177; std.ENUMS[9007190505262177]="timer"; std.FIELDS[F_timer]=!0;
+//-------  func const for life
+const calc_next_frame_F = new std.a_function(_M, "calc_next_frame", calc_next_frame);
+std.FUNCS[calc_next_frame_F.hash]=calc_next_frame_F;
+const draw_board_F = new std.a_function(_M, "draw_board", draw_board, draw_board_track);
+std.FUNCS[draw_board_F.hash]=draw_board_F;
+const do_stop_F = new std.a_function(_M, "do_stop", do_stop);
+std.FUNCS[do_stop_F.hash]=do_stop_F;
+const do_clear_F = new std.a_function(_M, "do_clear", do_clear);
+std.FUNCS[do_clear_F.hash]=do_clear_F;
+const do_scramble_F = new std.a_function(_M, "do_scramble", do_scramble);
+std.FUNCS[do_scramble_F.hash]=do_scramble_F;
+const d_butt_F = new std.a_function(_M, "d_butt", d_butt, d_butt_track);
+std.FUNCS[d_butt_F.hash]=d_butt_F;
+const do_start_F = new std.a_function(_M, "do_start", do_start);
+std.FUNCS[do_start_F.hash]=do_start_F;
+const draw_footer_F = new std.a_function(_M, "draw_footer", draw_footer);
+std.FUNCS[draw_footer_F.hash]=draw_footer_F;
+const draw_footer_114_F = new std.a_function(_M, "draw_footer_114", draw_footer_114);
+std.FUNCS[draw_footer_114_F.hash]=draw_footer_114_F;
+//-------  top nodes
+const C_BUTT_BACK = std.DARK_SLATE_BLUE;
+const C_BUTT_TEXT = std.AZURE;
+const C_BUTT_BORD = std.ROYAL_BLUE;
+const SCRAMBLE_DENSITY = 30;
+var board = new std.a_tree(_M,"board", std.NF_TOPLEVEL|std.NF_STATEFUL);
+var prev = new std.a_tree(_M,"prev", std.NF_TOPLEVEL|std.NF_STATEFUL);
+var ncol = U;
+var nrow = U;
+var g = new std.a_tree(_M,"g", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+
+//====================
+//   d_butt
+//====================
+function d_butt(b, prompt, action, _o=null) {
+var size = 0.6; if ((_o != null) && _o.hasOwnProperty("size")) size = _o.size;
+var back = C_BUTT_BACK; if ((_o != null) && _o.hasOwnProperty("back")) back = _o.back;
+std.k_enter(b);
+  var r = new std.a_tree(_M,"r", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:5, width:std.min(b.bounds.width, std.mul(b.bounds.height, 8)) }));
+  std.draw_rect(b, { box:std.adr(r), fill:back, pos:0, thick:std.pt_to_dots(b, 1), color:C_BUTT_BORD, corner:std.pt_to_dots(b, 4) });
+  std.draw_str(b, prompt, { size:size, indent:std.pt_to_dots(b, 2), color:C_BUTT_TEXT });
+std.k_leave(b);
+}
+
+
+//====================
+//   d_butt_track
+//====================
+function d_butt_track(b, e, prompt, action, _o=null) {
+var size = 0.6; if ((_o != null) && _o.hasOwnProperty("size")) size = _o.size;
+var back = C_BUTT_BACK; if ((_o != null) && _o.hasOwnProperty("back")) back = _o.back;
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    action.code();
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   draw_board
+//====================
+function draw_board(b) {
+std.k_enter(b);
+//--under
+std.draw_rect(b, { fill:0x2D5655, corner:std.pt_to_dots(b, 2) });
+std.div_begin(b, new std.a_function(_M, "draw_board_cell", draw_board_cell, null), false, false, false);
+  var loop998 = new std.a_loop({ reps:ncol });
+  while (loop998.next()) {
+    std.div_add(b, U, 0, 12, std.al, U, U, null, 0);
+  }
+  var loop999 = new std.a_loop({ reps:nrow });
+  while (loop999.next()) {
+    std.div_add(b, U, 1, 12, std.al, U, U, null, 0);
+  }
+  std.div_end(b);
+  std.draw_grid(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   draw_board_cell
+//====================
+function draw_board_cell(b) {
+  std.k_enter(b);
+  if (getn(board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y)) === Y) {
+    var box = new std.a_tree(_M,"box", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), inset:std.div(b.bounds.height, 12) }));
+    std.draw_rect(b, { box:std.adr(box), fill:0xCCF3F3, corner:std.mul(b.bounds.height, 0.2) });
+  }
+  std.k_leave(b);
+}
+
+//====================
+//   draw_board_track
+//====================
+function draw_board_track(b, e) {
+  //---------------
+  //   on EV_TAP
+  //---------------
+  if (std.getn(e, std.F_evkind) == std.EV_TAP) {
+    std.toggle(_M, 60107, std.adr(board, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y)));
+  return Y;
+  }
+  return N;
+}
+
+//====================
+//   draw_footer
+//====================
+function draw_footer(b) {
+std.k_enter(b);
+std.div_begin(b, null, false, false, false);
+  std.div_spa(b, 0, 10, std.al, U, U);
+  std.div_spa(b, 0, 8, std.pt, U, U);
+  std.div_add(b, U, 0, 50, std.pt, U, U, draw_footer_114_F, 0, std.ne4(getn(g, F_timer), U));
+  std.div_spa(b, 0, 10, std.al, U, U);
+  std.div_spa(b, 0, 8, std.pt, U, U);
+  if (getn(g, F_timer) === U) {
+    std.div_add(b, U, 0, 80, std.pt, U, U, std.freeze(d_butt_F, ["Start", do_start_F, {}]), 0);
+  } else {
+    std.div_add(b, U, 0, 80, std.pt, U, U, std.freeze(d_butt_F, ["Stop", do_stop_F, {}]), 0);
+  }
+  std.div_spa(b, 0, 10, std.al, U, U);
+  std.div_spa(b, 0, 8, std.pt, U, U);
+  std.div_add(b, U, 0, 80, std.pt, U, U, std.freeze(d_butt_F, ["Random", do_scramble_F, {}]), 0, std.eq4(getn(g, F_timer), U));
+  std.div_spa(b, 0, 10, std.al, U, U);
+  std.div_spa(b, 0, 8, std.pt, U, U);
+  std.div_add(b, U, 0, 80, std.pt, U, U, std.freeze(d_butt_F, ["Clear", do_clear_F, {}]), 0, std.eq4(getn(g, F_timer), U));
+  std.div_spa(b, 0, 10, std.al, U, U);
+  std.div_spa(b, 0, 8, std.pt, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+//--under
+const DOTSIZE = std.pt_to_dots(b, 10);
+ncol = std.min(80, std.round_down(std.div(b.bounds.width, DOTSIZE), {}));
+nrow = std.min(80, std.round_down(std.div(std.sub(b.bounds.height, std.pt_to_dots(b, 32)), DOTSIZE), {}));
+std.draw_rect(b, { fill:0x224140 });
+std.div_begin(b, null, false, false, false);
+  std.div_add(b, U, 1, 150, std.al, U, U, draw_board_F, 0);
+  std.div_spa(b, 1, 2, std.pt, U, U);
+  std.div_add(b, U, 1, 24, std.pt, U, U, draw_footer_F, 0);
+  std.div_spa(b, 1, 2, std.pt, U, U);
+  std.div_end(b);
+  std.draw_slices(b);
+std.k_leave(b);
+}
+
+
+//====================
+//   calc_next_frame
+//====================
+function calc_next_frame() {
+  std.tree_add(_M, 10045, 1, std.adr(g, F_step));
+  std.copy_tree(_M, 10046, std.adr(board), std.adr(prev));
+  var loop1000 = new std.a_loop({ from:1, to_:ncol });
+  while (loop1000.next()) {
+  var col = loop1000.index;
+    var loop1001 = new std.a_loop({ from:1, to_:nrow });
+    while (loop1001.next()) {
+    var row = loop1001.index;
+      var n = count_neighbors(col, row);
+      if (getn(prev, col, row) === Y) {
+        std.path_setv(_M, 10055, std.adr(board, col, row), std.or4(std.eq4(n, 2), std.eq4(n, 3)));
+      } else {
+        std.path_setv(_M, 10058, std.adr(board, col, row), std.eq4(n, 3));
+      }
+    }
+  }
+}
+
+
+//====================
+//   count_neighbors
+//====================
+function count_neighbors(col, row) {
+  var n = 0;
+  var loop1002 = new std.a_loop({ from:-1, to_:1 });
+  while (loop1002.next()) {
+  var dx = loop1002.index;
+    var loop1003 = new std.a_loop({ from:-1, to_:1 });
+    while (loop1003.next()) {
+    var dy = loop1003.index;
+      if ((std.ne2(dx, 0) || std.ne2(dy, 0))) {
+        if (getn(prev, std.add(col, dx), std.add(row, dy)) === Y) {
+          n = std.add(n, 1);
+        }
+      }
+    }
+  }
+  return n;
+}
+
+
+//====================
+//   do_clear
+//====================
+function do_clear() {
+  std.trunc_tree(_M, 70147, std.adr(board));
+}
+
+
+//====================
+//   do_scramble
+//====================
+function do_scramble() {
+  std.trunc_tree(_M, 90151, std.adr(board));
+  var loop1004 = new std.a_loop({ from:1, to_:ncol });
+  while (loop1004.next()) {
+  var col = loop1004.index;
+    var loop1005 = new std.a_loop({ from:1, to_:nrow });
+    while (loop1005.next()) {
+    var row = loop1005.index;
+      if (std.le2(std.random_range(1, 100), SCRAMBLE_DENSITY)) {
+        std.path_setv(_M, 90155, std.adr(board, col, row), Y);
+      }
+    }
+  }
+}
+
+
+//====================
+//   do_start
+//====================
+function do_start() {
+  std.path_setv(_M, 120160, std.adr(g, F_timer), std.timer_start(calc_next_frame_F, { rate:4, reps:1000 }));
+  std.path_setv(_M, 120161, std.adr(g, F_step), 1);
+}
+
+
+//====================
+//   do_stop
+//====================
+function do_stop() {
+  std.timer_clear({ id:getn(g, F_timer) });
+  std.path_setv(_M, 30166, std.adr(g, F_timer), U);
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  std.path_setv(_M, 50025, std.adr(board, 3, 1), Y);
+  std.path_setv(_M, 50026, std.adr(board, 3, 2), Y);
+  std.path_setv(_M, 50027, std.adr(board, 3, 3), Y);
+  std.path_setv(_M, 50028, std.adr(board, 2, 3), Y);
+  std.path_setv(_M, 50029, std.adr(board, 1, 2), Y);
+  std.path_setv(_M, 50031, std.adr(board, 23, 1), Y);
+  std.path_setv(_M, 50032, std.adr(board, 21, 2), Y);
+  std.path_setv(_M, 50033, std.adr(board, 20, 3), Y);
+  std.path_setv(_M, 50034, std.adr(board, 20, 4), Y);
+  std.path_setv(_M, 50035, std.adr(board, 20, 5), Y);
+  std.path_setv(_M, 50036, std.adr(board, 21, 5), Y);
+  std.path_setv(_M, 50037, std.adr(board, 22, 5), Y);
+  std.path_setv(_M, 50038, std.adr(board, 23, 5), Y);
+  std.path_setv(_M, 50039, std.adr(board, 24, 5), Y);
+  std.path_setv(_M, 50040, std.adr(board, 25, 4), Y);
+  std.path_setv(_M, 50041, std.adr(board, 25, 2), Y);
+}
+
+
+//====================
+//   draw_footer_114
+//====================
+function draw_footer_114(b) {
+std.k_enter(b);
+  std.draw_str(b, str.to_str(getn(g, F_step), {dig:2}), { size:0.6, color:C_BUTT_TEXT });
+std.k_leave(b);
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "life");
+main_init();
+std.rebuild_all();
+
+
+//  uncomment this to prevent accidental reload, useful for web apps that store input
+//   window.onbeforeunload = (event) => {
+// 	  const e = event || window.event;
+// 	  // Cancel the event
+// 	  e.preventDefault();
+// 	  if (e) {
+// 		e.returnValue = ''; // Legacy method for cross browser support
+// 	  }
+// 	  return ''; // Legacy method for cross browser support
+// 	}
+
+</script>
+</body>
+</html>
+
