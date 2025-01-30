@@ -14,6 +14,14 @@ Beads is not a minor rehash of Python or JS. It is a clean sheet design, careful
 7. a simple and flexible module system 
 8. no make system needed for most projects
 
+### Example: Mortgage Calculator
+
+A handy mortgage calculator, optimized for mobile devices. Operates with the fewest possible clicks by the user.
+
+![screenshot_calc2](https://github.com/user-attachments/assets/a88f1765-990d-4d8f-b022-de41f6f4b71b)
+
+You can [run the mortgage calculator here](https://voicecarrier.com/lab/calc/calc.html)
+
 ### Example: Color picker utility
 
 A handy tool for programming; shows the HTML named colors, sorted in a convenient to use sort order. Approx. 1300 words.
