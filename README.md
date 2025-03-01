@@ -3,7 +3,7 @@
 
 These are examples with specifications posted in our GitHub repository, and are included in the SDK which you can download at Beadslang.org 
 
-Beads is not a minor rehash of Python or JS. It is a clean sheet design, carefully crafted to catch as many errors at compile time as possible so you spend less time debugging. These examples barely scratch the surface of the full range of Beads features, such as:
+Beads is a replacement for the entire JS + HTML + CSS + React or other frameworks. Using a single language for both client and server drastically simplifies web programming. A sync engine built into the runtime eliminates most of the message passing hassle and makes many client/server projects very easy. Beads is not a minor rehash of Python or JS. It is a clean sheet design, carefully crafted to catch as many errors at compile time as possible so you spend less time debugging. These examples barely scratch the surface of the full range of Beads features, such as:
 
 1. can run in reverse (AKA time-travel-debugging) 
 2. automatic refresh of screen areas when the underlying model changes
