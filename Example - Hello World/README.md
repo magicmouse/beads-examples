@@ -2,7 +2,7 @@ These "Hello World" examples are super short programs, great for learning Beads.
 
 Hello1 draws a gradient and then one line of text
 
-![Screenshot of hello1](/assets/images/hello1.gif)
+![Screenshot of hello1](./hello1.gif)
 
 
 
