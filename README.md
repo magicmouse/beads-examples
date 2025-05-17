@@ -121,7 +121,7 @@ In this example we show how you can use the physical units of measure features i
 ![screenshot_300w](https://github.com/magicmouse/beads-examples/assets/5481132/1d7ba94a-fac7-4df1-8439-eadfa3005b99)
 
 
-### Example: Animate1 -- Animation using the HTML Canvas
+### Example: Animate3 -- Animation using the HTML Canvas
 
 In this example we show how you can use the HTML canvas layer to achieve smooth animation effects.
 
