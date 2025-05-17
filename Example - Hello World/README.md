@@ -4,7 +4,7 @@ These "Hello World" examples are super short programs, great for learning Beads.
 
 Hello1 draws a gradient and then one line of text
 
-
+<br/><br/><br/>
 
 ![Screenshot of hello3](./hello3_mouse_wheel.gif)  ![Movie of hello3](./hello3_mouse_wheel.mov)
 
