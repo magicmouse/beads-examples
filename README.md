@@ -18,7 +18,7 @@ Beads is a replacement for the entire JS + HTML + CSS + React or other framework
 
 A handy mortgage calculator, optimized for mobile devices. Operates with the fewest possible clicks by the user.
 
-![screenshot_calc2](https://github.com/user-attachments/assets/a88f1765-990d-4d8f-b022-de41f6f4b71b | height=200)
+<img src="https://github.com/user-attachments/assets/a88f1765-990d-4d8f-b022-de41f6f4b71b" height="300" alt="screenshot mortgage"/>
 
 You can [run the mortgage calculator here](https://voicecarrier.com/lab/calc/calc.html)
 
@@ -26,21 +26,21 @@ You can [run the mortgage calculator here](https://voicecarrier.com/lab/calc/cal
 
 A handy tool for programming; shows the HTML named colors, sorted in a convenient to use sort order. Approx. 1300 words.
 
-![colorchart_screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/e08e59e9-ed6e-4f32-afdb-2a8b80162130)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/e08e59e9-ed6e-4f32-afdb-2a8b80162130" height="500" alt="screenshot color picker"/>
 
 
 You can [run the color picker here](https://voicecarrier.com/lab/colors/colorchart.html)
 
 ### Example: Using HTTP to draw a wine list
 
-![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/247ee76a-18ff-48f5-8ce9-fa55e6454c4f)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/247ee76a-18ff-48f5-8ce9-fa55e6454c4f" height="300" alt="screenshot winelist"/>
 
 
 This example shows you how to retrieve a wine list from an external database, and adjust the display to fit the screen.
 
 ### Example: Realtime stock price graph
 
-![hoody_big](https://github.com/magicmouse/beads-examples/assets/5481132/9eae8822-90ca-48b0-95c4-28288a14f5e5)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/9eae8822-90ca-48b0-95c4-28288a14f5e5" height="300" alt="screenshot stock price"/>
 
 
 
@@ -49,12 +49,12 @@ This is an example of a client + server program, showing how you can build both 
 
 ### Example: Conway's game of life
 
-![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/b5897a59-30e9-4603-a3b5-eed185a1f252)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/b5897a59-30e9-4603-a3b5-eed185a1f252" height="300" alt="screenshot game of life"/>
 
 
 ### Example: Neat looking liquid slider
 
-![screenshot4_big](https://github.com/magicmouse/beads-examples/assets/5481132/7a1239c1-4f9a-4ffb-80dc-2238cbc82ffc)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/7a1239c1-4f9a-4ffb-80dc-2238cbc82ffc" alt="screenshot liquid slider"/>
 
 
 This is a rewrite of a CSS-mostly project from CodePen. Our version is interactive, and lets the user drag a control thumb to set the value, and it shows the dramatic difference between wrestling with the intricacies of CSS, and instead doing it in a straightforward imperative style that is much less tangled.
@@ -79,7 +79,7 @@ Beads has a wonderful localization methodology, that people will find user frien
 
 for a [video explanation of how to use it](https://youtu.be/xKQ9Uj8o_4w)
 
-![localize_screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/a88a24de-07b9-4f59-a2a8-6ef1e49c536f)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/a88a24de-07b9-4f59-a2a8-6ef1e49c536f" height="400" alt="screenshot localization tool"/>
 
 
 ### Example: Dijkstra's pathfinder algorithm
@@ -95,7 +95,7 @@ You draw a wall with the mouse (right click to erase wall cells), and then you p
 
 This is a simple temperature control which demonstrates the physical units of measurement in Beads, and how you can have a dual control and either one will update the model and refresh the other version of the control that uses the same data, all without locks or conflicts arising.
 
-![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/53001a9d-79d9-4ae6-8689-06ea997d87d7)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/53001a9d-79d9-4ae6-8689-06ea997d87d7" height="300" alt="screenshot temperature control"/>
 
 
 Here is a short video talking about it.
@@ -106,7 +106,7 @@ Here is a short video talking about it.
 
 This handy utility shows how you can run a program inside another program in Beads (by using the *monitor* keyword instead of program on the first line of code).
 
-![screenshot](https://github.com/magicmouse/beads-examples/assets/5481132/ea2e23be-3ab1-48e0-b5d0-35b72686413a)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/ea2e23be-3ab1-48e0-b5d0-35b72686413a" height="400" alt="screenshot cycler utility"/>
 
 
 Here is a short video talking about it.
@@ -149,7 +149,7 @@ In this short 200 word example we take an existing Python program and rewrite it
 
 The [Python version](https://github.com/engineer-man/youtube/tree/master/089) is slightly shorter, but imports 4 libraries, and uses about 15 external functions. Beads uses only 7 external functions, and they are the same ones used in every program. The Python version uses a complex multi-threated scheme that requires semaphores and locking of critical sections. A rather advanced set of concepts. The Python version requires an external file to be read, because it doesn't have a powerful literal syntax.
 
-![tree_blinking](https://github.com/magicmouse/beads-examples/assets/5481132/b794e92e-2bdf-416a-a84a-fe48bffc5524)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/b794e92e-2bdf-416a-a84a-fe48bffc5524" height="200" alt="blinking xmas tree"/>
 
 
 ### Example: HTTP form that re-arranges its layout
@@ -165,7 +165,7 @@ It is very common to need to have input forms and collect user data. This exampl
 
 The classic board game. Complexity rating: 1500 words
 
-![chess](https://github.com/magicmouse/beads-examples/assets/5481132/7f8385cb-c3b1-4651-8d6d-2b264342b690)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/7f8385cb-c3b1-4651-8d6d-2b264342b690" height="400" alt="screenshot chess"/>
 
 
 ### Example: Tic-tac-toe client/server version
@@ -179,7 +179,7 @@ The classic board game, but in multiplayer form, where you can play or watch 12 
 
 The classic children's game, two player (no AI). Complexity rating: 520 words
 
-![tictactoe](https://github.com/magicmouse/beads-examples/assets/5481132/9348b328-649a-4a50-bf79-571860e78bf4)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/9348b328-649a-4a50-bf79-571860e78bf4" height="300" alt="screenshot tic-tac-toe"/>
 
 
 
@@ -201,14 +201,14 @@ A very simple wood chopping game, built for little kids. A rewrite of an existin
 
 The classic Apple calculator program, except without the bugs that Apple has! Complexity rating: 500 words
 
-![calculator](https://github.com/magicmouse/beads-examples/assets/5481132/4cd38681-6d47-42db-b011-bdcf92a41aa8)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/4cd38681-6d47-42db-b011-bdcf92a41aa8" height="200" alt="snake game animation"/>
 
 
 ### Example: Snake game
 
 The classic snake game as popularized by Nokia cellphones. Probably the most fun per line of code ever made. Program complexity rating: 500 words.
 
-![snake_animated](https://github.com/magicmouse/beads-examples/assets/5481132/367e2f5e-d3f7-4741-b09f-6e52de50f6f0)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/367e2f5e-d3f7-4741-b09f-6e52de50f6f0" height="300" alt="snake game animation"/>
 
 
 ### Example: Sort method contest
@@ -222,7 +222,7 @@ The classic bubble sorting algorithm is pitted against the just slightly more co
 
 This simple program simulates a wristwatch. Program complexity rating: 180 words.
 
-![watch_example_animated](https://github.com/magicmouse/beads-examples/assets/5481132/d1b657c7-a651-4b66-9950-d29dcbf84c38)
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/d1b657c7-a651-4b66-9950-d29dcbf84c38" height="200" alt="wristwatch"/>
 
 
 ### Example: Fibonacci sequences
