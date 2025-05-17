@@ -1,0 +1,12 @@
+beads 1 program hello1  //  sample program that draws a greeting
+
+// define a gradient for the screen background
+const GRAD1 : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM, 
+		grad_stops:[ { stop_pos:0, stop_color:#42002D },
+				     { stop_pos:48, stop_color:#F2D2FF },
+					 { stop_pos:52, stop_color:#F2D2FF },
+					 { stop_pos:100, stop_color:#42002D }] }
+
+draw main_draw
+	draw_rect(grad:GRAD1) 
+	draw_str("❤️ Hello World 🎉", size:60 pt, indent:10, color:#330023, font:"Arial Black")
