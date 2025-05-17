@@ -5,14 +5,23 @@ These are examples with specifications posted in our GitHub repository, and are 
 
 Beads is a replacement for the entire JS + HTML + CSS + React or other frameworks. Using a single language for both client and server drastically simplifies web programming. A sync engine built into the runtime eliminates most of the message passing hassle and makes many client/server projects very easy. Beads is not a minor rehash of Python or JS. It is a clean sheet design, carefully crafted to catch as many errors at compile time as possible so you spend less time debugging. These examples barely scratch the surface of the full range of Beads features, such as:
 
-1. can run in reverse (AKA time-travel-debugging) 
-2. automatic refresh of screen areas when the underlying model changes
-3. protected arithmetic like Excel
-4. units of measure like 3 m + 2 ft (even at runtime)
-5. a proportional layout system that responds to size changes beautifully
-6. greatly simplified regular expressions
-7. a simple and flexible module system 
-8. no make system needed for most projects
+1. automatic refresh of screen areas when the underlying model changes
+2. protected arithmetic like Excel
+3. units of measure like 3 m + 2 ft (even at runtime)
+4. a proportional layout system that responds to size changes beautifully
+5. greatly simplified regular expressions
+6. a simple and flexible module system 
+7. no make system needed for most projects
+
+
+### Example: Color picker utility
+
+A handy tool to pick colors. Click a swatch, and it copies the color in string format to the clipboard in 7 different notations,
+which covers almost every language you can think of.  Repeatable, convenient, very useful for programmers.
+
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/e08e59e9-ed6e-4f32-afdb-2a8b80162130" height="400" alt="screenshot color picker"/>
+
+You can [run the color picker here](https://voicecarrier.com/lab/colors/colorchart.html)
 
 ### Example: Mortgage Calculator
 
@@ -21,15 +30,6 @@ A handy mortgage calculator, optimized for mobile devices. Operates with the few
 <img src="https://github.com/user-attachments/assets/a88f1765-990d-4d8f-b022-de41f6f4b71b" height="300" alt="screenshot mortgage"/>
 
 You can [run the mortgage calculator here](https://voicecarrier.com/lab/calc/calc.html)
-
-### Example: Color picker utility
-
-A handy tool for programming; shows the HTML named colors, sorted in a convenient to use sort order. Approx. 1300 words.
-
-<img src="https://github.com/magicmouse/beads-examples/assets/5481132/e08e59e9-ed6e-4f32-afdb-2a8b80162130" height="400" alt="screenshot color picker"/>
-
-
-You can [run the color picker here](https://voicecarrier.com/lab/colors/colorchart.html)
 
 ### Example: Using HTTP to draw a wine list
 
