@@ -1,16 +1,15 @@
-beads 1 program hello
+beads 1 program hello3
 
-//  test the canvas rendering of multiple line text
 //  also show how to make a zoom control that operates using the mouse wheel
 //  also shows how to use multiple different zoom controls
-//  whichever side you are in, it will zoom that section with the mouse wheel
+//  whichever side the mouse is inside, it will zoom that side with the mouse wheel
 
 // define a gradient for the screen background
 const GRAD1 : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTTOM, 
-		grad_stops:[ { stop_pos:0, stop_color:CHOCOLATE },
-				     { stop_pos:48, stop_color:BEIGE },
-					 { stop_pos:52, stop_color:BEIGE },
-					 { stop_pos:100, stop_color:CHOCOLATE }] }
+		grad_stops:[ { stop_pos:0, stop_color:#42002D },
+				     { stop_pos:48, stop_color:#F2D2FF },
+					 { stop_pos:52, stop_color:#F2D2FF },
+					 { stop_pos:100, stop_color:#42002D }] }
 
 var 
 	intf : record
@@ -34,32 +33,31 @@ horz slice main_draw
 	skip 6 pt
 
 =======================
-draw section (
+draw section (  //  draw a side of the screen
 	level 
 	)
-	//  this creates a canvas layer, stores it in mycanvas
 	draw_rect(grad:GRAD1, corner:10 pt) 
 
 	//  there are 3 meta font names: _sans, _serif and _typewriter
-	var height = intf.zoom[level]*15
-	draw_str("❤️ Section {level}\nZoom {intf.zoom[level]} 🎉", size:height pt, color:CHOCOLATE, font:"_typewriter")
+	var height = intf.zoom[level]*12
+	draw_str("️🚴 Section {level}\nZoom {intf.zoom[level]} 🏄‍♂", size:height pt, color:#330023, font:"Arial Black")
 	
-	var cornerbox <=== solve_rect(basis:bb, pin:9, width:24 pt, height:80 pt)
+	var cornerbox <=== solve_rect(basis:bb, pin:BOT_RIGHT, width:24 pt, height:80 pt)
 	layer area:cornerbox d_zoomlevel(level)
 --------
-track EV_WHEEL
+track EV_WHEEL  // the z field of the mouse event is the wheel value.
 	//log "WHEEL, z={e.z}"
 	var delta = -1 if e.z > 0 else +1
-	intf.zoom[level] = clamp(intf.zoom[level]+delta, MIN_ZOOM, MAX_ZOOM)
+	intf.zoom[level] = clamp(MIN_ZOOM, intf.zoom[level]+delta, MAX_ZOOM)
 
 =======================
 vert slice d_zoomlevel(
 	level
 	)
 	under
-		draw_rect(fill:GRAY8, corner:4 pt) // , thick:1.5 pt, pos:0, color:GRAY6)
+		draw_rect(fill:GRAY8, corner:4 pt) // , bord_width:1.5 pt, bord_pos:0, bord_color:GRAY6)
 
-	loop from:1 to:4 rev:Y index:ix
+	loop from:1 to:4 rev:T index:ix
 		skip 2 pt
 		add 10 al d_zoom_button(ix, level)   //  will go from 4..1
 	skip 2 pt
@@ -70,10 +68,10 @@ draw d_zoom_button (
 	level
 	)
 	var icon_back:color = GRAY8
-	var icon_fore:color = GRAY3
+	var icon_fore:color = GRAY4
 	if ix == intf.zoom[level]
 		icon_back = GRAY6
-		icon_fore = ORANGE
+		icon_fore = #28C9FD
 
 	draw_rect(corner:5 pt, fill:icon_back)
 	var diam = interpolate(ix, 1, 4, 4 pt, 16 pt)
