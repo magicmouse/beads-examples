@@ -18,7 +18,7 @@ Beads is a replacement for the entire JS + HTML + CSS + React or other framework
 
 A handy mortgage calculator, optimized for mobile devices. Operates with the fewest possible clicks by the user.
 
-![screenshot_calc2](https://github.com/user-attachments/assets/a88f1765-990d-4d8f-b022-de41f6f4b71b)
+![screenshot_calc2](https://github.com/user-attachments/assets/a88f1765-990d-4d8f-b022-de41f6f4b71b | height=200)
 
 You can [run the mortgage calculator here](https://voicecarrier.com/lab/calc/calc.html)
 
