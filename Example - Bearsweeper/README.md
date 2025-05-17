@@ -6,7 +6,7 @@ This program is a game of minesweeper, with the mines replaced by a cute little 
 
 When playing the game the screen looks like this:
 
-![browser example](http://beadslang.com/apps/bearsweeper/bearsweeper_screenshot.png)
+![browser example](./bearsweeper.png)
 
 The first line of every Beads program must declare the level of the language.
 
