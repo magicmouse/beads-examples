@@ -26,7 +26,7 @@ You can [run the mortgage calculator here](https://voicecarrier.com/lab/calc/cal
 
 A handy tool for programming; shows the HTML named colors, sorted in a convenient to use sort order. Approx. 1300 words.
 
-<img src="https://github.com/magicmouse/beads-examples/assets/5481132/e08e59e9-ed6e-4f32-afdb-2a8b80162130" height="500" alt="screenshot color picker"/>
+<img src="https://github.com/magicmouse/beads-examples/assets/5481132/e08e59e9-ed6e-4f32-afdb-2a8b80162130" height="400" alt="screenshot color picker"/>
 
 
 You can [run the color picker here](https://voicecarrier.com/lab/colors/colorchart.html)
