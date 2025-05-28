@@ -56,20 +56,27 @@ draw d_clock(
 	//  draw the hour numbers and the minute ticks
 	loop from:1 to:60 index:tickx
 		var theta : Angle = (tickx/60 - 0.25) turn
+		var pos1 = POS_TICK1
+		var pos2 = POS_TICK2
+
 		if mod(tickx, 5) == 0
 			var hourx = tickx /. 5
 			var tx = radius*POS_NUMS*cos(theta)
 			var ty = radius*POS_NUMS*sin(theta)
-			var r <=== solve_rect(cx:cx+tx, cy:cy+ty, width:SIZE_NUMS*3, height:SIZE_NUMS*1.2)
+			var dx = SIZE_NUMS*0.1 if hourx == 10 else 0
+			var r <=== solve_rect(cx:cx+tx+dx, cy:cy+ty, width:SIZE_NUMS*3, height:SIZE_NUMS*1.2)
 			draw_str(hourx, size:SIZE_NUMS, color:#1C342C, box:r, just:CENTER, shrink:F)
 			//draw_circle(x:tx, y:ty, fill:CRIMSON, diam:6)
-		else
-			//  draw a minute tick
-			var x1 = radius*POS_TICK1*cos(theta)
-			var y1 = radius*POS_TICK1*sin(theta)
-			var x2 = radius*POS_TICK2*cos(theta)
-			var y2 = radius*POS_TICK2*sin(theta)
-			draw_line(x1:x1, y1:y1, x2:x2, y2:y2, color:C_TICK) 
+
+			pos1 = 0.91
+			pos2 = 0.94
+
+		//  draw a minute tick
+		var x1 = radius*pos1*cos(theta)
+		var y1 = radius*pos1*sin(theta)
+		var x2 = radius*pos2*cos(theta)
+		var y2 = radius*pos2*sin(theta)
+		draw_line(x1:x1, y1:y1, x2:x2, y2:y2, color:C_TICK) 
 	layer area:bb origin:5 d_hands(radius)
 
 draw d_hands (
@@ -88,9 +95,3 @@ draw d_hands (
 	//  second hand (will jump because we only update once per second)
 	draw_line( x1:0, y1:0, color:#c7d493, angle:round_down(g.dt_second)*6 - 90 deg, 
 		len:radius*0.76, thick:radius / 45)
-----------------------
-track EV_KEYBOARD
-	//  spacebar will toggle stopping time
-	if e.keycode == KEYCODE_SPACE
-		return T
-	return F // we don't use this key, let the debugger have it
