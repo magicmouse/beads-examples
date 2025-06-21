@@ -10,13 +10,13 @@ assets local:"./art/"
 	file:"checkbox_on.png" label:CHECKBOX_ON preload
 
 const
-	TRACE_COLORS = N
-	TRACE_FUDGE = N
-	TRACE_SIZING = N
-	TRACE_PALETTE = N
-	TRACE_ENTRY = N
-	TRACE_TWEAK = N
-	TRACE_TAP = N
+	TRACE_COLORS = F
+	TRACE_FUDGE = F
+	TRACE_SIZING = F
+	TRACE_PALETTE = F
+	TRACE_ENTRY = F
+	TRACE_TWEAK = F
+	TRACE_TAP = F
 
 record a_slot
 	name  : str   //  color name
@@ -25,7 +25,7 @@ record a_slot
 	key1  // color category  1:color band  98:low sat, 99:gray ramp
 	key2  // value band
 	key3  //  hue
-	hilite : yesno
+	hilite : bool
 
 var SET1 : array of a_slot <=== [ {name:"ALICE_BLUE", color:ALICE_BLUE}, 
 	{name:"ANTIQUE_WHITE", color:ANTIQUE_WHITE},
@@ -199,8 +199,8 @@ const
 	MODE_GRADS = 2
 
 record a_choice_set  //  mutually exclusive choice control
-	enabled  : yesno  //  if N then hide
-	is_open  : yesno  //  used by pulldown menu
+	enabled  : bool  //  if F then hide
+	is_open  : bool  //  used by pulldown menu
 	selx_ptr : ptr to num  //  if present, use a pointer instead of a value
 	selx 	  // which item we selected 1=first
 	nrows	  // number of rows, U means 1
@@ -222,8 +222,8 @@ record a_state
 	prior2_color : color
 	clipboard_ss : str
 	input_field : a_input_field
-	sounds : yesno
-	show_dpi : yesno
+	sounds : bool
+	show_dpi : bool
 
 	format  : (FORMAT_BEADS, FORMAT_HTML, FORMAT_HEX, FORMAT_C, FORMAT_RGB, FORMAT_HSL, FORMAT_VEC3)
 	sizing  : (COMPACT_SIZE, FULL_SIZE)
@@ -312,7 +312,7 @@ grid draw_choice_grid(
 		const CHOICE_CORNER = 4
 		const BUTT_THICK = 1.5 //  thickness of stroke
 
-		var opacity = DIMMED if o.enabled == N else 1
+		var opacity = DIMMED if o.enabled == F else 1
 		var back:color
 		var bord:color
 		var text:color
@@ -345,7 +345,7 @@ grid draw_choice_grid(
 				br = CHOICE_CORNER pt
 		
 		//  draw the background for this cell
-		draw_rect(fill:back, color:bord, thick:BUTT_THICK pt, pos:0, 
+		draw_rect(fill:back, bord_color:bord, bord_width:BUTT_THICK pt, bord_pos:0, 
 			corner:[tl, tr, bl, br], opacity:opacity)
 
 		//  if the cell has a drawing function, use that
@@ -398,7 +398,7 @@ draw draw_tabs2(
 		back = TAB_LO_BACK
 		bord = TAB_LO_BORD
 		text = TAB_LO_TEXT
-	draw_rect(fill:back, color:bord, thick:TAB_BORD pt, corner:[TAB_CORNER pt, TAB_CORNER pt])
+	draw_rect(fill:back, bord_color:bord, bord_width:TAB_BORD pt, corner:[TAB_CORNER pt, TAB_CORNER pt])
 	draw_str(tabs.label_list[ix], indent:1.5 pt, size:0.6, color:text)
 ---------------------------
 track EV_TAP
@@ -465,10 +465,10 @@ calc main_init
 	g.input_field.in_validator = validate_color
 	input_start(g.input_field)
 
-	g.sounds = Y
+	g.sounds = T
 	g.format = FORMAT_BEADS
 	NCELLS = count(slotlist)
-	g.show_dpi = N
+	g.show_dpi = F
 
 	select_new_color(CORNFLOWER_BLUE)
 
@@ -480,7 +480,7 @@ regexp A_WEB_COLOR starts ends -- regular expression for a hex color
 =================================
 calc validate_color (  //  see if the input field is a color value
 	field : a_input_field
-	):yesno --  return true if valid
+	):bool --  return true if valid
 
 	var list : array of a_find
 	var newcolor : color
@@ -491,11 +491,18 @@ calc validate_color (  //  see if the input field is a color value
 		//  once we hit a valid color jump to that value
 		newcolor = hex_to_color(ss)
 		select_new_color(newcolor)
+
+		//  deselect any WEB color
+		web_color_deselect
+
+		//  find the closest ferrari color
+		g.ferrari_selx = find_closest_ferrari(g.sel_color)
+
 		log "valid color of {ss}" on:TRACE_ENTRY
-		return Y  -- is a valid color value
+		return T  -- is a valid color value
 
 	log "ignoring non-numeric color {ss}" on:TRACE_ENTRY
-	return N
+	return F
 
 =================================
 vert slice main_draw
@@ -595,7 +602,7 @@ track EV_TAP
 
 ==================
 draw d_checkbox (
-	flag : ptr to yesno
+	flag : ptr to bool
 	)
 	var w = bb.height*0.68
 	var r <=== solve_rect(basis:bb, pin:5, width:w, height:w)
@@ -620,8 +627,8 @@ vert slice d_bottom_col2
 
 =================================
 draw d_input_box
-	draw_input(g.input_field, indent:3 pt, color:BLACK, border:1 pt, size:0.55, font:MONOSPACE,
-		border_color:LIGHT_SLATE_GRAY, fill:GHOST_WHITE, caret:BLACK, corner:2 pt)
+	input_draw(g.input_field, indent:3 pt, color:BLACK, bord_width:1 pt, size:0.55, font:MONOSPACE,
+		bord_color:LIGHT_SLATE_GRAY, fill:GHOST_WHITE, caret:BLACK, corner:2 pt)
 	//draw_rect(fill:IVORY, corner:2 pt)
 	//draw_str(g.clipboard_ss, size:0.6, color:BLACK)
 ------
@@ -684,7 +691,7 @@ draw d_nearby // clip
 			//  index and row are offsets from center
 			cx = col*HEX_H + offsetx
 			cy = row*ROW_SPACING
-			theta = arc_tan2(-cy, cx)  // actual true angle as drawn, flipped on the Y
+			theta = arc_tan2(-cy, cx)  // actual true angle as drawn, flipped on the T
 			HEX_CENTER.x +=> cx
 			HEX_CENTER.y +=> cy
 			
@@ -713,7 +720,7 @@ track EV_TAP
 
 	loop across:tweak_map ptr:tweakp
 		dx = e.x - tweakp.x
-		dy = e.y - tweakp.y
+		dy = e.y - tweakp.y 
 		distance =  dx*dx + dy*dy  -- leave it squared
 		if distance < best_dist
 			best_dist = distance
@@ -750,7 +757,7 @@ draw draw_hexagon (  -- draw a hexagon given a center point and radius
 
 	var thick = 2 pt if col == 0 and row == 0 else 0
 
-	draw_polygon(steps, fill:clr, color:CRIMSON, thick:thick)
+	draw_polygon(steps, fill:clr, bord_color:CRIMSON, bord_width:thick)
 	//draw_str("{col},{row}", x:cx, y:cy-8, color:WHITE)  // tracing
 
 =================================
@@ -844,9 +851,9 @@ calc tweak_color (  --  tweak a color
 	// RGB tweak method
 	//------------------------
 	// extract color components
-	var r = r255(base)
-	var g = g255(base)
-	var b = b255(base)
+	var r = pix_r(base)
+	var g = pix_g(base)
+	var b = pix_b(base)
 
 	const SCALE = 6
 
@@ -882,7 +889,7 @@ track EV_TAP
 	//  select this color again
 	select_new_color(clr)
 
-//	draw_str(" rgb {r255(g.sel_color)}, {g255(g.sel_color)}, {b255(g.sel_color)}", size:0.7, indent:14 pt, color:C_TEXT)
+//	draw_str(" rgb {pix_r(g.sel_color)}, {pix_g(g.sel_color)}, {pix_b(g.sel_color)}", size:0.7, indent:14 pt, color:C_TEXT)
 
 =================================
 vert slice d_color_format  //  show the color format selector (mutually exclusive button)
@@ -913,7 +920,7 @@ draw d_choice(  //  show a format choice button
 	var fill:color = C_CHOICE_HI_BACK if formx == g.format else C_CHOICE_LO_BACK
 	var label:str = long_label if bb.width > 70 pt else short_label
 
-	draw_rect(fill:fill, thick:1 pt, color:C_CHOICE_BORD)
+	draw_rect(fill:fill, bord_width:1 pt, bord_color:C_CHOICE_BORD)
 	if formx == g.format
 		draw_str("▶", size:0.6, just:LEFT, color:MAROON)
 		draw_str(label, size:0.60, indent:3 pt, color:C_CHOICE_HI_TEXT)
@@ -932,7 +939,7 @@ draw d_made_with  //  show the "made with" button
 	draw_str("written in Beads", size:bb.height*0.65, color:C_TEXT)
 track EV_TAP
 	//  go to the beads home page
-	browser_redirect("https://github.com/magicmouse/beads-examples/tree/master/Example%20-%20Color%20Chart", newtab:Y)
+	browser_redirect("https://github.com/magicmouse/beads-examples/tree/master/Example%20-%20Color%20Chart", newtab:T)
 track EV_HOVER
 	cursor_set(CURS_FINGER)
 
@@ -956,7 +963,7 @@ grid d_html_palette order:TBLR
 		skip 5 al
 		skip 1 px
 	cell
-		// inside: bb, b.cell_seq, b.cell.x/y, b.cell_id.x/y
+		// inside: bb, b.cell_seq, b.cell.x/T, b.cell_id.x/T
 		if b.cell_seq <= NCELLS
 			var slotx = b.cell_seq
 			d_cell(slotlist[slotx], slotx)
@@ -978,9 +985,9 @@ track EV_TAP  // user is tapping in HTML palette
 		//  color choice
 		//  move the value of the slot hilite flag to the new one
 		if g.htmlchip_selx <> U
-			slotlist[g.htmlchip_selx].hilite = N
+			slotlist[g.htmlchip_selx].hilite = F
 		g.htmlchip_selx = b.cell_seq
-		slotlist[g.htmlchip_selx].hilite = Y
+		slotlist[g.htmlchip_selx].hilite = T
 
 		var newsel:color = slotlist[g.htmlchip_selx].color
 		select_new_color(newsel)
@@ -1005,8 +1012,8 @@ track EV_HOVER
 // 		else
 // 			10 -=> hue_fudge
 // 		main_init
-// 		return Y
-// 	return N
+// 		return T
+// 	return F
 
 =================================
 calc select_new_color (  //  user has picked a new color
@@ -1074,7 +1081,7 @@ calc build_clipboard  //  regenerate what is on the clipboard
 
 	//  update the input field value
 	input_set_value(g.input_field, ss)
-	g.input_field.in_ok = Y  // turn off the warning sign
+	g.input_field.in_ok = T  // turn off the warning sign
 
 =================================
 calc find_exact_beads (  // try to find a beads name slot that exactly matches
@@ -1124,9 +1131,9 @@ draw d_chip_color ditto
 	draw_rect(fill:myslot.color, corner:3 pt)
 	//if myslot.frame
 	if myslot.hilite
-		draw_rect(color:FIREBRICK, thick:4 pt, corner:3 pt)
+		draw_rect(bord_color:FIREBRICK, bord_width:3 pt, corner:3 pt)
 	else
-		draw_rect(color:BLACK, thick:1 pt, corner:3 pt)
+		draw_rect(bord_color:BLACK, bord_width:1 pt, corner:3 pt)
 
 -------------------------
 //   Ferrari palette
@@ -1266,12 +1273,12 @@ calc color_difference (
 	c1 : color
 	c2 : color
 	) : num
-	var r1 = r255(c1)
-	var g1 = g255(c1)
-	var b1 = b255(c1)
-	var r2 = r255(c2)
-	var g2 = g255(c2)
-	var b2 = b255(c2)
+	var r1 = pix_r(c1)
+	var g1 = pix_g(c1)
+	var b1 = pix_b(c1)
+	var r2 = pix_r(c2)
+	var g2 = pix_g(c2)
+	var b2 = pix_b(c2)
 	var dr = r1-r2
 	var dg = g1-g2
 	var db = b1-b2
@@ -1343,29 +1350,32 @@ track EV_TAP
 
 	//  user is selecting a color chip
 	g.ferrari_selx = colorx
-
-	//  unselect the prior html chip if we had one
-	if g.htmlchip_selx <> U
-		slotlist[g.htmlchip_selx].hilite = N
-		g.htmlchip_selx = U
+	web_color_deselect
 
 	//color_ctl_setv(g.palette_targ_ptr^^, FERRARI[colorx])
 	select_new_color(FERRARI[colorx])
 
 =================================
+calc web_color_deselect
+	//  unselect the prior html chip if we had one
+	if g.htmlchip_selx <> U
+		slotlist[g.htmlchip_selx].hilite = F
+		g.htmlchip_selx = U
+	
+=================================
 draw ferr_hilite_chip(  //  ferrari palette - hilite color chip
 	box : a_rect
 	) ------
-	draw_rect(thick:4 px, pos:0, color:BLACK)
-	draw_rect(thick:2 px, pos:0, color:RED)
+	draw_rect(bord_width:4 px, bord_pos:0, bord_color:BLACK)
+	draw_rect(bord_width:2 px, bord_pos:0, bord_color:RED)
 
 =================================
 calc ferr_closest_chip (  //  ferrari palette - find closest color match
 	targcolor : color
 	) : num  --- index that is the closest match
-	var targ_r : num = r255(targcolor)
-	var targ_g : num = g255(targcolor)
-	var targ_b : num = b255(targcolor)
+	var targ_r : num = pix_r(targcolor)
+	var targ_g : num = pix_g(targcolor)
+	var targ_b : num = pix_b(targcolor)
 	var dx
 	var badness
 	var lowest  //  lowest badness so far
@@ -1374,13 +1384,13 @@ calc ferr_closest_chip (  //  ferrari palette - find closest color match
 
 	lowest = INFINITY
 	loop across:FERRARI val:testcolor index:ix
-		dx = targ_r - r255(testcolor)
+		dx = targ_r - pix_r(testcolor)
 		dx*dx => badness
 
-		dx = targ_g - g255(testcolor)
+		dx = targ_g - pix_g(testcolor)
 		dx*dx +=> badness
 
-		dx = targ_b - b255(testcolor)
+		dx = targ_b - pix_b(testcolor)
 		dx*dx +=> badness
 
 		//  if we find an exact match stop immediately
@@ -1443,7 +1453,7 @@ calc calc_slot_str ( -- calculate the string for the color slot
 calc to_rgb_str (
 	color : color
 	) : str
-	return "rgb({r255(color)},{g255(color)},{b255(color)})"
+	return "rgb({pix_r(color)},{pix_g(color)},{pix_b(color)})"
 
 ======================
 calc to_hsl_str (
@@ -1460,7 +1470,7 @@ calc to_vec3_str (  // a color like vec3(0.392,0.584,0.929)
 	//  convert the rgb color to vec3
 
 	var hsl : a_hsl <=== color_to_hsl(color)
-	return "vec3({v3(r1(color))},{v3(g1(color))},{v3(b1(color))})"
+	return "vec3({v3(pix_r1(color))},{v3(pix_g1(color))},{v3(pix_b1(color))})"
 
 ======================
 calc v3 (  //  color value 0 .. 1 as a string. must have decimal point

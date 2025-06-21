@@ -2,6 +2,7 @@
 <html lang="en"> 
 <head>
 <meta charset="utf-8">
+<meta name="google" content="notranslate">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -22,145 +23,147 @@ div { margin:0; padding:0; outline-style:none; scrollbar-gutter:stable;}
 div:hover { cursor:inherit; }
 
 /*  this customizes the default scrollbar appearance */
-::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar { width: 8pt; }
 ::-webkit-scrollbar-corner { background: transparent; }
 ::-webkit-scrollbar-track {
     box-shadow: inset 0 0 15px grey; 
     border-radius: 6pt; }
 ::-webkit-scrollbar-thumb {
-    background: OliveDrab; 
+    background: CornflowerBlue; 
     border-radius: 6pt; }
-::-webkit-scrollbar-thumb:hover { background: Olive; }
+::-webkit-scrollbar-thumb:hover { background:#013B8A; }
 </style>
 </head>
 <body style="margin:0; padding:0; position:fixed;">
 <script type="module">
-// beads ver 0.57 compiled Tue Jul 30 23:55:20 GMT-0700 2024
-import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_057/beads_std.js';
-import * as std from '../../runtime_057/beads_std.js';
-import * as str from '../../runtime_057/beads_str.js';
-export const CODE_HASH = 0x6ce0c9c4;
+// beads ver 0.58 compiled Tue May 27 19:30:34 GMT-0700 2025
+import { U, T, F, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_058/beads_std.js';
+import * as std from '../../runtime_058/beads_std.js';
+import * as str from '../../runtime_058/beads_str.js';
+export const CODE_HASH = 0x95b0c959;
 const _M = std.MODULES.push("color_chart")-1;
 std.rtl_init();
 std.aaaa.main_init = main_init;
 std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw, main_draw_track);
 //------- enums
 const F_name=9007190800402099; std.ENUMS[9007190800402099]="name"; std.FIELDS[F_name]=!0;
-const R_a_slot=9007193235264524; std.ENUMS[9007193235264524]="a_slot";
+const F_choice_func=9007193838393466; std.ENUMS[9007193838393466]="choice_func"; std.FIELDS[F_choice_func]=!0;
+const F_key1=9007192080821082; std.ENUMS[9007192080821082]="key1"; std.FIELDS[F_key1]=!0;
+const F_label_list=9007191676280395; std.ENUMS[9007191676280395]="label_list"; std.FIELDS[F_label_list]=!0;
+const F_selx=9007192042983600; std.ENUMS[9007192042983600]="selx"; std.FIELDS[F_selx]=!0;
+const F_prior_color=9007191861560316; std.ENUMS[9007191861560316]="prior_color"; std.FIELDS[F_prior_color]=!0;
+const F_enabled=9007190189270801; std.ENUMS[9007190189270801]="enabled"; std.FIELDS[F_enabled]=!0;
+const FORMAT_C=9007193229773678; std.ENUMS[9007193229773678]="FORMAT_C";
+const F_val_list=9007192993813256; std.ENUMS[9007192993813256]="val_list"; std.FIELDS[F_val_list]=!0;
+const F_format=9007190044619795; std.ENUMS[9007190044619795]="format"; std.FIELDS[F_format]=!0;
+const R_a_state=9007192953576597; std.ENUMS[9007192953576597]="a_state";
+const FORMAT_BEADS=9007193714185134; std.ENUMS[9007193714185134]="FORMAT_BEADS";
+const F_show_dpi=9007193225917213; std.ENUMS[9007193225917213]="show_dpi"; std.FIELDS[F_show_dpi]=!0;
+const F_sounds=9007192635542244; std.ENUMS[9007192635542244]="sounds"; std.FIELDS[F_sounds]=!0;
+const F_is_open=9007191493292457; std.ENUMS[9007191493292457]="is_open"; std.FIELDS[F_is_open]=!0;
+const F_mode_grid=9007193027891124; std.ENUMS[9007193027891124]="mode_grid"; std.FIELDS[F_mode_grid]=!0;
+const FORMAT_VEC3=9007191809797126; std.ENUMS[9007191809797126]="FORMAT_VEC3";
+const F_prior2_color=9007192941679678; std.ENUMS[9007192941679678]="prior2_color"; std.FIELDS[F_prior2_color]=!0;
+const R_a_tabset=9007191267514725; std.ENUMS[9007191267514725]="a_tabset";
+const F_htmlchip_selx=9007190490148256; std.ENUMS[9007190490148256]="htmlchip_selx"; std.FIELDS[F_htmlchip_selx]=!0;
 const F_selx_ptr=9007193212826961; std.ENUMS[9007193212826961]="selx_ptr"; std.FIELDS[F_selx_ptr]=!0;
+const FORMAT_RGB=9007190492816928; std.ENUMS[9007190492816928]="FORMAT_RGB";
+const COMPACT_SIZE=9007192111913864; std.ENUMS[9007192111913864]="COMPACT_SIZE";
+const R_a_slot=9007193235264524; std.ENUMS[9007193235264524]="a_slot";
+const F_nrows=9007194105500079; std.ENUMS[9007194105500079]="nrows"; std.FIELDS[F_nrows]=!0;
+const F_key2=9007192064043463; std.ENUMS[9007192064043463]="key2"; std.FIELDS[F_key2]=!0;
+const F_label_func=9007191941311145; std.ENUMS[9007191941311145]="label_func"; std.FIELDS[F_label_func]=!0;
+const R_a_hex_cell=9007192139196942; std.ENUMS[9007192139196942]="a_hex_cell";
+const F_ferrari_selx=9007192062281798; std.ENUMS[9007192062281798]="ferrari_selx"; std.FIELDS[F_ferrari_selx]=!0;
+const F_hilite=9007193844704215; std.ENUMS[9007193844704215]="hilite"; std.FIELDS[F_hilite]=!0;
+const F_clipboard_ss=9007190154157081; std.ENUMS[9007190154157081]="clipboard_ss"; std.FIELDS[F_clipboard_ss]=!0;
+const FORMAT_HTML=9007191751459116; std.ENUMS[9007191751459116]="FORMAT_HTML";
+const F_sizing=9007191915790290; std.ENUMS[9007191915790290]="sizing"; std.FIELDS[F_sizing]=!0;
+const F_netc=9007190269801736; std.ENUMS[9007190269801736]="netc"; std.FIELDS[F_netc]=!0;
+const R_a_choice_set=9007193148669828; std.ENUMS[9007193148669828]="a_choice_set";
+const F_action=9007192789918218; std.ENUMS[9007192789918218]="action"; std.FIELDS[F_action]=!0;
 const FORMAT_HEX=9007193301062174; std.ENUMS[9007193301062174]="FORMAT_HEX";
 const F_sel_color=9007192691030632; std.ENUMS[9007192691030632]="sel_color"; std.FIELDS[F_sel_color]=!0;
-const F_label_func=9007191941311145; std.ENUMS[9007191941311145]="label_func"; std.FIELDS[F_label_func]=!0;
 const F_key3=9007192047265844; std.ENUMS[9007192047265844]="key3"; std.FIELDS[F_key3]=!0;
-const F_enabled=9007190189270801; std.ENUMS[9007190189270801]="enabled"; std.FIELDS[F_enabled]=!0;
-const F_prior_color=9007191861560316; std.ENUMS[9007191861560316]="prior_color"; std.FIELDS[F_prior_color]=!0;
-const F_format=9007190044619795; std.ENUMS[9007190044619795]="format"; std.FIELDS[F_format]=!0;
-const F_prior2_color=9007192941679678; std.ENUMS[9007192941679678]="prior2_color"; std.FIELDS[F_prior2_color]=!0;
-const FORMAT_VEC3=9007191809797126; std.ENUMS[9007191809797126]="FORMAT_VEC3";
-const F_is_open=9007191493292457; std.ENUMS[9007191493292457]="is_open"; std.FIELDS[F_is_open]=!0;
-const F_sizing=9007191915790290; std.ENUMS[9007191915790290]="sizing"; std.FIELDS[F_sizing]=!0;
-const F_ferrari_selx=9007192062281798; std.ENUMS[9007192062281798]="ferrari_selx"; std.FIELDS[F_ferrari_selx]=!0;
-const F_choice_func=9007193838393466; std.ENUMS[9007193838393466]="choice_func"; std.FIELDS[F_choice_func]=!0;
-const FORMAT_HTML=9007191751459116; std.ENUMS[9007191751459116]="FORMAT_HTML";
-const R_a_state=9007192953576597; std.ENUMS[9007192953576597]="a_state";
-const F_label_list=9007191676280395; std.ENUMS[9007191676280395]="label_list"; std.FIELDS[F_label_list]=!0;
-const F_input_field=9007192745597275; std.ENUMS[9007192745597275]="input_field"; std.FIELDS[F_input_field]=!0;
-const R_a_tabset=9007191267514725; std.ENUMS[9007191267514725]="a_tabset";
-const F_show_dpi=9007193225917213; std.ENUMS[9007193225917213]="show_dpi"; std.FIELDS[F_show_dpi]=!0;
-const F_key2=9007192064043463; std.ENUMS[9007192064043463]="key2"; std.FIELDS[F_key2]=!0;
-const F_mode_grid=9007193027891124; std.ENUMS[9007193027891124]="mode_grid"; std.FIELDS[F_mode_grid]=!0;
-const FORMAT_HSL=9007193571181364; std.ENUMS[9007193571181364]="FORMAT_HSL";
-const F_hilite=9007193844704215; std.ENUMS[9007193844704215]="hilite"; std.FIELDS[F_hilite]=!0;
-const R_a_choice_set=9007193148669828; std.ENUMS[9007193148669828]="a_choice_set";
 const FULL_SIZE=9007192426333106; std.ENUMS[9007192426333106]="FULL_SIZE";
-const F_nrows=9007194105500079; std.ENUMS[9007194105500079]="nrows"; std.FIELDS[F_nrows]=!0;
-const FORMAT_RGB=9007190492816928; std.ENUMS[9007190492816928]="FORMAT_RGB";
-const F_val_list=9007192993813256; std.ENUMS[9007192993813256]="val_list"; std.FIELDS[F_val_list]=!0;
-const F_key1=9007192080821082; std.ENUMS[9007192080821082]="key1"; std.FIELDS[F_key1]=!0;
-const F_clipboard_ss=9007190154157081; std.ENUMS[9007190154157081]="clipboard_ss"; std.FIELDS[F_clipboard_ss]=!0;
-const F_selx=9007192042983600; std.ENUMS[9007192042983600]="selx"; std.FIELDS[F_selx]=!0;
-const FORMAT_BEADS=9007193714185134; std.ENUMS[9007193714185134]="FORMAT_BEADS";
-const F_action=9007192789918218; std.ENUMS[9007192789918218]="action"; std.FIELDS[F_action]=!0;
-const F_htmlchip_selx=9007190490148256; std.ENUMS[9007190490148256]="htmlchip_selx"; std.FIELDS[F_htmlchip_selx]=!0;
-const F_sounds=9007192635542244; std.ENUMS[9007192635542244]="sounds"; std.FIELDS[F_sounds]=!0;
-const FORMAT_C=9007193229773678; std.ENUMS[9007193229773678]="FORMAT_C";
-const COMPACT_SIZE=9007192111913864; std.ENUMS[9007192111913864]="COMPACT_SIZE";
-const F_netc=9007190269801736; std.ENUMS[9007190269801736]="netc"; std.FIELDS[F_netc]=!0;
-const R_a_hex_cell=9007192139196942; std.ENUMS[9007192139196942]="a_hex_cell";
+const FORMAT_HSL=9007193571181364; std.ENUMS[9007193571181364]="FORMAT_HSL";
+const F_input_field=9007192745597275; std.ENUMS[9007192745597275]="input_field"; std.FIELDS[F_input_field]=!0;
 //-------  func const for color_chart
-const d_checkbox_F = new std.a_function(_M, "d_checkbox", d_checkbox, d_checkbox_track);
-std.FUNCS[d_checkbox_F.hash]=d_checkbox_F;
-const ferr_first_ramp_1321_F = new std.a_function(_M, "ferr_first_ramp_1321", ferr_first_ramp_1321);
-std.FUNCS[ferr_first_ramp_1321_F.hash]=ferr_first_ramp_1321_F;
-const ferr_first_ramp_1323_F = new std.a_function(_M, "ferr_first_ramp_1323", ferr_first_ramp_1323);
-std.FUNCS[ferr_first_ramp_1323_F.hash]=ferr_first_ramp_1323_F;
-const d_color_name_F = new std.a_function(_M, "d_color_name", d_color_name);
-std.FUNCS[d_color_name_F.hash]=d_color_name_F;
-const build_clipboard_F = new std.a_function(_M, "build_clipboard", build_clipboard);
-std.FUNCS[build_clipboard_F.hash]=build_clipboard_F;
-const d_sound_checkbox_591_F = new std.a_function(_M, "d_sound_checkbox_591", d_sound_checkbox_591);
-std.FUNCS[d_sound_checkbox_591_F.hash]=d_sound_checkbox_591_F;
-const ferr_first_ramp_F = new std.a_function(_M, "ferr_first_ramp", ferr_first_ramp);
-std.FUNCS[ferr_first_ramp_F.hash]=ferr_first_ramp_F;
-const draw_choice_grid_F = new std.a_function(_M, "draw_choice_grid", draw_choice_grid, draw_choice_grid_track);
-std.FUNCS[draw_choice_grid_F.hash]=draw_choice_grid_F;
-const d_ferrari_palette_F = new std.a_function(_M, "d_ferrari_palette", d_ferrari_palette);
-std.FUNCS[d_ferrari_palette_F.hash]=d_ferrari_palette_F;
-const d_recent_876_F = new std.a_function(_M, "d_recent_876", d_recent_876);
-std.FUNCS[d_recent_876_F.hash]=d_recent_876_F;
-const draw_tabs2_F = new std.a_function(_M, "draw_tabs2", draw_tabs2, draw_tabs2_track);
-std.FUNCS[draw_tabs2_F.hash]=draw_tabs2_F;
-const d_sound_checkbox_F = new std.a_function(_M, "d_sound_checkbox", d_sound_checkbox, d_sound_checkbox_track);
-std.FUNCS[d_sound_checkbox_F.hash]=d_sound_checkbox_F;
-const d_bottom_col2_F = new std.a_function(_M, "d_bottom_col2", d_bottom_col2);
-std.FUNCS[d_bottom_col2_F.hash]=d_bottom_col2_F;
-const validate_color_F = new std.a_function(_M, "validate_color", validate_color);
-std.FUNCS[validate_color_F.hash]=validate_color_F;
-const d_choice_F = new std.a_function(_M, "d_choice", d_choice, d_choice_track);
-std.FUNCS[d_choice_F.hash]=d_choice_F;
-const d_recent_879_F = new std.a_function(_M, "d_recent_879", d_recent_879);
-std.FUNCS[d_recent_879_F.hash]=d_recent_879_F;
-const d_bottom_bar_F = new std.a_function(_M, "d_bottom_bar", d_bottom_bar);
-std.FUNCS[d_bottom_bar_F.hash]=d_bottom_bar_F;
-const d_html_palette_F = new std.a_function(_M, "d_html_palette", d_html_palette, d_html_palette_track);
-std.FUNCS[d_html_palette_F.hash]=d_html_palette_F;
-const d_ferrari_grid_F = new std.a_function(_M, "d_ferrari_grid", d_ferrari_grid);
-std.FUNCS[d_ferrari_grid_F.hash]=d_ferrari_grid_F;
-const d_input_box_F = new std.a_function(_M, "d_input_box", d_input_box);
-std.FUNCS[d_input_box_F.hash]=d_input_box_F;
-const d_version_F = new std.a_function(_M, "d_version", d_version, d_version_track);
-std.FUNCS[d_version_F.hash]=d_version_F;
-const d_recent_F = new std.a_function(_M, "d_recent", d_recent, d_recent_track);
-std.FUNCS[d_recent_F.hash]=d_recent_F;
-const main_draw_F = new std.a_function(_M, "main_draw", main_draw, main_draw_track);
-std.FUNCS[main_draw_F.hash]=main_draw_F;
-const d_chip_color_F = new std.a_function(_M, "d_chip_color", d_chip_color);
-std.FUNCS[d_chip_color_F.hash]=d_chip_color_F;
-const ferr_ramp_chip_F = new std.a_function(_M, "ferr_ramp_chip", ferr_ramp_chip, ferr_ramp_chip_track);
-std.FUNCS[ferr_ramp_chip_F.hash]=ferr_ramp_chip_F;
-const d_grad_designer_F = new std.a_function(_M, "d_grad_designer", d_grad_designer);
-std.FUNCS[d_grad_designer_F.hash]=d_grad_designer_F;
-const d_far_right_F = new std.a_function(_M, "d_far_right", d_far_right);
-std.FUNCS[d_far_right_F.hash]=d_far_right_F;
 const d_nearby_F = new std.a_function(_M, "d_nearby", d_nearby, d_nearby_track);
 std.FUNCS[d_nearby_F.hash]=d_nearby_F;
-const d_color_format_F = new std.a_function(_M, "d_color_format", d_color_format);
-std.FUNCS[d_color_format_F.hash]=d_color_format_F;
 const d_made_with_F = new std.a_function(_M, "d_made_with", d_made_with, d_made_with_track);
 std.FUNCS[d_made_with_F.hash]=d_made_with_F;
+const d_color_name_F = new std.a_function(_M, "d_color_name", d_color_name);
+std.FUNCS[d_color_name_F.hash]=d_color_name_F;
+const d_ferrari_palette_F = new std.a_function(_M, "d_ferrari_palette", d_ferrari_palette);
+std.FUNCS[d_ferrari_palette_F.hash]=d_ferrari_palette_F;
+const main_draw_F = new std.a_function(_M, "main_draw", main_draw, main_draw_track);
+std.FUNCS[main_draw_F.hash]=main_draw_F;
+const ferr_first_ramp_1328_F = new std.a_function(_M, "ferr_first_ramp_1328", ferr_first_ramp_1328);
+std.FUNCS[ferr_first_ramp_1328_F.hash]=ferr_first_ramp_1328_F;
+const d_choice_F = new std.a_function(_M, "d_choice", d_choice, d_choice_track);
+std.FUNCS[d_choice_F.hash]=d_choice_F;
+const d_recent_886_F = new std.a_function(_M, "d_recent_886", d_recent_886);
+std.FUNCS[d_recent_886_F.hash]=d_recent_886_F;
+const d_bottom_col2_F = new std.a_function(_M, "d_bottom_col2", d_bottom_col2);
+std.FUNCS[d_bottom_col2_F.hash]=d_bottom_col2_F;
+const d_recent_883_F = new std.a_function(_M, "d_recent_883", d_recent_883);
+std.FUNCS[d_recent_883_F.hash]=d_recent_883_F;
+const validate_color_F = new std.a_function(_M, "validate_color", validate_color);
+std.FUNCS[validate_color_F.hash]=validate_color_F;
+const d_checkbox_F = new std.a_function(_M, "d_checkbox", d_checkbox, d_checkbox_track);
+std.FUNCS[d_checkbox_F.hash]=d_checkbox_F;
+const d_input_box_F = new std.a_function(_M, "d_input_box", d_input_box);
+std.FUNCS[d_input_box_F.hash]=d_input_box_F;
+const d_far_right_F = new std.a_function(_M, "d_far_right", d_far_right);
+std.FUNCS[d_far_right_F.hash]=d_far_right_F;
+const d_ferrari_grid_F = new std.a_function(_M, "d_ferrari_grid", d_ferrari_grid);
+std.FUNCS[d_ferrari_grid_F.hash]=d_ferrari_grid_F;
+const ferr_first_ramp_1330_F = new std.a_function(_M, "ferr_first_ramp_1330", ferr_first_ramp_1330);
+std.FUNCS[ferr_first_ramp_1330_F.hash]=ferr_first_ramp_1330_F;
+const ferr_ramp_chip_F = new std.a_function(_M, "ferr_ramp_chip", ferr_ramp_chip, ferr_ramp_chip_track);
+std.FUNCS[ferr_ramp_chip_F.hash]=ferr_ramp_chip_F;
+const d_color_format_F = new std.a_function(_M, "d_color_format", d_color_format);
+std.FUNCS[d_color_format_F.hash]=d_color_format_F;
+const d_html_palette_F = new std.a_function(_M, "d_html_palette", d_html_palette, d_html_palette_track);
+std.FUNCS[d_html_palette_F.hash]=d_html_palette_F;
+const d_grad_designer_F = new std.a_function(_M, "d_grad_designer", d_grad_designer);
+std.FUNCS[d_grad_designer_F.hash]=d_grad_designer_F;
+const draw_choice_grid_F = new std.a_function(_M, "draw_choice_grid", draw_choice_grid, draw_choice_grid_track);
+std.FUNCS[draw_choice_grid_F.hash]=draw_choice_grid_F;
+const web_color_deselect_F = new std.a_function(_M, "web_color_deselect", web_color_deselect);
+std.FUNCS[web_color_deselect_F.hash]=web_color_deselect_F;
+const draw_tabs2_F = new std.a_function(_M, "draw_tabs2", draw_tabs2, draw_tabs2_track);
+std.FUNCS[draw_tabs2_F.hash]=draw_tabs2_F;
+const d_bottom_bar_F = new std.a_function(_M, "d_bottom_bar", d_bottom_bar);
+std.FUNCS[d_bottom_bar_F.hash]=d_bottom_bar_F;
+const build_clipboard_F = new std.a_function(_M, "build_clipboard", build_clipboard);
+std.FUNCS[build_clipboard_F.hash]=build_clipboard_F;
+const ferr_first_ramp_F = new std.a_function(_M, "ferr_first_ramp", ferr_first_ramp);
+std.FUNCS[ferr_first_ramp_F.hash]=ferr_first_ramp_F;
+const d_recent_F = new std.a_function(_M, "d_recent", d_recent, d_recent_track);
+std.FUNCS[d_recent_F.hash]=d_recent_F;
+const d_version_F = new std.a_function(_M, "d_version", d_version, d_version_track);
+std.FUNCS[d_version_F.hash]=d_version_F;
+const d_sound_checkbox_F = new std.a_function(_M, "d_sound_checkbox", d_sound_checkbox, d_sound_checkbox_track);
+std.FUNCS[d_sound_checkbox_F.hash]=d_sound_checkbox_F;
+const d_sound_checkbox_598_F = new std.a_function(_M, "d_sound_checkbox_598", d_sound_checkbox_598);
+std.FUNCS[d_sound_checkbox_598_F.hash]=d_sound_checkbox_598_F;
+const d_chip_color_F = new std.a_function(_M, "d_chip_color", d_chip_color);
+std.FUNCS[d_chip_color_F.hash]=d_chip_color_F;
 //-------  top nodes
 const CLICK = new std.a_sound("./art/click.mp3");
 const BEEP = new std.a_sound("./art/beep.mp3");
 const CHECKBOX_OFF = new std.a_image("./art/checkbox_off.png","CHECKBOX_OFF",true,0,0);
 const CHECKBOX_ON = new std.a_image("./art/checkbox_on.png","CHECKBOX_ON",true,0,0);
 
-const TRACE_COLORS = N;
-const TRACE_FUDGE = N;
-const TRACE_SIZING = N;
-const TRACE_PALETTE = N;
-const TRACE_ENTRY = N;
-const TRACE_TWEAK = N;
-const TRACE_TAP = N;
+const TRACE_COLORS = F;
+const TRACE_FUDGE = F;
+const TRACE_SIZING = F;
+const TRACE_PALETTE = F;
+const TRACE_ENTRY = F;
+const TRACE_TWEAK = F;
+const TRACE_TAP = F;
 const SET2 = new std.a_tree(_M,"SET2", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 170, 1, F_name, VAL, "GRAY1", std.F_color, VAL, std.GRAY1, POP, 2, F_name, VAL, "GRAY2"
 , std.F_color, VAL, std.GRAY2, POP, 3, F_name, VAL, "GRAY3", std.F_color, VAL, std.GRAY3, POP, 4, F_name, VAL, "GRAY4", std.F_color, VAL, std.GRAY4, POP, 5, F_name, VAL, "GRAY5"
 , std.F_color, VAL, std.GRAY5, POP, 6, F_name, VAL, "GRAY6", std.F_color, VAL, std.GRAY6, POP, 7, F_name, VAL, "GRAY7", std.F_color, VAL, std.GRAY7, POP, 8, F_name, VAL, "GRAY8"
@@ -194,7 +197,7 @@ const BUTT_HI_BORD = TAB_HI_BORD;
 const BUTT_HI_TEXT = TAB_HI_TEXT;
 const BUTT_HI_FILL = 0x8AC8DC;
 const A_WEB_COLOR = /^#?[0-9a-fA-F]{6}$/g;
-const FERRARI = new std.a_tree(_M,"FERRARI", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 1137, 1, VAL, 0x0, 2, VAL, 0xFFFFFF, 3, VAL, 0x290000, 4, VAL, 0x330000, 5, VAL, 
+const FERRARI = new std.a_tree(_M,"FERRARI", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 1144, 1, VAL, 0x0, 2, VAL, 0xFFFFFF, 3, VAL, 0x290000, 4, VAL, 0x330000, 5, VAL, 
 0x420000, 6, VAL, 0x560000, 7, VAL, 0x6F0001, 8, VAL, 0x8B0001, 9, VAL, 0xA70001, 10, VAL, 0xC10100, 11, VAL, 0xDB0101, 12, VAL, 0xEF0101, 13, VAL, 0xFE0101, 14, VAL, 0xFE1111
 , 15, VAL, 0xFF2626, 16, VAL, 0xFE403F, 17, VAL, 0xFE5C5C, 18, VAL, 0xFF7A7A, 19, VAL, 0xFE9999, 20, VAL, 0xFFB6B5, 21, VAL, 0xFFCFCF, 22, VAL, 0xFFE5E4, 23, VAL, 0xFFF4F4
 , 24, VAL, 0x330F00, 25, VAL, 0x401300, 26, VAL, 0x521800, 27, VAL, 0x671E01, 28, VAL, 0x802600, 29, VAL, 0x992D00, 30, VAL, 0xB23400, 31, VAL, 0xC93B01, 32, VAL, 0xDF4101
@@ -439,7 +442,7 @@ function d_checkbox(b, flag) {
 std.k_enter(b);
   var w = std.mul(b.bounds.height, 0.68);
   var r = new std.a_tree(_M,"r", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:5, width:w, height:w }));
-  std.draw_image(b, getn(flag) === Y ? CHECKBOX_ON : CHECKBOX_OFF, { box:std.adr(r) });
+  std.draw_image(b, getn(flag) === T ? CHECKBOX_ON : CHECKBOX_OFF, { box:std.adr(r) });
 std.k_leave(b);
 }
 
@@ -452,10 +455,10 @@ function d_checkbox_track(b, e, flag) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.toggle(_M, 590606, flag);
-  return Y;
+    std.toggle(_M, 650613, flag);
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -464,10 +467,10 @@ function d_checkbox_track(b, e, flag) {
 function d_chip_color(b, myslot, slotx) {
 std.k_enter(b);
   std.draw_rect(b, { fill:getn(myslot, std.F_color), corner:std.pt_to_dots(b, 3) });
-  if (getn(myslot, F_hilite) === Y) {
-    std.draw_rect(b, { color:std.FIREBRICK, thick:std.pt_to_dots(b, 4), corner:std.pt_to_dots(b, 3) });
+  if (getn(myslot, F_hilite) === T) {
+    std.draw_rect(b, { bord_color:std.FIREBRICK, bord_width:std.pt_to_dots(b, 3), corner:std.pt_to_dots(b, 3) });
   } else {
-    std.draw_rect(b, { color:std.BLACK, thick:std.pt_to_dots(b, 1), corner:std.pt_to_dots(b, 3) });
+    std.draw_rect(b, { bord_color:std.BLACK, bord_width:std.pt_to_dots(b, 1), corner:std.pt_to_dots(b, 3) });
   }
 std.k_leave(b);
 }
@@ -480,7 +483,7 @@ function d_choice(b, formx, long_label, short_label) {
 std.k_enter(b);
   var fill = std.eq2(formx, getn(g, F_format)) ? C_CHOICE_HI_BACK : C_CHOICE_LO_BACK;
   var label = std.gt2(b.bounds.width, std.pt_to_dots(b, 70)) ? long_label : short_label;
-  std.draw_rect(b, { fill:fill, thick:std.pt_to_dots(b, 1), color:C_CHOICE_BORD });
+  std.draw_rect(b, { fill:fill, bord_width:std.pt_to_dots(b, 1), bord_color:C_CHOICE_BORD });
   if (std.eq2(formx, getn(g, F_format))) {
     std.draw_str(b, "▶", { size:0.6, just:std.LEFT, color:std.MAROON });
     std.draw_str(b, label, { size:0.6, indent:std.pt_to_dots(b, 3), color:C_CHOICE_HI_TEXT });
@@ -499,18 +502,18 @@ function d_choice_track(b, e, formx, long_label, short_label) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.path_setv(_M, 280923, std.adr(g, F_format), formx);
+    std.path_setv(_M, 360930, std.adr(g, F_format), formx);
     build_clipboard();
-  return Y;
+  return T;
   } else 
   //---------------
   //   on EV_HOVER
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_HOVER) {
     std.cursor_set(std.CURS_FINGER);
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -545,9 +548,9 @@ std.k_leave(b);
 //====================
 function d_color_name(b, myslot, slotx) {
 std.k_enter(b);
-  if (getn(myslot, F_hilite) === Y) {
+  if (getn(myslot, F_hilite) === T) {
     var radius = std.div(b.bounds.height, 6);
-    std.draw_rect(b, { fill:std.MEDIUM_VIOLET_RED, corner:std.tree_lit(_M, 71110, 1, VAL, 0, 2, VAL, radius, 3, VAL, radius, 4, VAL, 0) });
+    std.draw_rect(b, { fill:std.MEDIUM_VIOLET_RED, corner:std.tree_lit(_M, 41117, 1, VAL, 0, 2, VAL, radius, 3, VAL, radius, 4, VAL, 0) });
   }
   var ss = calc_slot_str(myslot);
   if (std.eq2(getn(g, F_format), FORMAT_HTML)) {
@@ -582,12 +585,12 @@ std.k_leave(b);
 function d_ferrari_grid(b) {
 std.k_enter(b);
 std.div_begin(b, new std.a_function(_M, "d_ferrari_grid_cell", d_ferrari_grid_cell, null), true, false, false);
-  var loop896 = new std.a_loop({ reps:FERR_NCOL });
-  while (loop896.next()) {
+  var loop3 = new std.a_loop({ reps:FERR_NCOL });
+  while (loop3.next()) {
     std.div_add(b, U, 0, 10, std.al, U, U, null, 0);
   }
-  var loop897 = new std.a_loop({ reps:FERR_NROW });
-  while (loop897.next()) {
+  var loop4 = new std.a_loop({ reps:FERR_NROW });
+  while (loop4.next()) {
     std.div_add(b, U, 1, 10, std.al, U, U, null, 0);
     std.div_spa(b, 1, 3, std.px, U, U);
   }
@@ -647,9 +650,9 @@ function d_html_palette(b) {
 std.k_enter(b);
 std.div_begin(b, new std.a_function(_M, "d_html_palette_cell", d_html_palette_cell, null), true, false, false);
   std.div_spa(b, 0, 10, std.al, U, U);
-  var loop898 = new std.a_loop({ reps:NCOLS });
-  while (loop898.next()) {
-  var col = loop898.count;
+  var loop5 = new std.a_loop({ reps:NCOLS });
+  while (loop5.next()) {
+  var col = loop5.count;
     if ((std.gt2(col, 1) && std.eq2(getn(g, F_sizing), FULL_SIZE))) {
       std.div_spa(b, 0, 10, std.al, U, U);
     }
@@ -657,9 +660,9 @@ std.div_begin(b, new std.a_function(_M, "d_html_palette_cell", d_html_palette_ce
   }
   std.div_spa(b, 0, 10, std.al, U, U);
   std.div_spa(b, 1, 5, std.al, U, U);
-  var loop899 = new std.a_loop({ reps:NROWS });
-  while (loop899.next()) {
-  var row = loop899.count;
+  var loop6 = new std.a_loop({ reps:NROWS });
+  while (loop6.next()) {
+  var row = loop6.count;
     if ((std.gt2(row, 1) && std.eq2(getn(g, F_sizing), FULL_SIZE))) {
       std.div_spa(b, 1, 5, std.al, U, U);
     }
@@ -694,21 +697,21 @@ function d_html_palette_track(b, e) {
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
     if ((getn(b.extra, std.F_cell_seq) === U || std.gt2(getn(b.extra, std.F_cell_seq), NCELLS))) {
-      if (getn(g, F_sounds) === Y) {
+      if (getn(g, F_sounds) === T) {
         std.sound_play(BEEP, {});
       }
-      std.path_setv(_M, 230976, std.adr(g, F_htmlchip_selx), U);
+      std.path_setv(_M, 220983, std.adr(g, F_htmlchip_selx), U);
     } else {
       if (getn(g, F_htmlchip_selx) !== U) {
-        std.path_setv(_M, 230981, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), N);
+        std.path_setv(_M, 220988, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), F);
       }
-      std.path_setv(_M, 230982, std.adr(g, F_htmlchip_selx), getn(b.extra, std.F_cell_seq));
-      std.path_setv(_M, 230983, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), Y);
+      std.path_setv(_M, 220989, std.adr(g, F_htmlchip_selx), getn(b.extra, std.F_cell_seq));
+      std.path_setv(_M, 220990, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), T);
       var newsel = getn(slotlist, getn(g, F_htmlchip_selx), std.FOL, std.F_color);
       select_new_color(newsel);
-      std.path_setv(_M, 230989, std.adr(g, F_ferrari_selx), find_closest_ferrari(getn(g, F_sel_color)));
+      std.path_setv(_M, 220996, std.adr(g, F_ferrari_selx), find_closest_ferrari(getn(g, F_sel_color)));
     }
-  return Y;
+  return T;
   } else 
   //---------------
   //   on EV_HOVER
@@ -719,9 +722,9 @@ function d_html_palette_track(b, e) {
     } else {
       std.cursor_set(std.CURS_ARROW);
     }
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -729,7 +732,7 @@ function d_html_palette_track(b, e) {
 //====================
 function d_input_box(b) {
 std.k_enter(b);
-  std.draw_input(b, std.adr(g, F_input_field), { indent:std.pt_to_dots(b, 3), color:std.BLACK, border:std.pt_to_dots(b, 1), size:0.55, font:std.MONOSPACE, border_color:std.LIGHT_SLATE_GRAY
+  std.input_draw(b, std.adr(g, F_input_field), { indent:std.pt_to_dots(b, 3), color:std.BLACK, bord_width:std.pt_to_dots(b, 1), size:0.55, font:std.MONOSPACE, bord_color:std.LIGHT_SLATE_GRAY
   , fill:std.GHOST_WHITE, caret:std.BLACK, corner:std.pt_to_dots(b, 2) });
 std.k_leave(b);
 }
@@ -754,17 +757,17 @@ function d_made_with_track(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.browser_redirect("https://github.com/magicmouse/beads-examples/tree/master/Example%20-%20Color%20Chart", { newtab:Y });
-  return Y;
+    std.browser_redirect("https://github.com/magicmouse/beads-examples/tree/master/Example%20-%20Color%20Chart", { newtab:T });
+  return T;
   } else 
   //---------------
   //   on EV_HOVER
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_HOVER) {
     std.cursor_set(std.CURS_FINGER);
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -789,12 +792,12 @@ std.k_enter(b);
   var tcol = U;
   var trow = U;
   var theta = null;
-  std.copy_tree(_M, 600669, std.solve_point({ basis:std.adr(b.extra, std.F_box), pin:std.MID_CENTER }), std.adr(HEX_CENTER));
-  std.trunc_tree(_M, 600671, std.adr(tweak_map));
-  var loop900 = new std.a_loop({ from:std.negate(NV), to_:NV });
-  while (loop900.next()) {
-  var row = loop900.index;
-    if (std.is_odd(row) === Y) {
+  std.copy_tree(_M, 10676, std.solve_point({ basis:std.adr(b.extra, std.F_box), pin:std.MID_CENTER }), std.adr(HEX_CENTER));
+  std.trunc_tree(_M, 10678, std.adr(tweak_map));
+  var loop7 = new std.a_loop({ from:std.negate(NV), to_:NV });
+  while (loop7.next()) {
+  var row = loop7.index;
+    if (std.is_odd(row) === T) {
       lo = std.negate(std.sub(NH, 1));
       offsetx = std.negate(HEX_HALF_H);
       offsetcell = -1;
@@ -803,9 +806,9 @@ std.k_enter(b);
       offsetx = 0;
       offsetcell = 0;
     }
-    var loop901 = new std.a_loop({ from:lo, to_:NH });
-    while (loop901.next()) {
-    var col = loop901.index;
+    var loop8 = new std.a_loop({ from:lo, to_:NH });
+    while (loop8.next()) {
+    var col = loop8.index;
       cx = std.add(std.mul(col, HEX_H), offsetx);
       cy = std.mul(row, ROW_SPACING);
       theta = std.arc_tan2(std.negate(cy), cx);
@@ -814,7 +817,7 @@ std.k_enter(b);
       tcol = std.add(std.mul(col, 2), offsetcell);
       trow = std.negate(row);
       c = tweak_color(getn(g, F_sel_color), theta, tcol, trow);
-      std.append_tree(_M, 600700, std.tree_lit(_M, 600700, std.F_x, VAL, cx, std.F_y, VAL, cy, F_netc, VAL, c), std.adr(tweak_map));
+      std.append_tree(_M, 10707, std.tree_lit(_M, 10707, std.F_x, VAL, cx, std.F_y, VAL, cy, F_netc, VAL, c), std.adr(tweak_map));
       draw_hexagon(b, tcol, trow, cx, cy, c);
     }
   }
@@ -836,9 +839,9 @@ function d_nearby_track(b, e) {
     var dx = U;
     var dy = U;
     var best_color = U;
-    var loop902 = new std.a_loop({ across:std.adr(tweak_map) });
-    while (loop902.next()) {
-    tweakp = loop902.path.clone();
+    var loop9 = new std.a_loop({ across:std.adr(tweak_map) });
+    while (loop9.next()) {
+    tweakp = loop9.path.clone();
       dx = std.sub(getn(e, std.F_x), getn(tweakp, std.F_x));
       dy = std.sub(getn(e, std.F_y), getn(tweakp, std.F_y));
       distance = std.add(std.mul(dx, dx), std.mul(dy, dy));
@@ -848,10 +851,10 @@ function d_nearby_track(b, e) {
       }
     }
     select_new_color(best_color);
-    std.path_setv(_M, 260726, std.adr(g, F_ferrari_selx), find_closest_ferrari(getn(g, F_sel_color)));
-  return Y;
+    std.path_setv(_M, 50733, std.adr(g, F_ferrari_selx), find_closest_ferrari(getn(g, F_sel_color)));
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -860,9 +863,9 @@ function d_nearby_track(b, e) {
 function d_recent(b, label, clr) {
 std.k_enter(b);
 std.div_begin(b, null, false, false, false);
-  std.div_add(b, U, 0, 14, std.al, U, U, std.freeze(d_recent_876_F, [label, clr]), 0);
+  std.div_add(b, U, 0, 14, std.al, U, U, std.freeze(d_recent_883_F, [label, clr]), 0);
   std.div_spa(b, 0, 2, std.pt, U, U);
-  std.div_add(b, U, 0, 20, std.al, U, U, std.freeze(d_recent_879_F, [label, clr]), 0);
+  std.div_add(b, U, 0, 20, std.al, U, U, std.freeze(d_recent_886_F, [label, clr]), 0);
   std.div_end(b);
   std.draw_slices(b);
 std.k_leave(b);
@@ -878,9 +881,9 @@ function d_recent_track(b, e, label, clr) {
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
     select_new_color(clr);
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -892,7 +895,7 @@ std.div_begin(b, null, false, false, false);
   std.div_spa(b, 0, 12, std.pt, U, U);
   std.div_add(b, U, 0, 24, std.pt, U, U, std.freeze(d_checkbox_F, [std.adr(g, F_sounds)]), 0);
   std.div_spa(b, 0, 1, std.pt, U, U);
-  std.div_add(b, U, 0, 10, std.al, U, U, d_sound_checkbox_591_F, 0);
+  std.div_add(b, U, 0, 10, std.al, U, U, d_sound_checkbox_598_F, 0);
   std.div_end(b);
   std.draw_slices(b);
 std.k_leave(b);
@@ -907,10 +910,10 @@ function d_sound_checkbox_track(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.toggle(_M, 520594, std.adr(g, F_sounds));
-  return Y;
+    std.toggle(_M, 440601, std.adr(g, F_sounds));
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -918,7 +921,7 @@ function d_sound_checkbox_track(b, e) {
 //====================
 function d_version(b) {
 std.k_enter(b);
-  if (getn(g, F_show_dpi) === Y) {
+  if (getn(g, F_show_dpi) === T) {
     std.draw_str(b, std.cat("dpi ", str.to_str(getn(std.runtime, std.F_screen_dpi), {dig:2})), { size:std.pt_to_dots(b, 12), color:C_TEXT, just:std.RIGHT, vert:0.85 });
   } else {
     std.draw_str(b, std.cat("version ", gets(std.runtime, std.F_app_version)), { size:std.pt_to_dots(b, 12), color:C_TEXT, just:std.RIGHT, vert:0.85 });
@@ -935,10 +938,10 @@ function d_version_track(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.toggle(_M, 310581, std.adr(g, F_show_dpi));
-  return Y;
+    std.toggle(_M, 560588, std.adr(g, F_show_dpi));
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -950,12 +953,12 @@ std.div_begin(b, new std.a_function(_M, "draw_choice_grid_cell", draw_choice_gri
   GRID_NPARTS = std.count(std.adr(o, F_label_list));
   GRID_NROWS = getn(o, F_nrows) !== U ? getn(o, F_nrows) : 1;
   GRID_NCOLS = std.div(GRID_NPARTS, GRID_NROWS);
-  var loop903 = new std.a_loop({ reps:GRID_NCOLS });
-  while (loop903.next()) {
+  var loop10 = new std.a_loop({ reps:GRID_NCOLS });
+  while (loop10.next()) {
     std.div_add(b, U, 0, 12, std.al, U, U, null, 0);
   }
-  var loop904 = new std.a_loop({ reps:GRID_NROWS });
-  while (loop904.next()) {
+  var loop11 = new std.a_loop({ reps:GRID_NROWS });
+  while (loop11.next()) {
     std.div_add(b, U, 1, 12, std.al, U, U, null, 0);
   }
   std.div_end(b);
@@ -971,7 +974,7 @@ function draw_choice_grid_cell(b, o, textsize) {
   std.k_enter(b);
   const CHOICE_CORNER = 4;
   const BUTT_THICK = 1.5;
-  var opacity = getn(o, F_enabled) === N ? DIMMED : 1;
+  var opacity = getn(o, F_enabled) === F ? DIMMED : 1;
   var back = U;
   var bord = U;
   var text = U;
@@ -1004,8 +1007,8 @@ function draw_choice_grid_cell(b, o, textsize) {
       br = std.pt_to_dots(b, CHOICE_CORNER);
     }
   }
-  std.draw_rect(b, { fill:back, color:bord, thick:std.pt_to_dots(b, BUTT_THICK), pos:0, corner:std.tree_lit(_M, 120349, 1, VAL, tl, 2, VAL, tr, 3, VAL, bl, 4, VAL, br), opacity
-  :opacity });
+  std.draw_rect(b, { fill:back, bord_color:bord, bord_width:std.pt_to_dots(b, BUTT_THICK), bord_pos:0, corner:std.tree_lit(_M, 390349, 1, VAL, tl, 2, VAL, tr, 3, VAL, bl, 4, VAL, 
+  br), opacity:opacity });
   var f = std.get_func(o, F_label_func, getn(b.extra, std.F_cell_seq));
   if (f !== null) {
     f.code(b, std.adr(b.extra, std.F_box));
@@ -1027,9 +1030,9 @@ function draw_choice_grid_track(b, e, o, textsize) {
     if (std.get_func(o, F_choice_func) !== null) {
       std.get_func(o, F_choice_func).code();
     }
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -1042,14 +1045,14 @@ std.k_enter(b);
   const HALF_H = std.mul(HEX_HALF_H, COVERAGE);
   const HALF_V = std.mul(HEX_HALF_V, COVERAGE);
   const HAT_V = std.mul(HEX_HAT_V, COVERAGE);
-  std.copy_tree(_M, 540744, std.tree_lit(_M, 540744, std.F_x, VAL, std.sub(cx, HALF_H), std.F_y, VAL, std.sub(cy, HALF_V)), std.adr(steps, 1));
-  std.copy_tree(_M, 540745, std.tree_lit(_M, 540745, std.F_x, VAL, cx, std.F_y, VAL, std.sub(std.sub(cy, HALF_V), HAT_V)), std.adr(steps, 2));
-  std.copy_tree(_M, 540746, std.tree_lit(_M, 540746, std.F_x, VAL, std.add(cx, HALF_H), std.F_y, VAL, std.sub(cy, HALF_V)), std.adr(steps, 3));
-  std.copy_tree(_M, 540747, std.tree_lit(_M, 540747, std.F_x, VAL, std.add(cx, HALF_H), std.F_y, VAL, std.add(cy, HALF_V)), std.adr(steps, 4));
-  std.copy_tree(_M, 540748, std.tree_lit(_M, 540748, std.F_x, VAL, cx, std.F_y, VAL, std.add(std.add(cy, HALF_V), HAT_V)), std.adr(steps, 5));
-  std.copy_tree(_M, 540749, std.tree_lit(_M, 540749, std.F_x, VAL, std.sub(cx, HALF_H), std.F_y, VAL, std.add(cy, HALF_V)), std.adr(steps, 6));
+  std.copy_tree(_M, 490751, std.tree_lit(_M, 490751, std.F_x, VAL, std.sub(cx, HALF_H), std.F_y, VAL, std.sub(cy, HALF_V)), std.adr(steps, 1));
+  std.copy_tree(_M, 490752, std.tree_lit(_M, 490752, std.F_x, VAL, cx, std.F_y, VAL, std.sub(std.sub(cy, HALF_V), HAT_V)), std.adr(steps, 2));
+  std.copy_tree(_M, 490753, std.tree_lit(_M, 490753, std.F_x, VAL, std.add(cx, HALF_H), std.F_y, VAL, std.sub(cy, HALF_V)), std.adr(steps, 3));
+  std.copy_tree(_M, 490754, std.tree_lit(_M, 490754, std.F_x, VAL, std.add(cx, HALF_H), std.F_y, VAL, std.add(cy, HALF_V)), std.adr(steps, 4));
+  std.copy_tree(_M, 490755, std.tree_lit(_M, 490755, std.F_x, VAL, cx, std.F_y, VAL, std.add(std.add(cy, HALF_V), HAT_V)), std.adr(steps, 5));
+  std.copy_tree(_M, 490756, std.tree_lit(_M, 490756, std.F_x, VAL, std.sub(cx, HALF_H), std.F_y, VAL, std.add(cy, HALF_V)), std.adr(steps, 6));
   var thick = (std.eq2(col, 0) && std.eq2(row, 0)) ? std.pt_to_dots(b, 2) : 0;
-  std.draw_polygon(b, std.adr(steps), { fill:clr, color:std.CRIMSON, thick:thick });
+  std.draw_polygon(b, std.adr(steps), { fill:clr, bord_color:std.CRIMSON, bord_width:thick });
 std.k_leave(b);
 }
 
@@ -1063,9 +1066,9 @@ std.div_begin(b, null, false, false, false);
   const tabw = std.div(std.sub(100, deadspace), std.count(tabs));
   const skip_per_side = std.div(deadspace, 2);
   std.div_spa(b, 0, skip_per_side, std.al, U, U);
-  var loop905 = new std.a_loop({ across:std.adr(tabs, F_label_list) });
-  while (loop905.next()) {
-  var ix = loop905.index;
+  var loop12 = new std.a_loop({ across:std.adr(tabs, F_label_list) });
+  while (loop12.next()) {
+  var ix = loop12.index;
     std.div_add(b, U, 0, tabw, std.al, U, U, std.freeze(draw_tabs2_F, [tabs, ix]), 0);
   }
   std.div_spa(b, 0, skip_per_side, std.al, U, U);
@@ -1094,7 +1097,7 @@ std.k_enter(b);
     bord = TAB_LO_BORD;
     text = TAB_LO_TEXT;
   }
-  std.draw_rect(b, { fill:back, color:bord, thick:std.pt_to_dots(b, TAB_BORD), corner:std.tree_lit(_M, 190401, 1, VAL, std.pt_to_dots(b, TAB_CORNER), 2, VAL, std.pt_to_dots(
+  std.draw_rect(b, { fill:back, bord_color:bord, bord_width:std.pt_to_dots(b, TAB_BORD), corner:std.tree_lit(_M, 410401, 1, VAL, std.pt_to_dots(b, TAB_CORNER), 2, VAL, std.pt_to_dots(
   b, TAB_CORNER)) });
   std.draw_str(b, gets(tabs, F_label_list, ix), { indent:std.pt_to_dots(b, 1.5), size:0.6, color:text });
 std.k_leave(b);
@@ -1110,14 +1113,14 @@ function draw_tabs2_track(b, e, tabs, ix) {
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
     if (std.ne2(ix, getn(tabs, F_selx))) {
-      std.path_setv(_M, 390407, std.adr(tabs, F_selx), ix);
+      std.path_setv(_M, 550407, std.adr(tabs, F_selx), ix);
       if (std.get_func(tabs, F_action) !== null) {
         std.get_func(tabs, F_action).code();
       }
     }
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -1126,8 +1129,8 @@ function draw_tabs2_track(b, e, tabs, ix) {
 function ferr_first_ramp(b) {
 std.k_enter(b);
 std.div_begin(b, null, false, false, false);
-  std.div_add(b, U, 0, 10, std.al, U, U, ferr_first_ramp_1321_F, 0);
-  std.div_add(b, U, 0, 10, std.al, U, U, ferr_first_ramp_1323_F, 0);
+  std.div_add(b, U, 0, 10, std.al, U, U, ferr_first_ramp_1328_F, 0);
+  std.div_add(b, U, 0, 10, std.al, U, U, ferr_first_ramp_1330_F, 0);
   std.div_end(b);
   std.draw_slices(b);
 std.k_leave(b);
@@ -1139,8 +1142,8 @@ std.k_leave(b);
 //====================
 function ferr_hilite_chip(b, box) {
 std.k_enter(b);
-  std.draw_rect(b, { thick:4, pos:0, color:std.BLACK });
-  std.draw_rect(b, { thick:2, pos:0, color:std.RED });
+  std.draw_rect(b, { bord_width:4, bord_pos:0, bord_color:std.BLACK });
+  std.draw_rect(b, { bord_width:2, bord_pos:0, bord_color:std.RED });
 std.k_leave(b);
 }
 
@@ -1151,9 +1154,9 @@ std.k_leave(b);
 function ferr_ramp(b, rampx) {
 std.k_enter(b);
 std.div_begin(b, null, false, false, false);
-  var loop906 = new std.a_loop({ reps:CHIPS_PER_RAMP });
-  while (loop906.next()) {
-  var chipx = loop906.count;
+  var loop13 = new std.a_loop({ reps:CHIPS_PER_RAMP });
+  while (loop13.next()) {
+  var chipx = loop13.count;
     var colorx = std.add(std.add(2, std.mul(std.sub(rampx, 2), CHIPS_PER_RAMP)), chipx);
     std.div_add(b, U, 0, 10, std.al, U, U, std.freeze(ferr_ramp_chip_F, [colorx]), 0);
   }
@@ -1184,15 +1187,12 @@ function ferr_ramp_chip_track(b, e, colorx) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.path_setv(_M, 431345, std.adr(g, F_ferrari_selx), colorx);
-    if (getn(g, F_htmlchip_selx) !== U) {
-      std.path_setv(_M, 431349, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), N);
-      std.path_setv(_M, 431350, std.adr(g, F_htmlchip_selx), U);
-    }
+    std.path_setv(_M, 311352, std.adr(g, F_ferrari_selx), colorx);
+    web_color_deselect();
     select_new_color(getn(FERRARI, colorx));
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -1203,14 +1203,14 @@ std.k_enter(b);
 std.div_begin(b, null, false, false, false);
   std.k_back(b, {fill:C_DEAD});
   std.div_spa(b, 1, 6, std.pt, U, U);
-  var case907 = getn(g, F_mode_grid, F_selx);
-  if (case907 === MODE_COLORS) {
+  var case14 = getn(g, F_mode_grid, F_selx);
+  if (case14 === MODE_COLORS) {
     if (std.gt2(b.bounds.height, std.pt_to_dots(b, 320))) {
       std.div_add(b, U, 1, 16, std.al, U, U, d_html_palette_F, 0);
       std.div_spa(b, 1, 6, std.pt, U, U);
     }
     std.div_add(b, U, 1, 10, std.al, U, U, d_ferrari_palette_F, 0);
-  } else if (case907 === MODE_GRADS) {
+  } else if (case14 === MODE_GRADS) {
     std.div_add(b, U, 1, 10, std.al, U, U, d_grad_designer_F, 0);
   }
   std.div_spa(b, 1, 6, std.pt, U, U);
@@ -1234,19 +1234,19 @@ export function main_draw_track(b, e) {
     var v_pts = std.dots_to_pt(b, std.sub(b.bounds.height, BARV));
     var area = std.mul(h_pts, v_pts);
     if (std.ge2(area, AREA_THRESHOLD)) {
-      std.path_setv(_M, 320530, std.adr(g, F_sizing), FULL_SIZE);
+      std.path_setv(_M, 380537, std.adr(g, F_sizing), FULL_SIZE);
       NCOLS = std.round_down(std.div(h_pts, TARG_WIDTH), {});
     } else {
-      std.path_setv(_M, 320534, std.adr(g, F_sizing), COMPACT_SIZE);
+      std.path_setv(_M, 380541, std.adr(g, F_sizing), COMPACT_SIZE);
       var cell_area = std.round_down(std.div(area, NCELLS), {});
       var cell_height = std.sqrt(std.div(cell_area, 3));
       var cell_width = std.div(cell_area, cell_height);
       NCOLS = std.round(std.div(h_pts, cell_width), {});
     }
     NROWS = std.round_up(std.div(NCELLS, NCOLS), {});
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -1256,10 +1256,10 @@ function beads_to_html(beadsname) {
   var result = "";
   var words = new std.a_tree(_M,"words", 0);
   var word = null;
-  str.split_words(_M, 131485, str.to_lower(beadsname), std.adr(words), { delim:"_" });
-  var loop908 = new std.a_loop({ across:std.adr(words) });
-  while (loop908.next()) {
-  word = loop908.val;
+  str.split_words(_M, 211495, str.to_lower(beadsname), std.adr(words), { delim:"_" });
+  var loop15 = new std.a_loop({ across:std.adr(words) });
+  while (loop15.next()) {
+  word = loop15.val;
     result = std.cat(result, str.to_upper(str.subset(word, {from:1, len:1})), str.subset(word, { from:2 }));
   }
   return result;
@@ -1273,36 +1273,36 @@ function build_clipboard() {
   var beads_name = null;
   var ss = null;
   var newcolor = getn(g, F_sel_color);
-  var case909 = getn(g, F_format);
-  if (case909 === FORMAT_BEADS) {
+  var case16 = getn(g, F_format);
+  if (case16 === FORMAT_BEADS) {
     beads_name = find_exact_beads(newcolor);
     if (beads_name === null) {
       ss = str.color_to_hex(newcolor);
     } else {
       ss = beads_name;
     }
-  } else if (case909 === FORMAT_HTML) {
+  } else if (case16 === FORMAT_HTML) {
     beads_name = find_exact_beads(newcolor);
     if (beads_name === null) {
       ss = str.color_to_hex(newcolor);
     } else {
       ss = beads_to_html(beads_name);
     }
-  } else if (case909 === FORMAT_HEX) {
+  } else if (case16 === FORMAT_HEX) {
     ss = str.subset(str.color_to_hex(newcolor), { from:2 });
-  } else if (case909 === FORMAT_C) {
+  } else if (case16 === FORMAT_C) {
     ss = std.cat("0x", str.subset(str.color_to_hex(newcolor), { from:2 }));
-  } else if (case909 === FORMAT_RGB) {
+  } else if (case16 === FORMAT_RGB) {
     ss = to_rgb_str(newcolor);
-  } else if (case909 === FORMAT_HSL) {
+  } else if (case16 === FORMAT_HSL) {
     ss = to_hsl_str(newcolor);
-  } else if (case909 === FORMAT_VEC3) {
+  } else if (case16 === FORMAT_VEC3) {
     ss = to_vec3_str(newcolor);
   }
-  std.path_setv(_M, 81072, std.adr(g, F_clipboard_ss), ss);
+  std.path_setv(_M, 511079, std.adr(g, F_clipboard_ss), ss);
   std.os_clipboard_copy(ss);
-  std.input_set_value(_M, 81076, std.adr(g, F_input_field), ss);
-  std.path_setv(_M, 81077, std.adr(g, F_input_field, std.F_in_ok), Y);
+  std.input_set_value(_M, 511083, std.adr(g, F_input_field), ss);
+  std.path_setv(_M, 511084, std.adr(g, F_input_field, std.F_in_ok), T);
 }
 
 
@@ -1310,8 +1310,8 @@ function build_clipboard() {
 //   calc_slot_str
 //====================
 function calc_slot_str(slot) {
-  var case910 = getn(g, F_format);
-  if (case910 === FORMAT_HTML) {
+  var case17 = getn(g, F_format);
+  if (case17 === FORMAT_HTML) {
     return beads_to_html(gets(slot, F_name));
   } else {
     return gets(slot, F_name);
@@ -1336,9 +1336,9 @@ function choice_get_selx(c) {
 //====================
 function choice_set_selx(c, newval) {
   if (std.get_ptr(c, F_selx_ptr) !== null) {
-    std.path_setv(_M, 140286, std.adr(c, F_selx_ptr, std.FOL), newval);
+    std.path_setv(_M, 340286, std.adr(c, F_selx_ptr, std.FOL), newval);
   } else {
-    std.path_setv(_M, 140289, std.adr(c, F_selx), newval);
+    std.path_setv(_M, 340289, std.adr(c, F_selx), newval);
   }
 }
 
@@ -1347,12 +1347,12 @@ function choice_set_selx(c, newval) {
 //   color_difference
 //====================
 function color_difference(c1, c2) {
-  var r1 = std.r255(c1);
-  var g1 = std.g255(c1);
-  var b1 = std.b255(c1);
-  var r2 = std.r255(c2);
-  var g2 = std.g255(c2);
-  var b2 = std.b255(c2);
+  var r1 = std.pix_r(c1);
+  var g1 = std.pix_g(c1);
+  var b1 = std.pix_b(c1);
+  var r2 = std.pix_r(c2);
+  var g2 = std.pix_g(c2);
+  var b2 = std.pix_b(c2);
   var dr = std.sub(r1, r2);
   var dg = std.sub(g1, g2);
   var db = std.sub(b1, b2);
@@ -1400,24 +1400,24 @@ function compare_slots(a, b) {
 //   ferr_closest_chip
 //====================
 function ferr_closest_chip(targcolor) {
-  var targ_r = std.r255(targcolor);
-  var targ_g = std.g255(targcolor);
-  var targ_b = std.b255(targcolor);
+  var targ_r = std.pix_r(targcolor);
+  var targ_g = std.pix_g(targcolor);
+  var targ_b = std.pix_b(targcolor);
   var dx = U;
   var badness = U;
   var lowest = U;
   var lowestx = U;
   var testcolor = U;
   lowest = std.INFINITY;
-  var loop911 = new std.a_loop({ across:std.adr(FERRARI) });
-  while (loop911.next()) {
-  var ix = loop911.index;
-  testcolor = loop911.val;
-    dx = std.sub(targ_r, std.r255(testcolor));
+  var loop18 = new std.a_loop({ across:std.adr(FERRARI) });
+  while (loop18.next()) {
+  var ix = loop18.index;
+  testcolor = loop18.val;
+    dx = std.sub(targ_r, std.pix_r(testcolor));
     badness = std.mul(dx, dx);
-    dx = std.sub(targ_g, std.g255(testcolor));
+    dx = std.sub(targ_g, std.pix_g(testcolor));
     badness = std.add(badness, std.mul(dx, dx));
-    dx = std.sub(targ_b, std.b255(testcolor));
+    dx = std.sub(targ_b, std.pix_b(testcolor));
     badness = std.add(badness, std.mul(dx, dx));
     if (std.eq2(badness, 0)) {
       return ix;
@@ -1439,10 +1439,10 @@ function find_closest_ferrari(targ) {
   var best_score = std.INFINITY;
   var score = U;
   var c = U;
-  var loop912 = new std.a_loop({ across:std.adr(FERRARI) });
-  while (loop912.next()) {
-  var ix = loop912.index;
-  c = loop912.val;
+  var loop19 = new std.a_loop({ across:std.adr(FERRARI) });
+  while (loop19.next()) {
+  var ix = loop19.index;
+  c = loop19.val;
     score = color_difference(targ, c);
     if (std.lt2(score, best_score)) {
       best_score = score;
@@ -1458,9 +1458,9 @@ function find_closest_ferrari(targ) {
 //====================
 function find_exact_beads(targ) {
   var p = null;
-  var loop913 = new std.a_loop({ across:std.adr(slotlist) });
-  while (loop913.next()) {
-  p = loop913.val;
+  var loop20 = new std.a_loop({ across:std.adr(slotlist) });
+  while (loop20.next()) {
+  p = loop20.val;
     if (std.eq2(getn(p, std.F_color), targ)) {
       return gets(p, F_name);
     }
@@ -1474,58 +1474,58 @@ function find_exact_beads(targ) {
 //====================
 export function main_init() {
   var hsv = new std.a_tree(_M,"hsv", 0);
-  var loop914 = new std.a_loop({ across:std.adr(SET1) });
-  while (loop914.next()) {
-  var ix = loop914.index;
-  var p = loop914.path.clone();
-    std.copy_tree(_M, 110421, std.color_to_hsv(getn(p, std.F_color)), std.adr(hsv));
+  var loop21 = new std.a_loop({ across:std.adr(SET1) });
+  while (loop21.next()) {
+  var ix = loop21.index;
+  var p = loop21.path.clone();
+    std.copy_tree(_M, 330421, std.color_to_hsv(getn(p, std.F_color)), std.adr(hsv));
     var hue2 = std.mod(std.add(getn(hsv, std.F_hsv_h), hue_fudge), 360, {});
     if (std.le2(getn(hsv, std.F_hsv_s), 10)) {
-      std.path_setv(_M, 110429, std.adr(p, F_key1), 90);
-      std.path_setv(_M, 110430, std.adr(p, F_key2), hue2);
-      std.path_setv(_M, 110431, std.adr(p, F_key3), getn(hsv, std.F_hsv_v));
+      std.path_setv(_M, 330429, std.adr(p, F_key1), 90);
+      std.path_setv(_M, 330430, std.adr(p, F_key2), hue2);
+      std.path_setv(_M, 330431, std.adr(p, F_key3), getn(hsv, std.F_hsv_v));
     } else if (std.ge2(getn(hsv, std.F_hsv_s), 90)) {
-      std.path_setv(_M, 110433, std.adr(p, F_key1), 10);
-      std.path_setv(_M, 110434, std.adr(p, F_key2), hue2);
-      std.path_setv(_M, 110435, std.adr(p, F_key3), getn(hsv, std.F_hsv_v));
+      std.path_setv(_M, 330433, std.adr(p, F_key1), 10);
+      std.path_setv(_M, 330434, std.adr(p, F_key2), hue2);
+      std.path_setv(_M, 330435, std.adr(p, F_key3), getn(hsv, std.F_hsv_v));
     } else {
-      std.path_setv(_M, 110438, std.adr(p, F_key1), 50);
-      std.path_setv(_M, 110439, std.adr(p, F_key2), hue2);
-      std.path_setv(_M, 110440, std.adr(p, F_key3), getn(hsv, std.F_hsv_s));
+      std.path_setv(_M, 330438, std.adr(p, F_key1), 50);
+      std.path_setv(_M, 330439, std.adr(p, F_key2), hue2);
+      std.path_setv(_M, 330440, std.adr(p, F_key3), getn(hsv, std.F_hsv_s));
     }
   }
-  var loop915 = new std.a_loop({ across:std.adr(SET1), sort_mode:5, sort_func:compare_slots });
-  while (loop915.next()) {
-  var cx = loop915.count;
-  var ix = loop915.index;
-  var p = loop915.path.clone();
-    std.append_val(_M, 110447, p, std.adr(slotlist));
+  var loop22 = new std.a_loop({ across:std.adr(SET1), sort_mode:5, sort_func:compare_slots });
+  while (loop22.next()) {
+  var cx = loop22.count;
+  var ix = loop22.index;
+  var p = loop22.path.clone();
+    std.append_val(_M, 330447, p, std.adr(slotlist));
   }
-  var loop916 = new std.a_loop({ across:std.adr(SET2) });
-  while (loop916.next()) {
-  var p = loop916.path.clone();
-    std.append_val(_M, 110452, p, std.adr(slotlist));
+  var loop23 = new std.a_loop({ across:std.adr(SET2) });
+  while (loop23.next()) {
+  var p = loop23.path.clone();
+    std.append_val(_M, 330452, p, std.adr(slotlist));
   }
-  if (TRACE_COLORS === Y) {
+  if (TRACE_COLORS === T) {
     log(lgp("----- after sort ------"));
-    var loop917 = new std.a_loop({ across:std.adr(slotlist) });
-    while (loop917.next()) {
-    var ix = loop917.index;
-    var p = loop917.val;
+    var loop24 = new std.a_loop({ across:std.adr(slotlist) });
+    while (loop24.next()) {
+    var ix = loop24.index;
+    var p = loop24.val;
       log(lgp(std.cat("", str.to_str(ix, {dig:2}), ": ", gets(p, F_name), ", keys=[", str.to_str(getn(p, F_key1), {dig:2}), ",", str.to_str(getn(p, F_key2), {dig:2}), ",", str.to_str(
       getn(p, F_key3), {dig:2}), "], color=", str.color_to_hex(getn(p, std.F_color)))));
     }
   }
-  std.path_setv(_M, 110459, std.adr(g, F_mode_grid, F_selx), MODE_COLORS);
-  std.copy_tree(_M, 110460, std.tree_lit(_M, 110460, 1, VAL, "Colors", 2, VAL, "Gradients"), std.adr(g, F_mode_grid, F_label_list));
-  std.path_setv(_M, 110463, std.adr(g, F_input_field, std.F_in_label), "ColorName");
-  std.path_setv(_M, 110464, std.adr(g, F_input_field, std.F_in_name), "ColorName");
-  std.path_setv(_M, 110465, std.adr(g, F_input_field, std.F_in_validator), validate_color_F);
-  std.input_start(_M, 110466, std.adr(g, F_input_field));
-  std.path_setv(_M, 110468, std.adr(g, F_sounds), Y);
-  std.path_setv(_M, 110469, std.adr(g, F_format), FORMAT_BEADS);
+  std.path_setv(_M, 330459, std.adr(g, F_mode_grid, F_selx), MODE_COLORS);
+  std.copy_tree(_M, 330460, std.tree_lit(_M, 330460, 1, VAL, "Colors", 2, VAL, "Gradients"), std.adr(g, F_mode_grid, F_label_list));
+  std.path_setv(_M, 330463, std.adr(g, F_input_field, std.F_in_label), "ColorName");
+  std.path_setv(_M, 330464, std.adr(g, F_input_field, std.F_in_name), "ColorName");
+  std.path_setv(_M, 330465, std.adr(g, F_input_field, std.F_in_validator), validate_color_F);
+  std.input_start(_M, 330466, std.adr(g, F_input_field));
+  std.path_setv(_M, 330468, std.adr(g, F_sounds), T);
+  std.path_setv(_M, 330469, std.adr(g, F_format), FORMAT_BEADS);
   NCELLS = std.count(std.adr(slotlist));
-  std.path_setv(_M, 110471, std.adr(g, F_show_dpi), N);
+  std.path_setv(_M, 330471, std.adr(g, F_show_dpi), F);
   select_new_color(std.CORNFLOWER_BLUE);
 }
 
@@ -1534,15 +1534,15 @@ export function main_init() {
 //   select_new_color
 //====================
 function select_new_color(newcolor) {
-  if (getn(g, F_sounds) === Y) {
+  if (getn(g, F_sounds) === T) {
     std.sound_play(CLICK, {});
   }
   if (std.eq2(newcolor, getn(g, F_sel_color))) {
     return;
   }
-  std.path_setv(_M, 301022, std.adr(g, F_prior2_color), getn(g, F_prior_color));
-  std.path_setv(_M, 301023, std.adr(g, F_prior_color), getn(g, F_sel_color));
-  std.path_setv(_M, 301024, std.adr(g, F_sel_color), newcolor);
+  std.path_setv(_M, 461029, std.adr(g, F_prior2_color), getn(g, F_prior_color));
+  std.path_setv(_M, 461030, std.adr(g, F_prior_color), getn(g, F_sel_color));
+  std.path_setv(_M, 461031, std.adr(g, F_sel_color), newcolor);
   build_clipboard();
 }
 
@@ -1561,7 +1561,7 @@ function to_hsl_str(color) {
 //   to_rgb_str
 //====================
 function to_rgb_str(color) {
-  return std.cat("rgb(", str.to_str(std.r255(color), {dig:2}), ",", str.to_str(std.g255(color), {dig:2}), ",", str.to_str(std.b255(color), {dig:2}), ")");
+  return std.cat("rgb(", str.to_str(std.pix_r(color), {dig:2}), ",", str.to_str(std.pix_g(color), {dig:2}), ",", str.to_str(std.pix_b(color), {dig:2}), ")");
 }
 
 
@@ -1570,7 +1570,7 @@ function to_rgb_str(color) {
 //====================
 function to_vec3_str(color) {
   var hsl = new std.a_tree(_M,"hsl", 0, std.color_to_hsl(color));
-  return std.cat("vec3(", v3(std.r1(color)), ",", v3(std.g1(color)), ",", v3(std.b1(color)), ")");
+  return std.cat("vec3(", v3(std.pix_r1(color)), ",", v3(std.pix_g1(color)), ",", v3(std.pix_b1(color)), ")");
 }
 
 
@@ -1626,9 +1626,9 @@ function tweak_color(base, theta, dx, dy) {
     gamma = dy;
     alpha = std.sub(adx, ady);
   }
-  var r = std.r255(base);
-  var g = std.g255(base);
-  var b = std.b255(base);
+  var r = std.pix_r(base);
+  var g = std.pix_g(base);
+  var b = std.pix_b(base);
   const SCALE = 6;
   r = std.add(r, std.mul(2, alpha));
   g = std.add(g, std.mul(SCALE, beta));
@@ -1658,20 +1658,33 @@ function validate_color(field) {
   var list = new std.a_tree(_M,"list", 0);
   var newcolor = U;
   var ss = gets(field, std.F_in_value);
-  str.str_find(_M, 240489, ss, A_WEB_COLOR, std.adr(list), {});
+  str.str_find(_M, 180489, ss, A_WEB_COLOR, std.adr(list), {});
   if (std.gt2(std.count(std.adr(list)), 0)) {
     newcolor = str.hex_to_color(ss);
     select_new_color(newcolor);
-    return Y;
+    web_color_deselect();
+    std.path_setv(_M, 180499, std.adr(g, F_ferrari_selx), find_closest_ferrari(getn(g, F_sel_color)));
+    return T;
   }
-  return N;
+  return F;
 }
 
 
 //====================
-//   d_recent_876
+//   web_color_deselect
 //====================
-function d_recent_876(b, label, clr) {
+function web_color_deselect() {
+  if (getn(g, F_htmlchip_selx) !== U) {
+    std.path_setv(_M, 401362, std.adr(slotlist, getn(g, F_htmlchip_selx), std.FOL, F_hilite), F);
+    std.path_setv(_M, 401363, std.adr(g, F_htmlchip_selx), U);
+  }
+}
+
+
+//====================
+//   d_recent_883
+//====================
+function d_recent_883(b, label, clr) {
 std.k_enter(b);
   std.draw_str(b, label, { size:0.55, just:std.LEFT, color:std.WHITE });
 std.k_leave(b);
@@ -1679,9 +1692,9 @@ std.k_leave(b);
 
 
 //====================
-//   d_recent_879
+//   d_recent_886
 //====================
-function d_recent_879(b, label, clr) {
+function d_recent_886(b, label, clr) {
 std.k_enter(b);
   std.draw_rect(b, { fill:clr, corner:std.pt_to_dots(b, 3) });
 std.k_leave(b);
@@ -1689,9 +1702,9 @@ std.k_leave(b);
 
 
 //====================
-//   d_sound_checkbox_591
+//   d_sound_checkbox_598
 //====================
-function d_sound_checkbox_591(b) {
+function d_sound_checkbox_598(b) {
 std.k_enter(b);
   std.draw_str(b, "Sounds", { just:std.LEFT, size:0.7, color:C_TEXT });
 std.k_leave(b);
@@ -1699,9 +1712,9 @@ std.k_leave(b);
 
 
 //====================
-//   ferr_first_ramp_1321
+//   ferr_first_ramp_1328
 //====================
-function ferr_first_ramp_1321(b) {
+function ferr_first_ramp_1328(b) {
 std.k_enter(b);
   std.k_isolate(b, b.bounds, "ferr_ramp_chip", std.freeze(ferr_ramp_chip_F, [1]));
 std.k_leave(b);
@@ -1709,9 +1722,9 @@ std.k_leave(b);
 
 
 //====================
-//   ferr_first_ramp_1323
+//   ferr_first_ramp_1330
 //====================
-function ferr_first_ramp_1323(b) {
+function ferr_first_ramp_1330(b) {
 std.k_enter(b);
   std.k_isolate(b, b.bounds, "ferr_ramp_chip", std.freeze(ferr_ramp_chip_F, [2]));
 std.k_leave(b);
