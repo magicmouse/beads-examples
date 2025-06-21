@@ -3,11 +3,11 @@ beads 1 system str
 @index "String ops"
 
 //  commonly used characters
-const CR  = '\r'
-const LF  = '\n'
-const TAB = '\t'
-const ESC = '\u001B'
-const BS  = '\u0008'
+// const CR  = '\r'
+// const LF  = '\n'
+// const TAB = '\t'
+// const ESC = '\u001B'
+// const BS  = '\u0008'
 
 // byte order marks for UTF16 files
 const BOM_UTF16_LE = 0xFEFF
@@ -20,7 +20,7 @@ calc str_len ( --- string length
 	
 calc str_repeat ( --- repeat a string
 	ss : str --- string to repeat
-	n  : num --- number of times to repeat
+	ntimes : num --- number of times to repeat
 	)  : str --- repeated version
 
 calc str_reverse ( --- reverse a string
@@ -60,13 +60,13 @@ calc subset ( --- string subset
 	from     : num = 1  --- starting position to take from, 1=first
 	to       : num = U --- ending position (inclusive)
 	len      : num = U --- number of characters to extract
-	rev      : yesno = N --- count from end?
+	rev      : bool = F --- count from end?
 	)        : str --- extracted string, might be empty
 	
 calc str_digit ( --- get a numeric digit out of a string
 	ss       : str  --- string to extract from
 	from     : num  = 1  --- position of character, 1=first
-	rev      : yesno = N --- count from end?
+	rev      : bool = F --- count from end?
 	)        : num --- character converted to a number 0-9, E if non-numeric
 	
 calc str_ins ( --- insert characters into a string just once
@@ -74,7 +74,7 @@ calc str_ins ( --- insert characters into a string just once
 	ins      : str --- string to insert
 	to       : num = U --- position to insert in front of 1=first
 	del      : num = U --- number of characters to delete while doing the insert
-	rev      : yesno = N --- count from end?	
+	rev      : bool = F --- count from end?	
 	)        : str --- modified string
 
 calc str_del ( --- remove characters from a string
@@ -83,19 +83,19 @@ calc str_del ( --- remove characters from a string
 	//  must specify either 'to' or 'len'
 	to       : num = U --- ending position (inclusive) to delete
 	len      : num = U --- number of characters to delete
-	rev      : yesno = N --- count from end? 	
+	rev      : bool = F --- count from end? 	
 	)        : str --- modified string
 
 //  convenience function for string matching
 calc str_begins ( --- see if string begins with a pattern
 	haystack : str --- big string to check against
 	needle   : str --- string to look for
-	) : yesno  --- Y, N, U
+	) : bool  --- T, F, U
 
 calc str_ends ( --- see if string ends with a pattern
 	haystack : str --- big string to check against
 	needle   : str --- string to look for
-	) : yesno  --- Y, N, U
+	) : bool  --- T, F, U
 
 //  used by str_find
 record a_find
@@ -114,20 +114,20 @@ calc escape_for_regexp (  --- put backslashes in front of RegExp special chars
 
 calc str_to_regexp ( --- convert a string to a regular expression
 	s : str --- regexp string like "[a-z]" 
-	ignore_case : yesno = Y  // case sensitive (i flag)
-	global      : yesno = N // global flag (g)
-	multiline   : yesno = N  //  multiline flag (m)
+	ignore_case : bool = T  // case sensitive (i flag)
+	global      : bool = F // global flag (g)
+	multiline   : bool = F  //  multiline flag (m)
 	) : regexp --- result
 
 //  finds all occurrences of a pattern in a string
 calc str_find ( --- find a pattern in a string
 	haystack : str     --- haystack to search
 	needle   : any     --- either regular expression or plain string to find
-	list     : out array of a_find --- (OUT) array of a_find, position/len of the matched string 1..N
+	list     : out array of a_find --- (OUT) array of a_find, position/len of the matched string 1..F
 	start    : num = 1 --- starting position, 1=first
 	reps     : num = 1 --- max repetitions
-	wrap     : yesno = N --- wrap around search
-	ignore_case: yesno = Y  --- only used when needle is a plain string
+	wrap     : bool = F --- wrap around search
+	ignore_case: bool = T  --- only used when needle is a plain string
 	)  location
 
 //  finds the first occurance of a string, case insensitive
@@ -135,15 +135,14 @@ calc str_pos ( --- find the first occurance of a pattern in a string
 	haystack : str     --- haystack to search
 	needle   : any     --- either regular expression or plain string to find
 	start    : num = 1 --- starting position, 1=first char
-	ignore_case: yesno = Y  --- only used when needle is a plain string
+	ignore_case: bool = T  --- only used when needle is a plain string
 	) : num  --- if found, the starting position, otherwise U
 
-// and add the ignore_case, start, reps, etc. options to match find.
+// future: add the ignore_case, start, reps, etc. options to match find.
 calc str_replace ( --- find and replace in a string
 	haystack : str  --- haystack to search
 	needle   : any  --- either regular expression or plain string to find
 	replace  : str  --- replacement string ($1, $2, etc. refer to matched groups)
-	start    : num = 1 --- starting position, 1=first char
 	) : str --- new string with replacements done
 
 //  loops through the array of changes, applying them to the string either once
@@ -151,7 +150,7 @@ calc str_replace ( --- find and replace in a string
 calc str_replace_multiple ( --- apply a series of changes to a string
 	haystack : str  --- haystack to search
 	changes  : array of a_find_repl  --- array of find/replace operations to perform
-	trace    : yesno = N --- write progress to log
+	trace    : bool = F --- write progress to log
 	)        : str --- new string with replacements done
 
 //  this is used when you need to inject into a translated string
@@ -187,7 +186,7 @@ calc split_lines_words ( --- split a string into 2D array of strings, indexed [l
 	buf    : str   --- starting string
 	result : out array^2 of str  --- (OUT) array of lines and words
 	delim  : str = '\t' --- single word break character like tab or comma
-	quotes : yesno = Y  --- if true, then consider double quotes to allow embedding of LF, strip them	
+	quotes : bool = T  --- if true, then consider double quotes to allow embedding of LF, strip them	
 	) location
 
 calc join_words (  --- join an array of words
@@ -205,12 +204,12 @@ calc join_words (  --- join an array of words
 //  converts space to %20, unless plus is set
 calc http_encodeURIComponent(  --- encode a URI component
 	input : str  --- string to encode.
-	plus  : yesno = N  --- if Y, then convert %20 to + in second pass
+	plus  : bool = F  --- if T, then convert %20 to + in second pass
 	) : str  --- resulting encoded string, converted to UTF8 with %xx notation
 
 calc http_decodeURIComponent(  --- decode a URI component
 	input : str  --- string to decode.
-	plus  : yesno = N  --- if Y, then convert + to %20 in first pass
+	plus  : bool = F  --- if T, then convert + to %20 in first pass
 	) : str  --- resulting decoded string,
 
 //  calls JS encodeURI
@@ -241,7 +240,7 @@ calc from_char ( --- convert a character to its numeric value
 
 //  same as the modula-2 CHR() function
 calc to_char ( --- convert a number into its character value
-	n : num --- unicode code point
+	code : num --- unicode code point
 	) : str --- unicode character, null string if out of range
 
 ----------------
@@ -327,14 +326,14 @@ calc to_str ( --- convert a value into string form
 	max       : num = 999 --- max number of characters in length
 	min       : num = 0   --- pad on left to this min. length
 	base      : num = 10  --- we support bases 2/8/10/16
-	currency  : yesno = N   --- if Y, then show currency character
-	thou      : yesno = N     --- if Y, then insert thousands marks
-	k   	  : yesno = N   --- if Y, then round to K (1000), M (million), B (billion)
-	neg_paren : yesno = N   --- draw parenthesis for negative values
-	pos_plus  : yesno = N     --- draw plus in front of positive quantities
-	percent   : yesno = N     --- if Y, add % as suffix, mult by 100
-	zero_pad  : yesno = N     --- if Y, pad with leading zeros to make min. width
-	zero_drop : yesno = Y     --- if Y, drop trailing zeros after decimal point 3.00 -> 3
+	currency  : bool = F   --- if T, then show currency character
+	thou      : bool = F     --- if T, then insert thousands marks
+	k   	  : bool = F   --- if T, then round to K (1000), M (million), B (billion)
+	neg_paren : bool = F   --- draw parenthesis for negative values
+	pos_plus  : bool = F     --- draw plus in front of positive quantities
+	percent   : bool = F     --- if T, add % as suffix, mult by 100
+	zero_pad  : bool = F     --- if T, pad with leading zeros to make min. width
+	zero_drop : bool = T     --- if T, drop trailing zeros after decimal point 3.00 -> 3
 	currency_cc : str = '$' --- override default currency of $
 	decimal_cc  : str = '.' --- override default decimal point of .
 	thou_cc   : str = ','   --- override default thousands symbol
