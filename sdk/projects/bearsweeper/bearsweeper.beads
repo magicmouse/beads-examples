@@ -13,9 +13,9 @@ assets local:"art/" remote:"art/"
 	file:"snd_ta_da.mp3" label:SOUND_WON
 
 const
-	TRACE = N
-	FORCE_GAME_PHASE ⇐ N  //  skip opening screens, and shrink the playing board to 4x4
-	SCAFFOLDING ⇐ N  // start out with a game in progress
+	TRACE = F
+	FORCE_GAME_PHASE ⇐ F  //  skip opening screens, and shrink the playing board to 4x4
+	SCAFFOLDING ⇐ F  // start out with a game in progress
 
 	C_BUTT_FORE ⇐ #b0caed
 	C_DIFF_FORE ⇐ #faa5ba
@@ -28,9 +28,9 @@ enum
 
 record a_square
 	nmines       //  number of adjacent mines
-	is_mine     : yesno  //  is this a mine cell?
-	is_flagged  : yesno  //  is this cell flagged?
-	is_swept    : yesno  //  Y when swept
+	is_mine     : bool  //  is this a mine cell?
+	is_flagged  : bool  //  is this cell flagged?
+	is_swept    : bool  //  T when swept
 
 record a_state
 	phase  : ( PHASE_OPENING, PHASE_ABOUT, PHASE_DIFFICULTY, PHASE_GAME, PHASE_END )
@@ -44,9 +44,9 @@ record a_state
 	n_unswept                 //  number of cells we have left to sweep
 	flags_avail               //  number of flags that we have remaining to plant on the board
 	clock_used                //  number of seconds used solving the puzzle
-	clock_running : yesno     //  is clock running?
-	help_active : yesno       //  is the help screen overlay up?
-	congrats_active : yesno   //  is the congrats screen up?
+	clock_running : bool     //  is clock running?
+	help_active : bool       //  is the help screen overlay up?
+	congrats_active : bool   //  is the congrats screen up?
 	hint : a_xy               //  xy coordinate of cell that is hinted, if U then no hint is active
 	sq : array^2 of a_square  //  the minefield
 
@@ -66,15 +66,15 @@ calc main_init
 
 	if SCAFFOLDING
 		//  put in some data to test refresh
-		g.sq[1, 1].is_swept ⇐ Y
+		g.sq[1, 1].is_swept ⇐ T
 		g.sq[1, 1].nmines ⇐ 1
-		g.sq[1, 2].is_flagged ⇐ Y
+		g.sq[1, 2].is_flagged ⇐ T
 		g.sq[1, 2].nmines ⇐ 1
-		g.sq[2, 2].is_swept ⇐ Y
+		g.sq[2, 2].is_swept ⇐ T
 		g.sq[2, 2].nmines ⇐ 2
-		g.sq[3, 3].is_swept ⇐ Y
+		g.sq[3, 3].is_swept ⇐ T
 		g.sq[3, 3].nmines ⇐ 3
-		g.sq[4, 4].is_swept ⇐ Y
+		g.sq[4, 4].is_swept ⇐ T
 		g.sq[4, 4].nmines ⇐ 4
 		dec g.flags_avail  // we flagged a cell above, so we have one less flag to show
 		g.clock_used ⇐ 62  //  should show as 00:01:02
@@ -83,7 +83,7 @@ calc main_init
 
 ===========================
 calc clock_run (  // start or stop the clock
-	target : yesno  //  desired state of the clock
+	target : bool  //  desired state of the clock
 	)
 ===========================
 	if g.clock_running <> target
@@ -111,17 +111,17 @@ calc fresh_game
 	g.result ⇐ U
 	g.n_unswept ⇐ g.nc^2 - g.nmines
 	g.flags_avail ⇐ g.nmines
-	g.help_active ⇐ N
-	g.congrats_active ⇐ N
+	g.help_active ⇐ F
+	g.congrats_active ⇐ F
 	trunc g.hint
 	g.clock_used = 0
-	clock_run(N)
+	clock_run(F)
 
-	//  mark the entire grid as unswept. we test is_swept for N to help keep us on the board
+	//  mark the entire grid as unswept. we test is_swept for F to help keep us on the board
 	trunc g.sq  //  clear previous grid
 	loop from:1 to:g.nc index:col
 		loop from:1 to:g.nc index:row
-			g.sq[col, row].is_swept ⇐ N
+			g.sq[col, row].is_swept ⇐ F
 			g.sq[col, row].nmines ⇐ 0 // we will add to this when the mines are placed
 
 	//  we won't place the mines until the user has swept the first square
@@ -171,13 +171,13 @@ vert slice d_opening
 draw d_bear
 ===========================
 	//  // not yet implemented, animation
-	draw_image(BEAR, aspect:Y)
+	draw_image(BEAR, aspect:T)
 
 ===========================
 draw butt_start
 ===========================
 	var r <=== solve_rect(basis:b.box, pin:MID_CENTER, width:b.box.height*2.2)
-	draw_rect(box:r, color:C_BUTT_FORE, thick:1.5 pt, corner:5 pt)
+	draw_rect(box:r, bord_color:C_BUTT_FORE, bord_width:1.5 pt, corner:5 pt)
 	draw_str("Start", box:r, size:0.35, color:C_BUTT_FORE)
 track EV_TAP
 	g.phase ⇐ PHASE_DIFFICULTY
@@ -186,7 +186,7 @@ track EV_TAP
 draw butt_about
 ===========================
 	var r <=== solve_rect(basis:b.box, pin:MID_CENTER, width:b.box.height*2.2)
-	draw_rect(box:r, color:C_BUTT_FORE, thick:1.5 pt, corner:5 pt)
+	draw_rect(box:r, bord_color:C_BUTT_FORE, bord_width:1.5 pt, corner:5 pt)
 	draw_str("About", box:r, size:0.35, color:C_BUTT_FORE)
 track EV_TAP
 	g.phase ⇐ PHASE_ABOUT
@@ -203,7 +203,7 @@ track EV_TAP
 		g.phase ⇐ PHASE_OPENING
 	else
 		g.phase ⇐ PHASE_DIFFICULTY
-		clock_run(N) //  we were in the game, stop the clock
+		clock_run(F) //  we were in the game, stop the clock
 
 ===========================
 vert slice d_about
@@ -215,7 +215,7 @@ vert slice d_about
 		draw_str("BearSweeper was originally written by Carol Chiew in Malaysia", indent:10 pt, size:0.7, color:WHITE)
 	skip 4 al
 	add 60 al 
-		draw_image(BEAR2, aspect:Y)
+		draw_image(BEAR2, aspect:T)
 	skip 4 al
 	add 11 al
 		draw_str("and it is now cloned in Beads", indent:10 pt, size:0.7, color:WHITE)
@@ -248,7 +248,7 @@ draw butt_difficulty( // difficulty level button
 	nmines
 	)
 	var r <=== solve_rect(basis:b.box, pin:MID_CENTER, width:b.box.height*2.2)
-	draw_rect(box:r, color:C_DIFF_FORE, thick:2 pt, corner:5 pt)
+	draw_rect(box:r, bord_color:C_DIFF_FORE, bord_width:2 pt, corner:5 pt)
 	draw_str(prompt, box:r, size:r.height*0.4, color:C_DIFF_FORE)
 track EV_TAP
 	g.nc ⇐ ncells
@@ -290,15 +290,15 @@ draw d_congrats  // overlay of main screen, used to notify winning
 
 	//  draw text
 	var r <=== solve_rect(basis:b.box, pin:MID_CENTER, width:boxw, height:boxw*0.6)
-	draw_rect(box:r, fill:WHITE, color:GRAY, thick:2 pt, corner:2 pt)
+	draw_rect(box:r, fill:WHITE, bord_color:GRAY, bord_width:2 pt, corner:2 pt)
 	draw_str("Congratulations\n\nYou've won the game in just {g.clock_used} seconds!\nTo start again, click the emoji face", box:r, indent:10 pt, vert:0.2, size:r.height/9)
 
 	//  draw an okay button
 	var r2 <=== solve_rect(basis:r, pin:BOT_CENTER, dy:-r.height*0.15, width:r.width/4, height:r.height/6)
-	draw_rect(box:r2, color:CRIMSON, thick:2 pt)
+	draw_rect(box:r2, bord_color:CRIMSON, bord_width:2 pt)
 	draw_str("OK", box:r2, size:r2.height*0.5, color:CRIMSON)
 track EV_TAP
-	g.congrats_active ⇐ N  // disable the congrats overlay
+	g.congrats_active ⇐ F  // disable the congrats overlay
 
 ===========================
 draw d_help  // help screen
@@ -309,7 +309,7 @@ draw d_help  // help screen
 
 	//  draw text
 	var r <=== solve_rect(basis:b.box, pin:MID_CENTER, width:boxw, height:boxw*0.6)
-	draw_rect(box:r, fill:WHITE, color:GRAY, thick:2 pt, corner:2 pt)
+	draw_rect(box:r, fill:WHITE, bord_color:GRAY, bord_width:2 pt, corner:2 pt)
 	draw_str('''Instructions
 
 - Click any tile to start game
@@ -319,10 +319,10 @@ draw d_help  // help screen
 
 	//  draw an okay button
 	var r2 <=== solve_rect(basis:r, pin:BOT_CENTER, dy:-r.height*0.15, width:r.width/4, height:r.height/6)
-	draw_rect(box:r2, color:CRIMSON, thick:2 pt)
+	draw_rect(box:r2, bord_color:CRIMSON, bord_width:2 pt)
 	draw_str("OK", box:r2, size:r2.height*0.5, color:CRIMSON)
 track EV_TAP
-	g.help_active ⇐ N
+	g.help_active ⇐ F
 
 ===========================
 horz slice d_status( //  status display segmentation
@@ -355,10 +355,10 @@ horz slice d_status2 // the actual status icons
 ===========================
 draw d_butt_help  // status area - help button
 ===========================
-	draw_rect(color:C_PUKE, thick:2 pt, corner:b.box.height/7, pos:0)
+	draw_rect(bord_color:C_PUKE, bord_width:2 pt, corner:b.box.height/7, bord_pos:0)
 	draw_str("ℹ️", size:0.7, color:BLACK, vert:0.8) //  emoji of i with square
 track EV_TAP
-	g.help_active ⇐ Y //  this will add the help overlay
+	g.help_active ⇐ T //  this will add the help overlay
 
 ===========================
 draw d_face  // status icon and restart button
@@ -372,14 +372,14 @@ track EV_TAP
 ===========================
 draw d_butt_hint  // status area - hint button
 ===========================
-	draw_rect(color:C_PUKE, thick:2 pt, corner:b.box.height/7, pos:0)
+	draw_rect(bord_color:C_PUKE, bord_width:2 pt, corner:b.box.height/7, bord_pos:0)
 	draw_str("💡", size:0.7, color:BLACK, vert:0.8) //  emoji of lightbulb
 track EV_TAP
 	//  build a list of all the possible hints
 	var hintlist : array of a_xy
 	loop from:1 to:g.nc index:col
 		loop from:1 to:g.nc index:row
-			if g.sq[col, row].is_swept == N	and g.sq[col, row].is_mine <> Y
+			if g.sq[col, row].is_swept == F	and g.sq[col, row].is_mine <> T
 				append {x:col, y:row} ===> hintlist
 
 	//  now pick randomly from the hint list
@@ -428,7 +428,7 @@ grid d_board2  // the playing grid
 		if square.is_swept and square.is_mine
 			//  this happens when the user sweeps a mine
 			draw_rect(fill:#ac0b4f, corner:b.box.height/11)
-			draw_image(BEAR, aspect:Y, indent:b.box.height/10)
+			draw_image(BEAR, aspect:T, indent:b.box.height/10)
 		elif square.is_swept
 			draw_rect(fill:C_SWEPT_BACK, corner:b.box.height/11)
 			if square.nmines > 0
@@ -450,15 +450,15 @@ track EV_TAP  //  left click
 	if g.sq[b.cell].is_flagged or g.result <> U
 		//  ignore clicks after game is over, or a click on a flag; they gotta right click to unflag
 		sound_play(BEEP)
-		return Y
+		return T
 
 	if g.sq[b.cell].is_mine
 		//  BOOM!, user blew it
 		//  we used to just show the mine that was hit, but nicer to show all the mines
-		g.sq[b.cell].is_swept ⇐ Y //  make the bomb that killed us visible
+		g.sq[b.cell].is_swept ⇐ T //  make the bomb that killed us visible
 		//reveal_all_mines  //  make it prettier by uncovering all the cells that the user hadn't flagged yet
 		g.result ⇐ GAME_LOST
-		clock_run(N)  // stop the clock
+		clock_run(F)  // stop the clock
 		trunc g.hint  //  hide any hints that might be showing, user might have ignored a hint!
 		sound_play(SOUND_LOST)
 	else
@@ -466,7 +466,7 @@ track EV_TAP  //  left click
 		sweep(b.cell)
 
 		//  start the clock if it is not already running
-		clock_run(Y)
+		clock_run(T)
 
 		log "after click, unswept={g.n_unswept}" on:TRACE
 		//  after sweeping this cell, if there are no more unswept cells, we won
@@ -474,24 +474,24 @@ track EV_TAP  //  left click
 		if g.n_unswept == 0
 			//reveal_all_mines  //  make it prettier by uncovering all the cells that the user hadn't flagged yet
 			g.result ⇐ GAME_WON
-			g.congrats_active ⇐ Y
-			clock_run(N) // stop the clock
+			g.congrats_active ⇐ T
+			clock_run(F) // stop the clock
 			sound_play(SOUND_WON)
 -----------------------
 track EV_ALT_TAP  //  right click
 	//  the first click or right click starts the clock
-	clock_run(Y)
+	clock_run(T)
 
 	//  flag this cell if it can be flagged
 	if g.sq[b.cell].is_swept
 		sound_play(BEEP)  //  can't flag a swept cell
 	elif g.sq[b.cell].is_flagged
 		//  unflag
-		g.sq[b.cell].is_flagged ⇐ N
+		g.sq[b.cell].is_flagged ⇐ F
 		inc g.flags_avail
 	elif g.flags_avail > 0
 		//  flag 
-		g.sq[b.cell].is_flagged ⇐ Y
+		g.sq[b.cell].is_flagged ⇐ T
 		dec g.flags_avail
 	else
 		// ran out of flags
@@ -509,7 +509,7 @@ calc sweep(  // (RECURSIVE) sweep a non-mine cell, and then propagate outwards t
 	if g.n_unswept == g.nc^2 - g.nmines
 		place_mines(cell)
 
-	g.sq[cell].is_swept ⇐ Y  // reveal the square
+	g.sq[cell].is_swept ⇐ T  // reveal the square
 	dec g.n_unswept
 	trunc g.hint              //  if there was a hint active, remove it
 
@@ -517,7 +517,7 @@ calc sweep(  // (RECURSIVE) sweep a non-mine cell, and then propagate outwards t
 
 	//  if this is a zero cell, we automatically sweep adjacent zero cells
 	if g.sq[cell].nmines == 0
-		//  now sweep all adjacent cells, note that off-board cells won't have is_swept set to N
+		//  now sweep all adjacent cells, note that off-board cells won't have is_swept set to F
 		//  that is how we tell we are on the board without having to compare with limits
 		var neighbor : a_xy
 		loop from:-1 to:+1 index:dx
@@ -526,7 +526,7 @@ calc sweep(  // (RECURSIVE) sweep a non-mine cell, and then propagate outwards t
 				neighbor.y ⇐ cell.y + dy
 				log "testing neighbor at {neighbor}" on:TRACE
 				//log "bear - testing adjacent cell at [{neighbor.x}, {neighbor.y}]"
-				if (g.sq[neighbor].is_swept == N) and (g.sq[neighbor].is_mine <> Y)
+				if (g.sq[neighbor].is_swept == F) and (g.sq[neighbor].is_mine <> T)
 					//log "bear - clearing neighbor"
 					sweep(neighbor)
 
@@ -540,9 +540,9 @@ calc place_mines (  // put down the mines randomly, but avoid the first square t
 	loop until:nplanted == g.nmines
 		//  try a random point in the grid
 		var try : a_xy <=== {x:random_int(1, g.nc), y:random_int(1, g.nc)}
-		if g.sq[try].is_mine <> Y and try <> avoid
+		if g.sq[try].is_mine <> T and try <> avoid
 			//  this square is not yet mined, and avoids the starting square
-			g.sq[try].is_mine ⇐ Y			
+			g.sq[try].is_mine ⇐ T			
 			update_count(try) //  add to the count for the adjacent squares
 			inc nplanted
 			log "placed mine {nplanted} at {try}" on:TRACE
@@ -556,7 +556,7 @@ calc update_count( // update the count field for neighbors of the mine we just p
 	//  look at the 8 neighboring cells, we don't care about updating the mine's count
 	loop from:mine.x-1 to:mine.x+1 index:dx
 		loop from:mine.y-1 to:mine.y+1 index:dy
-			if g.sq[dx, dy].is_swept == N  // tests for inside playing board
+			if g.sq[dx, dy].is_swept == F  // tests for inside playing board
 				inc g.sq[dx, dy].nmines
 				log "  update_count at [{dx},{dy}], count={g.sq[dx, dy].nmines}" on:TRACE
 
@@ -566,4 +566,4 @@ calc reveal_all_mines //  make all the mines visible
 	loop from:1 to:g.nc index:col
 		loop from:1 to:g.nc index:row
 			if g.sq[col, row].is_mine
-				g.sq[col, row].is_swept ⇐ Y
+				g.sq[col, row].is_swept ⇐ T

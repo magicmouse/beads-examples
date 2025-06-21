@@ -20,114 +20,115 @@
 }
 div { margin:0; padding:0; outline-style:none; scrollbar-gutter:stable;}
 div:hover { cursor:inherit; }
+
 /*  this customizes the default scrollbar appearance */
-::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar { width: 5pt; }
 ::-webkit-scrollbar-corner { background: transparent; }
 ::-webkit-scrollbar-track {
     box-shadow: inset 0 0 15px grey; 
     border-radius: 6pt; }
 ::-webkit-scrollbar-thumb {
-    background: OliveDrab; 
+    background: CornflowerBlue; 
     border-radius: 6pt; }
-::-webkit-scrollbar-thumb:hover { background: Olive; }
+::-webkit-scrollbar-thumb:hover { background: #D05FFD; }
 </style>
 </head>
 <body style="margin:0; padding:0; position:fixed;">
 <script type="module">
-// beads ver 0.56 compiled Sun Mar 24 20:15:01 GMT-0700 2024
-import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_056/beads_std.js';
-import * as std from '../../runtime_056/beads_std.js';
-import * as str from '../../runtime_056/beads_str.js';
-export const CODE_HASH = 0xc0c810e4;
+// beads ver 0.58 compiled Fri Feb 21 15:49:59 GMT-0800 2025
+import { U, T, F, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_058/beads_std.js';
+import * as std from '../../runtime_058/beads_std.js';
+import * as str from '../../runtime_058/beads_str.js';
+export const CODE_HASH = 0x4adc503a;
 const _M = std.MODULES.push("bearsweeper")-1;
 std.rtl_init();
 std.aaaa.main_init = main_init;
 std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
 //------- enums
-const PHASE_DIFFICULTY=9007192635471218; std.ENUMS[9007192635471218]="PHASE_DIFFICULTY";
-const F_sq=9007193631730328; std.ENUMS[9007193631730328]="sq"; std.FIELDS[F_sq]=!0;
-const PHASE_ABOUT=9007191625182368; std.ENUMS[9007191625182368]="PHASE_ABOUT";
-const GAME_WON=9007193995190418; std.ENUMS[9007193995190418]="GAME_WON";
-const F_result=9007191138283529; std.ENUMS[9007191138283529]="result"; std.FIELDS[F_result]=!0;
-const F_hint=9007190752509673; std.ENUMS[9007190752509673]="hint"; std.FIELDS[F_hint]=!0;
-const F_is_mine=9007193940567446; std.ENUMS[9007193940567446]="is_mine"; std.FIELDS[F_is_mine]=!0;
-const F_congrats_active=9007191164270736; std.ENUMS[9007191164270736]="congrats_active"; std.FIELDS[F_congrats_active]=!0;
-const GAME_LOST=9007194041844360; std.ENUMS[9007194041844360]="GAME_LOST";
-const F_phase=9007191668180263; std.ENUMS[9007191668180263]="phase"; std.FIELDS[F_phase]=!0;
-const F_help_active=9007190350404342; std.ENUMS[9007190350404342]="help_active"; std.FIELDS[F_help_active]=!0;
-const F_clock_used=9007194046573082; std.ENUMS[9007194046573082]="clock_used"; std.FIELDS[F_clock_used]=!0;
-const F_nmines=9007190169605222; std.ENUMS[9007190169605222]="nmines"; std.FIELDS[F_nmines]=!0;
-const R_a_state=9007192953576597; std.ENUMS[9007192953576597]="a_state";
-const F_is_flagged=9007190225504625; std.ENUMS[9007190225504625]="is_flagged"; std.FIELDS[F_is_flagged]=!0;
-const F_flags_avail=9007190791936683; std.ENUMS[9007190791936683]="flags_avail"; std.FIELDS[F_flags_avail]=!0;
 const F_is_swept=9007193877004346; std.ENUMS[9007193877004346]="is_swept"; std.FIELDS[F_is_swept]=!0;
-const PHASE_END=9007191267744416; std.ENUMS[9007191267744416]="PHASE_END";
-const CLOCK=9007191950066231; std.ENUMS[9007191950066231]="CLOCK";
-const F_clock_running=9007193393375066; std.ENUMS[9007193393375066]="clock_running"; std.FIELDS[F_clock_running]=!0;
-const F_nc=9007193938111707; std.ENUMS[9007193938111707]="nc"; std.FIELDS[F_nc]=!0;
+const F_help_active=9007190350404342; std.ENUMS[9007190350404342]="help_active"; std.FIELDS[F_help_active]=!0;
+const F_is_flagged=9007190225504625; std.ENUMS[9007190225504625]="is_flagged"; std.FIELDS[F_is_flagged]=!0;
+const F_result=9007191138283529; std.ENUMS[9007191138283529]="result"; std.FIELDS[F_result]=!0;
+const GAME_LOST=9007194041844360; std.ENUMS[9007194041844360]="GAME_LOST";
+const F_clock_used=9007194046573082; std.ENUMS[9007194046573082]="clock_used"; std.FIELDS[F_clock_used]=!0;
+const F_flags_avail=9007190791936683; std.ENUMS[9007190791936683]="flags_avail"; std.FIELDS[F_flags_avail]=!0;
+const PHASE_ABOUT=9007191625182368; std.ENUMS[9007191625182368]="PHASE_ABOUT";
+const PHASE_DIFFICULTY=9007192635471218; std.ENUMS[9007192635471218]="PHASE_DIFFICULTY";
 const PHASE_OPENING=9007191547909369; std.ENUMS[9007191547909369]="PHASE_OPENING";
+const F_congrats_active=9007191164270736; std.ENUMS[9007191164270736]="congrats_active"; std.FIELDS[F_congrats_active]=!0;
+const F_nc=9007193938111707; std.ENUMS[9007193938111707]="nc"; std.FIELDS[F_nc]=!0;
+const F_nmines=9007190169605222; std.ENUMS[9007190169605222]="nmines"; std.FIELDS[F_nmines]=!0;
+const F_phase=9007191668180263; std.ENUMS[9007191668180263]="phase"; std.FIELDS[F_phase]=!0;
+const F_sq=9007193631730328; std.ENUMS[9007193631730328]="sq"; std.FIELDS[F_sq]=!0;
+const F_is_mine=9007193940567446; std.ENUMS[9007193940567446]="is_mine"; std.FIELDS[F_is_mine]=!0;
+const R_a_state=9007192953576597; std.ENUMS[9007192953576597]="a_state";
+const F_hint=9007190752509673; std.ENUMS[9007190752509673]="hint"; std.FIELDS[F_hint]=!0;
+const CLOCK=9007191950066231; std.ENUMS[9007191950066231]="CLOCK";
 const F_n_unswept=9007191230229369; std.ENUMS[9007191230229369]="n_unswept"; std.FIELDS[F_n_unswept]=!0;
-const R_a_square=9007192556043839; std.ENUMS[9007192556043839]="a_square";
+const GAME_WON=9007193995190418; std.ENUMS[9007193995190418]="GAME_WON";
 const PHASE_GAME=9007190290788353; std.ENUMS[9007190290788353]="PHASE_GAME";
+const F_clock_running=9007193393375066; std.ENUMS[9007193393375066]="clock_running"; std.FIELDS[F_clock_running]=!0;
+const PHASE_END=9007191267744416; std.ENUMS[9007191267744416]="PHASE_END";
+const R_a_square=9007192556043839; std.ENUMS[9007192556043839]="a_square";
 //-------  func const for bearsweeper
-const d_butt_help_F = new std.a_function(_M, "d_butt_help", d_butt_help, d_butt_help_track);
-std.FUNCS[d_butt_help_F.hash]=d_butt_help_F;
-const d_difficulty_234_F = new std.a_function(_M, "d_difficulty_234", d_difficulty_234);
-std.FUNCS[d_difficulty_234_F.hash]=d_difficulty_234_F;
-const do_tick_F = new std.a_function(_M, "do_tick", do_tick);
-std.FUNCS[do_tick_F.hash]=do_tick_F;
-const d_difficulty_F = new std.a_function(_M, "d_difficulty", d_difficulty);
-std.FUNCS[d_difficulty_F.hash]=d_difficulty_F;
-const d_status_F = new std.a_function(_M, "d_status", d_status);
-std.FUNCS[d_status_F.hash]=d_status_F;
 const d_game_280_F = new std.a_function(_M, "d_game_280", d_game_280);
 std.FUNCS[d_game_280_F.hash]=d_game_280_F;
-const butt_difficulty_F = new std.a_function(_M, "butt_difficulty", butt_difficulty, butt_difficulty_track);
-std.FUNCS[butt_difficulty_F.hash]=butt_difficulty_F;
-const d_butt_hint_F = new std.a_function(_M, "d_butt_hint", d_butt_hint, d_butt_hint_track);
-std.FUNCS[d_butt_hint_F.hash]=d_butt_hint_F;
-const d_face_F = new std.a_function(_M, "d_face", d_face, d_face_track);
-std.FUNCS[d_face_F.hash]=d_face_F;
-const d_bear_F = new std.a_function(_M, "d_bear", d_bear);
-std.FUNCS[d_bear_F.hash]=d_bear_F;
-const d_board_F = new std.a_function(_M, "d_board", d_board);
-std.FUNCS[d_board_F.hash]=d_board_F;
-const butt_start_F = new std.a_function(_M, "butt_start", butt_start, butt_start_track);
-std.FUNCS[butt_start_F.hash]=butt_start_F;
-const butt_about_F = new std.a_function(_M, "butt_about", butt_about, butt_about_track);
-std.FUNCS[butt_about_F.hash]=butt_about_F;
-const d_status2_F = new std.a_function(_M, "d_status2", d_status2);
-std.FUNCS[d_status2_F.hash]=d_status2_F;
-const d_flagcount_F = new std.a_function(_M, "d_flagcount", d_flagcount);
-std.FUNCS[d_flagcount_F.hash]=d_flagcount_F;
 const d_about_224_F = new std.a_function(_M, "d_about_224", d_about_224);
 std.FUNCS[d_about_224_F.hash]=d_about_224_F;
-const d_help_F = new std.a_function(_M, "d_help", d_help, d_help_track);
-std.FUNCS[d_help_F.hash]=d_help_F;
-const d_board2_F = new std.a_function(_M, "d_board2", d_board2, d_board2_track);
-std.FUNCS[d_board2_F.hash]=d_board2_F;
-const d_clock_F = new std.a_function(_M, "d_clock", d_clock);
-std.FUNCS[d_clock_F.hash]=d_clock_F;
 const d_about_218_F = new std.a_function(_M, "d_about_218", d_about_218);
 std.FUNCS[d_about_218_F.hash]=d_about_218_F;
-const d_about_215_F = new std.a_function(_M, "d_about_215", d_about_215);
-std.FUNCS[d_about_215_F.hash]=d_about_215_F;
 const butt_back_F = new std.a_function(_M, "butt_back", butt_back, butt_back_track);
 std.FUNCS[butt_back_F.hash]=butt_back_F;
-const d_opening_F = new std.a_function(_M, "d_opening", d_opening);
-std.FUNCS[d_opening_F.hash]=d_opening_F;
-const d_about_F = new std.a_function(_M, "d_about", d_about);
-std.FUNCS[d_about_F.hash]=d_about_F;
-const d_opening_163_F = new std.a_function(_M, "d_opening_163", d_opening_163);
-std.FUNCS[d_opening_163_F.hash]=d_opening_163_F;
-const d_congrats_F = new std.a_function(_M, "d_congrats", d_congrats, d_congrats_track);
-std.FUNCS[d_congrats_F.hash]=d_congrats_F;
+const d_board2_F = new std.a_function(_M, "d_board2", d_board2, d_board2_track);
+std.FUNCS[d_board2_F.hash]=d_board2_F;
+const butt_difficulty_F = new std.a_function(_M, "butt_difficulty", butt_difficulty, butt_difficulty_track);
+std.FUNCS[butt_difficulty_F.hash]=butt_difficulty_F;
+const d_difficulty_234_F = new std.a_function(_M, "d_difficulty_234", d_difficulty_234);
+std.FUNCS[d_difficulty_234_F.hash]=d_difficulty_234_F;
 const fresh_game_F = new std.a_function(_M, "fresh_game", fresh_game);
 std.FUNCS[fresh_game_F.hash]=fresh_game_F;
-const d_game_F = new std.a_function(_M, "d_game", d_game);
-std.FUNCS[d_game_F.hash]=d_game_F;
+const d_status2_F = new std.a_function(_M, "d_status2", d_status2);
+std.FUNCS[d_status2_F.hash]=d_status2_F;
+const d_face_F = new std.a_function(_M, "d_face", d_face, d_face_track);
+std.FUNCS[d_face_F.hash]=d_face_F;
+const d_butt_help_F = new std.a_function(_M, "d_butt_help", d_butt_help, d_butt_help_track);
+std.FUNCS[d_butt_help_F.hash]=d_butt_help_F;
+const d_opening_F = new std.a_function(_M, "d_opening", d_opening);
+std.FUNCS[d_opening_F.hash]=d_opening_F;
 const d_about_221_F = new std.a_function(_M, "d_about_221", d_about_221);
 std.FUNCS[d_about_221_F.hash]=d_about_221_F;
+const d_difficulty_F = new std.a_function(_M, "d_difficulty", d_difficulty);
+std.FUNCS[d_difficulty_F.hash]=d_difficulty_F;
+const d_about_F = new std.a_function(_M, "d_about", d_about);
+std.FUNCS[d_about_F.hash]=d_about_F;
+const butt_start_F = new std.a_function(_M, "butt_start", butt_start, butt_start_track);
+std.FUNCS[butt_start_F.hash]=butt_start_F;
+const d_help_F = new std.a_function(_M, "d_help", d_help, d_help_track);
+std.FUNCS[d_help_F.hash]=d_help_F;
+const d_flagcount_F = new std.a_function(_M, "d_flagcount", d_flagcount);
+std.FUNCS[d_flagcount_F.hash]=d_flagcount_F;
+const d_board_F = new std.a_function(_M, "d_board", d_board);
+std.FUNCS[d_board_F.hash]=d_board_F;
+const butt_about_F = new std.a_function(_M, "butt_about", butt_about, butt_about_track);
+std.FUNCS[butt_about_F.hash]=butt_about_F;
+const d_opening_163_F = new std.a_function(_M, "d_opening_163", d_opening_163);
+std.FUNCS[d_opening_163_F.hash]=d_opening_163_F;
+const d_game_F = new std.a_function(_M, "d_game", d_game);
+std.FUNCS[d_game_F.hash]=d_game_F;
+const do_tick_F = new std.a_function(_M, "do_tick", do_tick);
+std.FUNCS[do_tick_F.hash]=do_tick_F;
+const d_bear_F = new std.a_function(_M, "d_bear", d_bear);
+std.FUNCS[d_bear_F.hash]=d_bear_F;
+const d_congrats_F = new std.a_function(_M, "d_congrats", d_congrats, d_congrats_track);
+std.FUNCS[d_congrats_F.hash]=d_congrats_F;
+const d_status_F = new std.a_function(_M, "d_status", d_status);
+std.FUNCS[d_status_F.hash]=d_status_F;
+const d_clock_F = new std.a_function(_M, "d_clock", d_clock);
+std.FUNCS[d_clock_F.hash]=d_clock_F;
+const d_about_215_F = new std.a_function(_M, "d_about_215", d_about_215);
+std.FUNCS[d_about_215_F.hash]=d_about_215_F;
+const d_butt_hint_F = new std.a_function(_M, "d_butt_hint", d_butt_hint, d_butt_hint_track);
+std.FUNCS[d_butt_hint_F.hash]=d_butt_hint_F;
 //-------  top nodes
 const BEAR = new std.a_image("art/bear.png","BEAR",false);
 const BEAR2 = new std.a_image("art/bear2.jpeg","BEAR2",false);
@@ -135,9 +136,9 @@ const BEEP = new std.a_sound("art/snd_beep.mp3");
 const SOUND_LOST = new std.a_sound("art/snd_bear.mp3");
 const SOUND_WON = new std.a_sound("art/snd_ta_da.mp3");
 
-const TRACE = N;
-const FORCE_GAME_PHASE = N;
-const SCAFFOLDING = N;
+const TRACE = F;
+const FORCE_GAME_PHASE = F;
+const SCAFFOLDING = F;
 const C_BUTT_FORE = 0xB0CAED;
 const C_DIFF_FORE = 0xFAA5BA;
 const C_PUKE = 0xBAEC97;
@@ -167,10 +168,10 @@ function butt_about_track(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.path_setv(_M, 260192, std.adr(g, F_phase), PHASE_ABOUT);
-  return Y;
+    std.path_setv(_M, 20192, std.adr(g, F_phase), PHASE_ABOUT);
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -192,16 +193,16 @@ function butt_back_track(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    var case814 = getn(g, F_phase);
-    if (case814 === PHASE_ABOUT || case814 === PHASE_DIFFICULTY) {
-      std.path_setv(_M, 190203, std.adr(g, F_phase), PHASE_OPENING);
+    var case70 = getn(g, F_phase);
+    if (case70 === PHASE_ABOUT || case70 === PHASE_DIFFICULTY) {
+      std.path_setv(_M, 400203, std.adr(g, F_phase), PHASE_OPENING);
     } else {
-      std.path_setv(_M, 190205, std.adr(g, F_phase), PHASE_DIFFICULTY);
-      clock_run(N);
+      std.path_setv(_M, 400205, std.adr(g, F_phase), PHASE_DIFFICULTY);
+      clock_run(F);
     }
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -224,13 +225,13 @@ function butt_difficulty_track(b, e, prompt, ncells, nmines) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.path_setv(_M, 430254, std.adr(g, F_nc), ncells);
-    std.path_setv(_M, 430255, std.adr(g, F_nmines), nmines);
-    std.path_setv(_M, 430256, std.adr(g, F_phase), PHASE_GAME);
+    std.path_setv(_M, 190254, std.adr(g, F_nc), ncells);
+    std.path_setv(_M, 190255, std.adr(g, F_nmines), nmines);
+    std.path_setv(_M, 190256, std.adr(g, F_phase), PHASE_GAME);
     fresh_game();
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -253,10 +254,10 @@ function butt_start_track(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.path_setv(_M, 240183, std.adr(g, F_phase), PHASE_DIFFICULTY);
-  return Y;
+    std.path_setv(_M, 40183, std.adr(g, F_phase), PHASE_DIFFICULTY);
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -287,7 +288,7 @@ std.k_leave(b);
 //====================
 function d_bear(b) {
 std.k_enter(b);
-  std.draw_image(b, BEAR, { aspect:Y });
+  std.draw_image(b, BEAR, { aspect:T });
 std.k_leave(b);
 }
 
@@ -313,17 +314,17 @@ std.k_leave(b);
 function d_board2(b) {
 std.k_enter(b);
 std.div_begin(b, new std.a_function(_M, "d_board2_cell", d_board2_cell, null), false, false, false);
-  var loop815 = new std.a_loop({ reps:getn(g, F_nc) });
-  while (loop815.next()) {
-  var ix = loop815.count;
+  var loop71 = new std.a_loop({ reps:getn(g, F_nc) });
+  while (loop71.next()) {
+  var ix = loop71.count;
     if (std.gt2(ix, 1)) {
       std.div_spa(b, 0, 3, std.al, U, U);
     }
     std.div_add(b, U, 0, 35, std.al, U, U, null, 0);
   }
-  var loop816 = new std.a_loop({ reps:getn(g, F_nc) });
-  while (loop816.next()) {
-  var ix = loop816.count;
+  var loop72 = new std.a_loop({ reps:getn(g, F_nc) });
+  while (loop72.next()) {
+  var ix = loop72.count;
     if (std.gt2(ix, 1)) {
       std.div_spa(b, 1, 3, std.al, U, U);
     }
@@ -341,10 +342,10 @@ std.k_leave(b);
 function d_board2_cell(b) {
   std.k_enter(b);
   var square = std.adr(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y));
-  if ((getn(square, F_is_swept) === Y && getn(square, F_is_mine) === Y)) {
+  if ((getn(square, F_is_swept) === T && getn(square, F_is_mine) === T)) {
     std.draw_rect(b, { fill:0xAC0B4F, corner:std.div(b.bounds.height, 11) });
-    std.draw_image(b, BEAR, { aspect:Y, indent:std.div(b.bounds.height, 10) });
-  } else if (getn(square, F_is_swept) === Y) {
+    std.draw_image(b, BEAR, { aspect:T, indent:std.div(b.bounds.height, 10) });
+  } else if (getn(square, F_is_swept) === T) {
     std.draw_rect(b, { fill:C_SWEPT_BACK, corner:std.div(b.bounds.height, 11) });
     if (std.gt2(getn(square, F_nmines), 0)) {
       std.draw_str(b, getn(square, F_nmines), { size:0.6, color:getn(C_TABLE, getn(square, F_nmines)) });
@@ -352,7 +353,7 @@ function d_board2_cell(b) {
   } else {
     std.draw_rect(b, { fill:C_PUKE, corner:std.div(b.bounds.height, 11) });
   }
-  if (getn(square, F_is_flagged) === Y) {
+  if (getn(square, F_is_flagged) === T) {
     std.draw_str(b, "⛳", { size:0.8 });
   }
   if ((std.eq2(getn(b.extra, std.F_cell, std.F_x),getn(g, F_hint, std.F_x)) && std.eq2(getn(b.extra, std.F_cell, std.F_y),getn(g, F_hint, std.F_y)))) {
@@ -369,47 +370,47 @@ function d_board2_track(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    if ((getn(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_flagged) === Y || getn(g, F_result) !== U)) {
+    if ((getn(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_flagged) === T || getn(g, F_result) !== U)) {
       std.sound_play(BEEP, {});
-      return Y;
+      return T;
     }
-    if (getn(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_mine) === Y) {
-      std.path_setv(_M, 110458, std.adr(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_swept), Y);
-      std.path_setv(_M, 110460, std.adr(g, F_result), GAME_LOST);
-      clock_run(N);
-      std.trunc_tree(_M, 110462, std.adr(g, F_hint));
+    if (getn(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_mine) === T) {
+      std.path_setv(_M, 340458, std.adr(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_swept), T);
+      std.path_setv(_M, 340460, std.adr(g, F_result), GAME_LOST);
+      clock_run(F);
+      std.trunc_tree(_M, 340462, std.adr(g, F_hint));
       std.sound_play(SOUND_LOST, {});
     } else {
       sweep(adr(b.extra, std.F_cell));
-      clock_run(Y);
+      clock_run(T);
       if (std.eq2(getn(g, F_n_unswept), 0)) {
-        std.path_setv(_M, 110476, std.adr(g, F_result), GAME_WON);
-        std.path_setv(_M, 110477, std.adr(g, F_congrats_active), Y);
-        clock_run(N);
+        std.path_setv(_M, 340476, std.adr(g, F_result), GAME_WON);
+        std.path_setv(_M, 340477, std.adr(g, F_congrats_active), T);
+        clock_run(F);
         std.sound_play(SOUND_WON, {});
       }
     }
-  return Y;
+  return T;
   } else 
   //---------------
   //   on EV_ALT_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_ALT_TAP) {
-    clock_run(Y);
-    if (getn(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_swept) === Y) {
+    clock_run(T);
+    if (getn(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_swept) === T) {
       std.sound_play(BEEP, {});
-    } else if (getn(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_flagged) === Y) {
-      std.path_setv(_M, 110490, std.adr(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_flagged), N);
-      std.tree_add(_M, 110491, 1, std.adr(g, F_flags_avail));
+    } else if (getn(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_flagged) === T) {
+      std.path_setv(_M, 340490, std.adr(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_flagged), F);
+      std.tree_add(_M, 340491, 1, std.adr(g, F_flags_avail));
     } else if (std.gt2(getn(g, F_flags_avail), 0)) {
-      std.path_setv(_M, 110494, std.adr(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_flagged), Y);
-      std.tree_sub(_M, 110495, 1, std.adr(g, F_flags_avail));
+      std.path_setv(_M, 340494, std.adr(g, F_sq, getn(b.extra, std.F_cell, std.F_x), getn(b.extra, std.F_cell, std.F_y), F_is_flagged), T);
+      std.tree_sub(_M, 340495, 1, std.adr(g, F_flags_avail));
     } else {
       std.sound_play(BEEP, {});
     }
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -431,10 +432,10 @@ function d_butt_help_track(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.path_setv(_M, 50361, std.adr(g, F_help_active), Y);
-  return Y;
+    std.path_setv(_M, 50361, std.adr(g, F_help_active), T);
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -457,21 +458,21 @@ function d_butt_hint_track(b, e) {
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
     var hintlist = new std.a_tree(_M,"hintlist", 0);
-    var loop817 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
-    while (loop817.next()) {
-    var col = loop817.index;
-      var loop818 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
-      while (loop818.next()) {
-      var row = loop818.index;
-        if ((getn(g, F_sq, col, row, F_is_swept) === N && getn(g, F_sq, col, row, F_is_mine) !== Y)) {
-          std.append_tree(_M, 270383, std.tree_lit(_M, 270383, std.F_x, VAL, col, std.F_y, VAL, row), std.adr(hintlist));
+    var loop73 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
+    while (loop73.next()) {
+    var col = loop73.index;
+      var loop74 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
+      while (loop74.next()) {
+      var row = loop74.index;
+        if ((getn(g, F_sq, col, row, F_is_swept) === F && getn(g, F_sq, col, row, F_is_mine) !== T)) {
+          std.append_tree(_M, 120383, std.tree_lit(_M, 120383, std.F_x, VAL, col, std.F_y, VAL, row), std.adr(hintlist));
         }
       }
     }
-    std.copy_tree(_M, 270386, std.adr(hintlist, std.random_int(1, std.count(std.adr(hintlist)))), std.adr(g, F_hint));
-  return Y;
+    std.copy_tree(_M, 120386, std.adr(hintlist, std.random_int(1, std.count(std.adr(hintlist)))), std.adr(g, F_hint));
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -511,10 +512,10 @@ function d_congrats_track(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.path_setv(_M, 380301, std.adr(g, F_congrats_active), N);
-  return Y;
+    std.path_setv(_M, 110301, std.adr(g, F_congrats_active), F);
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -562,9 +563,9 @@ function d_face_track(b, e) {
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
     fresh_game();
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -596,7 +597,7 @@ std.div_begin(b, null, false, false, false);
   std.div_spa(b, 1, 10, std.al, U, U);
   std.div_add(b, U, 1, board_size, std.px, U, U, std.freeze(d_board_F, [board_size]), 0);
   std.div_spa(b, 1, 25, std.al, U, U);
-  if (std.rect_is_portrait(adr(b.extra, std.F_box)) === Y) {
+  if (std.rect_is_portrait(adr(b.extra, std.F_box)) === T) {
     std.div_add(b, U, 1, 18, std.al, U, U, d_game_280_F, 0);
   }
   std.div_spa(b, 1, 5, std.al, U, U);
@@ -634,10 +635,10 @@ function d_help_track(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    std.path_setv(_M, 410325, std.adr(g, F_help_active), N);
-  return Y;
+    std.path_setv(_M, 370325, std.adr(g, F_help_active), F);
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -708,19 +709,19 @@ std.k_leave(b);
 export function main_draw(b) {
 std.k_enter(b);
   std.k_back(b, {fill:0x282D33});
-  var case819 = getn(g, F_phase);
-  if (case819 === PHASE_OPENING) {
+  var case75 = getn(g, F_phase);
+  if (case75 === PHASE_OPENING) {
     d_opening(b);
-  } else if (case819 === PHASE_ABOUT) {
+  } else if (case75 === PHASE_ABOUT) {
     d_about(b);
-  } else if (case819 === PHASE_DIFFICULTY) {
+  } else if (case75 === PHASE_DIFFICULTY) {
     d_difficulty(b);
-  } else if (case819 === PHASE_GAME) {
+  } else if (case75 === PHASE_GAME) {
     d_game(b);
-    if (getn(g, F_help_active) === Y) {
+    if (getn(g, F_help_active) === T) {
       std.k_isolate(b, b.bounds, "d_help", d_help_F);
     }
-    if (getn(g, F_congrats_active) === Y) {
+    if (getn(g, F_congrats_active) === T) {
       std.k_isolate(b, b.bounds, "d_congrats", d_congrats_F);
     }
   }
@@ -733,13 +734,13 @@ std.k_leave(b);
 //====================
 function clock_run(target) {
   if (std.ne2(getn(g, F_clock_running), target)) {
-    if (target === Y) {
+    if (target === T) {
       std.timer_start(do_tick_F, { delay:std.meas(1, std.N_sec, std.Y_Time), interval:std.meas(1, std.N_sec, std.Y_Time), interval_mon:std.meas(30, std.N_sec, std.Y_Time), reps:
       std.INFINITY, group:CLOCK });
     } else {
       std.timer_clear({ group:CLOCK });
     }
-    std.path_setv(_M, 90099, std.adr(g, F_clock_running), target);
+    std.path_setv(_M, 100099, std.adr(g, F_clock_running), target);
   }
 }
 
@@ -748,7 +749,7 @@ function clock_run(target) {
 //   do_tick
 //====================
 function do_tick() {
-  std.tree_add(_M, 30104, 1, std.adr(g, F_clock_used));
+  std.tree_add(_M, 380104, 1, std.adr(g, F_clock_used));
 }
 
 
@@ -756,23 +757,23 @@ function do_tick() {
 //   fresh_game
 //====================
 function fresh_game() {
-  std.path_setv(_M, 440111, std.adr(g, F_result), U);
-  std.path_setv(_M, 440112, std.adr(g, F_n_unswept), std.sub(std.exp(getn(g, F_nc), 2, 1), getn(g, F_nmines)));
-  std.path_setv(_M, 440113, std.adr(g, F_flags_avail), getn(g, F_nmines));
-  std.path_setv(_M, 440114, std.adr(g, F_help_active), N);
-  std.path_setv(_M, 440115, std.adr(g, F_congrats_active), N);
-  std.trunc_tree(_M, 440116, std.adr(g, F_hint));
-  std.path_setv(_M, 440117, std.adr(g, F_clock_used), 0);
-  clock_run(N);
-  std.trunc_tree(_M, 440121, std.adr(g, F_sq));
-  var loop820 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
-  while (loop820.next()) {
-  var col = loop820.index;
-    var loop821 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
-    while (loop821.next()) {
-    var row = loop821.index;
-      std.path_setv(_M, 440124, std.adr(g, F_sq, col, row, F_is_swept), N);
-      std.path_setv(_M, 440125, std.adr(g, F_sq, col, row, F_nmines), 0);
+  std.path_setv(_M, 180111, std.adr(g, F_result), U);
+  std.path_setv(_M, 180112, std.adr(g, F_n_unswept), std.sub(std.exp(getn(g, F_nc), 2, 1), getn(g, F_nmines)));
+  std.path_setv(_M, 180113, std.adr(g, F_flags_avail), getn(g, F_nmines));
+  std.path_setv(_M, 180114, std.adr(g, F_help_active), F);
+  std.path_setv(_M, 180115, std.adr(g, F_congrats_active), F);
+  std.trunc_tree(_M, 180116, std.adr(g, F_hint));
+  std.path_setv(_M, 180117, std.adr(g, F_clock_used), 0);
+  clock_run(F);
+  std.trunc_tree(_M, 180121, std.adr(g, F_sq));
+  var loop76 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
+  while (loop76.next()) {
+  var col = loop76.index;
+    var loop77 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
+    while (loop77.next()) {
+    var row = loop77.index;
+      std.path_setv(_M, 180124, std.adr(g, F_sq, col, row, F_is_swept), F);
+      std.path_setv(_M, 180125, std.adr(g, F_sq, col, row, F_nmines), 0);
     }
   }
 }
@@ -782,28 +783,28 @@ function fresh_game() {
 //   main_init
 //====================
 export function main_init() {
-  std.path_setv(_M, 370059, std.adr(g, F_phase), PHASE_OPENING);
-  if (FORCE_GAME_PHASE === Y) {
-    std.path_setv(_M, 370062, std.adr(g, F_phase), PHASE_GAME);
-    std.path_setv(_M, 370063, std.adr(g, F_nc), 4);
-    std.path_setv(_M, 370064, std.adr(g, F_nmines), 4);
+  std.path_setv(_M, 140059, std.adr(g, F_phase), PHASE_OPENING);
+  if (FORCE_GAME_PHASE === T) {
+    std.path_setv(_M, 140062, std.adr(g, F_phase), PHASE_GAME);
+    std.path_setv(_M, 140063, std.adr(g, F_nc), 4);
+    std.path_setv(_M, 140064, std.adr(g, F_nmines), 4);
     fresh_game();
   }
-  if (SCAFFOLDING === Y) {
-    std.path_setv(_M, 370069, std.adr(g, F_sq, 1, 1, F_is_swept), Y);
-    std.path_setv(_M, 370070, std.adr(g, F_sq, 1, 1, F_nmines), 1);
-    std.path_setv(_M, 370071, std.adr(g, F_sq, 1, 2, F_is_flagged), Y);
-    std.path_setv(_M, 370072, std.adr(g, F_sq, 1, 2, F_nmines), 1);
-    std.path_setv(_M, 370073, std.adr(g, F_sq, 2, 2, F_is_swept), Y);
-    std.path_setv(_M, 370074, std.adr(g, F_sq, 2, 2, F_nmines), 2);
-    std.path_setv(_M, 370075, std.adr(g, F_sq, 3, 3, F_is_swept), Y);
-    std.path_setv(_M, 370076, std.adr(g, F_sq, 3, 3, F_nmines), 3);
-    std.path_setv(_M, 370077, std.adr(g, F_sq, 4, 4, F_is_swept), Y);
-    std.path_setv(_M, 370078, std.adr(g, F_sq, 4, 4, F_nmines), 4);
-    std.tree_sub(_M, 370079, 1, std.adr(g, F_flags_avail));
-    std.path_setv(_M, 370080, std.adr(g, F_clock_used), 62);
-    std.path_setv(_M, 370081, std.adr(g, F_hint, std.F_x), 3);
-    std.path_setv(_M, 370082, std.adr(g, F_hint, std.F_y), 1);
+  if (SCAFFOLDING === T) {
+    std.path_setv(_M, 140069, std.adr(g, F_sq, 1, 1, F_is_swept), T);
+    std.path_setv(_M, 140070, std.adr(g, F_sq, 1, 1, F_nmines), 1);
+    std.path_setv(_M, 140071, std.adr(g, F_sq, 1, 2, F_is_flagged), T);
+    std.path_setv(_M, 140072, std.adr(g, F_sq, 1, 2, F_nmines), 1);
+    std.path_setv(_M, 140073, std.adr(g, F_sq, 2, 2, F_is_swept), T);
+    std.path_setv(_M, 140074, std.adr(g, F_sq, 2, 2, F_nmines), 2);
+    std.path_setv(_M, 140075, std.adr(g, F_sq, 3, 3, F_is_swept), T);
+    std.path_setv(_M, 140076, std.adr(g, F_sq, 3, 3, F_nmines), 3);
+    std.path_setv(_M, 140077, std.adr(g, F_sq, 4, 4, F_is_swept), T);
+    std.path_setv(_M, 140078, std.adr(g, F_sq, 4, 4, F_nmines), 4);
+    std.tree_sub(_M, 140079, 1, std.adr(g, F_flags_avail));
+    std.path_setv(_M, 140080, std.adr(g, F_clock_used), 62);
+    std.path_setv(_M, 140081, std.adr(g, F_hint, std.F_x), 3);
+    std.path_setv(_M, 140082, std.adr(g, F_hint, std.F_y), 1);
   }
 }
 
@@ -813,16 +814,16 @@ export function main_init() {
 //====================
 function place_mines(avoid) {
   var nplanted = 0;
-  var loop822 = new std.a_loop({  });
-  while (loop822.next()) {
-    var try_ = new std.a_tree(_M,"try_", 0, std.tree_lit(_M, 420542, std.F_x, VAL, std.random_int(1, getn(g, F_nc)), std.F_y, VAL, std.random_int(1, getn(g, F_nc))));
-    if ((getn(g, F_sq, getn(try_, std.F_x), getn(try_, std.F_y), F_is_mine) !== Y && (std.ne2(getn(try_, std.F_x),getn(avoid, std.F_x)) || std.ne2(getn(try_, std.F_y),getn(avoid
+  var loop78 = new std.a_loop({  });
+  while (loop78.next()) {
+    var try_ = new std.a_tree(_M,"try_", 0, std.tree_lit(_M, 300542, std.F_x, VAL, std.random_int(1, getn(g, F_nc)), std.F_y, VAL, std.random_int(1, getn(g, F_nc))));
+    if ((getn(g, F_sq, getn(try_, std.F_x), getn(try_, std.F_y), F_is_mine) !== T && (std.ne2(getn(try_, std.F_x),getn(avoid, std.F_x)) || std.ne2(getn(try_, std.F_y),getn(avoid
     , std.F_y))))) {
-      std.path_setv(_M, 420545, std.adr(g, F_sq, getn(try_, std.F_x), getn(try_, std.F_y), F_is_mine), Y);
+      std.path_setv(_M, 300545, std.adr(g, F_sq, getn(try_, std.F_x), getn(try_, std.F_y), F_is_mine), T);
       update_count(std.adr(try_));
       nplanted = std.add(nplanted, 1);
     }
-  if (std.eq4(nplanted, getn(g, F_nmines)) !== N)
+  if (std.eq4(nplanted, getn(g, F_nmines)) !== F)
     break;
   }
 }
@@ -832,14 +833,14 @@ function place_mines(avoid) {
 //   reveal_all_mines
 //====================
 function reveal_all_mines() {
-  var loop823 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
-  while (loop823.next()) {
-  var col = loop823.index;
-    var loop824 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
-    while (loop824.next()) {
-    var row = loop824.index;
-      if (getn(g, F_sq, col, row, F_is_mine) === Y) {
-        std.path_setv(_M, 230569, std.adr(g, F_sq, col, row, F_is_swept), Y);
+  var loop79 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
+  while (loop79.next()) {
+  var col = loop79.index;
+    var loop80 = new std.a_loop({ from:1, to_:getn(g, F_nc) });
+    while (loop80.next()) {
+    var row = loop80.index;
+      if (getn(g, F_sq, col, row, F_is_mine) === T) {
+        std.path_setv(_M, 70569, std.adr(g, F_sq, col, row, F_is_swept), T);
       }
     }
   }
@@ -853,20 +854,20 @@ function sweep(cell) {
   if (std.eq2(getn(g, F_n_unswept), std.sub(std.exp(getn(g, F_nc), 2, 1), getn(g, F_nmines)))) {
     place_mines(cell);
   }
-  std.path_setv(_M, 70512, std.adr(g, F_sq, getn(cell, std.F_x), getn(cell, std.F_y), F_is_swept), Y);
-  std.tree_sub(_M, 70513, 1, std.adr(g, F_n_unswept));
-  std.trunc_tree(_M, 70514, std.adr(g, F_hint));
+  std.path_setv(_M, 170512, std.adr(g, F_sq, getn(cell, std.F_x), getn(cell, std.F_y), F_is_swept), T);
+  std.tree_sub(_M, 170513, 1, std.adr(g, F_n_unswept));
+  std.trunc_tree(_M, 170514, std.adr(g, F_hint));
   if (std.eq2(getn(g, F_sq, getn(cell, std.F_x), getn(cell, std.F_y), F_nmines), 0)) {
     var neighbor = new std.a_tree(_M,"neighbor", 0);
-    var loop825 = new std.a_loop({ from:-1, to_:1 });
-    while (loop825.next()) {
-    var dx = loop825.index;
-      var loop826 = new std.a_loop({ from:-1, to_:1 });
-      while (loop826.next()) {
-      var dy = loop826.index;
-        std.path_setv(_M, 70525, std.adr(neighbor, std.F_x), std.add(getn(cell, std.F_x), dx));
-        std.path_setv(_M, 70526, std.adr(neighbor, std.F_y), std.add(getn(cell, std.F_y), dy));
-        if ((getn(g, F_sq, getn(neighbor, std.F_x), getn(neighbor, std.F_y), F_is_swept) === N && getn(g, F_sq, getn(neighbor, std.F_x), getn(neighbor, std.F_y), F_is_mine) !== Y)
+    var loop81 = new std.a_loop({ from:-1, to_:1 });
+    while (loop81.next()) {
+    var dx = loop81.index;
+      var loop82 = new std.a_loop({ from:-1, to_:1 });
+      while (loop82.next()) {
+      var dy = loop82.index;
+        std.path_setv(_M, 170525, std.adr(neighbor, std.F_x), std.add(getn(cell, std.F_x), dx));
+        std.path_setv(_M, 170526, std.adr(neighbor, std.F_y), std.add(getn(cell, std.F_y), dy));
+        if ((getn(g, F_sq, getn(neighbor, std.F_x), getn(neighbor, std.F_y), F_is_swept) === F && getn(g, F_sq, getn(neighbor, std.F_x), getn(neighbor, std.F_y), F_is_mine) !== T)
         ) {
           sweep(std.adr(neighbor));
         }
@@ -880,14 +881,14 @@ function sweep(cell) {
 //   update_count
 //====================
 function update_count(mine) {
-  var loop827 = new std.a_loop({ from:std.sub(getn(mine, std.F_x), 1), to_:std.add(getn(mine, std.F_x), 1) });
-  while (loop827.next()) {
-  var dx = loop827.index;
-    var loop828 = new std.a_loop({ from:std.sub(getn(mine, std.F_y), 1), to_:std.add(getn(mine, std.F_y), 1) });
-    while (loop828.next()) {
-    var dy = loop828.index;
-      if (getn(g, F_sq, dx, dy, F_is_swept) === N) {
-        std.tree_add(_M, 180560, 1, std.adr(g, F_sq, dx, dy, F_nmines));
+  var loop83 = new std.a_loop({ from:std.sub(getn(mine, std.F_x), 1), to_:std.add(getn(mine, std.F_x), 1) });
+  while (loop83.next()) {
+  var dx = loop83.index;
+    var loop84 = new std.a_loop({ from:std.sub(getn(mine, std.F_y), 1), to_:std.add(getn(mine, std.F_y), 1) });
+    while (loop84.next()) {
+    var dy = loop84.index;
+      if (getn(g, F_sq, dx, dy, F_is_swept) === F) {
+        std.tree_add(_M, 350560, 1, std.adr(g, F_sq, dx, dy, F_nmines));
       }
     }
   }
@@ -909,7 +910,7 @@ std.k_leave(b);
 //====================
 function d_about_218(b) {
 std.k_enter(b);
-  std.draw_image(b, BEAR2, { aspect:Y });
+  std.draw_image(b, BEAR2, { aspect:T });
 std.k_leave(b);
 }
 
