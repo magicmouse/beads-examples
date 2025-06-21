@@ -3,7 +3,7 @@ beads 1 program clock  --  a simple analog clock, drawn with lines
 //  written by edj 2019
 //  Copyright and related rights waived
 
-const ENABLE_DUMP = Y  //  if Y, then spacebar emits dump file
+const ENABLE_DUMP = T  //  if T, then spacebar emits dump file
 enum BLACKBOX_ID
 const BLACKBOX_PORT = 3333
 
@@ -15,7 +15,7 @@ const GRAD1 : a_gradient = { grad_shape:LINEAR_GRADIENT, grad_angle:GRAD_TO_BOTT
 
 var g : a_date	--  the current calendar date, this record defined in std library
 
-var is_paused = N
+var is_paused = F
 
 var g_alarm : record
 	nseconds
@@ -46,7 +46,7 @@ draw main_draw
 	var diameter ⇐ 0.8*min(bb.width, bb.height)
 
 	//  calculate a square centered on the screen
-	var area : a_rect <=== solve_rect(basis:bb, pin:MID_CENTER, width:diameter, height:diameter, round:Y)
+	var area : a_rect <=== solve_rect(basis:bb, pin:MID_CENTER, width:diameter, height:diameter, round:T)
 	
 	//  indent from the total screen size, set coordinate origin at the middle of the box
 	layer area:area, origin:5 d_clock(diameter)
@@ -60,7 +60,7 @@ draw d_clock(
 	diameter
 	) -----
 	//log "draw clock sec={g.dt_second}, first={runtime.major_firstx}, step={runtime.major_stepx}"
-	draw_circle( x:0, y:0, fill:GREEN, diam:diameter, color:DARK_GREEN, thick:diameter /. 40, pos:0)
+	draw_circle( x:0, y:0, fill:GREEN, diam:diameter, bord_color:DARK_GREEN, bord_width:diameter /. 40, bord_pos:0)
 
 	//  sweep hour hand
 	draw_line( x1:0, y1:0, color:BROWN, angle:(g.dt_hour + g.dt_minute/60)*30 - 90 deg, len:diameter*0.30, thick:diameter/.20)
@@ -87,14 +87,14 @@ track EV_KEYBOARD
 			set_clock_scale(0)
 		else
 			set_clock_scale(1)
-		return Y
+		return T
 	elif e.unicode == "a"
 		//  set alarm
 		g_alarm.nseconds = 4
 		log "--- starting countdown"
 		g_alarm.id = timer_start(do_countdown, delay:1 sec, interval:1 sec, reps:4)
-		return Y
-	return N // we don't use this key, let the debugger have it
+		return T
+	return F // we don't use this key, let the debugger have it
 
 ===================
 calc do_countdown

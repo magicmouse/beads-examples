@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8">
+<meta name="google" content="notranslate">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="color-scheme" content="light dark">
+<title>clock</title>
+<link rel="shortcut icon" href="data:,">
+<style>
+/*  the above empty icon shuts the favicon stuff up.
+	put stmt above style if you want favicon: <link rel="shortcut icon" href="favicon.ico" />
+    this disables the annoying double click highlighting of DIV blocks 
+	see more meta options at https://matt.might.net/articles/how-to-native-iphone-ipad-apps-in-javascript/  
+*/
+::placeholder {  /* sets color for input placeholder text  */
+  color: #E3CED7; font-style:italic;
+  opacity: 1; /* Firefox */
+}
+div { margin:0; padding:0; outline-style:none; scrollbar-gutter:stable;}
+div:hover { cursor:inherit; }
+
+/*  this customizes the default scrollbar appearance */
+::-webkit-scrollbar { width: 8pt; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 15px grey; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb {
+    background: CornflowerBlue; 
+    border-radius: 6pt; }
+::-webkit-scrollbar-thumb:hover { background:#013B8A; }
+</style>
+</head>
+<body style="margin:0; padding:0; position:fixed;">
+<script type="module">
+// beads ver 0.58 compiled Tue May 27 21:50:52 GMT-0700 2025
+import { U, T, F, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_058/beads_std.js';
+import * as std from '../../runtime_058/beads_std.js';
+import * as str from '../../runtime_058/beads_str.js';
+export const CODE_HASH = 0x7f13f4c8;
+const _M = std.MODULES.push("clock")-1;
+std.rtl_init();
+std.aaaa.main_init = main_init;
+std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
+//------- enums
+//-------  func const for clock
+const do_tick_F = new std.a_function(_M, "do_tick", do_tick);
+std.FUNCS[do_tick_F.hash]=do_tick_F;
+const d_clock_F = new std.a_function(_M, "d_clock", d_clock);
+std.FUNCS[d_clock_F.hash]=d_clock_F;
+const d_hands_F = new std.a_function(_M, "d_hands", d_hands);
+std.FUNCS[d_hands_F.hash]=d_hands_F;
+//-------  top nodes
+const FORCE_TIME = T;
+const GRAD1 = new std.a_tree(_M,"GRAD1", std.NF_TOPLEVEL|std.NF_LOGGED, std.tree_lit(_M, 9, std.F_grad_shape, VAL, std.LINEAR_GRADIENT, std.F_grad_angle, VAL, std.GRAD_TO_BOTTOM
+, std.F_grad_stops, 1, std.F_stop_pos, VAL, 0, std.F_stop_color, VAL, 0x839BBB, POP, 2, std.F_stop_pos, VAL, 49, std.F_stop_color, VAL, 0xEDEDF4, POP, 3, std.F_stop_pos, VAL
+, 51, std.F_stop_color, VAL, 0xEDEDF4, POP, 4, std.F_stop_pos, VAL, 100, std.F_stop_color, VAL, 0x9596C5, POP, POP));
+var g = new std.a_tree(_M,"g", std.NF_TOPLEVEL|std.NF_STATEFUL|std.NF_LOGGED);
+
+//====================
+//   d_clock
+//====================
+function d_clock(b, diameter) {
+std.k_enter(b);
+  const C_TICK = 0x1C342C;
+  const POS_NUMS = 0.81;
+  const POS_TICK1 = 0.89;
+  const POS_TICK2 = 0.94;
+  const SIZE_NUMS = std.div(diameter, 12);
+  var radius = std.div(diameter, 2);
+  var cx = std.div(b.bounds.width, 2);
+  var cy = std.div(b.bounds.height, 2);
+  std.draw_circle(b, { x:0, y:0, fill:0x82ACBA, diam:diameter, bord_color:0x1C1C34, bord_width:std.div(diameter, 70), bord_pos:0, shadow:std.tree_lit(_M, 40061, 1, std.F_dx, 
+  VAL, std.div(radius, 15), std.F_dy, VAL, std.div(radius, 15), std.F_blur, VAL, std.div(radius, 20), std.F_color, VAL, 0x1C2D34, std.F_opacity, VAL, 0.75, POP) });
+  var loop64 = new std.a_loop({ from:1, to_:60 });
+  while (loop64.next()) {
+  var tickx = loop64.index;
+    var theta = std.meas(std.sub(std.div(tickx, 60), 0.25), std.N_turn, std.Y_Angle);
+    var pos1 = POS_TICK1;
+    var pos2 = POS_TICK2;
+    if (std.eq2(std.mod(tickx, 5, {}), 0)) {
+      var hourx = std.idiv(tickx, 5);
+      var tx = std.mul(std.mul(radius, POS_NUMS), std.cos(theta));
+      var ty = std.mul(std.mul(radius, POS_NUMS), std.sin(theta));
+      var dx = std.eq2(hourx, 10) ? std.mul(SIZE_NUMS, 0.1) : 0;
+      var r = new std.a_tree(_M,"r", 0, std.solve_rect({ cx:std.add(std.add(cx, tx), dx), cy:std.add(cy, ty), width:std.mul(SIZE_NUMS, 3), height:std.mul(SIZE_NUMS, 1.2) }));
+      std.draw_str(b, hourx, { size:SIZE_NUMS, color:0x1C342C, box:std.adr(r), just:std.CENTER, shrink:F });
+      pos1 = 0.91;
+      pos2 = 0.94;
+    }
+    var x1 = std.mul(std.mul(radius, pos1), std.cos(theta));
+    var y1 = std.mul(std.mul(radius, pos1), std.sin(theta));
+    var x2 = std.mul(std.mul(radius, pos2), std.cos(theta));
+    var y2 = std.mul(std.mul(radius, pos2), std.sin(theta));
+    std.draw_line(b, { x1:x1, y1:y1, x2:x2, y2:y2, color:C_TICK });
+  }
+  var b82=std.k_layer(b, std.freeze(d_hands_F, [radius]), { area:std.adr(b.extra, std.F_box), pin:5 });
+  d_hands(b82, radius);
+std.k_leave(b);
+}
+
+
+//====================
+//   d_hands
+//====================
+function d_hands(b, radius) {
+std.k_enter(b);
+  std.draw_line(b, { x1:0, y1:0, color:0x232E32, angle:std.meas(std.sub(std.mul(std.add(getn(g, std.F_dt_hour), std.div(getn(g, std.F_dt_minute), 60)), 30), 90), std.N_deg, 
+  std.Y_Angle), len:std.mul(radius, 0.58), thick:std.div(radius, 22) });
+  std.draw_line(b, { x1:0, y1:0, color:0x11515D, angle:std.meas(std.sub(std.mul(std.add(getn(g, std.F_dt_minute), std.div(getn(g, std.F_dt_second), 60)), 6), 90), std.N_deg, 
+  std.Y_Angle), len:std.mul(radius, 0.75), thick:std.div(radius, 25) });
+  std.draw_line(b, { x1:0, y1:0, color:0xC7D493, angle:std.meas(std.sub(std.mul(std.round_down(getn(g, std.F_dt_second), {}), 6), 90), std.N_deg, std.Y_Angle), len:std.mul(radius
+  , 0.76), thick:std.div(radius, 45) });
+std.k_leave(b);
+}
+
+
+//====================
+//   main_draw
+//====================
+export function main_draw(b) {
+std.k_enter(b);
+  std.draw_rect(b, { grad:std.adr(GRAD1) });
+  var diameter = std.mul(0.8, std.min(b.bounds.width, b.bounds.height));
+  var area = new std.a_tree(_M,"area", 0, std.solve_rect({ basis:std.adr(b.extra, std.F_box), pin:std.MID_CENTER, width:diameter, height:diameter, round:T }));
+  var b83=std.k_layer(b, std.freeze(d_clock_F, [diameter]), { area:area, pin:5 });
+  d_clock(b83, diameter);
+std.k_leave(b);
+}
+
+
+//====================
+//   do_tick
+//====================
+function do_tick() {
+  std.merge_tree(_M, 20029, std.seconds_to_date(std.now, {}), std.adr(g));
+}
+
+
+//====================
+//   main_init
+//====================
+export function main_init() {
+  if (FORCE_TIME === T) {
+    std.path_setv(_M, 30020, std.adr(g, std.F_dt_hour), 9);
+    std.path_setv(_M, 30021, std.adr(g, std.F_dt_minute), 10);
+    std.path_setv(_M, 30022, std.adr(g, std.F_dt_second), 25);
+  } else {
+    std.timer_start(do_tick_F, { delay:std.meas(0, std.N_sec, std.Y_Time), interval:std.meas(1, std.N_sec, std.Y_Time), reps:1000 });
+  }
+}
+
+std.setv(_M, 0, std.runtime, std.F_app_name, "clock");
+main_init();
+std.rebuild_all();
+
+
+//  uncomment this to prevent accidental reload, useful for web apps that store input
+//   window.onbeforeunload = (event) => {
+// 	  const e = event || window.event;
+// 	  // Cancel the event
+// 	  e.preventDefault();
+// 	  if (e) {
+// 		e.returnValue = ''; // Legacy method for cross browser support
+// 	  }
+// 	  return ''; // Legacy method for cross browser support
+// 	}
+
+</script>
+</body>
+</html>
+
