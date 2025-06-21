@@ -34,7 +34,7 @@ record a_state
 	termx           // which term we are on
 	chain_op : str  //  chain operator char for repeated = presses
 	chain_val       //  chain value to repeat
-	fresh : yesno   //  if this is Y, then next digit will clear existing value
+	fresh : bool   //  if this is T, then next digit will clear existing value
 
 var g : a_state
 
@@ -47,8 +47,8 @@ var keys_h
 calc main_init
 	g.terms[1].ss = ""
 	g.termx = 1
-	g.fresh = Y
-
+	g.fresh = T
+	
 horz slice main_draw
 	block fill:#121F30
 
@@ -72,10 +72,10 @@ draw d_result
 
 	//  build the string out of the active terms
 	var s : str = ""
-	loop across:g.terms index:i
-		g.terms[i].ss &=> s
-		if g.terms[i].op <> U
-			HAIR & g.terms[i].op & HAIR &=> s  // append the operator
+	loop across:g.terms ptr:term
+		term.ss &=> s
+		if term.op <> U
+			HAIR & term.op & HAIR &=> s  // append the operator
 
 	if (s == "")
 		s = "0"  //  when nothing is entered into our expression, call it zero
@@ -143,7 +143,7 @@ calc do_percent
 		else
 			//  we only have 1 term, so just divide it by 100
 			g.terms[g.termx].ss = to_str(eval(g.termx)/100)
-		g.fresh = Y
+		g.fresh = T
 
 calc eval (
 	termx  -- term index to evaluate
@@ -200,7 +200,7 @@ calc do_equals
 	trunc g.terms // zap the array
 	g.terms[1].ss = to_str(val)  //  replace our value
 	g.termx = 1
-	g.fresh = Y
+	g.fresh = T
 
 calc arithmetic(
 	operand : str  -- operation like "+", must match keycap
@@ -229,7 +229,7 @@ calc add_digit(
 	if g.fresh or g.terms[g.termx].ss == "0"
 		g.terms[g.termx].ss = "" // clear whatever was there
 	digit &=> g.terms[g.termx].ss
-	g.fresh = N
+	g.fresh = F
 
 calc do_arith(
 	operand : str  // '+', etc

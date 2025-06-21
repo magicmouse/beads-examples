@@ -2,6 +2,7 @@
 <html lang="en"> 
 <head>
 <meta charset="utf-8">
+<meta name="google" content="notranslate">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -20,54 +21,71 @@
 }
 div { margin:0; padding:0; outline-style:none; scrollbar-gutter:stable;}
 div:hover { cursor:inherit; }
+
 /*  this customizes the default scrollbar appearance */
-::-webkit-scrollbar { width: 6pt; }
+::-webkit-scrollbar { width: 8pt; }
 ::-webkit-scrollbar-corner { background: transparent; }
 ::-webkit-scrollbar-track {
     box-shadow: inset 0 0 15px grey; 
     border-radius: 6pt; }
 ::-webkit-scrollbar-thumb {
-    background: OliveDrab; 
+    background: CornflowerBlue; 
     border-radius: 6pt; }
-::-webkit-scrollbar-thumb:hover { background: Olive; }
+::-webkit-scrollbar-thumb:hover { background:#013B8A; }
 </style>
 </head>
 <body style="margin:0; padding:0; position:fixed;">
 <script type="module">
-// beads ver 0.56 compiled Sun Mar 24 22:19:05 GMT-0700 2024
-import { U, Y, N, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_056/beads_std.js';
-import * as std from '../../runtime_056/beads_std.js';
-import * as str from '../../runtime_056/beads_str.js';
-export const CODE_HASH = 0x9bf008e6;
+// beads ver 0.58 compiled Fri Mar 21 20:14:04 GMT-0700 2025
+import { U, T, F, POP, VAL, VNP, setv, gets, getn, adr, lgp, log } from '../../runtime_058/beads_std.js';
+import * as std from '../../runtime_058/beads_std.js';
+import * as str from '../../runtime_058/beads_str.js';
+export const CODE_HASH = 0x5ac8a2cf;
 const _M = std.MODULES.push("calculator")-1;
 std.rtl_init();
 std.aaaa.main_init = main_init;
 std.aaaa.main_drawer = new std.a_function(_M, "main_draw", main_draw);
 //------- enums
-const F_ss=9007193665285566; std.ENUMS[9007193665285566]="ss"; std.FIELDS[F_ss]=!0;
 const R_a_state=9007192953576597; std.ENUMS[9007192953576597]="a_state";
-const F_fresh=9007192114719380; std.ENUMS[9007192114719380]="fresh"; std.FIELDS[F_fresh]=!0;
-const F_op=9007193787363399; std.ENUMS[9007193787363399]="op"; std.FIELDS[F_op]=!0;
-const F_terms=9007192892604483; std.ENUMS[9007192892604483]="terms"; std.FIELDS[F_terms]=!0;
-const R_a_term=9007193840001586; std.ENUMS[9007193840001586]="a_term";
-const F_chain_val=9007192097512801; std.ENUMS[9007192097512801]="chain_val"; std.FIELDS[F_chain_val]=!0;
-const F_termx=9007193043603054; std.ENUMS[9007193043603054]="termx"; std.FIELDS[F_termx]=!0;
 const F_chain_op=9007190437095029; std.ENUMS[9007190437095029]="chain_op"; std.FIELDS[F_chain_op]=!0;
+const F_chain_val=9007192097512801; std.ENUMS[9007192097512801]="chain_val"; std.FIELDS[F_chain_val]=!0;
+const F_terms=9007192892604483; std.ENUMS[9007192892604483]="terms"; std.FIELDS[F_terms]=!0;
+const F_termx=9007193043603054; std.ENUMS[9007193043603054]="termx"; std.FIELDS[F_termx]=!0;
+const F_fresh=9007192114719380; std.ENUMS[9007192114719380]="fresh"; std.FIELDS[F_fresh]=!0;
+const R_a_term=9007193840001586; std.ENUMS[9007193840001586]="a_term";
+const F_ss=9007193665285566; std.ENUMS[9007193665285566]="ss"; std.FIELDS[F_ss]=!0;
+const F_op=9007193787363399; std.ENUMS[9007193787363399]="op"; std.FIELDS[F_op]=!0;
+//[reflAAA]
+
+std.merge_lit(_M,0,std.META,"calculator",std.F_mod_const, "C_ARITH", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "C_DIGIT", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP
+, POP, "C_OP", std.F_vv_typek, 1, VAL, std.TYPE_COLOR, POP, POP, "HAIR", std.F_vv_typek, 1, VAL, std.TYPE_STR, POP, POP, "KEYCAPS", std.F_vv_typek, 1, VAL, std.TYPE_ARRAY, 
+2, VAL, std.TYPE_ANY, POP, POP, "KEYCOLORS", std.F_vv_typek, 1, VAL, std.TYPE_ARRAY, 2, VAL, std.TYPE_ANY, POP, POP, "SPACING", std.F_vv_typek, 1, VAL, std.TYPE_NUM);
+
+std.merge_lit(_M,0,std.META,"calculator",std.F_mod_vars, "cellsize", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "g", std.F_vv_typek, 1, VAL, std.TYPE_RECORD, 2, VAL, 
+R_a_state, POP, POP, "keys_h", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "keys_v", std.F_vv_typek, 1, VAL, std.TYPE_NUM, POP, POP, "result_v", std.F_vv_typek, 1, VAL, 
+std.TYPE_NUM);
+
+std.merge_lit(_M,0,std.META,"calculator",std.F_mod_recs, R_a_state, F_chain_op, 1, VAL, std.TYPE_STR, POP, F_chain_val, 1, VAL, std.TYPE_NUM, POP, F_fresh, 1, VAL, std.TYPE_BOOL
+, POP, F_terms, 1, VAL, std.TYPE_ARRAY, 2, VAL, std.TYPE_RECORD, 3, VAL, R_a_term, POP, F_termx, 1, VAL, std.TYPE_NUM, POP, POP, R_a_term, F_op, 1, VAL, std.TYPE_STR, POP, 
+F_ss, 1, VAL, std.TYPE_STR);
+function $eval(p) { return eval(p) }
+std.setv(_M,0,std.META,"calculator",std.F_mod_eval,$eval);
+//[reflZZZ]
 //-------  func const for calculator
-const do_period_F = new std.a_function(_M, "do_period", do_period);
-std.FUNCS[do_period_F.hash]=do_period_F;
-const d_keygrid_F = new std.a_function(_M, "d_keygrid", d_keygrid, d_keygrid_track);
-std.FUNCS[d_keygrid_F.hash]=d_keygrid_F;
-const do_equals_F = new std.a_function(_M, "do_equals", do_equals);
-std.FUNCS[do_equals_F.hash]=do_equals_F;
-const do_clear_F = new std.a_function(_M, "do_clear", do_clear);
-std.FUNCS[do_clear_F.hash]=do_clear_F;
-const do_percent_F = new std.a_function(_M, "do_percent", do_percent);
-std.FUNCS[do_percent_F.hash]=do_percent_F;
-const d_result_F = new std.a_function(_M, "d_result", d_result);
-std.FUNCS[d_result_F.hash]=d_result_F;
 const main_draw2_F = new std.a_function(_M, "main_draw2", main_draw2);
 std.FUNCS[main_draw2_F.hash]=main_draw2_F;
+const do_equals_F = new std.a_function(_M, "do_equals", do_equals);
+std.FUNCS[do_equals_F.hash]=do_equals_F;
+const d_result_F = new std.a_function(_M, "d_result", d_result);
+std.FUNCS[d_result_F.hash]=d_result_F;
+const do_percent_F = new std.a_function(_M, "do_percent", do_percent);
+std.FUNCS[do_percent_F.hash]=do_percent_F;
+const d_keygrid_F = new std.a_function(_M, "d_keygrid", d_keygrid, d_keygrid_track);
+std.FUNCS[d_keygrid_F.hash]=d_keygrid_F;
+const do_period_F = new std.a_function(_M, "do_period", do_period);
+std.FUNCS[do_period_F.hash]=do_period_F;
+const do_clear_F = new std.a_function(_M, "do_clear", do_clear);
+std.FUNCS[do_clear_F.hash]=do_clear_F;
 //-------  top nodes
 const C_OP = 0x3E424D;
 const C_DIGIT = 0x6E6E6E;
@@ -93,14 +111,14 @@ function d_keygrid(b) {
 std.k_enter(b);
 std.div_begin(b, new std.a_function(_M, "d_keygrid_cell", d_keygrid_cell, null), false, false, false);
   std.div_spa(b, 0, SPACING, std.al, U, U);
-  var loop845 = new std.a_loop({ reps:4 });
-  while (loop845.next()) {
+  var loop204 = new std.a_loop({ reps:4 });
+  while (loop204.next()) {
     std.div_add(b, U, 0, 60, std.al, U, U, null, 0);
     std.div_spa(b, 0, SPACING, std.al, U, U);
   }
   std.div_spa(b, 1, SPACING, std.al, U, U);
-  var loop846 = new std.a_loop({ reps:5 });
-  while (loop846.next()) {
+  var loop205 = new std.a_loop({ reps:5 });
+  while (loop205.next()) {
     std.div_add(b, U, 1, 60, std.al, U, U, null, 0);
     std.div_spa(b, 1, SPACING, std.al, U, U);
   }
@@ -128,26 +146,26 @@ function d_keygrid_track(b, e) {
   //   on EV_TAP
   //---------------
   if (std.getn(e, std.F_evkind) == std.EV_TAP) {
-    var case847 = getn(b.extra, std.F_cell_seq);
-    if (case847 === 1) {
+    var case206 = getn(b.extra, std.F_cell_seq);
+    if (case206 === 1) {
       do_clear();
-    } else if (case847 === 2) {
+    } else if (case206 === 2) {
       sign_change(getn(g, F_termx));
-    } else if (case847 === 3) {
+    } else if (case206 === 3) {
       do_percent();
-    } else if (case847 === 4 || case847 === 8 || case847 === 12 || case847 === 16) {
+    } else if (case206 === 4 || case206 === 8 || case206 === 12 || case206 === 16) {
       do_arith(std.get_generic(KEYCAPS, getn(b.extra, std.F_cell_seq)));
-    } else if (case847 === 17) {
-    } else if (case847 === 19) {
+    } else if (case206 === 17) {
+    } else if (case206 === 19) {
       do_period();
-    } else if (case847 === 20) {
+    } else if (case206 === 20) {
       do_equals();
     } else {
       add_digit(std.get_generic(KEYCAPS, getn(b.extra, std.F_cell_seq)));
     }
-  return Y;
+  return T;
   }
-  return N;
+  return F;
 }
 
 //====================
@@ -157,12 +175,12 @@ function d_result(b) {
 std.k_enter(b);
   std.k_back(b, {fill:0xD161F});
   var s = "";
-  var loop848 = new std.a_loop({ across:std.adr(g, F_terms) });
-  while (loop848.next()) {
-  var i = loop848.index;
-    s = std.cat(s, gets(g, F_terms, i, F_ss));
-    if (gets(g, F_terms, i, F_op) !== null) {
-      s = std.cat(s, HAIR, gets(g, F_terms, i, F_op), HAIR);
+  var loop207 = new std.a_loop({ across:std.adr(g, F_terms) });
+  while (loop207.next()) {
+  var term = loop207.path.clone();
+    s = std.cat(s, gets(term, F_ss));
+    if (gets(term, F_op) !== null) {
+      s = std.cat(s, HAIR, gets(term, F_op), HAIR);
     }
   }
   if (std.eq2(s, "")) {
@@ -213,11 +231,11 @@ std.k_leave(b);
 //   add_digit
 //====================
 function add_digit(digit) {
-  if ((getn(g, F_fresh) === Y || std.eq2(gets(g, F_terms, getn(g, F_termx), F_ss), "0"))) {
-    std.path_setv(_M, 140230, std.adr(g, F_terms, getn(g, F_termx), F_ss), "");
+  if ((getn(g, F_fresh) === T || std.eq2(gets(g, F_terms, getn(g, F_termx), F_ss), "0"))) {
+    std.path_setv(_M, 90230, std.adr(g, F_terms, getn(g, F_termx), F_ss), "");
   }
-  std.tree_cat(_M, 140231, digit, std.adr(g, F_terms, getn(g, F_termx), F_ss));
-  std.path_setv(_M, 140232, std.adr(g, F_fresh), N);
+  std.tree_cat(_M, 90231, digit, std.adr(g, F_terms, getn(g, F_termx), F_ss));
+  std.path_setv(_M, 90232, std.adr(g, F_fresh), F);
 }
 
 
@@ -226,14 +244,14 @@ function add_digit(digit) {
 //====================
 function arithmetic(operand, term1, term2) {
   var result = U;
-  var case849 = operand;
-  if (case849 === "+") {
+  var case208 = operand;
+  if (case208 === "+") {
     result = std.add(term1, term2);
-  } else if (case849 === "−") {
+  } else if (case208 === "−") {
     result = std.sub(term1, term2);
-  } else if (case849 === "x") {
+  } else if (case208 === "x") {
     result = std.mul(term1, term2);
-  } else if (case849 === "÷") {
+  } else if (case208 === "÷") {
     result = std.div(term1, term2);
   } else {
     result = std.ERR;
@@ -250,11 +268,11 @@ function do_arith(operand) {
     if (std.eq2(getn(g, F_termx), 1)) {
       return;
     }
-    std.path_setv(_M, 110245, std.adr(g, F_terms, std.sub(getn(g, F_termx), 1), F_op), operand);
+    std.path_setv(_M, 50245, std.adr(g, F_terms, std.sub(getn(g, F_termx), 1), F_op), operand);
   } else {
-    std.path_setv(_M, 110248, std.adr(g, F_terms, getn(g, F_termx), F_op), operand);
-    std.tree_add(_M, 110249, 1, std.adr(g, F_termx));
-    std.path_setv(_M, 110250, std.adr(g, F_terms, getn(g, F_termx), F_ss), "");
+    std.path_setv(_M, 50248, std.adr(g, F_terms, getn(g, F_termx), F_op), operand);
+    std.tree_add(_M, 50249, 1, std.adr(g, F_termx));
+    std.path_setv(_M, 50250, std.adr(g, F_terms, getn(g, F_termx), F_ss), "");
   }
 }
 
@@ -263,7 +281,7 @@ function do_arith(operand) {
 //   do_clear
 //====================
 function do_clear() {
-  std.path_setv(_M, 80158, std.adr(g, F_terms, getn(g, F_termx), F_ss), "");
+  std.path_setv(_M, 150158, std.adr(g, F_terms, getn(g, F_termx), F_ss), "");
 }
 
 
@@ -278,21 +296,21 @@ function do_equals() {
       val = arithmetic(gets(g, F_chain_op), val, getn(g, F_chain_val));
     }
   } else {
-    var loop850 = new std.a_loop({ from:1 });
-    while (loop850.next()) {
-    var tx = loop850.index;
-      if (std.and4(std.ne4(gets(g, F_terms, std.add(tx, 1), F_ss), ""), std.ne4(gets(g, F_terms, tx, F_op), null)) !== Y)
+    var loop209 = new std.a_loop({ from:1 });
+    while (loop209.next()) {
+    var tx = loop209.index;
+      if (std.and4(std.ne4(gets(g, F_terms, std.add(tx, 1), F_ss), ""), std.ne4(gets(g, F_terms, tx, F_op), null)) !== T)
         break;
       val2 = eval_(std.add(tx, 1));
-      std.path_setv(_M, 70195, std.adr(g, F_chain_op), gets(g, F_terms, tx, F_op));
-      std.path_setv(_M, 70196, std.adr(g, F_chain_val), val2);
+      std.path_setv(_M, 40195, std.adr(g, F_chain_op), gets(g, F_terms, tx, F_op));
+      std.path_setv(_M, 40196, std.adr(g, F_chain_val), val2);
       val = arithmetic(gets(g, F_chain_op), val, val2);
     }
   }
-  std.trunc_tree(_M, 70200, std.adr(g, F_terms));
-  std.path_setv(_M, 70201, std.adr(g, F_terms, 1, F_ss), str.to_str(val, {}));
-  std.path_setv(_M, 70202, std.adr(g, F_termx), 1);
-  std.path_setv(_M, 70203, std.adr(g, F_fresh), Y);
+  std.trunc_tree(_M, 40200, std.adr(g, F_terms));
+  std.path_setv(_M, 40201, std.adr(g, F_terms, 1, F_ss), str.to_str(val, {}));
+  std.path_setv(_M, 40202, std.adr(g, F_termx), 1);
+  std.path_setv(_M, 40203, std.adr(g, F_fresh), T);
 }
 
 
@@ -302,11 +320,11 @@ function do_equals() {
 function do_percent() {
   if (std.ne2(gets(g, F_terms, getn(g, F_termx), F_ss), "")) {
     if (std.gt2(getn(g, F_termx), 1)) {
-      std.path_setv(_M, 90142, std.adr(g, F_terms, getn(g, F_termx), F_ss), str.to_str(std.div(std.mul(eval_(getn(g, F_termx)), eval_(std.sub(getn(g, F_termx), 1))), 100), {}));
+      std.path_setv(_M, 70142, std.adr(g, F_terms, getn(g, F_termx), F_ss), str.to_str(std.div(std.mul(eval_(getn(g, F_termx)), eval_(std.sub(getn(g, F_termx), 1))), 100), {}));
     } else {
-      std.path_setv(_M, 90145, std.adr(g, F_terms, getn(g, F_termx), F_ss), str.to_str(std.div(eval_(getn(g, F_termx)), 100), {}));
+      std.path_setv(_M, 70145, std.adr(g, F_terms, getn(g, F_termx), F_ss), str.to_str(std.div(eval_(getn(g, F_termx)), 100), {}));
     }
-    std.path_setv(_M, 90146, std.adr(g, F_fresh), Y);
+    std.path_setv(_M, 70146, std.adr(g, F_fresh), T);
   }
 }
 
@@ -338,9 +356,9 @@ function eval_(termx) {
 //   main_init
 //====================
 export function main_init() {
-  std.path_setv(_M, 150048, std.adr(g, F_terms, 1, F_ss), "");
-  std.path_setv(_M, 150049, std.adr(g, F_termx), 1);
-  std.path_setv(_M, 150050, std.adr(g, F_fresh), Y);
+  std.path_setv(_M, 120048, std.adr(g, F_terms, 1, F_ss), "");
+  std.path_setv(_M, 120049, std.adr(g, F_termx), 1);
+  std.path_setv(_M, 120050, std.adr(g, F_fresh), T);
 }
 
 
@@ -353,10 +371,10 @@ function sign_change(tx) {
     if (std.gt2(tx, 1)) {
       sign_change(std.sub(tx, 1));
     }
-  } else if (str.str_begins(old, "-") === Y) {
-    std.path_setv(_M, 40171, std.adr(g, F_terms, tx, F_ss), str.subset(old, { from:2 }));
+  } else if (str.str_begins(old, "-") === T) {
+    std.path_setv(_M, 80171, std.adr(g, F_terms, tx, F_ss), str.subset(old, { from:2 }));
   } else {
-    std.path_setv(_M, 40173, std.adr(g, F_terms, tx, F_ss), std.cat("-", old));
+    std.path_setv(_M, 80173, std.adr(g, F_terms, tx, F_ss), std.cat("-", old));
   }
 }
 
