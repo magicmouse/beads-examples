@@ -10,7 +10,7 @@ To run the program please visit:  [color picket at magicmouse.com](https://magic
 
 Regular mode:
 
-![example](http://magicmouse.com/apps/colr/screenshot.jpg)
+![example](http://magicmouse.com/apps/colr/screenshot.png)
 
 
 In this example, we will use the following standard library routines:
