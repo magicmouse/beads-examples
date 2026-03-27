@@ -1,16 +1,16 @@
 ### A color picker utility
 
-The Beads language is designed to replace Java and Javascript for making graphical interactive software. More information is available at [beadslang.org](beadslang.org) and other example programs are available on this Github repository. If you would like to join the beta test, please visit [beadslang.com](beadslang.com) and see the signup form.
+The Beads language is designed to replace Java and Javascript for making graphical interactive software. More information is available at [magicmouse.com](magicmouse.com) and other example programs are available on this Github repository. 
 
 This simple tool is designed to give a programmer a way to pick colors easily. It shows the HTML named colors, and by clicking on a color chip it will copy the color name to the clipboard so you can paste it into your code. You can switch the mode by clicking the little button in the upper left corner, and then it will show Hex colors and copy those. It will draw the color names if the window is large enough but you can shrink the window down to super small size and then it is just color chips.
 
-To run the program please visit:  [picker running on a server](https://beadslang.com/projects/colorchart/colorchart.html)
+To run the program please visit:  [color picket at magicmouse.com](https://magicmouse.com/apps/colr/colorchart.html)
 
 #### screenshot:
 
 Regular mode:
 
-![example](http://beadslang.com/projects/colorchart/screenshot.jpg)
+![example](http://magicmouse.com/apps/colr/screenshot.jpg)
 
 
 In this example, we will use the following standard library routines:
